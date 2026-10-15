@@ -24,7 +24,6 @@ export function activityAvailability(state: GameState, def: ActivityDef): Action
   if (def.perYear > 0 && actionCount(state, `activity:${def.id}`) >= def.perYear) return { available: false, reason: 'Done for this year', cost };
   if (def.energy > state.character.energy) return { available: false, reason: 'No energy left this year', cost };
   if (cost > state.finances.cash) return { available: false, reason: "Can't afford it", cost };
-  if (def.id === 'lottery' && !getCountry(state.character.countryCode).gamblingLegal) return { available: false, reason: 'Illegal here', cost };
   return { available: true, cost };
 }
 
@@ -43,7 +42,6 @@ export function doActivity(state: GameState, rng: Rng, id: string): GameState {
     return attendRehab(s, rng);
   }
   s = addMoney(s, -cost);
-  if (def.id === 'lottery') return playLottery(s, rng, cost);
 
   const athletic = s.character.traits.includes('athletic') && (def.id === 'gym' || def.id === 'jog') ? 2 : 0;
   const quick = s.character.traits.includes('quick_learner') && def.id === 'library' ? 2 : 0;
@@ -60,27 +58,4 @@ export function doActivity(state: GameState, rng: Rng, id: string): GameState {
   if (def.counter) s = bump(s, def.counter);
   s = log(s, def.text, 'good');
   return setResult(s, def.text, 'good', { statDeltas: effects, moneyDelta: -cost });
-}
-
-function playLottery(state: GameState, rng: Rng, cost: number): GameState {
-  let s = bump(state, 'gamblingSessions');
-  const lucky = s.character.traits.includes('lucky') ? 2 : 1;
-  const roll = rng.next();
-  let prize = 0;
-  if (roll < 0.000_02 * lucky) prize = scaleMoney(s, rng.int(5_000_000, 50_000_000));
-  else if (roll < 0.0005 * lucky) prize = scaleMoney(s, rng.int(50_000, 500_000));
-  else if (roll < 0.01 * lucky) prize = scaleMoney(s, rng.int(500, 5_000));
-  else if (roll < 0.12 * lucky) prize = scaleMoney(s, rng.int(20, 100));
-  if (prize > 0) {
-    s = addMoney(s, prize);
-    s = { ...s, counters: { ...s.counters, gamblingWon: s.counters.gamblingWon + prize } };
-    const big = prize >= scaleMoney(s, 50_000);
-    if (big) s = addStats(s, { happiness: 25 });
-    const text = big ? `I WON THE LOTTERY! ${prize.toLocaleString('en-US')}!` : `My lottery ticket won ${prize.toLocaleString('en-US')}.`;
-    s = log(s, text, 'money');
-    return setResult(s, text, 'good', { moneyDelta: prize - cost });
-  }
-  s = { ...s, counters: { ...s.counters, gamblingLost: s.counters.gamblingLost + cost } };
-  s = log(s, 'I bought a lottery ticket. Not a winner.');
-  return setResult(s, 'Not a winner. Maybe next year.', 'info', { moneyDelta: -cost });
 }

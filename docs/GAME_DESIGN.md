@@ -106,7 +106,7 @@ Yearly: neglected people lose relationship (−2 family, −4 friends/partners) 
 
 ## 12. Activities
 
-16 activities in four groups (mind & body, doctor, fun, luck) with age gates, costs, energy, yearly caps, stat effects, karma and a risk roll (e.g. gym 4% injury, surgery 12% botch, vacation 6% food poisoning, party 10% "woke up somewhere unfamiliar"). The doctor costs $400 + per-illness fees (85% cheaper with public healthcare), heals +4 and cures each illness with its cure chance; rehab ($12k) cuts addictions by 40-70. Lottery ($20): 12% small win, 1% $500-5k, 0.05% $50-500k, 0.002% jackpot (lucky trait doubles odds).
+15 activities in three groups (mind & body, doctor, fun) with age gates, costs, energy, yearly caps, stat effects, karma and a risk roll (e.g. gym 4% injury, surgery 12% botch, vacation 6% food poisoning, party 10% "woke up somewhere unfamiliar"). The doctor costs $400 + per-illness fees (85% cheaper with public healthcare), heals +4 and cures each illness with its cure chance; rehab ($12k) cuts addictions by 40-70.
 
 ## 13. Health, illness, addiction
 
@@ -116,7 +116,7 @@ Yearly: neglected people lose relationship (−2 family, −4 friends/partners) 
 
 Seven crimes (shoplift, pickpocket, vandalism, burglary, car theft, online fraud, bank robbery) with success chance (25-75%, +Smarts, +8% rebellious, +5% lucky, −notoriety), payouts, arrest chance on failure, sentences (0-20 years), karma hits and injury chances. Caught without a sentence → fine and a criminal record; convicted → prison: job lost, school ended, no expenses but no income, 15%/yr yard fights, release logged. Records block many jobs and reduce interview odds.
 
-No casino or drug menus in the MVP (keeps the Teen rating; see roadmap).
+No casino, lottery or drug menus in the MVP: any simulated-gambling feature makes the iOS app R18+ in Australia and 18+ everywhere if "frequent"; alcohol and drugs appear only as event temptations with consequences (see roadmap).
 
 ## 15. Random events
 
@@ -137,7 +137,7 @@ Content budget: 12 category files (early childhood, kid years, teen years, young
 
 On death: cause (illness-driven where one exists; otherwise age-appropriate), net worth, one **ribbon** from 26 by priority (Deadly, Jailbird, Tycoon, Famous, Rich, Academic, Family First, Heartbreaker, Cunning, Scandalous, High Roller, Fit, Bookworm, Globetrotter, Generous, Loyal, Hustler, Survivor, Addict, Lazy, Centenarian, Wasted, Successful, Happy, Miserable, Mediocre), an **obituary** generated from career, education, family, money and convictions, and an epitaph. The tombstone screen shows all of it plus karma. The graveyard keeps the last 200 lives and the ribbon collection.
 
-**Legacy:** continue as any living child: the new life keeps the surname, the family tree (the dead player becomes a dead parent; the other parent and siblings persist), generation counter and ancestor list. Free play: 2 generations; premium: unlimited. **Second chance:** once per life, death can be undone (rewarded ad, or instantly for premium): health is restored to ~45 and severe illnesses removed.
+**Legacy:** continue as any living child: the new life keeps the surname, the family tree (the dead player becomes a dead parent; the other parent and siblings persist), generation counter and ancestor list. Free play: one hand-off per family line (generation 1 → 2); premium: unlimited. **Second chance:** once per life, death can be undone (rewarded ad, or instantly for premium): health is restored to ~45 and severe illnesses removed.
 
 ## 17. Onboarding and settings
 
@@ -150,7 +150,7 @@ A one-line tutorial tip on the first life ("Tap the green + …"). Settings: hap
 | Random events | ≥ 300 choice events + 50 flavour lines |
 | Jobs | 71 ladders / ~260 titles |
 | Majors / graduate programs | 25 / 6 |
-| Activities / crimes | 16 / 7 |
+| Activities / crimes | 15 / 7 |
 | Assets | 23 |
 | Hustles | 6 |
 | Illnesses | 25 |
@@ -165,12 +165,12 @@ A one-line tutorial tip on the first life ("Tap the green + …"). Settings: hap
 
 - Anchored adaptive banner on the life screen only (hidden for premium).
 - Interstitials: never during the first 12 age-ups on the device, never within 90 s of launch, then at most one per 6 age-ups, ≥ 150 s apart, ≤ 3 per session, only on the Age+ tap (never over a choice card, never on launch, never on death).
-- Rewarded (opt-in, capped per day): Windfall cash (3/day; max of $800, 25% of salary, 5% of cash), Second chance after death (1/day, once per life), New job listings (3/day). Premium users get the same rewards instantly without an ad.
+- Rewarded (opt-in, capped per day): Windfall cash (3/day; max of $800, 25% of salary, 5% of cash), Stat boost (+30 Happiness or Health, or +16 Smarts or Looks; 3/day), Second chance after death (1/day, once per life), New job listings (3/day). Premium users get the same rewards instantly without an ad.
 - Consent: UMP form in regulated regions, ATT on iOS, Teen max ad content rating, no child-directed tagging, privacy options in Settings.
 
-**Premium (RevenueCat entitlement `premium`, product `lifeloop_premium`, one-time, suggested $4.99-7.99):** no ads, custom starting stats and wealthy start, unlimited generations, instant second chances, all future premium perks. Restore purchases in Settings and on the paywall.
+**Premium (RevenueCat entitlement `premium`, product `lifeloop_premium`, one-time, $4.99 USD):** no ads, custom starting stats and wealthy start, unlimited generations, instant second chances, all future premium perks. ($4.99 matches Another Life's verified ad-free price and BitLife's launch price; BitLife's current $7.99-9.99 reflects eight years of content we do not yet have.) Restore purchases in Settings and on the paywall.
 
-**What stays free forever:** every event, career, country, relationship, asset, activity, crime, ribbon, two generations, and all future core content. No consumables, no loot boxes, no subscriptions at launch.
+**What stays free forever:** every event, career, country, relationship, asset, activity, crime, ribbon, one generation hand-off per family line, and all future core content. No consumables, no loot boxes, no subscriptions at launch.
 
 ## 20. Blended ideas from the reference games
 

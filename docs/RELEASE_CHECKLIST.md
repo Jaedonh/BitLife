@@ -58,7 +58,7 @@ eas build --profile production --platform ios
 | Horror/fear themes | None |
 | Medical/treatment information | None (no advice; wellness topics = No) |
 | Alcohol, tobacco, or drug use or references | Infrequent/Mild (temptation events with consequences) |
-| Simulated gambling | Infrequent/Mild (lottery ticket activity only; no casino) |
+| Simulated gambling | None (no casino, lottery or betting features; keep it that way: even Infrequent is R18+ in Australia) |
 | Gambling (real money) | No |
 | Sexual content or nudity | None |
 | Contests | No |
@@ -71,7 +71,7 @@ eas build --profile production --platform ios
 
 ### Google Play
 
-- [ ] App content → **Ads: Yes**; **Target audience: 18+** (or 16-17 and 18+; never under 13); **Content rating (IARC)**: answer as above → expect ESRB Teen; note PEGI may assign a higher rating because of simulated gambling. If EU discoverability matters more than the lottery activity, remove `lottery` from `src/data/activities.ts` and re-rate.
+- [ ] App content → **Ads: Yes**; **Target audience: 18+** (or 16-17 and 18+; never under 13); **Content rating (IARC)**: answer as above → expect ESRB Teen / PEGI 12-16. Keep simulated gambling at None.
 - [ ] **Data safety**: Collects data: Yes. Shares data: Yes (advertising partners). Declare: Device or other IDs (advertising ID) – collected & shared – Advertising/analytics; App interactions – collected & shared – Advertising/analytics; Crash logs & diagnostics – collected – Analytics; Purchase history – collected – App functionality; Encryption in transit: Yes; Deletion request: Yes (contact email). `com.google.android.gms.permission.AD_ID` is declared by the tracking-transparency plugin.
 - [ ] Government ID verification; public contact email/address shown on the listing for monetised apps.
 

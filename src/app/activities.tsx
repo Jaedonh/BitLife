@@ -1,32 +1,45 @@
 import { Redirect } from 'expo-router';
-import { ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { ScreenHeader } from '@/components/game/ScreenHeader';
-import { ListRow, Screen, Section, T } from '@/components/ui';
+import { Button, ListRow, Screen, Section, T } from '@/components/ui';
 import { ACTIVITIES, type ActivityGroup } from '@/data/activities';
 import { CRIMES } from '@/data/crimes';
 import { activityAvailability, crimeAvailability } from '@/engine';
 import { formatMoney } from '@/engine/util';
 import { useGameStore } from '@/store/gameStore';
+import { useSettingsStore } from '@/store/settingsStore';
 import { spacing } from '@/theme';
 
 const GROUPS: { id: ActivityGroup; title: string }[] = [
   { id: 'mind_body', title: 'Mind & body' },
   { id: 'doctor', title: 'Doctor' },
   { id: 'fun', title: 'Fun' },
-  { id: 'money', title: 'Luck' },
 ];
 
 export default function ActivitiesScreen() {
   const game = useGameStore((s) => s.game);
   const act = useGameStore((s) => s.act);
+  const rewarded = useGameStore((s) => s.rewarded);
+  const canUseRewarded = useGameStore((s) => s.canUseRewarded);
+  const premium = useSettingsStore((s) => s.premium);
   if (!game) return <Redirect href="/" />;
+  const boost = canUseRewarded('statBoost');
   const cc = game.character.countryCode;
   const age = game.character.age;
   return (
     <Screen>
       <ScreenHeader title="Activities" subtitle={`Energy ${game.character.energy}/${game.character.energyMax} this year`} />
       <ScrollView contentContainerStyle={styles.content}>
+        {boost ? (
+          <Section title={premium ? 'Premium boost' : 'Watch an ad for a boost'}>
+            <View style={styles.boostRow}>
+              {(['happiness', 'health', 'smarts', 'looks'] as const).map((stat) => (
+                <Button key={stat} testID={`boost-${stat}`} size="sm" variant="accent" style={styles.boostBtn} title={`${premium ? '✨' : '📺'} ${stat === 'happiness' ? 'Happiness +30' : stat === 'health' ? 'Health +30' : stat === 'smarts' ? 'Smarts +16' : 'Looks +16'}`} onPress={() => void rewarded('statBoost', stat)} />
+              ))}
+            </View>
+          </Section>
+        ) : null}
         {GROUPS.map((g) => {
           const items = ACTIVITIES.filter((a) => a.group === g.id && age >= Math.min(a.minAge, 6));
           if (!items.length) return null;
@@ -65,4 +78,8 @@ export default function ActivitiesScreen() {
   );
 }
 
-const styles = StyleSheet.create({ content: { padding: spacing.lg, paddingBottom: spacing.xxl } });
+const styles = StyleSheet.create({
+  content: { padding: spacing.lg, paddingBottom: spacing.xxl },
+  boostRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  boostBtn: { flexBasis: '47%', flexGrow: 1 },
+});

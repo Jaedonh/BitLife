@@ -1,6 +1,6 @@
 import type { Stats } from '@/engine/types';
 
-export type ActivityGroup = 'mind_body' | 'doctor' | 'fun' | 'money' | 'shady';
+export type ActivityGroup = 'mind_body' | 'doctor' | 'fun';
 
 export interface ActivityDef {
   id: string;
@@ -22,7 +22,7 @@ export interface ActivityDef {
   /** Chance (0-1) of a bad outcome with its own effects + log line. */
   risk?: { chance: number; effects: Partial<Stats>; text: string; injury?: boolean; illness?: string; arrestYears?: number };
   /** Counter to bump on success. */
-  counter?: 'workouts' | 'libraryVisits' | 'meditations' | 'vacations' | 'surgeries' | 'gamblingSessions';
+  counter?: 'workouts' | 'libraryVisits' | 'meditations' | 'vacations' | 'surgeries';
   /** Log line on success. */
   text: string;
   requiresJob?: boolean;
@@ -45,7 +45,6 @@ export const ACTIVITIES: readonly ActivityDef[] = [
   { id: 'party', group: 'fun', name: 'Party', emoji: '🎉', description: 'Go out with friends.', minAge: 16, cost: 150, energy: 1, perYear: 3, effects: { happiness: 6, health: -1 }, text: 'I went out and danced until my feet hurt.', risk: { chance: 0.1, effects: { happiness: -5, health: -3 }, text: 'The party got out of hand and I woke up somewhere unfamiliar.' } },
   { id: 'hobby', group: 'fun', name: 'Hobby', emoji: '🎨', description: 'Paint, play, build.', minAge: 5, cost: 100, energy: 1, perYear: 2, effects: { happiness: 4, smarts: 1 }, text: 'I lost myself in a hobby for a while.' },
   { id: 'volunteer', group: 'fun', name: 'Volunteer', emoji: '🤲', description: 'Help out in the community.', minAge: 12, cost: 0, energy: 1, perYear: 2, effects: { happiness: 3 }, karma: 4, text: 'I volunteered at a shelter. It felt good to be useful.' },
-  { id: 'lottery', group: 'money', name: 'Lottery ticket', emoji: '🎟️', description: 'A long shot.', minAge: 18, cost: 20, energy: 0, perYear: 3, effects: {}, counter: 'gamblingSessions', text: 'I bought a lottery ticket. Not a winner.' },
 ];
 
 export const ACTIVITY_BY_ID: Record<string, ActivityDef> = Object.fromEntries(ACTIVITIES.map((a) => [a.id, a]));

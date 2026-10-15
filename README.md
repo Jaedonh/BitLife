@@ -24,10 +24,10 @@ Real ads and purchases need a development build: `eas build --profile developmen
 - **Careers:** 71 job ladders across 13 categories with requirements, interviews, performance, raises, promotions, layoffs, retirement; 6 side hustles.
 - **Relationships:** parents, siblings, friends, lovers, spouses, children, pets; 14 interactions; relationship decay and NPC memory; marriage, children, divorce, inheritance.
 - **Assets and money:** cars, homes (mortgages, rent-out), luxury items, savings/index/crypto investing, debt, taxes, bankruptcy.
-- **Activities:** gym, library, meditation, salon, surgery, doctor, therapy, rehab, parties, vacations, volunteering, lottery; 7 crimes with arrest, fines and prison.
+- **Activities:** gym, library, meditation, salon, surgery, doctor, therapy, rehab, parties, vacations, volunteering; 7 crimes with arrest, fines and prison.
 - **Death and legacy:** mortality model, 26 ribbons, generated obituary and epitaph, continue as an heir, graveyard.
 - **Content:** data-driven events (`src/data/events/*`) validated by tests and `scripts/validate-events.ts`.
-- **Monetization:** AdMob banner/interstitial/rewarded behind a pure cadence policy (grace period, every-N age-ups, cooldown, session cap, daily rewarded caps) and a single RevenueCat one-time **Premium** entitlement (no ads, custom stats, unlimited generations, instant second chance). Everything degrades to no-ops on web and in Expo Go.
+- **Monetization:** AdMob banner/interstitial/rewarded behind a pure cadence policy (grace period, every-N age-ups, cooldown, session cap, daily rewarded caps) and a single RevenueCat one-time **Premium** entitlement (no ads, custom stats, unlimited generations, instant second chance; $4.99). Everything degrades to no-ops on web and in Expo Go.
 - **Store readiness:** icons and store art (`scripts/generate-icons.sh`), variant-aware `app.config.ts` (sample AdMob IDs outside production), SKAdNetwork ids, UMP consent + ATT, iOS privacy manifest, `eas.json`, GitHub Actions CI, privacy policy, listing copy and a release checklist in `docs/`.
 
 ## Project layout

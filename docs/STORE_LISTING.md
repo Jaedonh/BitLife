@@ -44,7 +44,7 @@ LOVE, FAMILY, FRIENDS
 MONEY
 • Buy cars, homes and luxuries. Mortgages, upkeep and repairs are real.
 • Invest in savings, an index fund, or something far riskier.
-• Debt, taxes and bankruptcy exist. So does a very occasional lottery win.
+• Debt, taxes and bankruptcy exist. So do very occasional windfalls.
 
 DIE WELL
 • Every life ends with a tombstone, a ribbon that sums you up, and an obituary written from what you actually did.
@@ -72,7 +72,7 @@ Life is short. Loop it.
 
 ## Content rating answers (see RELEASE_CHECKLIST.md)
 
-Target: **Teen (ESRB) / 13+ (Apple)**. Infrequent/mild: alcohol & drug references, simulated gambling (lottery only), crime, violence (text, no gore), mature/suggestive themes (romance).
+Target: **Teen (ESRB) / 13+ (Apple)**. Infrequent/mild: alcohol & drug references, crime, violence (text, no gore), mature/suggestive themes (romance). **No simulated gambling** (any amount makes the app R18+ in Australia).
 
 ## Screenshots to capture (use the web export or a device)
 
@@ -87,4 +87,4 @@ Sizes: iPhone 6.9" 1320×2868 (required), iPad 13" 2064×2752 (required while `s
 
 ## What's free forever (publish in-app and in the listing)
 
-All events, careers, countries, relationships, assets, crime, generations up to two, ribbons and all future core content. Premium only adds: no ads, custom starting stats and wealthy start, unlimited generations, instant second chances.
+All events, careers, countries, relationships, assets, crime, one free generation hand-off, ribbons and all future core content. Premium only adds: no ads, custom starting stats and wealthy start, unlimited generations, instant second chances.

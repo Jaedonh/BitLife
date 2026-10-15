@@ -8,7 +8,7 @@ import { readJson, remove, StorageKeys, writeJson } from '@/services/storage';
 import { migrateSave } from './migrations';
 import { useSettingsStore } from './settingsStore';
 
-export type RewardedPlacement = 'cashBoost' | 'secondChance' | 'reroll';
+export type RewardedPlacement = 'cashBoost' | 'statBoost' | 'secondChance' | 'reroll';
 
 interface GameStore {
   hydrated: boolean;
@@ -23,7 +23,7 @@ interface GameStore {
   choose: (choiceId: string) => void;
   act: (action: PlayerAction) => void;
   /** Shows a rewarded ad (or grants directly for premium) and applies the reward. */
-  rewarded: (placement: RewardedPlacement) => Promise<'granted' | 'unavailable' | 'dismissed' | 'capped'>;
+  rewarded: (placement: RewardedPlacement, option?: string) => Promise<'granted' | 'unavailable' | 'dismissed' | 'capped'>;
   canUseRewarded: (placement: RewardedPlacement) => boolean;
   abandonLife: () => void;
   clearResult: () => void;
@@ -124,7 +124,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!ads.isSupported()) return false;
     return canShowRewarded(settings.adMeta, placement, Date.now());
   },
-  rewarded: async (placement) => {
+  rewarded: async (placement, option) => {
     const g = get().game;
     if (!g) return 'unavailable';
     const settings = useSettingsStore.getState();
@@ -141,7 +141,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       settings.updateAdMeta((m) => recordRewardedUsed(m, placement, Date.now()));
     }
     const current = get().game ?? g;
-    const next = { ...(placement === 'secondChance' ? secondChance(current) : applyAction(current, { type: 'rewarded', placement })), updatedAt: Date.now() };
+    const next = { ...(placement === 'secondChance' ? secondChance(current) : applyAction(current, { type: 'rewarded', placement, option })), updatedAt: Date.now() };
     set({ game: next });
     persist(next);
     return 'granted';

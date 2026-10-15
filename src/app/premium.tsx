@@ -12,7 +12,7 @@ import { colors, spacing, typography } from '@/theme';
 const PERKS = [
   ['🚫', 'No ads, ever', 'No banners, no interstitials. Rewarded perks are granted instantly.'],
   ['🎚️', 'Custom starting stats', 'Choose Happiness, Health, Smarts and Looks, or be born into wealth.'],
-  ['🧬', 'Unlimited generations', 'Continue as your children forever and build a dynasty.'],
+  ['🧬', 'Unlimited generations', 'Free play hands off to your child once per family line; Premium continues forever.'],
   ['✨', 'Instant second chances', 'Undo death once per life without watching anything.'],
   ['🔮', 'Everything we add next', 'All future core content stays free for everyone; premium perks keep growing.'],
 ] as const;

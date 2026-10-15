@@ -45,7 +45,6 @@ export const recklessPolicy: Policy = (s, rng) => {
   if (s.education.enrolled && rng.chance(0.3)) actions.push({ type: 'skipClass' });
   if (age >= 13 && rng.chance(0.5)) actions.push({ type: 'crime', id: rng.pick(['shoplift', 'pickpocket', 'burglary', 'car_theft']) });
   if (age >= 16 && rng.chance(0.6)) actions.push({ type: 'activity', id: 'party' });
-  if (age >= 18 && rng.chance(0.3)) actions.push({ type: 'activity', id: 'lottery' });
   if (age >= 16 && !s.career.job && s.career.listings.length && rng.chance(0.3)) actions.push({ type: 'applyJob', listingId: rng.pick(s.career.listings).id });
   return actions;
 };

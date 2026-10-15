@@ -38,16 +38,23 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
     case 'withdraw': s = withdraw(s, action.kind, action.amount); break;
     case 'payDebt': s = payDebt(s, action.amount); break;
     case 'crime': s = commitCrime(s, rng, action.id); break;
-    case 'gamble': s = setResult(s, 'The casino is closed for renovations.', 'info'); break;
     case 'refreshListings': s = rollListings(s, rng); s = setResult(s, 'New job listings are in.', 'info'); break;
-    case 'rewarded': s = rewardedBoost(s, rng, action.placement); break;
+    case 'rewarded': s = rewardedBoost(s, rng, action.placement, action.option); break;
     default: break;
   }
   return { ...s, rng: rng.snapshot() };
 }
 
-function rewardedBoost(state: GameState, rng: Rng, placement: 'cashBoost' | 'secondChance' | 'reroll'): GameState {
+function rewardedBoost(state: GameState, rng: Rng, placement: 'cashBoost' | 'statBoost' | 'secondChance' | 'reroll', option?: string): GameState {
   let s = bump(state, 'rewardedAdsUsed');
+  if (placement === 'statBoost') {
+    const stat = option === 'health' || option === 'smarts' || option === 'looks' ? option : 'happiness';
+    const delta = stat === 'happiness' || stat === 'health' ? 30 : 16;
+    s = addStats(s, { [stat]: delta });
+    const label = stat === 'happiness' ? 'a weekend that fixed everything' : stat === 'health' ? 'a health kick that actually stuck' : stat === 'smarts' ? 'a documentary binge that rewired my brain' : 'a glow-up';
+    s = log(s, `I had ${label}.`, 'good');
+    return setResult(s, `${stat[0]!.toUpperCase()}${stat.slice(1)} +${delta}.`, 'good', { statDeltas: { [stat]: delta } });
+  }
   if (placement === 'cashBoost') {
     const salary = s.career.job?.salary ?? 0;
     const amount = Math.max(scaleMoney(s, s.character.age < 18 ? 150 : 800), Math.round(salary * 0.25), Math.round(Math.abs(s.finances.cash) * 0.05));

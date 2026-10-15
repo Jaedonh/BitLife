@@ -74,6 +74,7 @@ export const adPolicyConfig = {
   /** Rewarded placements: hard daily caps per placement. */
   rewardedDailyCaps: {
     cashBoost: 3,
+    statBoost: 3,
     secondChance: 1,
     reroll: 3,
   } as Record<string, number>,

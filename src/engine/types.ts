@@ -464,8 +464,7 @@ export type PlayerAction =
   | { type: 'withdraw'; kind: InvestmentKind; amount: number }
   | { type: 'payDebt'; amount: number }
   | { type: 'crime'; id: string }
-  | { type: 'gamble'; game: string; bet: number }
-  | { type: 'rewarded'; placement: 'cashBoost' | 'secondChance' | 'reroll' }
+  | { type: 'rewarded'; placement: 'cashBoost' | 'statBoost' | 'secondChance' | 'reroll'; option?: string }
   | { type: 'refreshListings' };
 
 export interface ActionAvailability {
