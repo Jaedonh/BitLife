@@ -7,6 +7,7 @@ import {
   recordRewardedUsed,
   rewardedUsesLeft,
   shouldShowInterstitial,
+  startSession,
 } from '../ads/policy';
 
 const T0 = Date.UTC(2026, 0, 1, 12, 0, 0);
@@ -47,6 +48,23 @@ describe('interstitial policy', () => {
     // enough age-ups but cooldown not elapsed
     expect(shouldShowInterstitial(m, t1 + sec(adPolicyConfig.interstitialCooldownSeconds - 1), false)).toBe(false);
     expect(shouldShowInterstitial(m, t1 + sec(adPolicyConfig.interstitialCooldownSeconds + 1), false)).toBe(true);
+  });
+});
+
+describe('interstitial session cap', () => {
+  it('stops after the per-session cap and resets on a new session', () => {
+    const launchGrace = adPolicyConfig.interstitialLaunchGraceSeconds;
+    let m = ageUps(emptyAdMeta(T0), adPolicyConfig.interstitialGraceAgeUps + 1);
+    let t = T0 + sec(launchGrace + 1);
+    for (let i = 0; i < adPolicyConfig.interstitialSessionCap; i++) {
+      expect(shouldShowInterstitial(m, t, false)).toBe(true);
+      m = recordInterstitialShown(m, t);
+      m = ageUps(m, adPolicyConfig.interstitialEveryNAgeUps);
+      t += sec(adPolicyConfig.interstitialCooldownSeconds + 1);
+    }
+    expect(shouldShowInterstitial(m, t, false)).toBe(false);
+    m = startSession(m, t);
+    expect(shouldShowInterstitial(m, t + sec(launchGrace + 1), false)).toBe(true);
   });
 });
 

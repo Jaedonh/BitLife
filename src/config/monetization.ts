@@ -69,6 +69,8 @@ export const adPolicyConfig = {
   interstitialGraceAgeUps: 12,
   /** No interstitials for this many seconds after app launch. */
   interstitialLaunchGraceSeconds: 90,
+  /** Hard cap on interstitials per app session. */
+  interstitialSessionCap: 3,
   /** Rewarded placements: hard daily caps per placement. */
   rewardedDailyCaps: {
     cashBoost: 3,

@@ -17,6 +17,8 @@ export interface AdMeta {
   rewardedToday: Record<string, number>;
   /** YYYY-MM-DD the rewardedToday counters belong to. */
   rewardedDay: string;
+  /** Interstitials shown since launch (per-session cap). */
+  interstitialsThisSession: number;
 }
 
 export function emptyAdMeta(now: number): AdMeta {
@@ -27,7 +29,13 @@ export function emptyAdMeta(now: number): AdMeta {
     launchedAt: now,
     rewardedToday: {},
     rewardedDay: dayKey(now),
+    interstitialsThisSession: 0,
   };
+}
+
+/** Call when the app (re)launches: a new session resets the per-session cap. */
+export function startSession(meta: AdMeta, now: number): AdMeta {
+  return { ...meta, launchedAt: now, interstitialsThisSession: 0 };
 }
 
 export function dayKey(now: number): string {
@@ -51,11 +59,12 @@ export function shouldShowInterstitial(meta: AdMeta, now: number, isPremium: boo
   if (now - meta.launchedAt < c.interstitialLaunchGraceSeconds * 1000) return false;
   if (meta.ageUpsSinceInterstitial < c.interstitialEveryNAgeUps) return false;
   if (now - meta.lastInterstitialAt < c.interstitialCooldownSeconds * 1000) return false;
+  if ((meta.interstitialsThisSession ?? 0) >= c.interstitialSessionCap) return false;
   return true;
 }
 
 export function recordInterstitialShown(meta: AdMeta, now: number): AdMeta {
-  return { ...meta, ageUpsSinceInterstitial: 0, lastInterstitialAt: now };
+  return { ...meta, ageUpsSinceInterstitial: 0, lastInterstitialAt: now, interstitialsThisSession: (meta.interstitialsThisSession ?? 0) + 1 };
 }
 
 function rolledMeta(meta: AdMeta, now: number): AdMeta {
