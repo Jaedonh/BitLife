@@ -14,7 +14,7 @@ const flush = () => new Promise((r) => setTimeout(r, 250));
 describe('gameStore', () => {
   beforeEach(async () => {
     await AsyncStorage.clear();
-    useGameStore.setState({ game: null, hydrated: false, adShowing: false });
+    useGameStore.setState({ game: null, hydrated: false, adShowing: false, pendingSummary: null });
     useSettingsStore.setState({ premium: false, graveyard: [] });
     await useSettingsStore.getState().hydrate();
   });
@@ -33,6 +33,8 @@ describe('gameStore', () => {
       }
     }
     expect(g.character.age).toBe(12);
+    // a year summary toast is queued once the year's cards are closed
+    expect(g.lastResult?.text).toContain('Age 12');
     await flush();
     const raw = await AsyncStorage.getItem(StorageKeys.save);
     expect(raw).toBeTruthy();

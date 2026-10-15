@@ -115,7 +115,8 @@ function formatInherit(state: GameState, amount: number): string {
 /** Advances age/year and resets per-year counters. */
 export function advanceYear(state: GameState): GameState {
   const c = state.character;
-  const energyMax = c.age + 1 < 6 ? 1 : c.age + 1 < 13 ? 2 : 3;
+  const nextAge = c.age + 1;
+  const energyMax = nextAge < 6 ? 1 : nextAge < 13 ? 2 : nextAge < 60 ? 4 : 3;
   return {
     ...state,
     year: state.year + 1,

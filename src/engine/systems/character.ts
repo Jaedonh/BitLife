@@ -154,8 +154,8 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
     traits,
     karma: 50,
     fame: 0,
-    energy: 3,
-    energyMax: 3,
+    energy: 1,
+    energyMax: 1,
   };
 
   // Family

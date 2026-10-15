@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 import { ageUp as engineAgeUp, applyAction, createLife, EVENT_REGISTRY, randomSeed, resolveChoice, secondChance } from '@/engine';
-import type { GameState, NewLifeOptions, PlayerAction } from '@/engine/types';
+import type { GameState, LastResult, NewLifeOptions, PlayerAction } from '@/engine/types';
 import { ads } from '@/services/ads';
 import { track } from '@/services/analytics';
 import { canShowRewarded, recordAgeUp, recordInterstitialShown, recordRewardedUsed, shouldShowInterstitial } from '@/services/ads/policy';
@@ -16,6 +16,8 @@ interface GameStore {
   game: GameState | null;
   /** True while an interstitial is on screen. */
   adShowing: boolean;
+  /** Year summary waiting for the year's event cards to close. */
+  pendingSummary: LastResult | null;
   /** Free generations used on this device (premium = unlimited). */
   hydrate: () => Promise<void>;
   newLife: (options?: NewLifeOptions) => void;
@@ -37,6 +39,25 @@ function persist(game: GameState | null) {
     if (game) void writeJson(StorageKeys.save, game);
     else void remove(StorageKeys.save);
   }, 150);
+}
+
+/** One-line recap of the year that just passed, shown as a toast. */
+function yearSummary(before: GameState, after: GameState): LastResult {
+  const statDeltas: Partial<GameState['character']['stats']> = {};
+  for (const k of ['happiness', 'health', 'smarts', 'looks'] as const) {
+    const d = after.character.stats[k] - before.character.stats[k];
+    if (d) statDeltas[k] = d;
+  }
+  const moneyDelta = after.finances.cash - before.finances.cash;
+  const highlight = after.log
+    .slice(before.log.length)
+    .find((l) => l.kind === 'milestone' || l.kind === 'bad' || l.kind === 'money' || l.kind === 'good');
+  return {
+    text: `${after.year} · Age ${after.character.age}${highlight ? ` · ${highlight.text}` : ''}`,
+    kind: 'info',
+    statDeltas,
+    moneyDelta: moneyDelta || undefined,
+  };
 }
 
 function recordDeath(game: GameState) {
@@ -63,6 +84,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   hydrated: false,
   game: null,
   adShowing: false,
+  pendingSummary: null,
   hydrate: async () => {
     const raw = await readJson<unknown>(StorageKeys.save);
     const game = migrateSave(raw);
@@ -100,8 +122,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
     const current = get().game;
     if (!current || current !== g) return;
-    const next = { ...engineAgeUp(current), updatedAt: Date.now() };
-    set({ game: next });
+    let next = { ...engineAgeUp(current), updatedAt: Date.now() };
+    const summary = next.alive ? yearSummary(current, next) : null;
+    if (summary && !next.pendingEvent) {
+      next = { ...next, lastResult: summary };
+      set({ game: next, pendingSummary: null });
+    } else {
+      set({ game: next, pendingSummary: summary });
+    }
     persist(next);
     track({ name: 'age_up', age: next.character.age });
     if (!next.alive) recordDeath(next);
@@ -110,8 +138,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
   choose: (choiceId) => {
     const g = get().game;
     if (!g || !g.pendingEvent) return;
-    const next = { ...resolveChoice(g, choiceId, EVENT_REGISTRY), updatedAt: Date.now() };
-    set({ game: next });
+    let next = { ...resolveChoice(g, choiceId, EVENT_REGISTRY), updatedAt: Date.now() };
+    const summary = get().pendingSummary;
+    if (summary && !next.pendingEvent && next.alive) {
+      next = { ...next, lastResult: summary };
+      set({ game: next, pendingSummary: null });
+    } else {
+      set({ game: next });
+    }
     persist(next);
     track({ name: 'event_choice', eventId: g.pendingEvent.eventId, choiceId });
     if (!next.alive) recordDeath(next);
@@ -157,7 +191,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     return 'granted';
   },
   abandonLife: () => {
-    set({ game: null });
+    set({ game: null, pendingSummary: null });
     persist(null);
   },
   clearResult: () => {
