@@ -49,3 +49,6 @@ test-results/
 __pycache__/
 *.py[cod]
 Data_Turtle.txt
+
+# e2e output
+e2e/screenshots/
