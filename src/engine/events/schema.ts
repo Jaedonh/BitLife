@@ -1,0 +1,213 @@
+/**
+ * Data-driven random events.
+ *
+ * An EventDef is plain data: who it can happen to (age range + conditions +
+ * an optional bound person), how likely it is (weight), and what the player
+ * can choose (choices with effects). A tiny interpreter (effects.ts) applies
+ * effects, so content never needs engine code.
+ */
+import type {
+  AddictionKind,
+  AssetKind,
+  EducationStage,
+  Gender,
+  JobCategory,
+  LifetimeCounters,
+  LogKind,
+  RelationshipKind,
+  StatId,
+  Stats,
+  TraitId,
+} from '../types';
+
+export interface Comparator {
+  gte?: number;
+  lte?: number;
+  gt?: number;
+  lt?: number;
+  eq?: number;
+}
+
+export type Condition =
+  | ({ stat: StatId } & Comparator)
+  | { money: Comparator }
+  | { netWorth: Comparator }
+  | { income: Comparator }
+  | { flag: string; eq?: number | boolean | string; exists?: boolean; gte?: number; lte?: number }
+  | { hasJob: boolean }
+  | { partTime: boolean }
+  | { jobCategory: JobCategory[] }
+  | { jobLevel: Comparator }
+  | { enrolled: boolean }
+  | { stage: EducationStage[] }
+  | { hasDegree: boolean }
+  | { grade: Comparator }
+  | { married: boolean }
+  | { hasLover: boolean }
+  | { hasChildren: boolean }
+  | { hasPerson: RelationshipKind[] }
+  | { noPerson: RelationshipKind[] }
+  | { country: string[] }
+  | { notCountry: string[] }
+  | { inPrison: boolean }
+  | { criminalRecord: boolean }
+  | { trait: TraitId }
+  | { notTrait: TraitId }
+  | { gender: Gender }
+  | { karma: Comparator }
+  | { fame: Comparator }
+  | { addiction: AddictionKind; min?: number }
+  | { noAddiction: AddictionKind }
+  | { ownsAsset: AssetKind }
+  | { noAsset: AssetKind }
+  | { hustle: boolean }
+  | { retired: boolean }
+  | { illnessCount: Comparator }
+  | { eventFired: string }
+  | { eventNotFired: string }
+  | { any: Condition[] }
+  | { all: Condition[] }
+  | { not: Condition };
+
+export type Effect =
+  | { stat: StatId; delta: number }
+  | { stats: Partial<Stats> }
+  | { money: number }
+  | { karma: number }
+  | { fame: number }
+  | { log: string; kind?: LogKind }
+  | { flag: string; set?: number | boolean | string; inc?: number }
+  | { relationship: 'person' | RelationshipKind; delta: number }
+  | { love: number }
+  | { removePerson: true }
+  | { personDies: true; cause?: string }
+  | { newPerson: { kind: RelationshipKind; relationship?: number; minAge?: number; maxAge?: number; gender?: Gender; species?: string; log?: string } }
+  | { death: string }
+  | { prison: number }
+  | { arrest: true }
+  | { illness: string }
+  | { cureIllness: true }
+  | { addiction: AddictionKind; delta: number }
+  | { injury: number }
+  | { loseJob: true; reason?: 'fired' | 'left' }
+  | { jobPerformance: number }
+  | { grade: number }
+  | { expelled: true }
+  | { queue: string }
+  | { counter: keyof LifetimeCounters; by?: number }
+  | { random: { weight: number; effects: Effect[] }[] }
+  | { chance: number; then: Effect[]; else?: Effect[] }
+  | { asset: 'damage' | 'lose'; kind?: AssetKind; amount?: number }
+  | { achievement: string }
+  | { energy: number };
+
+export interface ChoiceDef {
+  id: string;
+  label: string;
+  /** Short hint under the label, e.g. a cost. Supports placeholders. */
+  hint?: string;
+  /** Hidden when conditions fail (a choice-less event is auto-resolved with its first choice). */
+  conditions?: Condition[];
+  effects: Effect[];
+}
+
+export type EventCategory =
+  | 'childhood'
+  | 'school'
+  | 'work'
+  | 'family'
+  | 'romance'
+  | 'friends'
+  | 'health'
+  | 'money'
+  | 'crime'
+  | 'prison'
+  | 'random'
+  | 'holiday'
+  | 'elderly';
+
+export interface PersonSelector {
+  kind: RelationshipKind[];
+  alive?: boolean;
+  minRelationship?: number;
+  maxRelationship?: number;
+  minAge?: number;
+  maxAge?: number;
+}
+
+export interface EventDef {
+  id: string;
+  category: EventCategory;
+  title: string;
+  /** Supports placeholders: {{name}} {{fullName}} {{city}} {{country}} {{age}} {{person}} {{personFull}} {{they}} {{them}} {{their}} {{job}} {{company}} {{$1000}} */
+  text: string;
+  minAge: number;
+  maxAge: number;
+  /** Relative likelihood among eligible events (1 = normal, 3 = common, 0.3 = rare). */
+  weight: number;
+  /** Fire at most once per life. */
+  once?: boolean;
+  /** Minimum years between repeats. */
+  cooldown?: number;
+  conditions?: Condition[];
+  person?: PersonSelector;
+  choices: ChoiceDef[];
+  /** Follow-ups only: never picked randomly, only via a `queue` effect. */
+  followUpOnly?: boolean;
+}
+
+const PLACEHOLDER_RE = /\{\{([^}]+)\}\}/g;
+const KNOWN_PLACEHOLDERS = new Set([
+  'name', 'fullName', 'city', 'country', 'age', 'person', 'personFull', 'they', 'them', 'their', 'They', 'job', 'company', 'spouse', 'mother', 'father', 'he', 'she', 'his', 'him', 'demonym', 'year',
+]);
+
+/** Returns a list of human-readable problems; empty means valid. */
+export function validateEvent(def: EventDef, knownIds: Set<string>): string[] {
+  const errors: string[] = [];
+  const where = `event ${def.id}`;
+  if (!def.id || !/^[a-z0-9_]+$/.test(def.id)) errors.push(`${where}: id must be snake_case`);
+  if (!def.title) errors.push(`${where}: missing title`);
+  if (!def.text) errors.push(`${where}: missing text`);
+  if (!(def.minAge >= 0 && def.maxAge >= def.minAge && def.maxAge <= 120)) errors.push(`${where}: bad age range`);
+  if (!(def.weight >= 0)) errors.push(`${where}: weight must be >= 0`);
+  if (!def.choices || def.choices.length < 1 || def.choices.length > 4) errors.push(`${where}: needs 1-4 choices`);
+  const seen = new Set<string>();
+  for (const c of def.choices ?? []) {
+    if (seen.has(c.id)) errors.push(`${where}: duplicate choice id ${c.id}`);
+    seen.add(c.id);
+    if (!c.label) errors.push(`${where}: choice ${c.id} missing label`);
+    for (const e of c.effects ?? []) checkEffect(e, where, knownIds, errors);
+  }
+  const usesPerson = /\{\{(person|personFull|they|them|their|They)\}\}/.test(def.text + def.choices.map((c) => c.label + (c.hint ?? '')).join(' '));
+  if (usesPerson && !def.person) errors.push(`${where}: uses person placeholders but has no person selector`);
+  for (const text of [def.text, ...def.choices.map((c) => c.label), ...def.choices.map((c) => c.hint ?? '')]) {
+    for (const m of text.matchAll(PLACEHOLDER_RE)) {
+      const key = m[1]!.trim();
+      if (key.startsWith('$')) {
+        if (!/^\$\d+$/.test(key)) errors.push(`${where}: bad money placeholder ${key}`);
+      } else if (!KNOWN_PLACEHOLDERS.has(key)) errors.push(`${where}: unknown placeholder ${key}`);
+    }
+  }
+  return errors;
+}
+
+function checkEffect(e: Effect, where: string, knownIds: Set<string>, errors: string[]): void {
+  if ('queue' in e && !knownIds.has(e.queue)) errors.push(`${where}: queues unknown event ${e.queue}`);
+  if ('random' in e) {
+    if (!e.random.length) errors.push(`${where}: empty random outcome list`);
+    for (const o of e.random) for (const x of o.effects) checkEffect(x, where, knownIds, errors);
+  }
+  if ('chance' in e) {
+    if (!(e.chance >= 0 && e.chance <= 1)) errors.push(`${where}: chance must be 0..1`);
+    for (const x of e.then) checkEffect(x, where, knownIds, errors);
+    for (const x of e.else ?? []) checkEffect(x, where, knownIds, errors);
+  }
+  if ('log' in e) {
+    for (const m of e.log.matchAll(PLACEHOLDER_RE)) {
+      const key = m[1]!.trim();
+      if (key.startsWith('$')) {
+        if (!/^\$\d+$/.test(key)) errors.push(`${where}: bad money placeholder ${key}`);
+      } else if (!KNOWN_PLACEHOLDERS.has(key)) errors.push(`${where}: unknown placeholder ${key}`);
+    }
+  }
+}

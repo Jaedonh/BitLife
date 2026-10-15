@@ -28,6 +28,7 @@ let interstitialLoaded = false;
 let rewarded: import('react-native-google-mobile-ads').RewardedAd | null = null;
 let rewardedLoaded = false;
 let nonPersonalized = false;
+let consentBlocked = false;
 
 async function gatherConsent(): Promise<void> {
   if (!gma) return;
@@ -36,6 +37,7 @@ async function gatherConsent(): Promise<void> {
     const info = await AdsConsent.gatherConsent();
     privacyOptionsRequired =
       info.privacyOptionsRequirementStatus === AdsConsentPrivacyOptionsRequirementStatus.REQUIRED;
+    consentBlocked = !info.canRequestAds;
     if (!info.canRequestAds) {
       nonPersonalized = true;
     } else {
@@ -43,8 +45,19 @@ async function gatherConsent(): Promise<void> {
       nonPersonalized = choices ? !choices.selectPersonalisedAds : false;
     }
   } catch {
-    // Consent could not be gathered (offline etc.): fall back to non-personalized requests.
+    // Consent could not be gathered (offline etc.). Per the UMP docs, still try to
+    // use the status from the last session; otherwise request non-personalized ads.
     nonPersonalized = true;
+    try {
+      const info = await AdsConsent.getConsentInfo();
+      privacyOptionsRequired =
+        info.privacyOptionsRequirementStatus === AdsConsentPrivacyOptionsRequirementStatus.REQUIRED;
+      if (!info.canRequestAds) {
+        consentBlocked = true;
+      }
+    } catch {
+      consentBlocked = true;
+    }
   }
 
   if (Platform.OS === 'ios') {
@@ -96,6 +109,11 @@ function loadRewarded() {
 async function init(): Promise<void> {
   if (!gma || ready) return;
   await gatherConsent();
+  if (consentBlocked) {
+    // The user declined in a regulated region and no form is available: do not request ads.
+    ready = false;
+    return;
+  }
   try {
     await gma.default().setRequestConfiguration({
       maxAdContentRating: gma.MaxAdContentRating.T,
@@ -177,7 +195,7 @@ function Banner({ onHeight }: { onHeight?: (h: number) => void }) {
     <View onLayout={(e) => onHeight?.(e.nativeEvent.layout.height)}>
       <BannerAd
         unitId={adUnitIds.banner}
-        size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+        size={BannerAdSize.LARGE_ANCHORED_ADAPTIVE_BANNER}
         requestOptions={requestOptions()}
         onAdFailedToLoad={() => setFailed(true)}
       />
