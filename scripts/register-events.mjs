@@ -11,11 +11,18 @@ const files = readdirSync(dir)
   .filter((f) => f.endsWith('.ts') && f !== 'index.ts')
   .sort();
 const entries = [];
+const skipped = [];
 for (const f of files) {
   const src = readFileSync(path.join(dir, f), 'utf8');
+  // A file still being written (no closing `];`) must not break the registry.
+  if (!/\]\s*;?\s*$/.test(src.trimEnd())) {
+    skipped.push(f);
+    continue;
+  }
   const names = [...src.matchAll(/export const ([A-Z0-9_]+_EVENTS)\s*:/g)].map((m) => m[1]);
   for (const n of names) entries.push({ file: f.replace(/\.ts$/, ''), name: n });
 }
+if (skipped.length) console.warn(`skipped incomplete file(s): ${skipped.join(', ')}`);
 const imports = entries.map((e) => `import { ${e.name} } from './${e.file}';`).join('\n');
 const spread = entries.map((e) => `...${e.name}`).join(', ');
 const out = `import type { EventDef } from '@/engine/events/schema';
