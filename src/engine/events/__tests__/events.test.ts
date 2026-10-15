@@ -1,0 +1,106 @@
+import { EVENTS } from '@/data/events';
+import { createLife } from '../../systems/character';
+import { Rng } from '../../rng';
+import { applyEffects } from '../effects';
+import { makeRegistry, openNextEvent, resolveChoice, scheduleYearEvents } from '../select';
+import { validateEvent, type EventDef } from '../schema';
+import { renderText } from '../text';
+
+const registry = makeRegistry(EVENTS);
+
+describe('event content validation', () => {
+  it('every event is valid and ids are unique', () => {
+    const ids = new Set(EVENTS.map((e) => e.id));
+    expect(ids.size).toBe(EVENTS.length);
+    const errors = EVENTS.flatMap((e) => validateEvent(e, ids));
+    expect(errors).toEqual([]);
+  });
+});
+
+describe('event flow', () => {
+  const def: EventDef = {
+    id: 'test_gift',
+    category: 'family',
+    title: 'Gift',
+    text: '{{person}} gave me {{$100}}.',
+    minAge: 0,
+    maxAge: 100,
+    weight: 1,
+    person: { kind: ['mother'] },
+    choices: [
+      { id: 'thank', label: 'Say thanks', effects: [{ money: 100 }, { relationship: 'person', delta: 5 }, { karma: 1 }] },
+      { id: 'rich', label: 'Only if rich', conditions: [{ money: { gte: 1_000_000 } }], effects: [{ money: 1 }] },
+    ],
+  };
+  const reg = makeRegistry([def]);
+
+  it('opens, renders and resolves a queued event', () => {
+    let s = createLife({ countryCode: 'US' }, 42);
+    const mother = Object.values(s.people).find((p) => p.kind === 'mother')!;
+    s = { ...s, eventQueue: [{ eventId: 'test_gift', context: {}, personId: mother.id }] };
+    s = openNextEvent(s, reg);
+    expect(s.pendingEvent?.text).toBe(`${mother.firstName} gave me $100.`);
+    // hidden choice filtered out
+    expect(s.pendingEvent?.choices.map((c) => c.id)).toEqual(['thank']);
+    const before = s.people[mother.id]!.relationship;
+    s = resolveChoice(s, 'thank', reg);
+    expect(s.pendingEvent).toBeNull();
+    expect(s.finances.cash).toBe(100);
+    expect(s.people[mother.id]!.relationship).toBe(Math.min(100, before + 5));
+    expect(s.firedEvents.test_gift).toBe(0);
+    expect(s.log.some((l) => l.kind === 'event')).toBe(true);
+  });
+
+  it('scales money by country', () => {
+    const s = createLife({ countryCode: 'IN' }, 1);
+    expect(renderText('{{$1000}}', s)).toBe('₹150');
+  });
+
+  it('schedules at most a few events per year from the real registry', () => {
+    let s = createLife({}, 7);
+    s = { ...s, character: { ...s.character, age: 6 } };
+    s = scheduleYearEvents(s, registry);
+    expect(s.eventQueue.length).toBeLessThanOrEqual(3);
+    for (const q of s.eventQueue) expect(registry.byId[q.eventId]).toBeDefined();
+  });
+
+  it('once/cooldown prevents repeats', () => {
+    let s = createLife({}, 3);
+    s = { ...s, character: { ...s.character, age: 1 } };
+    s = scheduleYearEvents(s, registry);
+    s = openNextEvent(s, registry);
+    expect(s.pendingEvent?.eventId).toBe('first_steps');
+    s = resolveChoice(s, 'ok', registry);
+    s = scheduleYearEvents(s, registry);
+    expect(s.eventQueue.some((q) => q.eventId === 'first_steps')).toBe(false);
+  });
+});
+
+describe('effects', () => {
+  it('death ends the life and later effects are skipped', () => {
+    let s = createLife({}, 11);
+    s = applyEffects(s, new Rng(1), [{ death: 'a freak accident' }, { money: 1000 }]);
+    expect(s.alive).toBe(false);
+    expect(s.death?.cause).toBe('a freak accident');
+    expect(s.finances.cash).toBe(0);
+    expect(s.death?.obituary).toContain(s.character.firstName);
+  });
+
+  it('prison removes the job and marks a record', () => {
+    let s = createLife({}, 12);
+    s = { ...s, career: { ...s.career, job: { defId: 'x', title: 'Clerk', company: 'Acme', salary: 1, level: 0, performance: 50, yearsHeld: 2, yearsAtLevel: 2, category: 'office', partTime: false, askedThisYear: false, workedHarderThisYear: false } } };
+    s = applyEffects(s, new Rng(2), [{ prison: 3 }]);
+    expect(s.crime.inPrison).toBe(true);
+    expect(s.crime.sentenceYearsLeft).toBe(3);
+    expect(s.career.job).toBeNull();
+    expect(s.career.history[0]?.title).toBe('Clerk');
+  });
+
+  it('random outcomes are deterministic per rng', () => {
+    const s = createLife({}, 13);
+    const eff = [{ random: [{ weight: 1, effects: [{ money: 1 }] }, { weight: 1, effects: [{ money: 2 }] }] }] as const;
+    const a = applyEffects(s, new Rng(5), eff as never);
+    const b = applyEffects(s, new Rng(5), eff as never);
+    expect(a.finances.cash).toBe(b.finances.cash);
+  });
+});
