@@ -39,7 +39,7 @@ export const PET_EVENTS: EventDef[] = [
           { karma: 3 },
           {
             chance: 0.5,
-            then: [{ log: 'A woman three streets over burst into tears when I handed the cat back. I got a tin of biscuits for my trouble.', kind: 'good' }, { stat: 'happiness', delta: 3 }],
+            then: [{ log: 'A woman three streets over cried when I handed the cat back. I got a tin of biscuits for my trouble.', kind: 'good' }, { stat: 'happiness', delta: 3 }],
             else: [
               { log: 'No one claimed the cat. After a week of posters, the cat claimed us.', kind: 'milestone' },
               { newPerson: { kind: 'pet', species: 'cat', relationship: 60, log: 'So {{person}} stayed, on {{their}} own terms.' } },
@@ -161,6 +161,7 @@ export const PET_EVENTS: EventDef[] = [
         id: 'dog',
         label: 'Adopt a dog',
         hint: 'Adoption fee {{$120}}',
+        conditions: [{ money: { gte: 120 } }],
         effects: [
           { money: -120 },
           { newPerson: { kind: 'pet', species: 'dog', relationship: 60, log: 'A dog with one ear up and one ear down came home with me. {{person}}, from now on.' } },
@@ -241,7 +242,7 @@ export const PET_EVENTS: EventDef[] = [
     id: 'pt_parrot_rude_word',
     category: 'family',
     title: 'A new word',
-    text: 'The parrot has learned a word. Not a nice word. It says it clearly, confidently, and only when there are guests, and it said it twice to {{mother}}.',
+    text: 'The parrot has learned a word. Not a nice word. It says it clearly, confidently, and only when there are guests, and it said it twice to a visiting aunt.',
     minAge: 16,
     maxAge: 85,
     weight: 1,
@@ -275,7 +276,7 @@ export const PET_EVENTS: EventDef[] = [
     id: 'pt_sibling_rabbit',
     category: 'family',
     title: 'The abandoned rabbit',
-    text: '{{person}} has left for university and {{their}} rabbit has not. It sits in the hutch looking betrayed. {{mother}} says it is nothing to do with her.',
+    text: '{{person}} has left for university and {{their}} rabbit has not. It sits in the hutch looking betrayed. Nobody else in the house will claim it.',
     minAge: 8,
     maxAge: 40,
     weight: 0.8,
@@ -336,7 +337,7 @@ export const PET_EVENTS: EventDef[] = [
       {
         id: 'tour',
         label: 'Give it a midnight tour',
-        effects: [{ relationship: 'pet', delta: 5 }, { stat: 'happiness', delta: 2 }, { log: 'I showed it every room, including the one where the hoover lives. Mistake. Lifelong enemy made.' }],
+        effects: [{ relationship: 'pet', delta: 5 }, { stat: 'happiness', delta: 2 }, { log: 'I showed it every room, including where the vacuum cleaner lives. Mistake. Lifelong enemy made.' }],
       },
     ],
   },
@@ -443,7 +444,7 @@ export const PET_EVENTS: EventDef[] = [
           { relationship: 'father', delta: -2 },
           {
             chance: 0.6,
-            then: [{ relationship: 'person', delta: 5 }, { stat: 'happiness', delta: 3 }, { log: 'My parents paid, with a lecture attached. {{person}} recovered. I recovered from the lecture eventually.', kind: 'good' }],
+            then: [{ relationship: 'person', delta: 5 }, { stat: 'happiness', delta: 3 }, { log: 'My parents paid, with a lecture attached. {{person}} recovered. So did I, eventually.', kind: 'good' }],
             else: [
               { log: 'They said no, kindly. We went with the cheap treatment.' },
               { money: -180 },
@@ -489,7 +490,7 @@ export const PET_EVENTS: EventDef[] = [
         effects: [
           { money: -400 },
           {
-            chance: 0.92,
+            chance: 0.95,
             then: [{ relationship: 'person', delta: 5 }, { stat: 'happiness', delta: 2 }, { log: 'They got everything out. The vet held up the sock like a trophy.', kind: 'good' }],
             else: [{ personDies: true, cause: 'an accident' }, { stat: 'happiness', delta: -12 }, { log: 'The chocolate had done too much damage. We lost {{person}} that night.', kind: 'bad' }],
           },
@@ -505,7 +506,13 @@ export const PET_EVENTS: EventDef[] = [
           {
             chance: 0.7,
             then: [{ relationship: 'person', delta: 2 }, { log: 'A calm voice told me what to watch for. By morning the sock had reappeared, unharmed, on the rug.', kind: 'good' }],
-            else: [{ money: -400 }, { stat: 'happiness', delta: -2 }, { log: 'The calm voice said "vet, now". It was the right call. {{person}} is fine and I am poorer.', kind: 'bad' }],
+            else: [
+              {
+                chance: 0.8,
+                then: [{ money: -400 }, { stat: 'happiness', delta: -2 }, { log: 'The calm voice said "vet, now". It was the right call. {{person}} is fine and I am poorer.', kind: 'bad' }],
+                else: [{ personDies: true, cause: 'an accident' }, { stat: 'happiness', delta: -12 }, { log: 'The calm voice said "vet, now". We went, but the chocolate had a head start. We lost {{person}}.', kind: 'bad' }],
+              },
+            ],
           },
         ],
       },
@@ -647,7 +654,7 @@ export const PET_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 3 },
           {
             chance: 0.3,
-            then: [{ log: 'One morning {{person}} did not wake up. {{They}} went warm and asleep in the sun. It was a good last year.', kind: 'bad' }, { personDies: true, cause: 'old age' }, { stat: 'happiness', delta: -10 }],
+            then: [{ log: 'One morning {{person}} did not wake up, warm and asleep in the sun. It was a good last year.', kind: 'bad' }, { personDies: true, cause: 'old age' }, { stat: 'happiness', delta: -10 }],
             else: [{ log: 'Slow walks, soft food, the best spot on the sofa. Another year with {{person}}, and a good one.', kind: 'good' }],
           },
         ],
@@ -733,7 +740,8 @@ export const PET_EVENTS: EventDef[] = [
         id: 'apologise',
         label: 'Apologise with cake',
         hint: '{{$25}}',
-        effects: [{ money: -25 }, { karma: 2 }, { stat: 'happiness', delta: 1 }, { log: 'I took round a cake and an apology. The neighbour thawed and admitted {{person}} was "quite sweet, actually".', kind: 'good' }],
+        conditions: [{ money: { gte: 25 } }],
+        effects: [{ money: -25 }, { karma: 2 }, { stat: 'happiness', delta: 1 }, { log: 'Cake and an apology. The neighbour thawed and called {{person}} "quite sweet, actually".', kind: 'good' }],
       },
       {
         id: 'ignore',
@@ -756,7 +764,7 @@ export const PET_EVENTS: EventDef[] = [
           { money: -120 },
           {
             chance: 0.7,
-            then: [{ relationship: 'person', delta: 5 }, { stat: 'happiness', delta: 2 }, { log: 'Three sessions and a puzzle feeder. {{person}} now spends my absences solving problems instead of announcing them.', kind: 'good' }],
+            then: [{ relationship: 'person', delta: 5 }, { stat: 'happiness', delta: 2 }, { log: 'Three sessions and a puzzle feeder. {{person}} now spends my absences on puzzles, not howling.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -2 }, { log: 'The trainer left shaking her head. {{person}} howled her out of the door.', kind: 'bad' }],
           },
         ],
@@ -782,7 +790,7 @@ export const PET_EVENTS: EventDef[] = [
           { money: -60 },
           {
             chance: 0.65,
-            then: [{ stat: 'health', delta: 1 }, { stat: 'happiness', delta: 2 }, { relationship: 'person', delta: 3 }, { log: 'One tablet a day and a lot of hoovering. {{person}} stays. My nose can cope.', kind: 'good' }],
+            then: [{ stat: 'health', delta: 1 }, { stat: 'happiness', delta: 2 }, { relationship: 'person', delta: 3 }, { log: 'One tablet a day and a lot of vacuuming. {{person}} stays. My nose can cope.', kind: 'good' }],
             else: [{ stat: 'health', delta: -3 }, { stat: 'happiness', delta: -2 }, { log: 'The tablets took the edge off and no more. {{person}} and I sneeze through it together.', kind: 'bad' }],
           },
         ],
@@ -833,7 +841,7 @@ export const PET_EVENTS: EventDef[] = [
       {
         id: 'rehome',
         label: 'Rehome {{person}}',
-        effects: [{ log: '{{mother}} took {{person}}. I visit. {{They}} greets me like a stranger who smells familiar.', kind: 'bad' }, { removePerson: true }, { stat: 'happiness', delta: -9 }, { karma: -1 }],
+        effects: [{ log: 'My cousin took {{person}}. I visit. {{They}} greets me like a stranger who smells familiar.', kind: 'bad' }, { removePerson: true }, { stat: 'happiness', delta: -9 }, { karma: -1 }],
       },
     ],
   },
@@ -893,8 +901,8 @@ export const PET_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.6,
-            then: [{ jobPerformance: 4 }, { stat: 'happiness', delta: 6 }, { relationship: 'person', delta: 4 }, { log: '{{person}} was the most popular colleague in the building by lunch. My boss asked if {{they}} could come back.', kind: 'good' }],
-            else: [{ jobPerformance: -5 }, { stat: 'happiness', delta: -3 }, { log: "{{person}} ate the director's sandwich and then, somehow, part of a presentation. We were asked to leave.", kind: 'bad' }],
+            then: [{ jobPerformance: 4 }, { stat: 'happiness', delta: 6 }, { relationship: 'person', delta: 4 }, { log: '{{person}} was the most popular colleague in the building by lunch. The boss wants {{them}} back.', kind: 'good' }],
+            else: [{ jobPerformance: -5 }, { stat: 'happiness', delta: -3 }, { log: "{{person}} ate the director's sandwich and then, somehow, part of a presentation. We were sent home.", kind: 'bad' }],
           },
         ],
       },
@@ -931,9 +939,9 @@ export const PET_EVENTS: EventDef[] = [
             then: [
               { newPerson: { kind: 'friend', relationship: 50, log: 'The greyhound man turned out to be called {{person}}. We are, somehow, friends now.' } },
               { stat: 'happiness', delta: 4 },
-              { log: 'Mornings have a second purpose now. {{person}} is suspicious of the greyhounds but tolerates the man.', kind: 'good' },
+              { log: 'Mornings have a purpose now. {{person}} is suspicious of the greyhounds but tolerates the man.', kind: 'good' },
             ],
-            else: [{ stat: 'happiness', delta: 1 }, { log: 'Pleasant small talk about weather and worming tablets. Nobody exchanged names. That seems to be the rule.' }],
+            else: [{ stat: 'happiness', delta: 1 }, { log: 'Small talk about weather and worming tablets. Nobody exchanged names. That seems to be the rule.' }],
           },
         ],
       },
@@ -956,7 +964,7 @@ export const PET_EVENTS: EventDef[] = [
               { stat: 'happiness', delta: 5 },
               { log: 'Eleven dogs, one cat on a lead, no incidents worth a lawsuit. A success by any measure.', kind: 'good' },
             ],
-            else: [{ stat: 'happiness', delta: -2 }, { log: 'It rained. Four people came. {{person}} ate most of the sausage rolls, which was, in fairness, the plan.', kind: 'bad' }],
+            else: [{ stat: 'happiness', delta: -2 }, { log: 'It rained. Four people came. {{person}} ate most of the sausage rolls, which was arguably the plan.', kind: 'bad' }],
           },
         ],
       },
@@ -1002,7 +1010,7 @@ export const PET_EVENTS: EventDef[] = [
         id: 'camera',
         label: 'Install a pet camera',
         hint: '{{$60}}',
-        effects: [{ money: -60 }, { stat: 'happiness', delta: -1 }, { stat: 'smarts', delta: 1 }, { log: 'I now watch {{person}} wait for me from my desk, which has made nothing better and everything clearer.' }],
+        effects: [{ money: -60 }, { stat: 'happiness', delta: -1 }, { stat: 'smarts', delta: 1 }, { log: 'I now watch {{person}} wait for me from my desk. It has made nothing better and everything clearer.' }],
       },
     ],
   },
@@ -1021,7 +1029,7 @@ export const PET_EVENTS: EventDef[] = [
         id: 'takeaway',
         label: 'Laugh and order takeaway',
         hint: '{{$70}}',
-        effects: [{ money: -70 }, { stat: 'happiness', delta: 4 }, { relationship: 'person', delta: 2 }, { log: 'Takeaway for nine. The story got better every time someone told it. {{person}} slept through dessert, full of beef.', kind: 'good' }],
+        effects: [{ money: -70 }, { stat: 'happiness', delta: 4 }, { relationship: 'person', delta: 2 }, { log: 'Takeaway for nine. The story improved with every telling. {{person}} slept through dessert.', kind: 'good' }],
       },
       {
         id: 'serve',

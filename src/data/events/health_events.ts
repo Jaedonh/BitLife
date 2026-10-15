@@ -42,7 +42,7 @@ export const HEALTH_EVENTS: EventDef[] = [
         id: 'physio',
         label: 'See a physio',
         hint: '{{$200}}',
-        effects: [{ money: -200 }, { injury: 1 }, { stat: 'health', delta: 3 }, { counter: 'workouts' }, { log: 'The physio taped me up and gave me exercises. I actually did them. The ankle is now stronger than before.', kind: 'good' }],
+        effects: [{ money: -200 }, { injury: 1 }, { stat: 'health', delta: 3 }, { counter: 'workouts' }, { log: 'The physio taped me up and gave me exercises. I actually did them. The ankle is stronger now.', kind: 'good' }],
       },
     ],
   },
@@ -132,7 +132,7 @@ export const HEALTH_EVENTS: EventDef[] = [
         effects: [
           {
             random: [
-              { weight: 5, effects: [{ stat: 'looks', delta: -1 }, { log: 'I rubbed it with vinegar and garlic, as advised by a forum. It cleared up. Correlation is not causation.' }] },
+              { weight: 5, effects: [{ stat: 'looks', delta: -1 }, { log: 'I rubbed it with vinegar and garlic, as a forum advised. It cleared up. Correlation, not causation.' }] },
               { weight: 3, effects: [{ stat: 'health', delta: -5 }, { stat: 'looks', delta: -3 }, { log: 'The remedy made it angrier. I now had a rash and a chemical burn.', kind: 'bad' }] },
               { weight: 2, effects: [{ stat: 'happiness', delta: 2 }, { log: 'It went away by itself and I got to feel like a wizard.' }] },
             ],
@@ -160,7 +160,7 @@ export const HEALTH_EVENTS: EventDef[] = [
           {
             random: [
               { weight: 6, effects: [{ stat: 'health', delta: 2 }, { log: 'A filling, twenty minutes, a numb lip for the afternoon. Sorted.', kind: 'good' }] },
-              { weight: 3, effects: [{ money: -600 }, { stat: 'happiness', delta: -2 }, { log: 'Root canal. The dentist hummed through the whole thing. {{$850}} total, and I still remember the humming.', kind: 'bad' }] },
+              { weight: 3, effects: [{ money: -600 }, { stat: 'happiness', delta: -2 }, { log: 'Root canal. The dentist hummed the whole way through. {{$850}} total, and I still hear the humming.', kind: 'bad' }] },
               { weight: 1, effects: [{ stat: 'happiness', delta: 1 }, { log: 'Nothing wrong at all. The dentist suggested I stop grinding my teeth at my problems.' }] },
             ],
           },
@@ -239,7 +239,7 @@ export const HEALTH_EVENTS: EventDef[] = [
           { money: -1500 },
           {
             random: [
-              { weight: 6, effects: [{ injury: 5 }, { log: 'Bruised hip, nothing broken. They kept me in overnight and sent me home with a leaflet about rugs.' }] },
+              { weight: 6, effects: [{ injury: 4 }, { stat: 'health', delta: 2 }, { log: 'Bruised hip, nothing broken. They kept me in overnight and sent me home with a leaflet about rugs.' }] },
               { weight: 4, effects: [{ injury: 12 }, { counter: 'surgeries' }, { stat: 'happiness', delta: -5 }, { log: 'Fractured hip. Surgery, a walking frame and a long, boring recovery.', kind: 'bad' }] },
             ],
           },
@@ -261,7 +261,15 @@ export const HEALTH_EVENTS: EventDef[] = [
         id: 'rails',
         label: 'Install grab rails',
         hint: '{{$300}}',
-        effects: [{ money: -300 }, { injury: 3 }, { stat: 'health', delta: 3 }, { stat: 'happiness', delta: -1 }, { log: 'Rails by the bath, a mat on the floor, a stool in the shower. Undignified. Effective.', kind: 'good' }],
+        effects: [
+          { money: -300 },
+          { stat: 'happiness', delta: -1 },
+          {
+            chance: 0.7,
+            then: [{ injury: 3 }, { stat: 'health', delta: 3 }, { log: 'Rails by the bath, a mat on the floor, a stool in the shower. Undignified. Effective.', kind: 'good' }],
+            else: [{ injury: 10 }, { money: -1500 }, { stat: 'health', delta: 1 }, { log: 'I fitted the rails, then learned a week later the hip was cracked. Late to hospital, slow to heal.', kind: 'bad' }],
+          },
+        ],
       },
     ],
   },
@@ -310,6 +318,7 @@ export const HEALTH_EVENTS: EventDef[] = [
       {
         id: 'call_mum',
         label: 'Call {{mother}} for advice',
+        conditions: [{ hasPerson: ['mother'] }],
         effects: [
           {
             random: [
@@ -380,7 +389,7 @@ export const HEALTH_EVENTS: EventDef[] = [
         effects: [
           {
             random: [
-              { weight: 5, effects: [{ stat: 'happiness', delta: 8 }, { log: 'Benign. Nothing to do. I walked out into the car park and laughed like a lunatic.', kind: 'good' }] },
+              { weight: 5, effects: [{ stat: 'happiness', delta: 8 }, { log: 'Benign. Nothing to do. I walked out to the car park and laughed until a stranger checked on me.', kind: 'good' }] },
               { weight: 3, effects: [{ illness: 'hypertension' }, { stat: 'happiness', delta: -4 }, { log: 'High blood pressure, caught early. Tablets, less salt, a plan. Manageable.' }] },
               { weight: 1, effects: [{ illness: 'cancer' }, { stat: 'happiness', delta: -12 }, { log: "It was cancer, found early. The doctor said the word 'treatable' four times. I counted.", kind: 'bad' }] },
               { weight: 1, effects: [{ stat: 'health', delta: 3 }, { stat: 'happiness', delta: 4 }, { log: "A harmless cyst, drained on the spot. {{$1200}} well spent for a good night's sleep.", kind: 'good' }] },
@@ -431,7 +440,7 @@ export const HEALTH_EVENTS: EventDef[] = [
           { stat: 'health', delta: -3 },
           {
             chance: 0.25,
-            then: [{ illness: 'hypertension' }, { log: "A year later the numbers were worse and the list was longer. He did not say 'I told you so', but his glasses did.", kind: 'bad' }],
+            then: [{ illness: 'hypertension' }, { log: "A year on, the numbers were worse, the list longer. He did not say 'told you so'. His glasses did.", kind: 'bad' }],
             else: [{ log: 'I kept the list in a drawer. The drawer and I do not discuss it.' }],
           },
         ],
@@ -457,8 +466,8 @@ export const HEALTH_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 1 },
           {
             random: [
-              { weight: 8, effects: [{ stat: 'happiness', delta: 2 }, { log: "Every test clear. 'Panic attack,' the doctor said, kindly. 'Very common. Very horrible.' She gave me a breathing leaflet." }] },
-              { weight: 2, effects: [{ illness: 'hypertension' }, { log: 'The tests found something after all: blood pressure through the roof. The panic was my body sending a memo.' }] },
+              { weight: 8, effects: [{ stat: 'happiness', delta: 2 }, { log: "All clear. 'Panic attack,' the doctor said, kindly. 'Very common. Very horrible.' Then a leaflet." }] },
+              { weight: 2, effects: [{ illness: 'hypertension' }, { log: 'The tests found something: blood pressure through the roof. The panic was my body sending a memo.' }] },
             ],
           },
         ],
@@ -471,8 +480,8 @@ export const HEALTH_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: -2 },
           {
             chance: 0.6,
-            then: [{ stat: 'health', delta: 1 }, { log: 'I counted breaths until the tills came back into focus, paid, and sat in the car park for twenty minutes.' }],
-            else: [{ illness: 'anxiety' }, { log: 'It happened again the next week, and the week after. It has a name now, and I am learning what to do with it.', kind: 'bad' }],
+            then: [{ stat: 'health', delta: 1 }, { log: 'I counted breaths until the tills came back into focus, paid, and sat in the car for twenty minutes.' }],
+            else: [{ illness: 'anxiety' }, { log: 'It happened again the next week, and the one after. It has a name now, and I am learning to cope.', kind: 'bad' }],
           },
         ],
       },
@@ -480,7 +489,7 @@ export const HEALTH_EVENTS: EventDef[] = [
         id: 'therapy',
         label: 'Talk to someone',
         hint: '{{$150}}',
-        effects: [{ money: -150 }, { stat: 'happiness', delta: 4 }, { stat: 'smarts', delta: 1 }, { log: 'A therapist explained what my body was doing and why. Understanding it did not make it stop, but it made it smaller.', kind: 'good' }],
+        effects: [{ money: -150 }, { stat: 'happiness', delta: 4 }, { stat: 'smarts', delta: 1 }, { log: 'A therapist explained what my body was doing and why. It did not stop, but it got smaller.', kind: 'good' }],
       },
     ],
   },
@@ -504,7 +513,7 @@ export const HEALTH_EVENTS: EventDef[] = [
           {
             random: [
               { weight: 5, effects: [{ stat: 'looks', delta: 2 }, { log: "The optician said I had 'a face for frames'. I chose to take that well. The world is sharp again.", kind: 'good' }] },
-              { weight: 5, effects: [{ stat: 'looks', delta: -1 }, { stat: 'happiness', delta: 2 }, { log: 'Leaves have edges. Faces have expressions. I had forgotten. The glasses are not flattering and I do not care.', kind: 'good' }] },
+              { weight: 5, effects: [{ stat: 'looks', delta: -1 }, { stat: 'happiness', delta: 2 }, { log: 'Leaves have edges. Faces have expressions. I had forgotten. The glasses are ugly and I do not care.', kind: 'good' }] },
             ],
           },
         ],
@@ -533,7 +542,7 @@ export const HEALTH_EVENTS: EventDef[] = [
           { grade: -3 },
           {
             chance: 0.5,
-            then: [{ stat: 'looks', delta: -1 }, { log: 'A permanent crease has formed between my eyebrows. I look suspicious of everything, because I cannot see it.' }],
+            then: [{ stat: 'looks', delta: -1 }, { log: 'A permanent crease has formed between my eyebrows. I look suspicious of everything I cannot see.' }],
             else: [{ log: 'I got by on context clues and nodding. Occasionally I waved at strangers.' }],
           },
         ],
@@ -577,7 +586,7 @@ export const HEALTH_EVENTS: EventDef[] = [
           {
             random: [
               { weight: 6, effects: [{ stat: 'health', delta: 3 }, { stat: 'happiness', delta: 4 }, { log: 'A short course of something gentle and a stern chat about screens. It helped.', kind: 'good' }] },
-              { weight: 3, effects: [{ stat: 'happiness', delta: 1 }, { stat: 'smarts', delta: 1 }, { log: 'The doctor asked about stress. I did not have a short answer. She wrote down the number of a therapist.' }] },
+              { weight: 3, effects: [{ stat: 'happiness', delta: 1 }, { stat: 'smarts', delta: 1 }, { log: "The doctor asked about stress. I did not have a short answer. She wrote down a therapist's number." }] },
               { weight: 1, effects: [{ illness: 'anxiety' }, { log: 'Turns out the insomnia was the tip of something. It has a name now, and a plan.' }] },
             ],
           },
@@ -666,12 +675,12 @@ export const HEALTH_EVENTS: EventDef[] = [
         label: 'Loser buys dinner',
         hint: '{{$100}}',
         effects: [
-          { counter: 'workouts', by: 3 },
-          { stat: 'health', delta: 5 },
+          { counter: 'workouts', by: 4 },
+          { stat: 'health', delta: 6 },
           {
             chance: 0.5,
-            then: [{ stat: 'happiness', delta: 4 }, { log: 'I beat {{them}} by a week and ordered the most expensive thing on the menu with no grace whatsoever.', kind: 'good' }],
-            else: [{ money: -100 }, { relationship: 'person', delta: 3 }, { log: '{{person}} crushed me. Dinner cost {{$100}} and {{they}} framed the receipt.', kind: 'bad' }],
+            then: [{ stat: 'happiness', delta: 7 }, { relationship: 'person', delta: 2 }, { log: 'I beat {{them}} by a week and ordered the most expensive thing on the menu with no grace whatsoever.', kind: 'good' }],
+            else: [{ money: -100 }, { relationship: 'person', delta: 4 }, { stat: 'happiness', delta: -1 }, { log: '{{person}} crushed me. Dinner cost {{$100}} and {{they}} framed the receipt.', kind: 'bad' }],
           },
         ],
       },
@@ -715,7 +724,7 @@ export const HEALTH_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: -5 },
           {
             chance: 0.3,
-            then: [{ stat: 'health', delta: -5 }, { log: "The 'proprietary blend' gave me a rash and a lighter bank account. The founder has since deleted her account.", kind: 'bad' }],
+            then: [{ stat: 'health', delta: -5 }, { log: "The 'proprietary blend' gave me a rash and a lighter bank account. The founder has since vanished.", kind: 'bad' }],
             else: [{ log: 'Nothing happened, at a premium price. I kept the branded water bottle out of spite.', kind: 'bad' }],
           },
         ],
@@ -723,7 +732,7 @@ export const HEALTH_EVENTS: EventDef[] = [
       {
         id: 'report',
         label: 'Report the ad',
-        effects: [{ karma: 3 }, { stat: 'smarts', delta: 1 }, { stat: 'happiness', delta: 1 }, { log: 'I reported it and wrote a short, devastating review. The ad still follows me. The founder still looks rested.', kind: 'good' }],
+        effects: [{ karma: 3 }, { stat: 'smarts', delta: 1 }, { stat: 'happiness', delta: -1 }, { log: 'I lost an evening to the report form and left a devastating review. The ad still follows me.', kind: 'good' }],
       },
       {
         id: 'ignore',
@@ -752,8 +761,8 @@ export const HEALTH_EVENTS: EventDef[] = [
           { money: -600 },
           {
             random: [
-              { weight: 5, effects: [{ stat: 'health', delta: 5 }, { stat: 'happiness', delta: 3 }, { relationship: 'person', delta: 6 }, { love: 6 }, { log: 'Sleep apnoea. A machine, a mask, and suddenly I wake up rested. {{person}} says I sound like a quiet robot now, which is an upgrade.', kind: 'good' }] },
-              { weight: 5, effects: [{ relationship: 'person', delta: 3 }, { love: 2 }, { stat: 'smarts', delta: 1 }, { log: 'Nothing medically wrong, just loud. They suggested a wedge pillow and sleeping on my side. It half works.' }] },
+              { weight: 5, effects: [{ stat: 'health', delta: 5 }, { stat: 'happiness', delta: 3 }, { relationship: 'person', delta: 6 }, { love: 6 }, { log: 'Sleep apnoea. A mask, a machine, and I wake up rested. {{person}} says I sound like a quiet robot.', kind: 'good' }] },
+              { weight: 5, effects: [{ relationship: 'person', delta: 3 }, { love: 2 }, { stat: 'smarts', delta: 1 }, { log: 'Nothing medically wrong, just loud. They suggested a wedge pillow and side sleeping. It half works.' }] },
             ],
           },
         ],
@@ -774,7 +783,7 @@ export const HEALTH_EVENTS: EventDef[] = [
       {
         id: 'deny',
         label: 'Deny everything',
-        effects: [{ relationship: 'person', delta: -6 }, { love: -6 }, { stat: 'happiness', delta: 1 }, { log: 'I said the recording was faked. {{person}} moved to the spare room and I was, honestly, very well rested.', kind: 'bad' }],
+        effects: [{ relationship: 'person', delta: -6 }, { love: -6 }, { stat: 'happiness', delta: 1 }, { log: 'I said the recording was faked. {{person}} moved to the spare room. I was, honestly, well rested.', kind: 'bad' }],
       },
     ],
   },
@@ -820,7 +829,7 @@ export const HEALTH_EVENTS: EventDef[] = [
             random: [
               { weight: 5, effects: [{ stat: 'happiness', delta: 2 }, { stat: 'health', delta: 2 }, { log: 'Grass pollen. A plan, a nasal spray, a calendar of dread. Knowledge is power.', kind: 'good' }] },
               { weight: 2, effects: [{ stat: 'health', delta: 2 }, { log: 'Dust mites. I now wash my bedding at temperatures that could sterilise surgical tools.' }] },
-              { weight: 2, effects: [{ stat: 'happiness', delta: -2 }, { stat: 'health', delta: 1 }, { log: "Cats. I am allergic to cats. The neighbour's cat I have been petting for years has been slowly killing me." }] },
+              { weight: 2, effects: [{ stat: 'happiness', delta: -2 }, { stat: 'health', delta: 1 }, { log: "Cats. I am allergic to cats. The neighbour's cat I have petted for years has been slowly killing me." }] },
               { weight: 1, effects: [{ stat: 'happiness', delta: -1 }, { log: "Nothing. Allergic to nothing. The doctor suggested it might be 'the vibe' of the season." }] },
             ],
           },
@@ -998,7 +1007,7 @@ export const HEALTH_EVENTS: EventDef[] = [
               {
                 random: [
                   { weight: 6, effects: [{ injury: 3 }, { stat: 'happiness', delta: -3 }, { log: 'Bruised, shaken, fine. I walked home and sat in the shower for an hour.' }] },
-                  { weight: 4, effects: [{ injury: 14 }, { stat: 'happiness', delta: -6 }, { money: -1500 }, { log: 'I collapsed two streets later. Internal bruising. Walking it off was not, in hindsight, a medical opinion.', kind: 'bad' }] },
+                  { weight: 4, effects: [{ injury: 14 }, { stat: 'happiness', delta: -6 }, { money: -1500 }, { log: 'I collapsed two streets on. Internal bruising. Walking it off was not, in hindsight, medical advice.', kind: 'bad' }] },
                 ],
               },
             ],
@@ -1008,14 +1017,21 @@ export const HEALTH_EVENTS: EventDef[] = [
       {
         id: 'lawyer',
         label: 'Get checked, then call a lawyer',
+        hint: '{{$800}} plus fees',
         effects: [
           { asset: 'damage', kind: 'car', amount: 40 },
-          { injury: 5 },
           { money: -800 },
           {
-            random: [
-              { weight: 6, effects: [{ money: 8000 }, { stat: 'happiness', delta: 3 }, { log: "The van's company settled. {{$8000}} for a sore neck and a very stern letter.", kind: 'money' }] },
-              { weight: 4, effects: [{ money: -1200 }, { stat: 'happiness', delta: -4 }, { log: "Their lawyer argued I 'drove into the van'. We lost. I paid my lawyer anyway.", kind: 'bad' }] },
+            chance: 0.02,
+            then: [{ death: 'a car crash' }],
+            else: [
+              { injury: 6 },
+              {
+                random: [
+                  { weight: 5, effects: [{ money: 8000 }, { stat: 'happiness', delta: 2 }, { log: "The van's company settled. {{$8000}} for a sore neck, a year of paperwork and a very stern letter.", kind: 'money' }] },
+                  { weight: 5, effects: [{ money: -1500 }, { stat: 'happiness', delta: -6 }, { log: "Their lawyer argued I 'drove into the van'. We lost. I paid my lawyer anyway.", kind: 'bad' }] },
+                ],
+              },
             ],
           },
         ],
@@ -1055,7 +1071,8 @@ export const HEALTH_EVENTS: EventDef[] = [
       {
         id: 'live',
         label: 'Decide to live differently',
-        effects: [{ stat: 'happiness', delta: 6 }, { karma: 1 }, { flag: 'hl_second_chance', set: true }, { log: 'I went home and called everyone I love. Three seconds of clarity is more than most people get.', kind: 'good' }],
+        hint: '{{$150}}',
+        effects: [{ stat: 'happiness', delta: 5 }, { karma: 1 }, { money: -150 }, { flag: 'hl_second_chance', set: true }, { log: 'I went home, rang everyone I love and sent flowers. Three seconds of clarity is more than most get.', kind: 'good' }],
       },
     ],
   },
@@ -1120,7 +1137,7 @@ export const HEALTH_EVENTS: EventDef[] = [
           {
             random: [
               { weight: 7, effects: [{ log: 'A virus. Fluids, rest, a sticker for {{person}} and a lecture for me about websites. Home by dawn.' }] },
-              { weight: 3, effects: [{ money: -1500 }, { relationship: 'person', delta: 4 }, { log: 'An infection that needed treating straight away. The doctor said coming in was the right call. I did not sleep for three days.' }] },
+              { weight: 3, effects: [{ money: -1500 }, { relationship: 'person', delta: 4 }, { log: 'An infection, caught in time. The doctor said coming in was the right call. I barely slept for days.' }] },
             ],
           },
         ],
@@ -1140,12 +1157,13 @@ export const HEALTH_EVENTS: EventDef[] = [
       {
         id: 'call',
         label: 'Call {{mother}} for advice',
+        conditions: [{ hasPerson: ['mother'] }],
         effects: [
           { relationship: 'mother', delta: 3 },
           { stat: 'happiness', delta: 1 },
           {
             chance: 0.8,
-            then: [{ relationship: 'person', delta: 3 }, { log: '{{mother}} talked me through it like she had done it a hundred times, which she had. {{person}} was fine by lunch.', kind: 'good' }],
+            then: [{ relationship: 'person', delta: 3 }, { log: '{{mother}} talked me through it like she had done it a hundred times. {{person}} was fine by lunch.', kind: 'good' }],
             else: [{ money: -500 }, { log: 'Even {{mother}} said to go in. We went. A virus, fluids, home by dawn.' }],
           },
         ],
@@ -1167,7 +1185,7 @@ export const HEALTH_EVENTS: EventDef[] = [
         id: 'visit',
         label: 'Drop everything and go',
         effects: [
-          { relationship: 'person', delta: 12 },
+          { relationship: 'person', delta: 10 },
           { stat: 'happiness', delta: -4 },
           { money: -200 },
           { karma: 2 },
@@ -1219,7 +1237,7 @@ export const HEALTH_EVENTS: EventDef[] = [
             random: [
               { weight: 6, effects: [{ stat: 'happiness', delta: 8 }, { relationship: 'person', delta: 4 }, { log: '{{person}} is in the clear. {{They}} rang the hospital bell and cried, and so did I.', kind: 'good' }] },
               { weight: 3, effects: [{ stat: 'happiness', delta: -3 }, { log: 'It is chronic but managed. {{person}} has pills, a plan and a dark sense of humour about both.' }] },
-              { weight: 1.5, effects: [{ stat: 'happiness', delta: -15 }, { log: 'The treatment stopped working. {{person}} died in the spring, with the people {{they}} loved in the room.', kind: 'bad' }, { personDies: true, cause: 'a long illness' }] },
+              { weight: 1.5, effects: [{ stat: 'happiness', delta: -15 }, { log: 'The treatment stopped working. {{person}} died in spring, with everyone {{they}} loved in the room.', kind: 'bad' }, { personDies: true, cause: 'a long illness' }] },
             ],
           },
         ],
@@ -1230,9 +1248,9 @@ export const HEALTH_EVENTS: EventDef[] = [
         effects: [
           {
             random: [
-              { weight: 6, effects: [{ stat: 'happiness', delta: 6 }, { log: '{{person}} is in the clear. {{They}} told me over the phone, then put the phone down to go and tell the neighbours.', kind: 'good' }] },
-              { weight: 3, effects: [{ stat: 'happiness', delta: -3 }, { log: 'It is chronic but managed. {{person}} sent me a photo of the pill organiser, labelled, like a trophy.' }] },
-              { weight: 1.5, effects: [{ stat: 'happiness', delta: -15 }, { relationship: 'person', delta: -3 }, { log: 'The treatment stopped working. {{person}} died in the spring. I was not in the room, and I think about that.', kind: 'bad' }, { personDies: true, cause: 'a long illness' }] },
+              { weight: 6, effects: [{ stat: 'happiness', delta: 6 }, { log: '{{person}} is in the clear. {{They}} told me on the phone, then hung up to tell the neighbours.', kind: 'good' }] },
+              { weight: 3, effects: [{ stat: 'happiness', delta: -3 }, { log: 'It is chronic but managed. {{person}} sent me a photo of the pill organiser, labelled like a trophy.' }] },
+              { weight: 1.5, effects: [{ stat: 'happiness', delta: -15 }, { relationship: 'person', delta: -3 }, { log: 'The treatment stopped working. {{person}} died in spring. I was not in the room. I think about that.', kind: 'bad' }, { personDies: true, cause: 'a long illness' }] },
             ],
           },
         ],

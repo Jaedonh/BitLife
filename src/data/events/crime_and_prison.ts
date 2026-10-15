@@ -43,7 +43,8 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
         label: 'Refuse',
         effects: [
           { karma: 2 },
-          { relationship: 'person', delta: -4 },
+          { stat: 'happiness', delta: 1 },
+          { relationship: 'person', delta: -3 },
           {
             chance: 0.3,
             then: [{ relationship: 'person', delta: -3 }, { log: '{{person}} got caught without me and did not speak to me for a month. Not my fault. Still.', kind: 'info' }],
@@ -58,7 +59,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ karma: 3 }, { relationship: 'person', delta: 5 }, { stat: 'happiness', delta: 2 }, { log: 'It took twenty minutes, but {{person}} shrugged and we went for chips instead.', kind: 'good' }],
-            else: [{ karma: 1 }, { relationship: 'person', delta: -2 }, { stat: 'happiness', delta: -2 }, { log: '{{person}} rolled {{their}} eyes and went in anyway. I walked home feeling preachy.', kind: 'info' }],
+            else: [{ relationship: 'person', delta: -4 }, { stat: 'happiness', delta: -3 }, { log: '{{person}} rolled {{their}} eyes and went in anyway. I walked home feeling preachy.', kind: 'info' }],
           },
         ],
       },
@@ -73,6 +74,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
     maxAge: 85,
     weight: 1.5,
     cooldown: 4,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'keep',
@@ -94,9 +96,11 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
         effects: [
           { karma: 3 },
           {
-            chance: 0.5,
-            then: [{ money: 60 }, { stat: 'happiness', delta: 4 }, { log: 'The owner nearly cried and pressed {{$60}} into my hand. I tried to refuse. I did not try hard.', kind: 'good' }],
-            else: [{ stat: 'happiness', delta: 2 }, { log: 'The owner said thanks through a half-open door. That was it. Still felt right.', kind: 'good' }],
+            random: [
+              { weight: 5, effects: [{ money: 60 }, { stat: 'happiness', delta: 4 }, { log: 'The owner nearly cried and pressed {{$60}} into my hand. I tried to refuse. I did not try hard.', kind: 'good' }] },
+              { weight: 3.5, effects: [{ stat: 'happiness', delta: 2 }, { log: 'The owner said thanks through a half-open door. That was it. Still felt right.', kind: 'good' }] },
+              { weight: 1.5, effects: [{ stat: 'happiness', delta: -3 }, { log: 'The owner counted the cash in front of me and asked, flatly, if that was all of it. It was.', kind: 'bad' }] },
+            ],
           },
         ],
       },
@@ -105,7 +109,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
         label: 'Hand it to the police',
         effects: [
           { karma: 2 },
-          { stat: 'happiness', delta: 1 },
+          { stat: 'happiness', delta: 2 },
           {
             chance: 0.25,
             then: [{ money: 40 }, { log: 'A thank-you card and {{$40}} arrived a month later via the station.', kind: 'good' }],
@@ -252,7 +256,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
       {
         id: 'keep_walking',
         label: 'Keep walking',
-        effects: [{ karma: -3 }, { stat: 'happiness', delta: -2 }, { log: 'Not my pharmacy, not my problem. I told myself that for about a week.', kind: 'info' }],
+        effects: [{ karma: -3 }, { stat: 'happiness', delta: 1 }, { log: 'I got home warm and on time. Not my pharmacy, not my problem, I told myself for about a week.', kind: 'info' }],
       },
     ],
   },
@@ -320,10 +324,11 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
         id: 'calm',
         label: 'Stay calm and cooperate',
         effects: [
+          { karma: 1 },
           {
             chance: 0.85,
             then: [{ stat: 'happiness', delta: -1 }, { log: 'They checked my name, apologised for the bother, and drove off. My hands shook for an hour.', kind: 'info' }],
-            else: [{ stat: 'happiness', delta: -5 }, { log: 'They searched my bag on the bonnet in front of everyone and found nothing. No apology.', kind: 'bad' }],
+            else: [{ stat: 'happiness', delta: -4 }, { log: 'They searched my bag on the bonnet in front of everyone and found nothing. No apology.', kind: 'bad' }],
           },
         ],
       },
@@ -346,9 +351,16 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
         label: "Ask if you're free to go",
         effects: [
           {
-            chance: 0.65,
-            then: [{ stat: 'happiness', delta: 2 }, { log: 'They looked at each other, said yes, and let me walk. Knowing the words helped.', kind: 'good' }],
-            else: [{ stat: 'happiness', delta: -3 }, { log: 'That made them keener, not less. Twenty minutes of questions on a cold pavement.', kind: 'info' }],
+            chance: 0.55,
+            then: [{ stat: 'happiness', delta: 3 }, { log: 'They looked at each other, said yes, and let me walk. Knowing the words helped.', kind: 'good' }],
+            else: [
+              { stat: 'happiness', delta: -3 },
+              {
+                chance: 0.3,
+                then: [{ money: -100 }, { log: 'That made them keener. Twenty minutes of questions and a ticket for something I had never heard of.', kind: 'bad' }],
+                else: [{ log: 'That made them keener, not less. Twenty minutes of questions on a cold pavement.', kind: 'info' }],
+              },
+            ],
           },
         ],
       },
@@ -715,8 +727,8 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
         effects: [
           { karma: -3 },
           {
-            chance: 0.4,
-            then: [{ jobPerformance: 1 }, { log: 'HR shrugged and blamed the database. My file is clean again, officially.', kind: 'info' }],
+            chance: 0.5,
+            then: [{ jobPerformance: 2 }, { stat: 'happiness', delta: 3 }, { log: 'HR shrugged and blamed the database. My file is clean again, officially. Nobody mentions it.', kind: 'info' }],
             else: [{ loseJob: true, reason: 'fired' }, { stat: 'happiness', delta: -12 }, { log: 'They had the paperwork. Lying about it was the part they could not forgive.', kind: 'bad' }],
           },
         ],
@@ -846,7 +858,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
       {
         id: 'brave',
         label: 'Put on a brave face',
-        effects: [{ relationship: 'person', delta: 2 }, { stat: 'happiness', delta: 2 }, { log: 'I joked about the food and said I was fine. {{person}} pretended to believe me. We both did well.', kind: 'info' }],
+        effects: [{ relationship: 'person', delta: 3 }, { stat: 'happiness', delta: 3 }, { log: 'I joked about the food and said I was fine. {{person}} pretended to believe me. We both did well.', kind: 'info' }],
       },
       {
         id: 'money',
@@ -967,8 +979,8 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
         label: 'Stay in your cell',
         effects: [
           {
-            chance: 0.8,
-            then: [{ stat: 'happiness', delta: -3 }, { log: 'I pulled the mattress against the door and waited six hours. Boring saved my skin, probably.', kind: 'info' }],
+            chance: 0.85,
+            then: [{ stat: 'happiness', delta: -2 }, { log: 'I pulled the mattress against the door and waited six hours. Boring saved my skin, probably.', kind: 'info' }],
             else: [{ injury: 5 }, { stat: 'happiness', delta: -5 }, { log: 'Someone kicked the door in looking for a rival and took it out on me instead.', kind: 'bad' }],
           },
         ],
@@ -1006,7 +1018,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
               { newPerson: { kind: 'friend', relationship: 55, minAge: 18, maxAge: 60, log: 'My cellmate {{person}} and I are friends now. Riot-tested.' } },
               { log: 'We barricaded the cell together and talked until dawn. I have a friend in here now.', kind: 'good' },
             ],
-            else: [{ injury: 8 }, { stat: 'happiness', delta: 2 }, { log: 'I took a few hits meant for my cellmate. The infirmary nurse called me an idiot, kindly.', kind: 'info' }],
+            else: [{ injury: 9 }, { stat: 'happiness', delta: -1 }, { log: 'I took a few hits meant for my cellmate. The infirmary nurse called me an idiot, kindly.', kind: 'info' }],
           },
         ],
       },
@@ -1139,7 +1151,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
         effects: [
           { money: 60 },
           { stat: 'health', delta: 2 },
-          { stat: 'happiness', delta: 2 },
+          { stat: 'happiness', delta: 1 },
           {
             chance: 0.2,
             then: [{ flag: 'cp_prison_good_conduct', inc: 1 }, { log: 'Extra portions, warm hands, and the cook put a good word in my file. Not a bad year.', kind: 'good' }],
@@ -1163,7 +1175,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
       {
         id: 'laundry',
         label: 'Take the laundry shift',
-        effects: [{ money: 45 }, { stat: 'happiness', delta: 3 }, { log: 'Hot, loud, and nobody bothers you in the laundry. I folded my way through the year.', kind: 'info' }],
+        effects: [{ money: 50 }, { stat: 'happiness', delta: 4 }, { log: 'Hot, loud, and nobody bothers you in the laundry. I folded my way through the year.', kind: 'info' }],
       },
       {
         id: 'refuse',
@@ -1206,7 +1218,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.6,
-            then: [{ relationship: 'person', delta: 2 }, { log: 'A visit was booked for next month. I counted the days on the wall like a cliché.', kind: 'good' }, { queue: 'cp_prison_visitor' }],
+            then: [{ relationship: 'person', delta: 6 }, { stat: 'happiness', delta: 6 }, { log: '{{person}} came the next month with news, biscuits and a hug that lasted the whole hour.', kind: 'good' }],
             else: [{ relationship: 'person', delta: -3 }, { stat: 'happiness', delta: -4 }, { log: '{{person}} wrote back that it was too far, too much, too soon. All three were true.', kind: 'bad' }],
           },
         ],

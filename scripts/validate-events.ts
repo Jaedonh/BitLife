@@ -20,6 +20,7 @@ import { createLife } from '../src/engine/systems/character';
 import { Rng } from '../src/engine/rng';
 import { balancedPolicy, recklessPolicy } from '../src/engine/simulate';
 import { applyAction } from '../src/engine/actions';
+import { applyEffects } from '../src/engine/events/effects';
 import type { GameState } from '../src/engine/types';
 
 async function loadFile(file: string): Promise<EventDef[]> {
@@ -38,11 +39,19 @@ function sampleStates(n: number, recklessLives = 20): GameState[] {
     const policy = seed > n ? recklessPolicy : balancedPolicy;
     let s = createLife({}, seed * 7919);
     const rng = new Rng(seed);
-    const years = 5 + (seed % 90);
+    const petRng = new Rng(seed * 31 + 7);
+    // Most lives run until death so late-life states (grandchildren, retirement) are well represented;
+    // every third life is cut short so early states keep their weight too.
+    const years = seed % 3 === 0 ? 5 + (seed % 90) : 100;
     for (let y = 0; y < years && s.alive; y++) {
       s = ageUp(s, emptyRegistry);
       while (s.pendingEvent) s = resolveChoice(s, s.pendingEvent.choices[0]!.id, emptyRegistry);
       if (!s.alive) break;
+      // Pets only enter a life through events, which the sampler does not fire;
+      // give every other life a pet at a few ages so pet events are reachable.
+      if (seed % 2 === 0 && (s.character.age === 8 || s.character.age === 25 || s.character.age === 45)) {
+        s = applyEffects(s, petRng, [{ newPerson: { kind: 'pet', species: seed % 4 === 0 ? 'dog' : 'cat' } }]);
+      }
       for (const a of policy(s, rng)) s = applyAction(s, a);
       states.push(s);
     }

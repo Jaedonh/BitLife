@@ -24,8 +24,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         label: 'Wish for a pony',
         effects: [
           { stat: 'happiness', delta: 3 },
-          { log: 'I wished for a pony with my whole heart. No pony arrived. I did get a bicycle the next year, which is at least shaped a bit like a pony.' },
-          { chance: 0.25, then: [{ money: 20 }, { log: 'An aunt I barely know slipped {{$20}} into my hand and told me not to spend it all on sweets. I spent it all on sweets.', kind: 'money' }] },
+          { log: 'I wished for a pony. No pony came. I got a bicycle the next year, which is at least pony-shaped.' },
+          { chance: 0.25, then: [{ money: 20 }, { log: 'An aunt slipped me {{$20}} and said not to spend it all on sweets. I spent it all on sweets.', kind: 'money' }] },
         ],
       },
       {
@@ -37,7 +37,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { relationship: 'mother', delta: 2 },
           { relationship: 'father', delta: 2 },
           { relationship: 'sibling', delta: 2 },
-          { log: 'I wished for everyone in the room to be happy and kept it secret, which is the rule. Somebody got teary anyway. The cake was excellent.', kind: 'good' },
+          { log: 'I wished for everyone to be happy and kept it secret, as is the rule. Somebody got teary anyway.', kind: 'good' },
         ],
       },
       {
@@ -46,7 +46,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           { stat: 'smarts', delta: 1 },
           { stat: 'happiness', delta: 1 },
-          { log: 'I announced that wishes were not scientifically supported and blew all the candles out in one go. Big applause for the lungs, less for the commentary.' },
+          { log: 'I called wishes unscientific and blew them out in one go. Applause for the lungs, not the lecture.' },
         ],
       },
       {
@@ -56,7 +56,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 4 },
           { stat: 'health', delta: -1 },
           { relationship: 'mother', delta: -2 },
-          { log: 'I went face-first into the frosting before the song had finished. Photos exist. They will be shown at my wedding.' },
+          { log: 'Face-first into the frosting before the song ended. Photos exist. They will be shown at my wedding.' },
         ],
       },
     ],
@@ -87,14 +87,14 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
                   { stat: 'happiness', delta: 8 },
                   { relationship: 'friend', delta: 3 },
                   { relationship: 'bestFriend', delta: 3 },
-                  { log: 'The party was loud, the cake was lopsided and three people I barely knew told me I was their favourite person. Worth every cent.', kind: 'good' },
+                  { log: 'Loud party, lopsided cake, three near-strangers calling me their favourite person. Worth every cent.', kind: 'good' },
                 ],
               },
               {
                 weight: 30,
                 effects: [
                   { stat: 'happiness', delta: 2 },
-                  { log: 'Half the guests cancelled and the other half left early. I ate leftover cake for a week, which was honestly not the worst part of the year.', kind: 'bad' },
+                  { log: 'Half the guests cancelled and the rest left early. A week of leftover cake was not the worst part.', kind: 'bad' },
                 ],
               },
             ],
@@ -124,7 +124,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           { money: -120 },
           { stat: 'happiness', delta: 5 },
-          { log: 'I bought myself the thing I had been eyeing for months and wrapped it, which is either sad or extremely efficient.', kind: 'money' },
+          { log: 'I bought myself the thing I had eyed for months and wrapped it. Either sad or extremely efficient.', kind: 'money' },
         ],
       },
       {
@@ -133,7 +133,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           { stat: 'smarts', delta: 1 },
           { stat: 'happiness', delta: -1 },
-          { log: 'I told everyone I was busy and spent the evening with a book. Two people sang at me down the phone anyway.' },
+          { log: 'I said I was busy and spent the evening with a book. Two people sang at me down the phone anyway.' },
         ],
       },
     ],
@@ -155,7 +155,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           { stat: 'happiness', delta: 8 },
           { relationship: 'person', delta: 8 },
-          { log: '{{person}} got the hug of {{their}} life. I cried, laughed, cried again, and then found the snack table.', kind: 'good' },
+          { log: '{{person}} got the hug of {{their}} life. I cried, laughed, cried again, then found the snacks.', kind: 'good' },
         ],
       },
       {
@@ -173,7 +173,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           {
             random: [
-              { weight: 60, effects: [{ stat: 'happiness', delta: 6 }, { relationship: 'person', delta: 5 }, { log: 'I thanked {{person}} in a speech that ran a little long but landed. Someone filmed it. I have watched it eleven times.', kind: 'good' }] },
+              { weight: 60, effects: [{ stat: 'happiness', delta: 6 }, { relationship: 'person', delta: 5 }, { log: 'My speech for {{person}} ran long but landed. Someone filmed it. I have watched it eleven times.', kind: 'good' }] },
               { weight: 40, effects: [{ stat: 'happiness', delta: 1 }, { log: 'My speech wandered through three childhood anecdotes before someone cut the cake to save us all.' }] },
             ],
           },
@@ -207,7 +207,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         label: 'Say nothing and sulk',
         effects: [
           { stat: 'happiness', delta: -6 },
-          { log: 'I said nothing and went to bed early. A week later someone remembered, and the apology was almost worse than the forgetting.', kind: 'bad' },
+          { log: 'I sulked in silence. When someone finally remembered, the apology was worse than the forgetting.', kind: 'bad' },
         ],
       },
       {
@@ -216,7 +216,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.6,
-            then: [{ stat: 'happiness', delta: 3 }, { relationship: 'friend', delta: 2 }, { relationship: 'sibling', delta: 2 }, { log: 'I posted a photo captioned "another trip around the sun" and the messages came pouring in, late but sincere.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 3 }, { relationship: 'friend', delta: 2 }, { relationship: 'sibling', delta: 2 }, { log: 'I posted "another trip around the sun" with a photo and the messages poured in, late but sincere.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -3 }, { log: 'My hint got two thumbs-up reactions and nothing else. Those people are dead to me until spring.', kind: 'bad' }],
           },
         ],
@@ -230,7 +230,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { money: -25 },
           { stat: 'happiness', delta: 4 },
           { stat: 'health', delta: -1 },
-          { log: 'I bought a whole cake, lit one candle and sang to myself in the kitchen. It was oddly fine. Nobody else gets a slice.' },
+          { log: 'I bought a cake, lit one candle and sang to myself in the kitchen. Oddly fine. Nobody gets a slice.' },
         ],
       },
       {
@@ -242,7 +242,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { relationship: 'friend', delta: 3 },
           { relationship: 'bestFriend', delta: 3 },
           { relationship: 'mother', delta: 2 },
-          { log: 'I called people and just said it. Awkward for a second, then a lot of guilty laughter and a late dinner. Honesty beats sulking.', kind: 'good' },
+          { log: 'I called people and just said it. Awkward for a second, then guilty laughter and a late dinner.', kind: 'good' },
         ],
       },
     ],
@@ -270,7 +270,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { relationship: 'bestFriend', delta: 4 },
           { relationship: 'sibling', delta: 3 },
           { relationship: 'spouse', delta: 3 },
-          { log: 'A proper party. Old friends, new friends, a playlist from twenty years ago and a clear-headed morning because I am, apparently, wise now.', kind: 'good' },
+          { log: 'A proper party: old friends, new friends, a twenty-year-old playlist and a clear-headed morning.', kind: 'good' },
         ],
       },
       {
@@ -284,7 +284,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { stat: 'health', delta: 2 },
           { stat: 'smarts', delta: 1 },
           { counter: 'vacations' },
-          { log: 'I took myself somewhere quiet with a view and thought about my life. Some of it. The nice parts, mostly.', kind: 'good' },
+          { log: 'I took myself somewhere quiet with a view and thought about my life. The nice parts, mostly.', kind: 'good' },
         ],
       },
       {
@@ -304,8 +304,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 3 },
           {
             chance: 0.3,
-            then: [{ stat: 'health', delta: 4 }, { log: 'The crisis turned into a running habit and a new haircut. Nobody asked for either. Both are going well.', kind: 'good' }],
-            else: [{ log: 'I made a list of everything I had not done yet. It was long. I put it in a drawer. The drawer is where lists go to rest.' }],
+            then: [{ stat: 'health', delta: 4 }, { log: 'The crisis became a running habit and a new haircut. Nobody asked for either. Both are going well.', kind: 'good' }],
+            else: [{ log: 'I listed everything I had not done yet. It was long. It went in a drawer, where lists go to rest.' }],
           },
         ],
       },
@@ -380,8 +380,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.5,
-            then: [{ stat: 'health', delta: 6 }, { stat: 'happiness', delta: 3 }, { stat: 'looks', delta: 1 }, { counter: 'workouts', by: 3 }, { log: 'I kept going past the part where it stopped being fun and into the part where it became a habit. Stairs are nothing to me now.', kind: 'good' }],
-            else: [{ stat: 'health', delta: 1 }, { log: 'I kept going until March, which is further than most, and then the weather happened. The trainers remain clean.' }],
+            then: [{ stat: 'health', delta: 6 }, { stat: 'happiness', delta: 3 }, { stat: 'looks', delta: 1 }, { counter: 'workouts', by: 3 }, { log: 'I kept going past the part where it stopped being fun and into the part where it became a habit.', kind: 'good' }],
+            else: [{ stat: 'health', delta: 1 }, { log: 'I lasted until March, further than most, and then the weather happened. The trainers remain clean.' }],
           },
         ],
       },
@@ -392,8 +392,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.6,
-            then: [{ stat: 'smarts', delta: 4 }, { stat: 'happiness', delta: 2 }, { counter: 'libraryVisits', by: 2 }, { log: 'Seven books by spring. I started saying "as I was reading recently" in conversation and nobody has stopped me yet.', kind: 'good' }],
-            else: [{ stat: 'smarts', delta: 1 }, { log: 'Two books, one of them twice because I forgot I had read it. The pile beside the bed is now a piece of furniture.' }],
+            then: [{ stat: 'smarts', delta: 4 }, { stat: 'happiness', delta: 2 }, { counter: 'libraryVisits', by: 2 }, { log: 'Seven books by spring. I say "as I was reading recently" a lot now. Nobody has stopped me yet.', kind: 'good' }],
+            else: [{ stat: 'smarts', delta: 1 }, { log: 'Two books, one of them twice because I forgot I had read it. The pile by the bed is now furniture.' }],
           },
         ],
       },
@@ -404,8 +404,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.55,
-            then: [{ money: 300 }, { stat: 'happiness', delta: 2 }, { log: 'The jar filled up. Then a second jar. I counted it out on the table like a cartoon villain: {{$300}} I would otherwise have spent on nothing.', kind: 'money' }],
-            else: [{ stat: 'happiness', delta: -1 }, { log: 'The jar did well until the first emergency, which turned out to be a very good pizza. The label is still on the shelf.' }],
+            then: [{ money: 300 }, { stat: 'happiness', delta: 2 }, { log: 'The jar filled, then a second jar. I counted it out on the table like a cartoon villain: {{$300}}.', kind: 'money' }],
+            else: [{ stat: 'happiness', delta: -1 }, { log: 'The jar did well until the first emergency, which was a very good pizza. The label is still up.' }],
           },
         ],
       },
@@ -414,7 +414,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         label: 'Quietly give up',
         effects: [
           { stat: 'happiness', delta: 1 },
-          { log: 'I gave up quietly, which is the traditional ending. There is always next year, and the year after that.' },
+          { log: 'I gave up quietly, the traditional ending. There is always next year, and the year after that.' },
         ],
       },
     ],
@@ -454,11 +454,11 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
                 weight: 70,
                 effects: [
                   { stat: 'happiness', delta: 6 },
-                  { log: 'Fireworks over {{city}}, strangers hugging strangers, a brass band that would not stop. I was hoarse by one in the morning.', kind: 'good' },
-                  { chance: 0.2, then: [{ newPerson: { kind: 'friend', relationship: 50, log: 'I spent the countdown next to a stranger called {{person}} and we were somehow friends by one in the morning.' } }] },
+                  { log: 'Fireworks over {{city}}, strangers hugging strangers, a brass band that never stopped. I was hoarse.', kind: 'good' },
+                  { chance: 0.2, then: [{ newPerson: { kind: 'friend', relationship: 50, log: 'I counted down beside a stranger called {{person}} and we were friends by one in the morning.' } }] },
                 ],
               },
-              { weight: 30, effects: [{ stat: 'happiness', delta: -4 }, { stat: 'health', delta: -2 }, { log: 'Someone spilled a full drink down my back at two minutes to midnight. I saw the new year in under a bathroom hand dryer.', kind: 'bad' }] },
+              { weight: 30, effects: [{ stat: 'happiness', delta: -4 }, { stat: 'health', delta: -2 }, { log: 'A full drink went down my back at two to midnight. I saw the new year in under a hand dryer.', kind: 'bad' }] },
             ],
           },
         ],
@@ -469,7 +469,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           { stat: 'happiness', delta: 2 },
           { stat: 'health', delta: 2 },
-          { log: 'I was asleep before the fireworks. Woke up to a new year and no headache, which is a kind of victory.' },
+          { log: 'Asleep before the fireworks. I woke to a new year and no headache, which is a kind of victory.' },
         ],
       },
       {
@@ -480,8 +480,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 3 },
           {
             chance: 0.3,
-            then: [{ stat: 'health', delta: -3 }, { stat: 'happiness', delta: -4 }, { log: 'I rang in the new year loudly and met the first morning of it quietly, face down, promising things to the ceiling.', kind: 'bad' }],
-            else: [{ log: 'The night got blurry around the third toast. I remember being very happy and very loud, and not much else.' }],
+            then: [{ stat: 'health', delta: -3 }, { stat: 'happiness', delta: -4 }, { log: 'I rang in the year loudly and met its first morning face down, promising things to the ceiling.', kind: 'bad' }],
+            else: [{ log: 'Blurry from the third toast onward. Very happy, very loud, and a headache that lasted until lunch.' }],
           },
         ],
       },
@@ -507,7 +507,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 6 },
           { stat: 'happiness', delta: 3 },
           { stat: 'smarts', delta: 1 },
-          { log: 'I peeled, stirred and tasted on command. {{person}} said I was the only useful one, loudly, in front of everybody.', kind: 'good' },
+          { log: 'I peeled and stirred on command. {{person}} called me the only useful one, loudly, to everyone.', kind: 'good' },
         ],
       },
       {
@@ -563,7 +563,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 5 },
           { karma: 1 },
           { stat: 'happiness', delta: -1 },
-          { log: 'I said I loved it. I will now have to display it whenever {{they}} visit, forever. This is the price of kindness.' },
+          { log: 'I said I loved it. Now I must display it whenever {{they}} visit, forever. The price of kindness.' },
         ],
       },
       {
@@ -572,7 +572,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           {
             random: [
-              { weight: 50, effects: [{ relationship: 'person', delta: 2 }, { stat: 'happiness', delta: 2 }, { log: '{{person}} laughed and admitted {{they}} had panicked in the shop. We swapped it the next day and had a good lunch.', kind: 'good' }] },
+              { weight: 50, effects: [{ relationship: 'person', delta: 2 }, { stat: 'happiness', delta: 2 }, { log: '{{person}} laughed and admitted {{they}} had panicked in the shop. We swapped it the next day.', kind: 'good' }] },
               { weight: 50, effects: [{ relationship: 'person', delta: -8 }, { stat: 'happiness', delta: -3 }, { log: '{{person}} went quiet. Honest, yes. Worth it, debatable.', kind: 'bad' }] },
             ],
           },
@@ -635,11 +635,11 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
                   { relationship: 'sibling', delta: 3 },
                   { relationship: 'spouse', delta: 3 },
                   { relationship: 'friend', delta: 2 },
-                  { log: 'Three courses, a table that seated twelve if nobody moved their elbows, and total silence when the main course came out. The good kind of silence.', kind: 'good' },
+                  { log: 'Three courses, twelve elbows at one table, and total silence when the main came out. The good kind.', kind: 'good' },
                 ],
               },
-              { weight: 25, effects: [{ stat: 'happiness', delta: 3 }, { log: 'The oven died at four. We ate at nine, mostly sides. People were kind about it. I will never host again, until next year.' }] },
-              { weight: 10, effects: [{ illness: 'food_poisoning' }, { stat: 'happiness', delta: -5 }, { log: 'Something in the stuffing was not right. Half the table was unwell by midnight, me included. Nobody has said anything. Nobody has to.', kind: 'bad' }] },
+              { weight: 25, effects: [{ stat: 'happiness', delta: 3 }, { log: 'The oven died at four. We ate at nine, mostly sides. I will never host again, until next year.' }] },
+              { weight: 10, effects: [{ illness: 'food_poisoning' }, { stat: 'happiness', delta: -5 }, { log: 'The stuffing was off. Half the table was unwell by midnight, me included. Nobody has said anything.', kind: 'bad' }] },
             ],
           },
         ],
@@ -665,7 +665,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 3 },
           { relationship: 'mother', delta: -1 },
           { relationship: 'sibling', delta: -1 },
-          { log: 'I quietly downgraded the invitation to pie and coffee. A few people grumbled, then saw the pie and forgave me.' },
+          { log: 'I quietly downgraded the invite to pie and coffee. A few grumbled, then saw the pie and forgave me.' },
         ],
       },
       {
@@ -705,12 +705,12 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
                 effects: [
                   { stat: 'happiness', delta: -2 },
                   { stat: 'smarts', delta: 1 },
-                  { log: 'There is a half-sibling. A real one, with a name, living two towns over. {{person}} had known for years.', kind: 'milestone' },
+                  { log: 'There is a half-sibling. A real one, with a name, two towns over. {{person}} had known for years.', kind: 'milestone' },
                   { newPerson: { kind: 'sibling', relationship: 25, log: 'My new half-sibling is called {{person}}. We have the same nose and, so far, nothing else.' } },
                 ],
               },
-              { weight: 35, effects: [{ stat: 'happiness', delta: -3 }, { stat: 'smarts', delta: 2 }, { log: 'The family business had gone bankrupt twice and the "inheritance" story was a comforting fiction. I felt oddly relieved.' }] },
-              { weight: 25, effects: [{ relationship: 'person', delta: -3 }, { stat: 'happiness', delta: 1 }, { log: '{{person}} had once been engaged to someone else entirely and called it off a week before the wedding. The room took a while to recover.' }] },
+              { weight: 35, effects: [{ stat: 'happiness', delta: -3 }, { stat: 'smarts', delta: 2 }, { log: 'The business went bust twice. The "inheritance" was a comforting fiction. I felt oddly relieved.' }] },
+              { weight: 25, effects: [{ relationship: 'person', delta: -3 }, { stat: 'happiness', delta: 1 }, { log: '{{person}} was once engaged to someone else and cancelled a week before the wedding. Long silence.' }] },
             ],
           },
         ],
@@ -730,7 +730,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.5,
-            then: [{ stat: 'happiness', delta: 3 }, { log: 'My laugh broke the tension. Then everyone laughed, including {{person}}, and dinner carried on with a new story attached.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 3 }, { log: 'My laugh broke the tension. Everyone joined in, even {{person}}. Dinner went on with a new story.', kind: 'good' }],
             else: [{ relationship: 'person', delta: -6 }, { stat: 'happiness', delta: -2 }, { log: 'Nobody else laughed. {{person}} left the table. I had misjudged the room by a mile.', kind: 'bad' }],
           },
         ],
@@ -767,7 +767,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { relationship: 'sibling', delta: 3 },
           { relationship: 'spouse', delta: 3 },
           { relationship: 'child', delta: 3 },
-          { log: "We set {{person}}'s place and put {{their}} favourite dish in front of it. Someone cried, then someone laughed, and both were allowed.", kind: 'good' },
+          { log: "We set {{person}}'s place, {{their}} favourite dish in front of it. Someone cried, someone laughed.", kind: 'good' },
         ],
       },
       {
@@ -779,7 +779,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { relationship: 'mother', delta: 2 },
           { relationship: 'father', delta: 2 },
           { relationship: 'sibling', delta: 2 },
-          { log: 'I told the story about {{person}} and the ladder. The room came back to life for a minute. {{They}} would have corrected every detail.', kind: 'good' },
+          { log: 'I told the ladder story. The room woke up for a minute. {{person}} would have corrected every word.', kind: 'good' },
         ],
       },
       {
@@ -823,7 +823,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 15 },
           { stat: 'happiness', delta: 6 },
           { karma: 2 },
-          { log: "I went first. The hug was stiff for a second and then it wasn't. We talked until the house was asleep.", kind: 'good' },
+          { log: "I went first. The hug was stiff for a second and then it wasn't. We talked until the house slept.", kind: 'good' },
         ],
       },
       {
@@ -841,7 +841,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.4,
-            then: [{ relationship: 'person', delta: 20 }, { stat: 'happiness', delta: 5 }, { log: 'We finally said the things. There were tears, one raised voice and then a long quiet apology from both sides. The weight came off.', kind: 'good' }],
+            then: [{ relationship: 'person', delta: 20 }, { stat: 'happiness', delta: 5 }, { log: 'We finally said it all. Tears, a raised voice, then a quiet apology from both sides. Weight lifted.', kind: 'good' }],
             else: [{ relationship: 'person', delta: -8 }, { stat: 'happiness', delta: -5 }, { log: 'It went exactly how it went last time. {{person}} left before dessert. Same wound, fresh salt.', kind: 'bad' }],
           },
         ],
@@ -889,7 +889,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { flag: 'hd_tradition', set: 'campout' },
           { relationship: 'person', delta: 6 },
           { stat: 'happiness', delta: 4 },
-          { log: 'The tradition is decided: a blanket fort in the living room and stories until someone falls asleep. {{person}} is thrilled.', kind: 'milestone' },
+          { log: 'The tradition is decided: a blanket fort in the living room and stories until someone falls asleep.', kind: 'milestone' },
           { queue: 'hd_tradition_first_run' },
         ],
       },
@@ -901,7 +901,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 5 },
           { stat: 'smarts', delta: 2 },
           { stat: 'happiness', delta: 3 },
-          { log: 'The tradition is decided: a letter every year, sealed, to be opened at eighteen. {{person}} wants to know if {{they}} can peek. No.', kind: 'milestone' },
+          { log: 'The tradition: a sealed letter every year, to be opened at eighteen. {{person}} wants to peek. No.', kind: 'milestone' },
           { queue: 'hd_tradition_first_run' },
         ],
       },
@@ -925,8 +925,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           {
             random: [
-              { weight: 70, effects: [{ stat: 'happiness', delta: 5 }, { relationship: 'person', delta: 5 }, { log: 'Pancakes in pyjamas, flour everywhere, {{person}} flipping one onto the ceiling. A tradition is born.', kind: 'good' }] },
-              { weight: 30, effects: [{ stat: 'happiness', delta: 2 }, { relationship: 'person', delta: 3 }, { log: 'The first batch burned and the smoke alarm joined in. {{person}} declared it the best breakfast ever. Kids are generous critics.' }] },
+              { weight: 70, effects: [{ stat: 'happiness', delta: 5 }, { relationship: 'person', delta: 5 }, { log: 'Pancakes in pyjamas, flour everywhere, {{person}} flipping one at the ceiling. A tradition is born.', kind: 'good' }] },
+              { weight: 30, effects: [{ stat: 'happiness', delta: 2 }, { relationship: 'person', delta: 3 }, { log: 'The first batch burned and the alarm joined in. {{person}} declared it the best breakfast ever.' }] },
             ],
           },
         ],
@@ -952,7 +952,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 2 },
           { stat: 'happiness', delta: 4 },
           { relationship: 'person', delta: 4 },
-          { log: 'I wrote {{person}} a letter {{they}} will not read for years, sealed it, and felt about a hundred years old in the best way.', kind: 'good' },
+          { log: 'I wrote {{person}} a letter {{they}} cannot read for years, sealed it and felt old in the best way.', kind: 'good' },
         ],
       },
       {
@@ -987,7 +987,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           {
             random: [
               { weight: 55, effects: [{ stat: 'happiness', delta: 6 }, { log: 'My cardboard robot costume won the contest. Full suit, light-up eyes, could not sit down all night.', kind: 'good' }] },
-              { weight: 45, effects: [{ stat: 'happiness', delta: 2 }, { log: 'My costume was described as "ambitious". I went as a concept. Several people asked what it was. So did I.' }] },
+              { weight: 45, effects: [{ stat: 'happiness', delta: 2 }, { log: 'My costume was called "ambitious". I went as a concept. Several people asked what it was. So did I.' }] },
             ],
           },
         ],
@@ -1001,7 +1001,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { money: -60 },
           { stat: 'happiness', delta: 4 },
           { stat: 'looks', delta: 1 },
-          { log: 'I rented a full pirate outfit and was the best-dressed person at the party, which I pointed out more than once.', kind: 'good' },
+          { log: 'I rented a pirate outfit and was the best-dressed person there, which I pointed out more than once.', kind: 'good' },
         ],
       },
       {
@@ -1011,8 +1011,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: -1 },
           {
             chance: 0.3,
-            then: [{ stat: 'happiness', delta: 3 }, { log: 'I wore a name tag that said "Me". Three people found it hilarious and I spent the evening with those three.', kind: 'good' }],
-            else: [{ stat: 'happiness', delta: -2 }, { log: 'Nobody noticed my lack of costume. Nobody noticed me at all, which was both the problem and the point.', kind: 'bad' }],
+            then: [{ stat: 'happiness', delta: 3 }, { log: 'I wore a name tag that said "Me". Three people found it hilarious and I spent the evening with them.', kind: 'good' }],
+            else: [{ stat: 'happiness', delta: -2 }, { log: 'Nobody noticed my lack of costume. Nobody noticed me at all, which was the problem and the point.', kind: 'bad' }],
           },
         ],
       },
@@ -1022,7 +1022,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           { stat: 'happiness', delta: 1 },
           { relationship: 'friend', delta: -2 },
-          { log: 'I stayed home and ate the snacks I would have brought. The photos the next day looked fun. I was not in them.' },
+          { log: 'I stayed home and ate the snacks I would have brought. The photos looked fun. I was not in them.' },
         ],
       },
     ],
@@ -1046,7 +1046,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
             random: [
               { weight: 72, effects: [{ stat: 'happiness', delta: 6 }, { log: 'The show was glorious. Twelve rockets, one sparkler finale, applause from the neighbours. I bowed.', kind: 'good' }] },
               { weight: 20, effects: [{ injury: 6 }, { stat: 'happiness', delta: -4 }, { log: 'One went sideways. I now have a small burn on my hand and a large lesson about fuse lengths.', kind: 'bad' }] },
-              { weight: 8, effects: [{ injury: 18 }, { money: -300 }, { stat: 'happiness', delta: -8 }, { log: 'A firework went off far too close. I spent the night in a hospital with a bandaged hand and a ringing ear, hearing the show from a distance.', kind: 'bad' }] },
+              { weight: 8, effects: [{ injury: 18 }, { money: -300 }, { stat: 'happiness', delta: -8 }, { log: 'One went off far too close. I spent the night in hospital with a bandaged hand and a ringing ear.', kind: 'bad' }] },
             ],
           },
         ],
@@ -1056,7 +1056,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         label: 'Watch from the back',
         effects: [
           { stat: 'happiness', delta: 3 },
-          { log: 'I watched from a safe distance with the sensible people and a warm drink. Beautiful, loud, and all my fingers intact.' },
+          { log: 'I watched from a safe distance with the sensible people. Beautiful, loud, all ten fingers intact.' },
         ],
       },
       {
@@ -1067,7 +1067,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           { money: -20 },
           { stat: 'happiness', delta: 5 },
-          { log: 'The town display over {{city}} was bigger, safer and had a soundtrack. My neck hurt from looking up. Worth it.', kind: 'good' },
+          { log: 'The town display over {{city}} was bigger, safer and had a soundtrack. My neck hurt. Worth it.', kind: 'good' },
         ],
       },
       {
@@ -1113,7 +1113,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 4 },
           { stat: 'health', delta: -1 },
           { log: 'I carried, sorted and labelled for a full day. My back hurt. I slept like a saint.', kind: 'good' },
-          { chance: 0.25, then: [{ newPerson: { kind: 'friend', relationship: 50, log: 'I spent the day sorting tins beside {{person}}, who is now, apparently, my friend. Eight hours of cans will do that.' } }] },
+          { chance: 0.25, then: [{ newPerson: { kind: 'friend', relationship: 50, log: 'I sorted tins all day beside {{person}}, who is now my friend. Eight hours of cans will do that.' } }] },
         ],
       },
       {
@@ -1124,8 +1124,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 2 },
           {
             chance: 0.15,
-            then: [{ money: -150 }, { log: 'I gave away a bag of old clothes. The good coat was in it. Somebody in {{city}} is very warm now, and I am not.', kind: 'bad' }],
-            else: [{ log: 'Three bags of things I had not touched in years went to people who will actually use them. The wardrobe breathed.' }],
+            then: [{ money: -150 }, { log: 'I gave away a bag of old clothes. The good coat was in it. Somebody in {{city}} is very warm now.', kind: 'bad' }],
+            else: [{ log: 'Three bags of things I never touched went to people who will use them. The wardrobe breathed.' }],
           },
         ],
       },
@@ -1135,7 +1135,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           { stat: 'happiness', delta: 1 },
           { karma: -1 },
-          { log: 'I studied my phone intently and walked past. The clipboard watched me go. I kept my money and a small, portable guilt.' },
+          { log: 'I studied my phone and walked past the clipboard. I kept my money and a small, portable guilt.' },
         ],
       },
     ],
@@ -1157,8 +1157,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           {
             random: [
-              { weight: 45, effects: [{ stat: 'happiness', delta: 6 }, { relationship: 'person', delta: 6 }, { log: 'I spoke from the heart for ninety seconds and got a standing ovation from the kids table. {{person}} teared up.', kind: 'good' }] },
-              { weight: 35, effects: [{ stat: 'happiness', delta: -2 }, { relationship: 'person', delta: -2 }, { log: 'I rambled through four unrelated stories and sat down to confused applause. {{person}} patted my arm.' }] },
+              { weight: 45, effects: [{ stat: 'happiness', delta: 6 }, { relationship: 'person', delta: 6 }, { log: 'Ninety seconds from the heart and a standing ovation from the kids table. {{person}} teared up.', kind: 'good' }] },
+              { weight: 35, effects: [{ stat: 'happiness', delta: -2 }, { relationship: 'person', delta: -2 }, { log: 'I rambled through four unrelated stories to confused applause. {{person}} patted my arm.' }] },
               { weight: 20, effects: [{ stat: 'happiness', delta: -6 }, { relationship: 'person', delta: -10 }, { karma: -2 }, { log: "I mentioned {{person}}'s ex. By name. Twice. The silence had texture.", kind: 'bad' }] },
             ],
           },
@@ -1170,7 +1170,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           { stat: 'happiness', delta: 2 },
           { relationship: 'person', delta: 3 },
-          { log: 'One sentence, one raised glass, done. Several people said it was the best toast they had heard, mostly because it was over.' },
+          { log: 'One sentence, one glass, done. People called it the best toast ever, mostly because it was over.' },
         ],
       },
       {
@@ -1180,7 +1180,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 1 },
           { stat: 'happiness', delta: 3 },
           { relationship: 'person', delta: 4 },
-          { log: 'I read the paragraph I had secretly drafted on the drive over, looking up at the right moments. Competent, warm, no injuries.', kind: 'good' },
+          { log: 'I read the paragraph I had drafted on the drive over, looking up at the right moments. No injuries.', kind: 'good' },
         ],
       },
       {
@@ -1189,7 +1189,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           { stat: 'happiness', delta: -1 },
           { relationship: 'person', delta: -4 },
-          { log: '"I would rather not" is a complete sentence, but it does not play well in a room of forty. {{person}} understood. Mostly.' },
+          { log: '"I would rather not" is a full sentence. It plays badly in a room of forty. {{person}} understood.' },
         ],
       },
     ],
@@ -1219,17 +1219,17 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
                   { relationship: 'father', delta: 3 },
                   { relationship: 'sibling', delta: 2 },
                   { relationship: 'spouse', delta: 2 },
-                  { log: 'Four hours of white knuckles later I walked in to cheers and hot food. Terrifying. Worth it. Do not tell anyone I said that.', kind: 'good' },
+                  { log: 'Four hours of white knuckles, then cheers and hot food. Terrifying. Worth it. Do not tell anyone.', kind: 'good' },
                 ],
               },
-              { weight: 15, effects: [{ injury: 7 }, { money: -300 }, { asset: 'damage', kind: 'car', amount: 30 }, { stat: 'happiness', delta: -6 }, { log: 'I slid off the road into a ditch. A tow truck, a bruised shoulder and a very expensive lesson about ice.', kind: 'bad' }] },
+              { weight: 15, effects: [{ injury: 7 }, { money: -300 }, { asset: 'damage', kind: 'car', amount: 30 }, { stat: 'happiness', delta: -6 }, { log: 'I slid into a ditch. A tow truck, a bruised shoulder and a very expensive lesson about ice.', kind: 'bad' }] },
               {
                 weight: 5,
                 effects: [
                   {
                     chance: 0.15,
                     then: [{ log: 'I never made it home. The roads were worse than anyone had said.', kind: 'bad' }, { death: 'a car crash in a winter storm' }],
-                    else: [{ injury: 15 }, { money: -800 }, { asset: 'damage', kind: 'car', amount: 60 }, { stat: 'happiness', delta: -8 }, { log: 'The crash was bad. I woke up in a hospital far from anyone, with the holiday happening somewhere without me.', kind: 'bad' }],
+                    else: [{ injury: 15 }, { money: -800 }, { asset: 'damage', kind: 'car', amount: 60 }, { stat: 'happiness', delta: -8 }, { log: 'The crash was bad. I woke up in a hospital far from anyone, with the holiday happening without me.', kind: 'bad' }],
                   },
                 ],
               },
@@ -1247,7 +1247,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: -1 },
           { stat: 'health', delta: 1 },
           { relationship: 'mother', delta: 1 },
-          { log: 'I spent the night in a roadside motel watching the weather channel and eating a vending-machine dinner. Arrived the next morning, alive and slightly sad.' },
+          { log: 'A roadside motel, the weather report, a vending-machine dinner. Arrived next day, alive and sad.' },
         ],
       },
       {
@@ -1259,8 +1259,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { money: -90 },
           {
             chance: 0.65,
-            then: [{ stat: 'happiness', delta: 4 }, { log: 'The train was slow, warm and full of people in the same boat. We shared snacks. I arrived late and in a good mood.', kind: 'good' }],
-            else: [{ stat: 'happiness', delta: -3 }, { log: 'The train stopped for three hours in the middle of nowhere. I arrived after everyone had gone to bed.', kind: 'bad' }],
+            then: [{ stat: 'happiness', delta: 4 }, { log: 'A slow, warm train full of people in the same boat. We shared snacks. I arrived late and cheerful.', kind: 'good' }],
+            else: [{ stat: 'happiness', delta: -3 }, { log: 'The train sat for three hours in the middle of nowhere. I arrived after everyone had gone to bed.', kind: 'bad' }],
           },
         ],
       },
@@ -1272,7 +1272,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { relationship: 'mother', delta: -2 },
           { relationship: 'father', delta: -2 },
           { relationship: 'sibling', delta: -2 },
-          { log: 'I called in from my own kitchen. They passed the phone around the table. It was almost like being there, the way a photo of a meal is almost like dinner.' },
+          { log: 'They passed the phone round the table. Like being there, the way a photo of a meal is like dinner.' },
         ],
       },
     ],
@@ -1308,7 +1308,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { relationship: 'child', delta: 4 },
           { relationship: 'friend', delta: 3 },
           { relationship: 'bestFriend', delta: 3 },
-          { log: 'I bought everyone exactly what they pretended not to want. The looks on their faces were worth the number on the statement. Probably.', kind: 'money' },
+          { log: 'I bought everyone what they pretended not to want. Their faces were worth the statement. Probably.', kind: 'money' },
         ],
       },
       {
@@ -1320,8 +1320,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { counter: 'giftsGiven', by: 3 },
           {
             random: [
-              { weight: 60, effects: [{ relationship: 'mother', delta: 3 }, { relationship: 'father', delta: 3 }, { relationship: 'sibling', delta: 3 }, { relationship: 'spouse', delta: 3 }, { relationship: 'friend', delta: 2 }, { log: 'Jars of jam, knitted things, a framed photo each. People were genuinely touched, or excellent actors.', kind: 'good' }] },
-              { weight: 40, effects: [{ relationship: 'sibling', delta: -1 }, { relationship: 'friend', delta: -1 }, { stat: 'happiness', delta: -2 }, { log: 'The jam did not set. The knitting had holes. Everyone said "you made this?" in a tone I am still decoding.', kind: 'bad' }] },
+              { weight: 60, effects: [{ relationship: 'mother', delta: 3 }, { relationship: 'father', delta: 3 }, { relationship: 'sibling', delta: 3 }, { relationship: 'spouse', delta: 3 }, { relationship: 'friend', delta: 2 }, { log: 'Jars of jam, knitted things, a framed photo each. People were touched, or excellent actors.', kind: 'good' }] },
+              { weight: 40, effects: [{ relationship: 'sibling', delta: -1 }, { relationship: 'friend', delta: -1 }, { stat: 'happiness', delta: -2 }, { log: 'The jam never set, the knitting had holes. Everyone asked "you made this?" in a tone I am decoding.', kind: 'bad' }] },
             ],
           },
         ],
@@ -1375,8 +1375,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.6,
-            then: [{ jobPerformance: 6 }, { stat: 'happiness', delta: 2 }, { log: 'I talked to the boss for twenty minutes about nothing and it somehow counted. Mysterious career points were awarded.', kind: 'good' }],
-            else: [{ jobPerformance: -1 }, { stat: 'happiness', delta: -2 }, { log: 'I cornered the boss by the snack table and talked too fast about my ideas. She nodded the way people nod at traffic.' }],
+            then: [{ jobPerformance: 6 }, { stat: 'happiness', delta: 2 }, { log: 'Twenty minutes talking to the boss about nothing, and it somehow counted. Mysterious career points.', kind: 'good' }],
+            else: [{ jobPerformance: -1 }, { stat: 'happiness', delta: -2 }, { log: 'I cornered the boss by the snacks and pitched too fast. She nodded the way people nod at traffic.' }],
           },
         ],
       },
@@ -1439,7 +1439,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { relationship: 'father', delta: -2 },
           { relationship: 'spouse', delta: -3 },
           { relationship: 'child', delta: -3 },
-          { log: 'I worked the holiday in an empty building with a radio and a sad sandwich. The pay cleared the next week. The family sent photos of the food.', kind: 'money' },
+          { log: 'An empty building, a radio and a sad sandwich. The pay cleared. The family sent photos of the food.', kind: 'money' },
         ],
       },
       {
@@ -1450,7 +1450,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { money: 150 },
           { jobPerformance: 2 },
           { relationship: 'spouse', delta: -1 },
-          { log: 'I did the morning, raced home for the afternoon and arrived as the main course came out. Mostly the best of both.' },
+          { log: 'I did the morning, raced home and arrived as the main course came out. Mostly the best of both.' },
         ],
       },
       {
@@ -1459,7 +1459,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           { karma: 3 },
           { stat: 'happiness', delta: 1 },
-          { log: 'A colleague with a mountain of bills needed the money more than I did. I handed them the pen. They nearly hugged me.', kind: 'good' },
+          { log: 'A colleague with a mountain of bills needed it more. I handed over the pen. They nearly hugged me.', kind: 'good' },
         ],
       },
       {
@@ -1490,7 +1490,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.6,
-            then: [{ stat: 'happiness', delta: 7 }, { grade: 3 }, { log: 'I sang the solo and nailed it. Parents clapped, a baby cried at exactly the right moment, and the teacher wept openly.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 7 }, { grade: 3 }, { log: 'I sang the solo and nailed it. Parents clapped, a baby cried on cue, and the teacher wept openly.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -5 }, { log: 'I forgot the second verse in front of everyone and hummed it. The humming was not well received.', kind: 'bad' }],
           },
         ],
@@ -1502,7 +1502,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 4 },
           { stat: 'smarts', delta: 1 },
           { grade: 1 },
-          { log: 'One triangle, struck at exactly the right moment, with the intensity of a rock drummer. People talked about it afterwards.', kind: 'good' },
+          { log: 'One triangle, struck at the right moment with the intensity of a rock drummer. People noticed.', kind: 'good' },
         ],
       },
       {
@@ -1542,8 +1542,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.75,
-            then: [{ stat: 'happiness', delta: 5 }, { stat: 'smarts', delta: 1 }, { relationship: 'mother', delta: 2 }, { relationship: 'father', delta: 2 }, { relationship: 'spouse', delta: 2 }, { log: 'Timer, thermometer, resting time, no improvising. It came out golden. Someone asked for the recipe. I said it was a family secret.', kind: 'good' }],
-            else: [{ stat: 'happiness', delta: -2 }, { log: 'Exactly by the book, exactly dry. Everyone drowned it in gravy and said it was lovely. The gravy was lovely.' }],
+            then: [{ stat: 'happiness', delta: 5 }, { stat: 'smarts', delta: 1 }, { relationship: 'mother', delta: 2 }, { relationship: 'father', delta: 2 }, { relationship: 'spouse', delta: 2 }, { log: 'Timer, thermometer, no improvising. Golden. Someone asked for the recipe. A family secret, I said.', kind: 'good' }],
+            else: [{ stat: 'happiness', delta: -2 }, { log: 'By the book, and dry. Everyone drowned it in gravy and said it was lovely. The gravy was lovely.' }],
           },
         ],
       },
@@ -1553,9 +1553,9 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           {
             random: [
-              { weight: 45, effects: [{ stat: 'happiness', delta: 7 }, { stat: 'smarts', delta: 2 }, { log: 'I added things no recipe sanctioned and produced a roast people are still talking about. Genius or luck. I am saying genius.', kind: 'good' }] },
-              { weight: 40, effects: [{ stat: 'happiness', delta: -3 }, { log: 'Confidence is not a cooking time. The outside was charcoal, the inside was a mystery. We ate the sides.', kind: 'bad' }] },
-              { weight: 15, effects: [{ illness: 'food_poisoning' }, { stat: 'happiness', delta: -5 }, { relationship: 'sibling', delta: -2 }, { relationship: 'spouse', delta: -2 }, { log: 'Undercooked. Everyone was fine until about midnight, and then nobody was fine. I have been banned from the kitchen.', kind: 'bad' }] },
+              { weight: 45, effects: [{ stat: 'happiness', delta: 7 }, { stat: 'smarts', delta: 2 }, { log: 'I added things no recipe allows and made a roast people still discuss. Luck or genius? Genius.', kind: 'good' }] },
+              { weight: 40, effects: [{ stat: 'happiness', delta: -3 }, { log: 'Confidence is not a cooking time. The outside was charcoal, the inside a mystery. We ate the sides.', kind: 'bad' }] },
+              { weight: 15, effects: [{ illness: 'food_poisoning' }, { stat: 'happiness', delta: -5 }, { relationship: 'sibling', delta: -2 }, { relationship: 'spouse', delta: -2 }, { log: 'Undercooked. Everyone was fine until midnight, then nobody was fine. I am banned from the kitchen.', kind: 'bad' }] },
             ],
           },
         ],
@@ -1571,8 +1571,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 3 },
           {
             chance: 0.3,
-            then: [{ relationship: 'mother', delta: -3 }, { relationship: 'sibling', delta: -3 }, { log: 'Someone found the containers in the bin. The betrayal was treated with the seriousness of a small war.', kind: 'bad' }],
-            else: [{ log: 'Nobody suspected a thing. I accepted compliments on a roast I had merely unwrapped. A victory, technically.' }],
+            then: [{ relationship: 'mother', delta: -3 }, { relationship: 'sibling', delta: -3 }, { log: 'Someone found the containers in the bin. The betrayal was treated like a small war.', kind: 'bad' }],
+            else: [{ log: 'Nobody suspected. I accepted compliments on a roast I had merely unwrapped. A victory, technically.' }],
           },
         ],
       },
@@ -1584,7 +1584,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 1 },
           { relationship: 'mother', delta: 2 },
           { relationship: 'father', delta: 2 },
-          { log: 'I handed over to someone who has done this forty times and took notes. Humble, practical, and the roast was perfect.' },
+          { log: 'I handed over to someone who had done this forty times and took notes. Humble, practical, perfect.' },
         ],
       },
     ],

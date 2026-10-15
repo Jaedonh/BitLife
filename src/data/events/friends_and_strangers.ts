@@ -23,13 +23,13 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     choices: [
       {
         id: 'go',
-        label: 'Drive over right now',
+        label: 'Go over right now',
         effects: [
           { energy: -1 },
           { stat: 'happiness', delta: -2 },
           { relationship: 'person', delta: 10 },
           { karma: 3 },
-          { log: "I sat on {{their}} kitchen floor until sunrise. Nothing was fixed, but {{they}} weren't alone.", kind: 'good' },
+          { log: "I sat on {{their}} kitchen floor until sunrise. Nothing was fixed, but {{they}} wasn't alone.", kind: 'good' },
           { chance: 0.3, then: [{ stat: 'health', delta: -2 }, { log: 'I was a zombie the next day and did not regret a minute of it.' }] },
         ],
       },
@@ -281,12 +281,12 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
         id: 'welcome',
         label: 'Welcome {{them}} back',
         effects: [
-          { relationship: 'person', delta: 25 },
+          { relationship: 'person', delta: 15 },
           { stat: 'happiness', delta: 3 },
           { karma: 1 },
           {
             chance: 0.35,
-            then: [{ relationship: 'person', delta: -20 }, { log: '{{They}} were back for a month, then gone again. I should have seen it coming.', kind: 'bad' }],
+            then: [{ relationship: 'person', delta: -15 }, { log: '{{They}} was back for a month, then gone again. I should have seen it coming.', kind: 'bad' }],
             else: [{ log: '{{They}} had been through something. We picked up like no time had passed.', kind: 'good' }],
           },
         ],
@@ -316,7 +316,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     id: 'fs_road_trip',
     category: 'friends',
     title: 'Road trip',
-    text: '{{person}} turned up with a map, a playlist and a theory that the coast is only six hours away. {{They}} want to leave tonight and split the petrol.',
+    text: '{{person}} turned up with a map, a playlist and a theory that the coast is only six hours away. {{They}} wants to leave tonight and split the petrol.',
     minAge: 18,
     maxAge: 70,
     weight: 1.2,
@@ -374,7 +374,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     id: 'fs_big_news',
     category: 'friends',
     title: 'Big news',
-    text: '{{person}} sat me down with the face people use for big news. {{They}} have been offered a job on the other side of the country and {{they}} are taking it.',
+    text: '{{person}} sat me down with the face people use for big news. {{They}} has been offered a job on the other side of the country and {{they}} is taking it.',
     minAge: 18,
     maxAge: 80,
     weight: 1.2,
@@ -476,7 +476,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     id: 'fs_couch_guest',
     category: 'friends',
     title: 'Couch guest',
-    text: "{{person}} needs a place to stay for 'two weeks, maybe three' while things settle. {{They}} have a suitcase and a cactus and {{they}} are already standing in my doorway.",
+    text: "{{person}} needs a place to stay for 'two weeks, maybe three' while things settle. {{They}} has a suitcase and a cactus and {{they}} is already standing in my doorway.",
     minAge: 20,
     maxAge: 80,
     weight: 1.2,
@@ -704,7 +704,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     id: 'fs_powder_pitch',
     category: 'friends',
     title: 'The powder pitch',
-    text: "{{person}} invited me round for 'a catch-up' that turned out to be a slideshow about a wellness powder {{they}} now sell. {{They}} keep saying I could be {{their}} first recruit.",
+    text: "{{person}} invited me round for 'a catch-up' that turned out to be a slideshow about a wellness powder {{they}} now sells. {{They}} keeps saying I could be {{their}} first recruit.",
     minAge: 18,
     maxAge: 80,
     weight: 1.2,
@@ -762,9 +762,9 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
         label: 'Visit every day',
         effects: [
           { energy: -1 },
-          { relationship: 'person', delta: 12 },
+          { relationship: 'person', delta: 10 },
           { karma: 3 },
-          { stat: 'happiness', delta: 2 },
+          { stat: 'happiness', delta: -1 },
           { log: 'I learned the vending machine by heart. {{person}} says I got {{them}} through it.', kind: 'good' },
         ],
       },
@@ -785,7 +785,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
         effects: [
           { relationship: 'person', delta: -10 },
           { stat: 'happiness', delta: -3 },
-          { log: 'I sent one message and felt bad every day {{they}} were in there.', kind: 'bad' },
+          { log: 'I sent one message and felt bad every day {{they}} was in there.', kind: 'bad' },
         ],
       },
     ],
@@ -816,7 +816,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.5,
-            then: [{ relationship: 'person', delta: -3 }, { log: '{{They}} were mortified and bought a different jacket. Things normalised.' }],
+            then: [{ relationship: 'person', delta: -3 }, { log: '{{They}} was mortified and bought a different jacket. Things normalised.' }],
             else: [{ relationship: 'person', delta: -10 }, { log: '{{They}} said I did not own a haircut. Technically correct.', kind: 'bad' }],
           },
         ],
@@ -859,6 +859,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
         effects: [
           { stat: 'happiness', delta: 3 },
           { relationship: 'person', delta: 2 },
+          { log: 'Half the street fitted in. The flag got a second flag.', kind: 'good' },
           { chance: 0.5, then: [{ newPerson: { kind: 'friend', relationship: 55, log: '{{person}} from down the street joined the fort and stayed a friend.' } }] },
           { chance: 0.3, then: [{ log: 'The fort collapsed under the weight of democracy. We rebuilt it better.' }] },
         ],
@@ -924,7 +925,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     id: 'fs_sleepover',
     category: 'friends',
     title: 'The sleepover',
-    text: "Sleepover at {{person}}'s house. Lights off, torches on, and {{they}} have promised a ghost story so scary that {{their}} cousin once had to go home.",
+    text: "Sleepover at {{person}}'s house. Lights off, torches on, and {{they}} has promised a ghost story so scary that {{their}} cousin once had to go home.",
     minAge: 6,
     maxAge: 13,
     weight: 2,
@@ -946,6 +947,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
         label: 'Call home at midnight',
         effects: [
           { stat: 'happiness', delta: -2 },
+          { stat: 'health', delta: 1 },
           { relationship: 'person', delta: -3 },
           { log: "Someone's parent drove me home at midnight. {{person}} was nice about it. Too nice.", kind: 'bad' },
         ],
@@ -993,7 +995,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 3 },
           {
             chance: 0.5,
-            then: [{ jobPerformance: 6 }, { log: '{{They}} gave me real advice. I used it. People noticed.', kind: 'good' }],
+            then: [{ jobPerformance: 6 }, { log: '{{They}} gave me real advice. I wrote it down and actually used it.', kind: 'good' }],
             else: [{ log: "The advice was 'be yourself', which is hard to action." }],
           },
         ],
@@ -1028,6 +1030,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
         label: 'Walk them there yourself',
         effects: [
           { karma: 2 },
+          { energy: -1 },
           { stat: 'happiness', delta: 2 },
           { log: 'We found the street. It did exist, under a different name, in the other direction.', kind: 'good' },
           { chance: 0.3, then: [{ money: 20 }, { log: 'They insisted on buying me lunch. The lunch was excellent.', kind: 'money' }] },
@@ -1245,6 +1248,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
         effects: [
           { newPerson: { kind: 'pet', species: 'pigeon', relationship: 60, log: '{{person}} the pigeon is officially part of the household.' } },
           { stat: 'happiness', delta: 4 },
+          { stat: 'health', delta: -1 },
           { karma: 1 },
           { log: 'I named it. It still sits on the lamp, but now it is my lamp pigeon.', kind: 'good' },
         ],
@@ -1298,7 +1302,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
       {
         id: 'hide',
         label: 'Lie low until it passes',
-        effects: [{ stat: 'happiness', delta: -2 }, { log: 'I wore a hat for a month. Someone did the bow at the hat.' }],
+        effects: [{ stat: 'happiness', delta: -2 }, { stat: 'smarts', delta: 2 }, { log: 'I wore a hat and stayed in with books for a month. Someone did the bow at the hat.' }],
       },
       {
         id: 'interviews',
@@ -1334,6 +1338,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
           { karma: -1 },
           { money: 40 },
           { log: "I was 'security' for an evening. We ate for free and signed four napkins.", kind: 'good' },
+          { chance: 0.3, then: [{ stat: 'happiness', delta: -4 }, { money: -40 }, { log: 'The manager worked it out at dessert. The bill arrived and security was let go.', kind: 'bad' }] },
         ],
       },
       {

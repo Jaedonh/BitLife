@@ -21,7 +21,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
       {
         id: 'reassure',
         label: 'Reassure them',
-        effects: [{ love: 5 }, { relationship: 'person', delta: 4 }, { stat: 'happiness', delta: 2 }, { log: 'I explained, patiently, and {{they}} relaxed. Mostly.', kind: 'good' }],
+        effects: [{ love: 4 }, { relationship: 'person', delta: 3 }, { stat: 'happiness', delta: -1 }, { log: 'I explained, patiently, for most of an hour. {{They}} relaxed. Mostly.', kind: 'good' }],
       },
       {
         id: 'tease',
@@ -37,7 +37,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
       {
         id: 'cutback',
         label: 'Text my friend less',
-        effects: [{ love: 6 }, { relationship: 'friend', delta: -4 }, { relationship: 'bestFriend', delta: -4 }, { stat: 'happiness', delta: -3 }, { log: 'Peace at home, at the cost of a slowly fading group chat.' }],
+        effects: [{ love: 6 }, { relationship: 'friend', delta: -4 }, { relationship: 'bestFriend', delta: -4 }, { stat: 'happiness', delta: -3 }, { log: 'I texted my friend less. Peace at home, at the cost of a slowly fading group chat.' }],
       },
       {
         id: 'trust',
@@ -149,7 +149,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
       {
         id: 'bail',
         label: 'Fake a stomach bug',
-        effects: [{ karma: -2 }, { love: -8 }, { relationship: 'person', delta: -4 }, { log: "I bailed. {{person}} knew. {{their}} parents now call me 'the one with the stomach'.", kind: 'bad' }],
+        effects: [{ karma: -2 }, { love: -8 }, { relationship: 'person', delta: -4 }, { log: "I bailed. {{person}} knew. {{person}}'s parents now call me 'the one with the stomach'.", kind: 'bad' }],
       },
     ],
   },
@@ -633,7 +633,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
           { log: 'I quit my job and we moved together. New city, new everything.', kind: 'milestone' },
           {
             chance: 0.6,
-            then: [{ money: 3000 }, { stat: 'happiness', delta: 6 }, { log: "{{their}} new salary made the first months easy.", kind: 'good' }],
+            then: [{ money: 3000 }, { stat: 'happiness', delta: 6 }, { log: 'The new salary made the first months easy.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -4 }, { log: "Finding my feet in the new city took longer than I'd hoped." }],
           },
         ],
@@ -763,7 +763,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
         id: 'hire',
         label: 'Hire a home nurse',
         hint: '{{$2000}}',
-        effects: [{ money: -2000 }, { love: 6 }, { relationship: 'person', delta: 4 }, { log: '{{They}} got better; I got to keep my job. The nurse got a very good review.' }],
+        effects: [{ money: -2000 }, { love: 6 }, { relationship: 'person', delta: 4 }, { log: '{{They}} got better and I got some sleep. The nurse got a very good review.' }],
       },
       {
         id: 'minimum',
@@ -798,7 +798,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
           {
             chance: 0.6,
             then: [{ love: 4 }, { stat: 'happiness', delta: 3 }, { log: "They enjoyed the hotel breakfast more than they'd have enjoyed mine." }],
-            else: [{ love: -6 }, { relationship: 'person', delta: -3 }, { log: "{{their}} mother took the hotel as an insult. It was, slightly.", kind: 'bad' }],
+            else: [{ love: -6 }, { relationship: 'person', delta: -3 }, { log: "{{person}}'s mother took the hotel as an insult. It was, slightly.", kind: 'bad' }],
           },
         ],
       },
@@ -815,7 +815,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ love: 10 }, { relationship: 'person', delta: 6 }, { stat: 'happiness', delta: 5 }, { log: "By day ten {{their}} father called me 'kid' in a warm way. I'll take it.", kind: 'good' }],
-            else: [{ stat: 'happiness', delta: -5 }, { love: 2 }, { log: 'I tried. {{their}} mother remained a closed door with a lovely doormat.' }],
+            else: [{ stat: 'happiness', delta: -5 }, { love: 2 }, { log: "I tried. {{person}}'s mother remained a closed door with a lovely doormat." }],
           },
         ],
       },
@@ -863,6 +863,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
       {
         id: 'extra',
         label: 'Pick up extra work',
+        conditions: [{ hasJob: true }],
         effects: [{ money: 800 }, { stat: 'happiness', delta: -4 }, { stat: 'health', delta: -2 }, { love: 3 }, { log: 'Extra shifts and late nights. The account recovered; my knees did not.', kind: 'money' }],
       },
       {
@@ -929,6 +930,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     maxAge: 100,
     weight: 1.5,
     cooldown: 2,
+    conditions: [{ inPrison: false }],
     person: { kind: ['lover', 'spouse'] },
     choices: [
       {
@@ -1165,9 +1167,9 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
         hint: '{{$1500}}',
         effects: [
           { money: -1500 },
-          { love: 6 },
-          { relationship: 'person', delta: 5 },
-          { stat: 'happiness', delta: 4 },
+          { love: 8 },
+          { relationship: 'person', delta: 6 },
+          { stat: 'happiness', delta: 5 },
           { stat: 'smarts', delta: 1 },
           { log: "A nursery, a car seat, and forty books I didn't finish." },
           {
@@ -1213,7 +1215,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ children
   {
     id: 'lf_child_school_trouble',
-    category: 'romance',
+    category: 'family',
     title: 'Called to school',
     text: "The school called. {{person}} got into a fight at lunch and the other kid's parents are furious. The principal would like to see me 'at my earliest convenience', which means now.",
     minAge: 22,
@@ -1270,7 +1272,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
   },
   {
     id: 'lf_child_comes_out',
-    category: 'romance',
+    category: 'family',
     title: 'Something to tell me',
     text: '{{person}} asked to talk, and {{their}} hands were shaking. {{They}} told me {{they}} is gay, and that {{they}} has been scared to say it for years. {{They}} is watching my face.',
     minAge: 30,
@@ -1282,17 +1284,17 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
       {
         id: 'hug',
         label: 'Hug them',
-        effects: [{ relationship: 'person', delta: 15 }, { stat: 'happiness', delta: 6 }, { karma: 3 }, { log: 'I hugged {{them}} and said I love {{them}}, and that nothing changes. {{They}} cried with relief.', kind: 'good' }],
+        effects: [{ relationship: 'person', delta: 15 }, { stat: 'happiness', delta: 6 }, { karma: 2 }, { log: 'I hugged {{them}} and said I love {{them}}, and that nothing changes. {{They}} cried with relief.', kind: 'good' }],
       },
       {
         id: 'proud',
         label: "Tell them I'm proud",
-        effects: [{ relationship: 'person', delta: 12 }, { stat: 'happiness', delta: 5 }, { karma: 3 }, { log: "I told {{them}} I was proud of {{their}} courage. {{They}} said 'that's it?'. That's it.", kind: 'good' }],
+        effects: [{ relationship: 'person', delta: 12 }, { stat: 'happiness', delta: 5 }, { karma: 4 }, { log: "I told {{them}} I was proud of {{their}} courage. {{They}} said 'that's it?'. That's it.", kind: 'good' }],
       },
       {
         id: 'support',
         label: 'Ask how I can support them',
-        effects: [{ relationship: 'person', delta: 10 }, { stat: 'happiness', delta: 4 }, { karma: 4 }, { stat: 'smarts', delta: 1 }, { log: 'We talked for hours. {{They}} asked me to be patient with the grandparents. I will be.', kind: 'good' }],
+        effects: [{ relationship: 'person', delta: 10 }, { stat: 'happiness', delta: 4 }, { karma: 5 }, { stat: 'smarts', delta: 1 }, { log: 'We talked for hours. {{They}} asked me to be patient with the grandparents. I will be.', kind: 'good' }],
       },
       {
         id: 'dinner',
@@ -1304,7 +1306,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
   },
   {
     id: 'lf_teen_wants_car',
-    category: 'romance',
+    category: 'family',
     title: 'The car question',
     text: "{{person}} has made a presentation. Slides, a budget, and a title: 'Why I need a car'. {{They}} says all {{their}} friends have one, which is statistically unlikely.",
     minAge: 32,
@@ -1367,7 +1369,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
   },
   {
     id: 'lf_child_moves_out',
-    category: 'romance',
+    category: 'family',
     title: 'Flying the nest',
     text: "{{person}} announced {{they}} is moving out. Boxes already, a flat already, a roommate I've never met already. The house is about to get very quiet.",
     minAge: 36,
@@ -1425,7 +1427,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
   },
   {
     id: 'lf_child_talent',
-    category: 'romance',
+    category: 'family',
     title: 'A hidden talent',
     text: "{{person}}'s teacher pulled me aside. Apparently {{they}} has real talent for music and should get proper lessons. {{They}} has never mentioned this. {{They}} shrugs when asked.",
     minAge: 24,
@@ -1479,7 +1481,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
   },
   {
     id: 'lf_child_wedding',
-    category: 'romance',
+    category: 'family',
     title: 'Wedding bells',
     text: '{{person}} is getting married. {{They}} told me over the phone, breathless, and then asked, slightly less breathless, whether I could help with the costs.',
     minAge: 42,
@@ -1519,7 +1521,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
   },
   {
     id: 'lf_grandparent_news',
-    category: 'romance',
+    category: 'family',
     title: 'Grandparent news',
     text: "{{person}} called with news: I'm going to be a grandparent. {{They}} sounded terrified and thrilled, which I remember exactly. I had to sit down.",
     minAge: 42,
@@ -1555,7 +1557,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ parents and siblings
   {
     id: 'lf_sibling_loan',
-    category: 'romance',
+    category: 'family',
     title: 'Family loan',
     text: '{{person}} called with the voice {{they}} uses for favours. {{They}} needs {{$2000}} to cover rent and promises, hand on heart, to pay me back by spring.',
     minAge: 18,
@@ -1625,7 +1627,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
   },
   {
     id: 'lf_sibling_inheritance',
-    category: 'romance',
+    category: 'family',
     title: 'The will',
     text: "Clearing out our late parent's house, {{person}} and I found the will. It splits everything evenly. {{They}} thinks {{they}} deserves more for 'doing all the visiting'. {{They}} has a point, slightly.",
     minAge: 25,
@@ -1677,7 +1679,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
   },
   {
     id: 'lf_family_reunion',
-    category: 'romance',
+    category: 'family',
     title: 'Family reunion',
     text: "{{person}} is organising a family reunion. Cousins I've never heard of, a rented hall, and a potluck table where every dish will be judged. Attendance is 'strongly expected'.",
     minAge: 20,
@@ -1719,7 +1721,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
   },
   {
     id: 'lf_mother_remarries',
-    category: 'romance',
+    category: 'family',
     title: "Mum's new husband",
     text: '{{person}} rang to say she is getting married again. He is a retired dentist with a boat and a laugh you can hear from the car park. She sounds happy. She wants my blessing.',
     minAge: 16,
@@ -1768,7 +1770,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
   },
   {
     id: 'lf_father_remarries',
-    category: 'romance',
+    category: 'family',
     title: "Dad's new wife",
     text: "{{person}} turned up for dinner with a woman he described as 'a friend' and then, between courses, as his fiancée. He looks younger. She looks nervous. They want to know if I'm okay with it.",
     minAge: 16,
@@ -1817,7 +1819,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
   },
   {
     id: 'lf_parent_health_scare',
-    category: 'romance',
+    category: 'family',
     title: 'A fall',
     text: '{{person}} had a fall at home and lay on the kitchen floor for an hour before a neighbour found {{them}}. {{They}} is fine, {{they}} insists, and will not be fussed over.',
     minAge: 30,
@@ -1835,7 +1837,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: -4 },
           { money: -1500 },
           { relationship: 'spouse', delta: -4 },
-          { log: "{{person}} moved into the spare room. We argue about the thermostat daily. I'm glad {{they}} is here." },
+          { log: "{{person}} moved into the spare room. We argue about the thermostat daily. I'm glad {{they}} came." },
         ],
       },
       {
