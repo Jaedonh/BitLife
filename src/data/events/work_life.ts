@@ -28,7 +28,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
             else: [
               { jobPerformance: -12 },
               { log: 'The client found out and called the owner. My name was on the email.', kind: 'bad' },
-              { chance: 0.3, then: [{ loseJob: true, reason: 'fired' }, { log: 'I was let go for lying to a client. The boss who told me to is still there.', kind: 'bad' }] },
+              { chance: 0.7, then: [], else: [{ loseJob: true, reason: 'fired' }, { log: 'I was let go for lying to a client. The boss who told me to is still there.', kind: 'bad' }] },
             ],
           },
         ],
@@ -93,9 +93,9 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
             else: [
               { jobPerformance: -15 },
               {
-                chance: 0.35,
-                then: [{ loseJob: true, reason: 'fired' }, { log: 'An audit found the mistake and the cover-up. The cover-up is what got me fired.', kind: 'bad' }],
-                else: [{ log: 'An audit found it. The cover-up turned a mistake into a warning on my file.', kind: 'bad' }],
+                chance: 0.65,
+                then: [{ log: 'An audit found it. The cover-up turned a mistake into a warning on my file.', kind: 'bad' }],
+                else: [{ loseJob: true, reason: 'fired' }, { log: 'An audit found the mistake and the cover-up. The cover-up is what got me fired.', kind: 'bad' }],
               },
             ],
           },
@@ -137,9 +137,9 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
             else: [
               { jobPerformance: -15 },
               {
-                chance: 0.35,
-                then: [{ loseJob: true, reason: 'fired' }, { log: 'Finance pulled my receipts. I was fired for expense fraud.', kind: 'bad' }],
-                else: [{ money: -200 }, { log: 'Finance queried three receipts. I "found the error" and apologised. My name is now on a list.', kind: 'bad' }],
+                chance: 0.65,
+                then: [{ money: -200 }, { log: 'Finance queried three receipts. I "found the error" and apologised. My name is now on a list.', kind: 'bad' }],
+                else: [{ loseJob: true, reason: 'fired' }, { log: 'Finance pulled my receipts. I was fired for expense fraud.', kind: 'bad' }],
               },
             ],
           },
