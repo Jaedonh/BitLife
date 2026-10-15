@@ -65,14 +65,35 @@ describe('event flow', () => {
   });
 
   it('once/cooldown prevents repeats', () => {
+    const onceReg = makeRegistry([
+      { id: 'only_once', category: 'random', title: 'Once', text: 'Once.', minAge: 0, maxAge: 100, weight: 1, once: true, choices: [{ id: 'ok', label: 'Ok', effects: [] }] },
+      { id: 'cool', category: 'random', title: 'Cool', text: 'Cool.', minAge: 0, maxAge: 100, weight: 1, cooldown: 5, choices: [{ id: 'ok', label: 'Ok', effects: [] }] },
+    ]);
     let s = createLife({}, 3);
-    s = { ...s, character: { ...s.character, age: 1 } };
-    s = scheduleYearEvents(s, registry);
-    s = openNextEvent(s, registry);
-    expect(s.pendingEvent?.eventId).toBe('first_steps');
-    s = resolveChoice(s, 'ok', registry);
-    s = scheduleYearEvents(s, registry);
-    expect(s.eventQueue.some((q) => q.eventId === 'first_steps')).toBe(false);
+    s = { ...s, character: { ...s.character, age: 20 } };
+    // Drain both events once.
+    for (let i = 0; i < 2; i++) {
+      s = { ...s, eventQueue: [{ eventId: i === 0 ? 'only_once' : 'cool', context: {} }] };
+      s = openNextEvent(s, onceReg);
+      s = resolveChoice(s, 'ok', onceReg);
+    }
+    expect(s.firedEvents.only_once).toBe(20);
+    expect(s.firedEvents.cool).toBe(20);
+    // Next year: neither is eligible (once fired; cooldown 5 not elapsed).
+    s = { ...s, character: { ...s.character, age: 21 } };
+    for (let i = 0; i < 10; i++) s = scheduleYearEvents(s, onceReg);
+    expect(s.eventQueue).toEqual([]);
+    // Six years later the cooldown event returns but the once event does not.
+    s = { ...s, character: { ...s.character, age: 26 } };
+    let sawCool = false;
+    let sawOnce = false;
+    for (let i = 0; i < 30; i++) {
+      s = scheduleYearEvents({ ...s, eventQueue: [] }, onceReg);
+      if (s.eventQueue.some((q) => q.eventId === 'cool')) sawCool = true;
+      if (s.eventQueue.some((q) => q.eventId === 'only_once')) sawOnce = true;
+    }
+    expect(sawCool).toBe(true);
+    expect(sawOnce).toBe(false);
   });
 });
 
