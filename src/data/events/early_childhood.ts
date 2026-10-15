@@ -16,6 +16,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 2,
     weight: 3,
     once: true,
+    conditions: [{ hasPerson: ['mother'] }],
     choices: [
       {
         id: 'mama',
@@ -147,16 +148,24 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 5,
     weight: 2,
     cooldown: 2,
+    conditions: [{ hasPerson: ['mother'] }],
     choices: [
       {
         id: 'scream',
         label: 'Scream the place down',
-        effects: [{ stat: 'happiness', delta: -2 }, { stat: 'health', delta: 4 }, { log: 'I screamed before, during and long after. I got the shot anyway, plus a sticker for volume.' }],
+        effects: [{ stat: 'happiness', delta: -2 }, { stat: 'health', delta: 4 }, { relationship: 'mother', delta: 2 }, { log: 'I screamed before, during and long after. I got the shot, a sticker for volume and a cuddle.' }],
       },
       {
         id: 'brave',
         label: 'Be brave',
-        effects: [{ stat: 'health', delta: 4 }, { stat: 'happiness', delta: 2 }, { log: 'One pinch, one sticker, no tears. The nurse said I was the bravest patient all day.', kind: 'good' }],
+        effects: [
+          { stat: 'health', delta: 4 },
+          {
+            chance: 0.7,
+            then: [{ stat: 'happiness', delta: 2 }, { log: 'One pinch, one sticker, no tears. The nurse said I was the bravest patient all day.', kind: 'good' }],
+            else: [{ stat: 'happiness', delta: -3 }, { log: 'I was brave right up to the count of two. Then I screamed anyway. No sticker.', kind: 'bad' }],
+          },
+        ],
       },
       {
         id: 'bite',
@@ -180,6 +189,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 5,
     weight: 1,
     once: true,
+    conditions: [{ hasPerson: ['mother'] }],
     choices: [
       {
         id: 'scratch',
@@ -216,6 +226,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 3,
     weight: 3,
     once: true,
+    conditions: [{ hasPerson: ['mother'] }],
     choices: [
       {
         id: 'master',
@@ -231,7 +242,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
       {
         id: 'refuse',
         label: 'Refuse on principle',
-        effects: [{ stat: 'happiness', delta: 1 }, { relationship: 'mother', delta: -3 }, { karma: -1 }, { log: 'I held out for months. {{mother}} aged visibly.' }],
+        effects: [{ stat: 'happiness', delta: 3 }, { relationship: 'mother', delta: -3 }, { karma: -1 }, { log: 'I held out for months. It was glorious. {{mother}} aged visibly.' }],
       },
       {
         id: 'bribe',
@@ -266,7 +277,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
       {
         id: 'sulk',
         label: 'Sulk in silence',
-        effects: [{ stat: 'happiness', delta: -2 }, { karma: 1 }, { relationship: 'person', delta: 2 }, { log: 'I sulked all the way home. {{person}} said I handled it like a grown-up. It felt like a loss.' }],
+        effects: [{ stat: 'happiness', delta: -2 }, { karma: 1 }, { stat: 'smarts', delta: 2 }, { relationship: 'person', delta: 2 }, { log: 'I sulked all the way home. {{person}} said I handled it like a grown-up. It felt like a loss.' }],
       },
       {
         id: 'hug',
@@ -284,6 +295,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 4,
     weight: 2,
     once: true,
+    conditions: [{ hasPerson: ['mother'] }],
     choices: [
       {
         id: 'cling',
@@ -341,7 +353,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 3 },
           { stat: 'happiness', delta: -1 },
           { relationship: 'person', delta: 3 },
-          { log: '{{person}} found me exactly where {{they}} lost me, next to the shiny thing. {{They}} called me clever. I agreed.', kind: 'good' },
+          { log: '{{person}} found me right by the shiny thing. {{They}} called me clever. I agreed.', kind: 'good' },
         ],
       },
       {
@@ -351,7 +363,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
           {
             random: [
               { weight: 60, effects: [{ stat: 'happiness', delta: 4 }, { relationship: 'person', delta: -4 }, { log: 'I found the toy aisle. Best ten minutes of my life. Then {{person}} found me and it got less fun.' }] },
-              { weight: 40, effects: [{ stat: 'happiness', delta: -3 }, { relationship: 'person', delta: -2 }, { log: 'I ended up in the staff room. A security guard carried me back like a parcel. {{person}} had gone grey.', kind: 'bad' }] },
+              { weight: 40, effects: [{ stat: 'happiness', delta: -3 }, { relationship: 'person', delta: -2 }, { log: 'I ended up in the staff room. A guard carried me back like a parcel. {{person}} had gone grey.', kind: 'bad' }] },
             ],
           },
         ],
@@ -446,7 +458,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
       {
         id: 'freeze',
         label: 'Freeze and cry',
-        effects: [{ stat: 'happiness', delta: -3 }, { log: 'I stood rooted to the spot and wailed. The owner apologised about forty times and dragged the dog away.', kind: 'bad' }],
+        effects: [{ stat: 'happiness', delta: -3 }, { log: 'I stood rooted to the spot and wailed. The owner apologised forty times and dragged the dog away.', kind: 'bad' }],
       },
       {
         id: 'run',
@@ -544,7 +556,8 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
         label: 'Ask to send it back',
         effects: [
           { newPerson: { kind: 'sibling', minAge: 0, maxAge: 0, relationship: 45, log: 'My baby sibling {{person}} came home from the hospital today.' } },
-          { stat: 'happiness', delta: -2 },
+          { stat: 'happiness', delta: 2 },
+          { stat: 'smarts', delta: 2 },
           { karma: -1 },
           { relationship: 'person', delta: -2 },
           { log: "I asked whether the hospital took returns. {{person}} laughed, and then didn't.", kind: 'bad' },
@@ -580,7 +593,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
       {
         id: 'cry',
         label: 'Cry along with it',
-        effects: [{ stat: 'happiness', delta: -3 }, { stat: 'health', delta: -1 }, { relationship: 'person', delta: -1 }, { log: 'Two crying children and one exhausted {{person}}. Nobody slept.', kind: 'bad' }],
+        effects: [{ stat: 'happiness', delta: -2 }, { stat: 'health', delta: -1 }, { relationship: 'person', delta: 3 }, { log: 'Two crying children and one exhausted {{person}}. We all ended up in the big bed. Nobody slept.', kind: 'bad' }],
       },
       {
         id: 'sleep',
@@ -592,9 +605,10 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
         label: 'Sing to the baby',
         effects: [
           { relationship: 'sibling', delta: 4 },
-          { relationship: 'person', delta: 3 },
+          { relationship: 'person', delta: 2 },
           { karma: 2 },
-          { stat: 'happiness', delta: 2 },
+          { stat: 'happiness', delta: 1 },
+          { stat: 'health', delta: -1 },
           { log: 'I sang the only song I know, badly. The baby stopped crying to listen. {{person}} nearly wept.', kind: 'good' },
         ],
       },
@@ -619,18 +633,19 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ relationship: 'person', delta: -6 }, { stat: 'happiness', delta: -3 }, { log: 'I bit {{person}} on the arm. {{They}} howled and I got the longest time-out of my life.', kind: 'bad' }],
-            else: [{ relationship: 'person', delta: -3 }, { stat: 'happiness', delta: 2 }, { log: '{{person}} yelped and left my towers alone after that. Justice, toddler style.' }],
+            else: [{ relationship: 'person', delta: -3 }, { stat: 'happiness', delta: 4 }, { log: '{{person}} yelped and left my towers alone after that. Justice, toddler style.' }],
           },
         ],
       },
       {
         id: 'tell',
         label: 'Cry for {{mother}}',
+        conditions: [{ hasPerson: ['mother'] }],
         effects: [
           { relationship: 'person', delta: -2 },
           {
             chance: 0.7,
-            then: [{ stat: 'happiness', delta: 2 }, { log: '{{mother}} made {{person}} help me rebuild it. {{They}} sulked the whole time.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 3 }, { relationship: 'mother', delta: 1 }, { log: '{{mother}} made {{person}} help me rebuild it. {{They}} sulked the whole time.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -2 }, { log: '{{mother}} told us to sort it out ourselves. {{person}} grinned.', kind: 'bad' }],
           },
         ],
@@ -677,7 +692,8 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
       {
         id: 'tell',
         label: 'Tell {{mother}}',
-        effects: [{ karma: -1 }, { relationship: 'person', delta: -4 }, { stat: 'happiness', delta: 2 }, { log: 'The kingdom was dissolved by royal decree at bath time. {{person}} blamed me. Correctly.' }],
+        conditions: [{ hasPerson: ['mother'] }],
+        effects: [{ karma: -1 }, { relationship: 'person', delta: -4 }, { relationship: 'mother', delta: 1 }, { stat: 'happiness', delta: 3 }, { log: 'The kingdom was dissolved by royal decree at bath time. {{person}} blamed me. Correctly.' }],
       },
     ],
   },
@@ -700,6 +716,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
       {
         id: 'ask',
         label: 'Ask {{mother}} for a sibling',
+        conditions: [{ hasPerson: ['mother'] }],
         effects: [
           { stat: 'happiness', delta: 1 },
           {
@@ -731,7 +748,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
       {
         id: 'hide',
         label: 'Hide under the bed',
-        effects: [{ stat: 'happiness', delta: -4 }, { log: 'I stayed under the bed until it went quiet. Nobody noticed I was gone.', kind: 'bad' }],
+        effects: [{ stat: 'happiness', delta: -3 }, { stat: 'smarts', delta: 1 }, { log: 'I stayed under the bed until it went quiet. I heard more than I wanted to.', kind: 'bad' }],
       },
       {
         id: 'cry',
@@ -767,7 +784,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 5,
     weight: 1,
     once: true,
-    conditions: [{ noPerson: ['father'] }],
+    conditions: [{ noPerson: ['father'] }, { hasPerson: ['mother'] }],
     choices: [
       {
         id: 'ask',
@@ -804,12 +821,19 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
       {
         id: 'show',
         label: 'Put on a show for her',
-        effects: [{ stat: 'happiness', delta: 3 }, { money: 20 }, { log: 'I sang every song I know. Grandma slipped {{$20}} into my pocket and told me not to tell {{mother}}.', kind: 'money' }],
+        effects: [
+          { stat: 'happiness', delta: 2 },
+          {
+            chance: 0.7,
+            then: [{ money: 20 }, { stat: 'happiness', delta: 1 }, { log: 'I sang every song I know. Grandma slipped {{$20}} into my pocket and said not to tell {{mother}}.', kind: 'money' }],
+            else: [{ stat: 'happiness', delta: -1 }, { log: 'Grandma fell asleep halfway through my second song. Tough crowd.' }],
+          },
+        ],
       },
       {
         id: 'hide',
         label: 'Hide from the kisses',
-        effects: [{ stat: 'happiness', delta: 1 }, { karma: -1 }, { relationship: 'mother', delta: -1 }, { log: 'I hid behind the sofa whenever she puckered up. {{mother}} said I was being rude. Grandma found it funny.' }],
+        effects: [{ stat: 'happiness', delta: 3 }, { karma: -1 }, { relationship: 'mother', delta: -1 }, { log: 'I hid behind the sofa whenever she puckered up. {{mother}} called it rude. Grandma found it funny.' }],
       },
     ],
   },
@@ -822,6 +846,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 5,
     weight: 1.5,
     cooldown: 2,
+    conditions: [{ hasPerson: ['mother'] }],
     choices: [
       {
         id: 'believe',
@@ -831,7 +856,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
       {
         id: 'question',
         label: 'Ask too many questions',
-        effects: [{ stat: 'smarts', delta: 3 }, { stat: 'happiness', delta: 1 }, { log: 'By the fourth question the goose had become a swan and the medal a handshake. I had learned about evidence.' }],
+        effects: [{ stat: 'smarts', delta: 3 }, { stat: 'happiness', delta: 1 }, { log: 'By question four the goose was a swan and the medal a handshake. I had learned about evidence.' }],
       },
       {
         id: 'sleep',
@@ -882,12 +907,13 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
       {
         id: 'proud',
         label: 'Wear it proudly',
-        effects: [{ stat: 'happiness', delta: 2 }, { stat: 'looks', delta: -1 }, { karma: 1 }, { log: 'The coat is warm and that is what coats are for. I decided not to care about the name.' }],
+        effects: [{ stat: 'happiness', delta: 2 }, { karma: 2 }, { log: 'The coat is warm and that is what coats are for. I decided not to care about the name.' }],
       },
       {
         id: 'complain',
         label: 'Complain to {{mother}}',
-        effects: [{ relationship: 'mother', delta: -3 }, { stat: 'happiness', delta: -2 }, { log: 'I whined about the coat. {{mother}} went very quiet. I understood later what that quiet meant.', kind: 'bad' }],
+        conditions: [{ hasPerson: ['mother'] }],
+        effects: [{ relationship: 'mother', delta: -3 }, { stat: 'happiness', delta: -2 }, { stat: 'smarts', delta: 2 }, { log: 'I whined about the coat. {{mother}} went very quiet. I understood later what that quiet meant.', kind: 'bad' }],
       },
       {
         id: 'cape',
@@ -914,7 +940,8 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
         label: 'Name it something sensible',
         effects: [
           { newPerson: { kind: 'pet', species: 'dog', relationship: 70, log: 'We got a puppy. I named {{them}} {{person}}.' } },
-          { stat: 'happiness', delta: 6 },
+          { stat: 'happiness', delta: 5 },
+          { stat: 'smarts', delta: 1 },
           { log: 'I picked a sensible name. Everyone agreed it suited the dog.', kind: 'good' },
           { queue: 'ec_puppy_night' },
         ],
@@ -924,18 +951,21 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
         label: 'Call it Spaghetti',
         effects: [
           { newPerson: { kind: 'pet', species: 'dog', relationship: 75, log: 'We got a puppy. Officially {{they}} are called {{person}}. Unofficially, Spaghetti.' } },
-          { stat: 'happiness', delta: 8 },
-          { log: 'I shouted "Spaghetti!" and the puppy came running. The name on the collar never stood a chance.', kind: 'good' },
+          { stat: 'happiness', delta: 7 },
+          { relationship: 'mother', delta: -1 },
+          { log: 'I shouted "Spaghetti!" and the puppy came running. {{mother}} refuses to shout it in the park.', kind: 'good' },
           { queue: 'ec_puppy_night' },
         ],
       },
       {
         id: 'scared',
         label: 'Hide behind {{mother}}',
+        conditions: [{ hasPerson: ['mother'] }],
         effects: [
           { newPerson: { kind: 'pet', species: 'dog', relationship: 35, log: 'We got a puppy called {{person}}. I was not consulted.' } },
           { stat: 'happiness', delta: -2 },
-          { log: 'The puppy stayed anyway. We would have to work it out between us.' },
+          { relationship: 'mother', delta: 2 },
+          { log: 'The puppy stayed anyway. So did I, mostly behind {{mother}}. We would have to work it out.' },
           { queue: 'ec_puppy_night' },
         ],
       },
@@ -1004,6 +1034,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
             then: [
               { newPerson: { kind: 'friend', minAge: 3, maxAge: 6, relationship: 50, log: 'After a scuffle over a spade, {{person}} and I decided to be friends anyway.' } },
               { stat: 'happiness', delta: 3 },
+              { stat: 'smarts', delta: 2 },
               { log: 'We fought over the spade, cried, then shared it. A friendship forged in sand.' },
             ],
             else: [{ stat: 'happiness', delta: -2 }, { log: 'They took their bucket and left. I had a spade and nobody to dig with.', kind: 'bad' }],
@@ -1013,6 +1044,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
       {
         id: 'shy',
         label: 'Run to {{mother}}',
+        conditions: [{ hasPerson: ['mother'] }],
         effects: [{ stat: 'happiness', delta: -1 }, { relationship: 'mother', delta: 2 }, { log: "I handed the bucket back and hid in {{mother}}'s coat. Not today. Maybe tomorrow." }],
       },
     ],
@@ -1034,7 +1066,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 4 },
           { stat: 'smarts', delta: 2 },
           { relationship: 'mother', delta: -1 },
-          { log: '{{mother}} served the Captain a plate every night for a month. He never finished it. She stopped minding.', kind: 'good' },
+          { log: 'I made {{mother}} serve the Captain a plate every night. He never finished it. She stopped minding.', kind: 'good' },
         ],
       },
       {
@@ -1044,7 +1076,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
           { karma: -2 },
           {
             chance: 0.5,
-            then: [{ stat: 'happiness', delta: 2 }, { log: 'It worked. Captain Noodle took the fall. A true friend.' }],
+            then: [{ stat: 'happiness', delta: 5 }, { log: 'It worked. Captain Noodle took the fall for me. A true friend.' }],
             else: [{ stat: 'happiness', delta: -3 }, { log: 'The Captain was tried in his absence and I served his time-out. Justice is strange.', kind: 'bad' }],
           },
         ],
@@ -1052,7 +1084,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
       {
         id: 'goodbye',
         label: 'Say goodbye to him',
-        effects: [{ stat: 'happiness', delta: -2 }, { stat: 'smarts', delta: 3 }, { log: 'I told the Captain I did not need him any more. He saluted and walked through the wall. Growing up is strange.' }],
+        effects: [{ stat: 'happiness', delta: -2 }, { stat: 'smarts', delta: 3 }, { log: 'I told the Captain I did not need him any more. He saluted and walked through the wall.' }],
       },
     ],
   },
@@ -1107,7 +1139,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 5,
     weight: 1.5,
     once: true,
-    conditions: [{ stat: 'smarts', gte: 55 }],
+    conditions: [{ stat: 'smarts', gte: 55 }, { hasPerson: ['mother'] }],
     choices: [
       {
         id: 'read',
@@ -1117,7 +1149,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
       {
         id: 'fluke',
         label: 'Pretend it was a fluke',
-        effects: [{ stat: 'happiness', delta: 2 }, { log: 'I did not want flashcards. I went back to pretending letters were squiggles. Nobody expects much of a fluke.' }],
+        effects: [{ stat: 'happiness', delta: 2 }, { log: 'I did not want flashcards. I went back to pretending letters were squiggles.' }],
       },
       {
         id: 'show',

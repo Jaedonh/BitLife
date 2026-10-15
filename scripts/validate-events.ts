@@ -18,7 +18,7 @@ import { resolveChoice } from '../src/engine/events/select';
 import { makeRegistry } from '../src/engine/events/select';
 import { createLife } from '../src/engine/systems/character';
 import { Rng } from '../src/engine/rng';
-import { balancedPolicy } from '../src/engine/simulate';
+import { balancedPolicy, recklessPolicy } from '../src/engine/simulate';
 import { applyAction } from '../src/engine/actions';
 import type { GameState } from '../src/engine/types';
 
@@ -29,10 +29,13 @@ async function loadFile(file: string): Promise<EventDef[]> {
   return defs;
 }
 
-function sampleStates(n: number): GameState[] {
+function sampleStates(n: number, recklessLives = 20): GameState[] {
   const states: GameState[] = [];
   const emptyRegistry = makeRegistry([]);
-  for (let seed = 1; seed <= n; seed++) {
+  // Seeds 1..n play a sensible life; the extra seeds play recklessly so that
+  // states with a criminal record or in prison are represented.
+  for (let seed = 1; seed <= n + recklessLives; seed++) {
+    const policy = seed > n ? recklessPolicy : balancedPolicy;
     let s = createLife({}, seed * 7919);
     const rng = new Rng(seed);
     const years = 5 + (seed % 90);
@@ -40,7 +43,7 @@ function sampleStates(n: number): GameState[] {
       s = ageUp(s, emptyRegistry);
       while (s.pendingEvent) s = resolveChoice(s, s.pendingEvent.choices[0]!.id, emptyRegistry);
       if (!s.alive) break;
-      for (const a of balancedPolicy(s, rng)) s = applyAction(s, a);
+      for (const a of policy(s, rng)) s = applyAction(s, a);
       states.push(s);
     }
   }
