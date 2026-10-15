@@ -893,7 +893,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
   {
     id: 'kd_braces',
     category: 'childhood',
-    title: 'Braces',
+    title: 'Braces, probably',
     text: 'The dentist said the word every kid dreads: braces. Two years, maybe more. {{mother}} nodded like it was good news. The dentist showed me a picture of a straight smile.',
     minAge: 9,
     maxAge: 12,
@@ -1020,7 +1020,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
   {
     id: 'kd_sleepover',
     category: 'childhood',
-    title: 'Sleepover',
+    title: 'Sleepover invite',
     text: "{{person}} invited me to a sleepover: pizza, a scary film {{their}} parents don't know about, and sleeping bags on the living-room floor.",
     minAge: 7,
     maxAge: 12,
