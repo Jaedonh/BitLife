@@ -1171,7 +1171,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
   {
     id: 'ya_move_back_home',
     category: 'random',
-    title: 'Exactly how I left it',
+    title: 'The old room',
     text: "Rent went up, income didn't. {{person}} said my old room is 'exactly how I left it', which is both an offer and a threat.",
     minAge: 19,
     maxAge: 29,
@@ -1444,7 +1444,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
   {
     id: 'ya_first_i_love_you',
     category: 'random',
-    title: 'Three words, in the rain',
+    title: 'Three words',
     text: "Walking home in the rain, {{person}} stopped, turned, and said 'I love you' for the first time. {{They}} looked terrified. I understood why.",
     minAge: 18,
     maxAge: 29,
