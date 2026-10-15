@@ -13,7 +13,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     category: 'random',
     title: 'Noisy neighbour',
     text: 'The people next door have discovered bass. Every night at eleven the walls hum, the glasses rattle, and my pillow starts vibrating like it has somewhere to be.',
-    minAge: 14,
+    minAge: 16,
     maxAge: 90,
     weight: 2,
     cooldown: 4,
@@ -37,8 +37,8 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.5,
-            then: [{ log: 'A warning letter arrived at their door. The bass stopped. The dirty looks did not.', kind: 'good' }, { stat: 'happiness', delta: 2 }],
-            else: [{ log: 'The council sent a leaflet about community mediation. The bass continued, now with a sense of irony.', kind: 'bad' }, { stat: 'happiness', delta: -2 }],
+            then: [{ log: 'A warning letter landed on their mat. The bass stopped. The dirty looks I get on the stairs did not.', kind: 'good' }, { stat: 'happiness', delta: 2 }],
+            else: [{ log: 'The council sent me a leaflet about community mediation. The bass continued, now with a sense of irony.', kind: 'bad' }, { stat: 'happiness', delta: -2 }],
           },
         ],
       },
@@ -48,7 +48,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         effects: [
           { stat: 'happiness', delta: 5 },
           { energy: -1 },
-          { log: 'If you cannot beat them, dance in their kitchen. The bass is better from the inside.', kind: 'good' },
+          { log: 'If I cannot beat them, I can dance in their kitchen. The bass is better from the inside.', kind: 'good' },
           { chance: 0.4, then: [{ newPerson: { kind: 'friend', relationship: 55, log: 'I met {{person}} by the speakers and we became friends.' } }] },
           { chance: 0.25, then: [{ stat: 'health', delta: -2 }, { log: 'I got home at 3am with a headache and a new favourite song.' }] },
         ],
@@ -60,7 +60,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
           { karma: -3 },
           {
             random: [
-              { weight: 5, effects: [{ log: 'An arms race began. By Friday the whole street hated both of us.', kind: 'bad' }, { stat: 'happiness', delta: -4 }, { chance: 0.5, then: [{ newPerson: { kind: 'enemy', relationship: 10, log: 'My neighbour {{person}} is now officially my enemy.' } }] }] },
+              { weight: 5, effects: [{ log: 'I started an arms race. By Friday the whole street hated both of us.', kind: 'bad' }, { stat: 'happiness', delta: -4 }, { chance: 0.5, then: [{ newPerson: { kind: 'enemy', relationship: 10, log: 'My neighbour {{person}} is now officially my enemy.' } }] }] },
               { weight: 3, effects: [{ log: 'They got the message and turned it down. We have never spoken since.' }, { stat: 'happiness', delta: 2 }] },
               { weight: 2, effects: [{ log: 'The police visited me, not them. I received a noise warning and a lecture.', kind: 'bad' }, { stat: 'happiness', delta: -3 }, { money: -100 }] },
             ],
@@ -122,6 +122,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         id: 'dish',
         label: 'Bring a homemade dish',
         hint: 'Costs {{$40}}',
+        conditions: [{ money: { gte: 40 } }],
         effects: [
           { money: -40 },
           {
@@ -262,8 +263,8 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
           { counter: 'crimes' },
           {
             chance: 0.3,
-            then: [{ log: 'He noticed the missing box and came back for it. The street now knows.', kind: 'bad' }, { stat: 'happiness', delta: -4 }, { money: -80 }],
-            else: [{ log: 'The box was mostly cables, one decent speaker, and guilt.' }, { stat: 'happiness', delta: -1 }],
+            then: [{ log: 'He noticed the missing box and came back for it. The whole street now knows what I am.', kind: 'bad' }, { stat: 'happiness', delta: -4 }, { money: -80 }],
+            else: [{ log: 'I opened the box at home: mostly cables, one decent speaker, and guilt.' }, { stat: 'happiness', delta: -1 }],
           },
         ],
       },
@@ -277,7 +278,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 10,
     maxAge: 70,
     weight: 1.5,
-    cooldown: 3,
+    once: true,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -301,7 +302,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         effects: [
           { karma: 4 },
           { energy: -1 },
-          { stat: 'happiness', delta: 3 },
+          { stat: 'happiness', delta: 2 },
           { stat: 'smarts', delta: 1 },
           { flag: 'nc_old_neighbour_friend', set: true },
           { log: "Every Thursday after that: his bags, his kettle, his stories. He started calling me 'the good one'.", kind: 'good' },
@@ -318,7 +319,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     id: 'nc_neighbour_will',
     category: 'random',
     title: "A lawyer's letter",
-    text: "A solicitor's letter: the elderly neighbour from years back has died and left me something in the will. 'In recognition of kindness shown,' it says, before getting to the numbers.",
+    text: "A solicitor's letter: the old man who lived next door for years has died and, to my surprise, left me something in his will. 'For kindness shown,' it says, before getting to the numbers.",
     minAge: 25,
     maxAge: 95,
     weight: 0.3,
@@ -329,12 +330,12 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         id: 'accept',
         label: 'Accept gratefully',
         effects: [
-          { stat: 'happiness', delta: 5 },
+          { stat: 'happiness', delta: 4 },
           {
             random: [
               { weight: 6, effects: [{ money: 2500 }, { log: 'He left me {{$2500}} and his collection of naval history books. I read one.', kind: 'money' }] },
-              { weight: 3, effects: [{ money: 40000 }, { log: 'He left me {{$40000}}. His own family had not visited in a decade. I visited his grave instead.', kind: 'money' }] },
-              { weight: 1, effects: [{ money: 300000 }, { log: 'He left me nearly everything: {{$300000}}. His family are contesting it. The solicitor says it will hold.', kind: 'milestone' }] },
+              { weight: 3, effects: [{ money: 15000 }, { log: 'He left me {{$15000}}. I had carried his bags once, years ago. He had remembered.', kind: 'money' }] },
+              { weight: 1, effects: [{ money: 40000 }, { log: 'He left me {{$40000}}. His own family had not visited in a decade. I visited his grave instead.', kind: 'milestone' }] },
             ],
           },
         ],
@@ -358,9 +359,22 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
       },
       {
         id: 'eulogy',
-        label: 'Speak at the funeral',
+        label: 'Speak at his funeral',
+        hint: "I was 'the good one'",
         conditions: [{ flag: 'nc_old_neighbour_friend', exists: true }],
-        effects: [{ money: 2500 }, { karma: 3 }, { fame: 1 }, { stat: 'happiness', delta: 4 }, { log: 'I spoke at the funeral about Thursdays and oranges. Then I accepted the {{$2500}} he left me, and kept the kettle.', kind: 'milestone' }],
+        effects: [
+          { karma: 3 },
+          { fame: 1 },
+          { stat: 'happiness', delta: 6 },
+          { log: 'I spoke at the funeral about Thursdays and oranges, and kept the kettle.', kind: 'milestone' },
+          {
+            random: [
+              { weight: 5, effects: [{ money: 25000 }, { log: 'He left me {{$25000}} and every one of his naval history books. I am reading them in order.', kind: 'money' }] },
+              { weight: 4, effects: [{ money: 60000 }, { log: 'He left me {{$60000}}. His family had not visited in a decade. I had visited every Thursday.', kind: 'money' }] },
+              { weight: 1, effects: [{ money: 120000 }, { log: 'He left me nearly everything: {{$120000}}. His family are contesting it. The solicitor says it will hold.', kind: 'milestone' }] },
+            ],
+          },
+        ],
       },
     ],
   },
@@ -383,12 +397,12 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         effects: [
           {
             random: [
-              { weight: 6, effects: [{ log: 'Knee-deep, freezing, and something soft touched my ankle. I made it. My shoes did not.' }, { money: -40 }, { stat: 'happiness', delta: -2 }] },
+              { weight: 6, effects: [{ log: 'Knee-deep, freezing, and something soft touched my ankle. I made it, on time. My shoes did not.' }, { money: -40 }, { stat: 'happiness', delta: 1 }] },
               { weight: 3, effects: [{ log: 'I slipped on something invisible and went under. Dignity: gone. Phone: also gone.', kind: 'bad' }, { injury: 3 }, { money: -200 }] },
-              { weight: 1, effects: [{ log: 'I waded across like an explorer and someone applauded from a window.', kind: 'good' }, { stat: 'happiness', delta: 3 }] },
+              { weight: 1, effects: [{ log: 'I waded across like an explorer and someone applauded from a window.', kind: 'good' }, { stat: 'happiness', delta: 3 }, { fame: 1 }] },
             ],
           },
-          { chance: 0.2, then: [{ illness: 'cold' }] },
+          { chance: 0.2, then: [{ illness: 'cold' }, { log: 'The lake water gave me a cold as a souvenir.', kind: 'bad' }] },
         ],
       },
       {
@@ -412,7 +426,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         effects: [
           {
             random: [
-              { weight: 6, effects: [{ log: 'The car coughed, spluttered and made it. The engine has never sounded the same.' }, { asset: 'damage', kind: 'car', amount: 20 }] },
+              { weight: 6, effects: [{ log: 'My car coughed, spluttered and made it. The engine has never sounded the same.' }, { asset: 'damage', kind: 'car', amount: 20 }] },
               { weight: 4, effects: [{ log: 'The car died mid-lake. I was towed out in front of everyone, including the duck.', kind: 'bad' }, { asset: 'damage', kind: 'car', amount: 40 }, { money: -300 }, { stat: 'happiness', delta: -5 }] },
             ],
           },
@@ -435,12 +449,12 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     weight: 1.5,
     cooldown: 3,
     conditions: [{ inPrison: false }],
-    person: { kind: ['mother', 'father', 'stepmother', 'stepfather', 'sibling', 'spouse', 'lover', 'child', 'friend'] },
+    person: { kind: ['mother', 'father', 'stepmother', 'stepfather', 'sibling', 'spouse', 'lover', 'child', 'friend'], minAge: 5 },
     choices: [
       {
         id: 'stories',
         label: 'Tell stories by candlelight',
-        effects: [{ stat: 'happiness', delta: 4 }, { relationship: 'person', delta: 5 }, { stat: 'smarts', delta: 1 }, { log: '{{person}} told me things {{they}} had never mentioned before. The dark is good for that.', kind: 'good' }],
+        effects: [{ stat: 'happiness', delta: 4 }, { relationship: 'person', delta: 5 }, { stat: 'smarts', delta: 1 }, { energy: -1 }, { log: '{{person}} told me things {{they}} had never mentioned before. The dark is good for that.', kind: 'good' }],
       },
       {
         id: 'elderly',
@@ -448,7 +462,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         effects: [
           { karma: 3 },
           { stat: 'happiness', delta: 2 },
-          { log: 'I knocked on the older neighbours and sat with one until the lights came back. She fed me biscuits in the dark.', kind: 'good' },
+          { log: 'I knocked for the older neighbours and sat with one until the lights came back. She fed me biscuits in the dark.', kind: 'good' },
           { chance: 0.3, then: [{ money: 30 }, { log: 'She insisted I take {{$30}} for my trouble.', kind: 'money' }] },
         ],
       },
@@ -456,11 +470,11 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         id: 'feast',
         label: 'Eat everything before it spoils',
         effects: [
-          { stat: 'happiness', delta: 3 },
+          { stat: 'happiness', delta: 4 },
           {
             random: [
-              { weight: 7, effects: [{ log: 'Ice cream, then the cheese, then the mystery leftovers. A feast by torchlight with {{person}}.', kind: 'good' }, { relationship: 'person', delta: 2 }] },
-              { weight: 3, effects: [{ log: 'The mystery leftovers were a mistake.', kind: 'bad' }, { illness: 'food_poisoning' }] },
+              { weight: 7, effects: [{ log: 'I ate the ice cream, then the cheese, then the mystery leftovers. A feast by torchlight with {{person}}.', kind: 'good' }, { relationship: 'person', delta: 2 }] },
+              { weight: 3, effects: [{ log: 'The mystery leftovers were a mistake I paid for all week.', kind: 'bad' }, { illness: 'food_poisoning' }] },
             ],
           },
         ],
@@ -490,7 +504,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 1 },
           {
             chance: 0.5,
-            then: [{ log: 'Report number eleven did the trick. A crew arrived, filled it, and left a smaller pothole beside it.', kind: 'good' }, { stat: 'happiness', delta: 3 }, { queue: 'nc_council_reply' }],
+            then: [{ log: 'My eleventh report did the trick. A crew arrived, filled it, and left a smaller pothole beside it.', kind: 'good' }, { stat: 'happiness', delta: 3 }, { queue: 'nc_council_reply' }],
             else: [{ log: 'Eleven reports. Eleven automated replies thanking me for my feedback.', kind: 'bad' }, { stat: 'happiness', delta: -3 }],
           },
         ],
@@ -516,7 +530,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
           {
             chance: 0.4,
             then: [{ log: 'A photo of my pothole daffodil went round the whole of {{city}}. The council filled it within a week, out of shame.', kind: 'good' }, { fame: 3 }, { stat: 'happiness', delta: 5 }],
-            else: [{ log: 'The daffodil lasted two days before a van flattened it. The pothole remains.' }, { stat: 'happiness', delta: -1 }],
+            else: [{ log: 'My daffodil lasted two days before a van flattened it. The pothole remains.' }, { stat: 'happiness', delta: -1 }],
           },
         ],
       },
@@ -544,7 +558,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ money: 300 }, { log: 'They paid out {{$300}} for a tyre I may or may not have ruined.', kind: 'money' }],
-            else: [{ log: 'Claim rejected. Insufficient evidence of tyre.', kind: 'bad' }, { stat: 'happiness', delta: -1 }],
+            else: [{ log: 'My claim was rejected. Insufficient evidence of tyre.', kind: 'bad' }, { stat: 'happiness', delta: -1 }],
           },
         ],
       },
@@ -580,7 +594,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 2 },
           {
             random: [
-              { weight: 5, effects: [{ log: 'Three bags of rubbish and a pleasant ache. The canal path looks like a canal path again.', kind: 'good' }] },
+              { weight: 5, effects: [{ log: 'I filled three bags and earned a pleasant ache. The canal path looks like a canal path again.', kind: 'good' }] },
               { weight: 3, effects: [{ log: 'I found a {{$20}} note under a bush. Nobody claimed it. The litter pick pays.', kind: 'money' }, { money: 20 }] },
               { weight: 2, effects: [{ log: 'I found the other roller skate. The organiser wept.', kind: 'good' }, { stat: 'happiness', delta: 3 }] },
             ],
@@ -623,6 +637,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         label: 'Track down the owner',
         effects: [
           { karma: 3 },
+          { energy: -1 },
           {
             random: [
               { weight: 6, effects: [{ log: 'The library ticket led me to her. She gave me {{$40}} and a hug I did not ask for and did not mind.', kind: 'money' }, { money: 40 }, { stat: 'happiness', delta: 4 }] },
@@ -660,7 +675,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 80,
     weight: 0.8,
-    cooldown: 6,
+    once: true,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -671,7 +686,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
             random: [
               { weight: 5, effects: [{ log: 'Four neighbours, two planks, one near-death experience on the step. It lives in my hallway. I can play three notes.', kind: 'good' }, { stat: 'happiness', delta: 6 }, { stat: 'smarts', delta: 2 }, { stat: 'health', delta: -3 }] },
               { weight: 3, effects: [{ log: 'We dropped it. A piano makes a surprising noise when it dies. So did my foot.', kind: 'bad' }, { injury: 4 }, { stat: 'happiness', delta: -3 }] },
-              { weight: 2, effects: [{ log: 'Halfway home the owner ran out: wrong piano. This one was his. The free one was the keyboard beside it.', kind: 'bad' }, { stat: 'happiness', delta: -2 }] },
+              { weight: 2, effects: [{ log: 'Halfway home the owner ran out: wrong piano. This one was his. The free one was the keyboard I had stepped over.', kind: 'bad' }, { stat: 'happiness', delta: -2 }] },
             ],
           },
         ],
@@ -684,7 +699,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ log: 'A music teacher paid {{$250}} and brought her own movers. The best deal I have ever done with something I did not own.', kind: 'money' }, { money: 250 }],
-            else: [{ log: 'Nobody wanted it. Not even for free. Not even with the sign.' }, { stat: 'happiness', delta: -1 }],
+            else: [{ log: 'Nobody wanted it. Not even for free. Not even with my new sign.' }, { stat: 'happiness', delta: -1 }],
           },
         ],
       },
@@ -715,7 +730,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
           { money: -400 },
           {
             random: [
-              { weight: 6, effects: [{ log: 'He took the deposit, climbed a ladder, moved one tile, and never came back. The van had no plates.', kind: 'bad' }, { stat: 'happiness', delta: -6 }] },
+              { weight: 6, effects: [{ log: 'He took my deposit, climbed a ladder, moved one tile, and never came back. The van had no plates.', kind: 'bad' }, { stat: 'happiness', delta: -6 }] },
               { weight: 4, effects: [{ log: 'Against all odds he did the work and did it well. I still do not know his name.', kind: 'good' }, { stat: 'happiness', delta: 2 }] },
             ],
           },
@@ -745,8 +760,8 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 2 },
           {
             chance: 0.3,
-            then: [{ log: 'A proper roofer found two cracked tiles. It cost {{$250}} and came with a receipt.', kind: 'money' }, { money: -250 }],
-            else: [{ log: 'The proper roofer laughed. There was nothing wrong with the roof.', kind: 'good' }, { stat: 'happiness', delta: 2 }],
+            then: [{ log: 'I called a proper roofer, who found two cracked tiles. It cost {{$250}} and came with a receipt.', kind: 'money' }, { money: -250 }],
+            else: [{ log: 'The proper roofer laughed at me, kindly. There was nothing wrong with the roof.', kind: 'good' }, { stat: 'happiness', delta: 2 }],
           },
         ],
       },
@@ -815,11 +830,12 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         id: 'eat',
         label: 'Eat your way down the street',
         hint: 'Costs {{$50}}',
+        conditions: [{ money: { gte: 50 } }],
         effects: [
           { money: -50 },
           { stat: 'happiness', delta: 5 },
           { log: 'I ate from every stall. I regret nothing except the last one.', kind: 'good' },
-          { chance: 0.1, then: [{ illness: 'food_poisoning' }, { log: 'The last one was a mistake, it turned out.', kind: 'bad' }] },
+          { chance: 0.1, then: [{ illness: 'food_poisoning' }, { log: 'The last stall was a mistake, it turned out. I spent the night regretting it.', kind: 'bad' }] },
         ],
       },
       {
@@ -830,7 +846,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
             random: [
               { weight: 3, effects: [{ log: 'I won. The prize was {{$150}} and a sash. I wore the sash home.', kind: 'milestone' }, { money: 150 }, { stat: 'happiness', delta: 6 }, { fame: 2 }] },
               { weight: 4, effects: [{ log: 'I came third, behind a dog and a ventriloquist. The crowd was kind.' }, { stat: 'happiness', delta: 2 }] },
-              { weight: 3, effects: [{ log: 'The microphone cut out mid-act. Then it came back, mid-mistake.', kind: 'bad' }, { stat: 'happiness', delta: -3 }] },
+              { weight: 3, effects: [{ log: 'My microphone cut out mid-act. Then it came back, mid-mistake.', kind: 'bad' }, { stat: 'happiness', delta: -3 }] },
             ],
           },
         ],
@@ -867,7 +883,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
           {
             random: [
               { weight: 5, effects: [{ money: 120 }, { log: 'Everything went. A woman bought my broken lamp for {{$5}} and seemed delighted.', kind: 'money' }] },
-              { weight: 5, effects: [{ money: 60 }, { log: 'Half of it went. The rest went back in the garage, where it will wait for next year.', kind: 'money' }] },
+              { weight: 5, effects: [{ money: 60 }, { log: 'Half of it went. I carried the rest back into the garage, where it will wait for next year.', kind: 'money' }] },
             ],
           },
         ],
@@ -879,7 +895,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
           {
             random: [
               { weight: 4, effects: [{ money: 200 }, { log: 'I squeezed every penny. {{person}} said I was frightening. I made {{$200}}.', kind: 'money' }] },
-              { weight: 4, effects: [{ money: 50 }, { log: 'People walked off rather than argue. {{person}} bought a mug out of pity.' }, { stat: 'happiness', delta: -1 }] },
+              { weight: 4, effects: [{ money: 50 }, { log: 'People walked off rather than argue with me. {{person}} bought a mug out of pity.' }, { stat: 'happiness', delta: -1 }] },
               { weight: 2, effects: [{ money: 10 }, { log: 'A man haggled me down to {{$10}} for a bicycle. I am not sure what happened.', kind: 'bad' }, { stat: 'happiness', delta: -3 }] },
             ],
           },
@@ -893,7 +909,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
       {
         id: 'theirs',
         label: "Sell {{person}}'s things too",
-        effects: [{ money: 90 }, { karma: -4 }, { relationship: 'person', delta: -10 }, { log: '{{person}} noticed {{their}} jacket on a stranger halfway down the street. It did not go well.', kind: 'bad' }],
+        effects: [{ money: 90 }, { karma: -4 }, { relationship: 'person', delta: -10 }, { log: '{{person}} spotted {{their}} own jacket on a stranger halfway down the street. I had no defence.', kind: 'bad' }],
       },
     ],
   },
@@ -974,7 +990,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
           {
             random: [
               { weight: 4, effects: [{ log: 'Three months of dusk patrols. Then one evening I spotted a man climbing into a shed and called it in. He was arrested. I got a certificate.', kind: 'good' }, { stat: 'happiness', delta: 5 }, { fame: 2 }, { stat: 'smarts', delta: 1 }] },
-              { weight: 4, effects: [{ log: 'Months of walking the street at dusk. Nothing happened, which is sort of the point.' }, { stat: 'happiness', delta: 1 }] },
+              { weight: 4, effects: [{ log: 'I walked the street at dusk for months. Nothing happened, which is sort of the point.' }, { stat: 'happiness', delta: 1 }] },
               { weight: 2, effects: [{ log: 'I reported a suspicious figure who turned out to be the lanyard man, patrolling. He has not forgiven me.', kind: 'bad' }, { stat: 'happiness', delta: -3 }] },
             ],
           },
@@ -993,7 +1009,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
           {
             chance: 0.4,
             then: [{ log: 'I learned a great deal about my neighbours. Then they learned that I had been learning it.', kind: 'bad' }, { stat: 'happiness', delta: -4 }, { newPerson: { kind: 'enemy', relationship: 15, log: 'The neighbour at number fourteen, {{person}}, has decided I am the enemy.' } }],
-            else: [{ log: "Knowing everyone's business turned out to be mostly knowing about bins." }, { stat: 'happiness', delta: 1 }, { stat: 'smarts', delta: 1 }],
+            else: [{ log: "I learned everyone's business. It turned out to be mostly about bins." }, { stat: 'happiness', delta: 1 }, { stat: 'smarts', delta: 1 }],
           },
         ],
       },
@@ -1005,7 +1021,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
             random: [
               { weight: 4, effects: [{ log: 'I caught him in the act and sat on him until the police came. The street threw me a barbecue.', kind: 'milestone' }, { stat: 'happiness', delta: 6 }, { fame: 2 }, { karma: 2 }, { injury: 2 }] },
               { weight: 5, effects: [{ log: 'I tackled a man in a hoodie. He was a plumber, collecting his own tools. He was gracious. I was not.', kind: 'bad' }, { stat: 'happiness', delta: -5 }, { karma: -3 }] },
-              { weight: 1, effects: [{ log: 'The man in the hoodie was a plumber, and he was not gracious. Assault. One year.', kind: 'bad' }, { prison: 1 }, { stat: 'happiness', delta: -10 }] },
+              { weight: 1, effects: [{ log: 'The man in the hoodie was a plumber, and he pressed charges. I was convicted of assault and given a year.', kind: 'bad' }, { prison: 1 }, { stat: 'happiness', delta: -10 }] },
             ],
           },
         ],
@@ -1026,7 +1042,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
       {
         id: 'regular',
         label: 'Become a regular',
-        hint: 'Costs {{$200}} a year',
+        hint: 'Costs {{$200}}',
         conditions: [{ money: { gte: 200 } }],
         effects: [
           { money: -200 },
@@ -1093,7 +1109,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
           {
             chance: 0.6,
             then: [{ log: '{{person}} went to bat for me. By the end of the week the story had changed to something flattering.', kind: 'good' }, { stat: 'happiness', delta: 4 }],
-            else: [{ log: '{{person}} tried, but {{they}} are not a convincing person. The rumour grew a sequel.', kind: 'bad' }, { stat: 'happiness', delta: -3 }],
+            else: [{ log: '{{person}} tried, but convincing is not {{their}} strong suit. The rumour grew a sequel, and I heard it twice.', kind: 'bad' }, { stat: 'happiness', delta: -3 }],
           },
         ],
       },
@@ -1116,7 +1132,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     id: 'nc_friend_moving_away',
     category: 'random',
     title: 'Moving away',
-    text: "{{person}} told me {{they}} are moving away from {{city}}, far enough that 'popping round' stops being a thing. {{They}} said it brightly, the way people say things that are not bright.",
+    text: "{{person}} told me about the move: away from {{city}}, far enough that 'popping round' stops being a thing. {{They}} said it brightly, the way people say things that are not bright.",
     minAge: 12,
     maxAge: 90,
     weight: 1,
@@ -1129,7 +1145,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         label: 'Throw a send-off',
         hint: 'Costs {{$120}}',
         conditions: [{ money: { gte: 120 } }],
-        effects: [{ money: -120 }, { relationship: 'person', delta: 10 }, { stat: 'happiness', delta: 3 }, { log: 'Everyone came. {{person}} cried at the speeches, then at the cake, then at the taxi. Worth every penny.', kind: 'good' }],
+        effects: [{ money: -120 }, { relationship: 'person', delta: 10 }, { stat: 'happiness', delta: 3 }, { log: 'I invited everyone, and everyone came. {{person}} cried at the speeches, then at the cake, then at the taxi. Worth every penny.', kind: 'good' }],
       },
       {
         id: 'visit',
@@ -1165,7 +1181,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 12,
     maxAge: 80,
     weight: 0.6,
-    cooldown: 6,
+    once: true,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -1259,7 +1275,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
       {
         id: 'tea',
         label: 'Invite them in for tea',
-        effects: [{ stat: 'happiness', delta: 5 }, { karma: 1 }, { log: 'Tea became dinner, and dinner became a standing invitation.', kind: 'good' }, { newPerson: { kind: 'friend', gender: 'male', minAge: 35, maxAge: 75, relationship: 65, log: 'The man I saved, {{person}}, is now a friend.' } }],
+        effects: [{ stat: 'happiness', delta: 5 }, { karma: 1 }, { log: 'I put the kettle on. Tea became dinner, and dinner became a standing invitation.', kind: 'good' }, { newPerson: { kind: 'friend', gender: 'male', minAge: 35, maxAge: 75, relationship: 65, log: 'The man I saved, {{person}}, is now a friend.' } }],
       },
     ],
   },
@@ -1277,7 +1293,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
       {
         id: 'serve',
         label: 'Serve',
-        effects: [{ money: 300 }, { stat: 'smarts', delta: 3 }, { stat: 'happiness', delta: -2 }, { log: 'Two weeks of evidence, sandwiches and a juror who wanted to talk about his boat.' }, { queue: 'nc_jury_verdict' }],
+        effects: [{ money: 300 }, { stat: 'smarts', delta: 3 }, { stat: 'happiness', delta: -2 }, { log: 'I sat through two weeks of evidence, sandwiches and a juror who wanted to talk about his boat.' }, { queue: 'nc_jury_verdict' }],
       },
       {
         id: 'excuse',
@@ -1297,7 +1313,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
           { karma: -2 },
           {
             chance: 0.6,
-            then: [{ log: 'A second letter arrived, in capitals, with a fine of {{$500}}.', kind: 'bad' }, { money: -500 }, { stat: 'happiness', delta: -3 }],
+            then: [{ log: 'A second letter arrived for me, in capitals, with a fine of {{$500}}.', kind: 'bad' }, { money: -500 }, { stat: 'happiness', delta: -3 }],
             else: [{ log: 'Nothing happened. Somewhere, a file about me gathers dust.' }, { stat: 'happiness', delta: 1 }],
           },
         ],
@@ -1320,7 +1336,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         effects: [
           {
             random: [
-              { weight: 6, effects: [{ log: 'We convicted in an hour. Later the paper reported he had done it twice before. Fine.' }, { stat: 'happiness', delta: 1 }] },
+              { weight: 6, effects: [{ log: 'We convicted in an hour and I was home by lunch. Later the paper reported he had done it twice before. Fine.' }, { stat: 'happiness', delta: 2 }] },
               { weight: 4, effects: [{ log: 'We convicted. Months later it was overturned. I had been the one doubt in the room, and I had folded.', kind: 'bad' }, { stat: 'happiness', delta: -5 }, { karma: -2 }] },
             ],
           },
@@ -1332,10 +1348,11 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         effects: [
           { stat: 'smarts', delta: 2 },
           { karma: 3 },
+          { energy: -1 },
           {
             random: [
               { weight: 5, effects: [{ log: 'Two more days. Eleven glares. We acquitted, carefully, and I believe we got it right.', kind: 'good' }, { stat: 'happiness', delta: 4 }] },
-              { weight: 5, effects: [{ log: 'Two more days. The evidence held up under proper scrutiny and we convicted, together. The boat man thanked me.', kind: 'good' }, { stat: 'happiness', delta: 3 }] },
+              { weight: 5, effects: [{ log: 'Two more days. The evidence held up under proper scrutiny and we convicted, together. The boat man thanked me, exhausted.', kind: 'good' }, { stat: 'happiness', delta: 2 }] },
             ],
           },
         ],
@@ -1352,7 +1369,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     category: 'random',
     title: 'Storm warning',
     text: 'The forecast turned red: the biggest storm in a decade heading straight for {{city}}. The shops sold out of bread and batteries, in that order.',
-    minAge: 12,
+    minAge: 16,
     maxAge: 95,
     weight: 0.8,
     cooldown: 5,
@@ -1362,6 +1379,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         id: 'prepare',
         label: 'Board up and stock up',
         hint: 'Costs {{$100}}',
+        conditions: [{ money: { gte: 100 } }],
         effects: [
           { money: -100 },
           { stat: 'smarts', delta: 1 },
@@ -1380,7 +1398,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
             random: [
               { weight: 5, effects: [{ log: 'It was a lot of wind. I slept through it.' }, { stat: 'happiness', delta: 1 }] },
               { weight: 3, effects: [{ log: "A branch came through the window at 3am. Glass everywhere. Insurance was unimpressed by 'I ignored the warnings'.", kind: 'bad' }, { money: -400 }, { asset: 'damage', kind: 'house', amount: 20 }, { stat: 'happiness', delta: -5 }] },
-              { weight: 2, effects: [{ log: 'The roof lost a dozen tiles and the fence lost everything.', kind: 'bad' }, { asset: 'damage', kind: 'house', amount: 30 }, { money: -600 }, { stat: 'happiness', delta: -4 }] },
+              { weight: 2, effects: [{ log: 'My roof lost a dozen tiles and my fence lost everything.', kind: 'bad' }, { asset: 'damage', kind: 'house', amount: 30 }, { money: -600 }, { stat: 'happiness', delta: -4 }] },
             ],
           },
         ],
@@ -1388,13 +1406,17 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
       {
         id: 'party',
         label: 'Host a storm party',
+        hint: 'Costs {{$60}}',
+        conditions: [{ money: { gte: 60 } }],
         effects: [
           { stat: 'happiness', delta: 5 },
           { money: -60 },
           {
-            chance: 0.4,
-            then: [{ log: 'Mid-party the power went. We finished the evening by candlelight, singing. The fridge did not survive.' }, { money: -80 }],
-            else: [{ log: 'Six friends, one storm, a lot of noise on both sides of the glass. Perfect.', kind: 'good' }],
+            random: [
+              { weight: 5, effects: [{ log: 'Six friends, one storm, a lot of noise on both sides of the glass. I would not change a thing.', kind: 'good' }] },
+              { weight: 3, effects: [{ log: 'Mid-party the power went. We finished the evening by candlelight, singing. My fridge did not survive.' }, { money: -80 }] },
+              { weight: 2, effects: [{ log: 'Mid-toast, a fence panel came through my window. Nobody was hurt. The carpet was not so lucky.', kind: 'bad' }, { money: -300 }, { asset: 'damage', kind: 'house', amount: 15 }, { stat: 'happiness', delta: -3 }] },
+            ],
           },
           { chance: 0.3, then: [{ newPerson: { kind: 'friend', relationship: 50, log: 'Someone brought {{person}}, who is now my friend too.' } }] },
         ],
@@ -1412,7 +1434,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     category: 'random',
     title: 'Evacuation order',
     text: 'Sirens, then a text alert: wildfire approaching {{city}}, leave now. The sky over the hills had gone the colour of a bruise and the air tasted of smoke.',
-    minAge: 16,
+    minAge: 18,
     maxAge: 95,
     weight: 0.3,
     cooldown: 10,
