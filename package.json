@@ -53,6 +53,7 @@
     "jest": "^29.7.0",
     "jest-expo": "~57.0.6",
     "playwright": "^1.64.1",
+    "tsx": "^4.23.15",
     "typescript": "~6.0.3"
   },
   "jest": {
