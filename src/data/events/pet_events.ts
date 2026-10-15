@@ -58,7 +58,7 @@ export const PET_EVENTS: EventDef[] = [
   {
     id: 'pt_friends_dog_rehome',
     category: 'family',
-    title: 'A dog needs a home',
+    title: 'Dog needs a home',
     text: '{{person}} is moving abroad for work and cannot take {{their}} dog. {{They}} asked me, with the face of someone who has already asked everyone else.',
     minAge: 14,
     maxAge: 70,
@@ -343,7 +343,7 @@ export const PET_EVENTS: EventDef[] = [
   {
     id: 'pt_pet_sitting_gig',
     category: 'family',
-    title: 'Pet-sitting',
+    title: 'The pet-sitting job',
     text: "{{person}} is away for a fortnight and asked me to look after {{their}} dog. There is money in it, and a long list of instructions about the dog's feelings.",
     minAge: 13,
     maxAge: 70,
@@ -531,7 +531,7 @@ export const PET_EVENTS: EventDef[] = [
   {
     id: 'pt_ran_away',
     category: 'family',
-    title: 'Gone',
+    title: 'Gone missing',
     text: 'The gate was open, or the window was, and {{person}} is gone. I have walked every street in {{city}} twice, calling {{their}} name in a voice I did not recognise.',
     minAge: 5,
     maxAge: 85,
@@ -766,7 +766,7 @@ export const PET_EVENTS: EventDef[] = [
   {
     id: 'pt_allergy',
     category: 'family',
-    title: 'Sneezing',
+    title: 'The sneezing',
     text: 'I have been sneezing for a month and the doctor has an opinion: it is {{person}}. Hair, dander, the works. {{They}} sat on my lap through the whole phone call.',
     minAge: 5,
     maxAge: 80,
@@ -911,43 +911,54 @@ export const PET_EVENTS: EventDef[] = [
     ],
   },
   {
-    id: 'pt_prison_pet',
+    id: 'pt_park_regulars',
     category: 'family',
-    title: 'Someone to feed them',
-    text: 'I am inside and {{person}} is out there. Nobody planned for this. The one phone call I get is being spent on a very different problem than I expected.',
-    minAge: 18,
-    maxAge: 80,
-    weight: 2,
-    once: true,
-    conditions: [{ inPrison: true }],
+    title: 'The park regulars',
+    text: 'Walking {{person}} at the same time every morning, I keep meeting the same people: the man with three greyhounds, the woman who knows every dog by name and no human by theirs.',
+    minAge: 14,
+    maxAge: 75,
+    weight: 1,
+    cooldown: 4,
     person: { kind: ['pet'] },
     choices: [
       {
-        id: 'family',
-        label: 'Beg family to take {{them}}',
+        id: 'chat',
+        label: 'Stop and chat',
         effects: [
+          { relationship: 'person', delta: 2 },
           {
-            chance: 0.7,
-            then: [{ relationship: 'person', delta: -3 }, { stat: 'happiness', delta: 2 }, { log: 'Family took {{person}} in with much sighing. {{They}} will be fatter and spoiled when I get out.' }],
-            else: [{ log: 'Nobody could take {{person}}. A shelter did. I was not told where.', kind: 'bad' }, { removePerson: true }, { stat: 'happiness', delta: -10 }],
+            chance: 0.6,
+            then: [
+              { newPerson: { kind: 'friend', relationship: 50, log: 'The greyhound man turned out to be called {{person}}. We are, somehow, friends now.' } },
+              { stat: 'happiness', delta: 4 },
+              { log: 'Mornings have a second purpose now. {{person}} is suspicious of the greyhounds but tolerates the man.', kind: 'good' },
+            ],
+            else: [{ stat: 'happiness', delta: 1 }, { log: 'Pleasant small talk about weather and worming tablets. Nobody exchanged names. That seems to be the rule.' }],
           },
         ],
       },
       {
-        id: 'neighbour',
-        label: 'Ask the neighbour',
+        id: 'headphones',
+        label: 'Keep my headphones in',
+        effects: [{ relationship: 'person', delta: 3 }, { stat: 'happiness', delta: 1 }, { log: 'Just me, {{person}} and a podcast. The greyhound man nods. I nod. This is enough.' }],
+      },
+      {
+        id: 'picnic',
+        label: 'Organise a park picnic',
+        hint: '{{$40}}',
         effects: [
+          { money: -40 },
+          { karma: 2 },
           {
             chance: 0.5,
-            then: [{ karma: 1 }, { relationship: 'person', delta: -2 }, { log: 'The neighbour I barely spoke to said yes without hesitating. People surprise you.', kind: 'good' }],
-            else: [{ log: 'The neighbour said no. {{person}} went to the shelter and I went back to my cell.', kind: 'bad' }, { removePerson: true }, { stat: 'happiness', delta: -10 }],
+            then: [
+              { newPerson: { kind: 'friend', relationship: 55, log: 'The picnic produced one real friend, {{person}}, and about forty sausage rolls.' } },
+              { stat: 'happiness', delta: 5 },
+              { log: 'Eleven dogs, one cat on a lead, no incidents worth a lawsuit. A success by any measure.', kind: 'good' },
+            ],
+            else: [{ stat: 'happiness', delta: -2 }, { log: 'It rained. Four people came. {{person}} ate most of the sausage rolls, which was, in fairness, the plan.', kind: 'bad' }],
           },
         ],
-      },
-      {
-        id: 'shelter',
-        label: 'Surrender {{them}} to a shelter',
-        effects: [{ log: 'I signed {{person}} over by post. It was the right thing and it felt like the worst thing.', kind: 'bad' }, { removePerson: true }, { stat: 'happiness', delta: -8 }, { karma: 1 }],
       },
     ],
   },
@@ -960,7 +971,7 @@ export const PET_EVENTS: EventDef[] = [
     maxAge: 80,
     weight: 0.8,
     once: true,
-    person: { kind: ['pet'], minRelationship: 70 },
+    person: { kind: ['pet'], minRelationship: 55 },
     choices: [
       {
         id: 'home',
