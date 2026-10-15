@@ -1,0 +1,158 @@
+import { create } from 'zustand';
+
+import { ageUp as engineAgeUp, applyAction, createLife, EVENT_REGISTRY, randomSeed, resolveChoice, secondChance } from '@/engine';
+import type { GameState, NewLifeOptions, PlayerAction } from '@/engine/types';
+import { ads } from '@/services/ads';
+import { canShowRewarded, recordAgeUp, recordInterstitialShown, recordRewardedUsed, shouldShowInterstitial } from '@/services/ads/policy';
+import { readJson, remove, StorageKeys, writeJson } from '@/services/storage';
+import { migrateSave } from './migrations';
+import { useSettingsStore } from './settingsStore';
+
+export type RewardedPlacement = 'cashBoost' | 'secondChance' | 'reroll';
+
+interface GameStore {
+  hydrated: boolean;
+  game: GameState | null;
+  /** True while an interstitial is on screen. */
+  adShowing: boolean;
+  /** Free generations used on this device (premium = unlimited). */
+  hydrate: () => Promise<void>;
+  newLife: (options?: NewLifeOptions) => void;
+  continueAsHeir: (childId: string) => void;
+  ageUp: () => Promise<void>;
+  choose: (choiceId: string) => void;
+  act: (action: PlayerAction) => void;
+  /** Shows a rewarded ad (or grants directly for premium) and applies the reward. */
+  rewarded: (placement: RewardedPlacement) => Promise<'granted' | 'unavailable' | 'dismissed' | 'capped'>;
+  canUseRewarded: (placement: RewardedPlacement) => boolean;
+  abandonLife: () => void;
+  clearResult: () => void;
+}
+
+let persistTimer: ReturnType<typeof setTimeout> | null = null;
+function persist(game: GameState | null) {
+  if (persistTimer) clearTimeout(persistTimer);
+  persistTimer = setTimeout(() => {
+    if (game) void writeJson(StorageKeys.save, game);
+    else void remove(StorageKeys.save);
+  }, 150);
+}
+
+function recordDeath(game: GameState) {
+  if (game.alive || !game.death) return;
+  useSettingsStore.getState().addToGraveyard({
+    id: game.character.id,
+    name: `${game.character.firstName} ${game.character.lastName}`,
+    birthYear: game.character.birthYear,
+    deathYear: game.year,
+    age: game.character.age,
+    cause: game.death.cause,
+    ribbonId: game.death.ribbonId,
+    netWorth: game.death.netWorth,
+    countryCode: game.character.countryCode,
+    generation: game.generation,
+    obituary: game.death.obituary,
+    epitaph: game.death.epitaph,
+    diedAt: Date.now(),
+  });
+}
+
+export const useGameStore = create<GameStore>((set, get) => ({
+  hydrated: false,
+  game: null,
+  adShowing: false,
+  hydrate: async () => {
+    const raw = await readJson<unknown>(StorageKeys.save);
+    const game = migrateSave(raw);
+    if (raw && !game) void remove(StorageKeys.save);
+    set({ hydrated: true, game });
+  },
+  newLife: (options = {}) => {
+    const game = createLife(options, randomSeed(), Date.now());
+    set({ game });
+    persist(game);
+  },
+  continueAsHeir: (childId) => {
+    const prev = get().game;
+    if (!prev || prev.alive) return;
+    const game = createLife({ heir: { childId, previous: prev } }, randomSeed(), Date.now());
+    set({ game });
+    persist(game);
+  },
+  ageUp: async () => {
+    const g = get().game;
+    if (!g || !g.alive || g.pendingEvent || get().adShowing) return;
+    const settings = useSettingsStore.getState();
+    const now = Date.now();
+    let meta = settings.updateAdMeta((m) => recordAgeUp(m));
+    if (shouldShowInterstitial(meta, now, settings.premium) && ads.isReady()) {
+      set({ adShowing: true });
+      const shown = await ads.showInterstitial();
+      set({ adShowing: false });
+      if (shown) meta = settings.updateAdMeta((m) => recordInterstitialShown(m, Date.now()));
+    }
+    const current = get().game;
+    if (!current || current !== g) return;
+    const next = { ...engineAgeUp(current), updatedAt: Date.now() };
+    set({ game: next });
+    persist(next);
+    if (!next.alive) recordDeath(next);
+    if (!settings.premium) ads.preload();
+  },
+  choose: (choiceId) => {
+    const g = get().game;
+    if (!g || !g.pendingEvent) return;
+    const next = { ...resolveChoice(g, choiceId, EVENT_REGISTRY), updatedAt: Date.now() };
+    set({ game: next });
+    persist(next);
+    if (!next.alive) recordDeath(next);
+  },
+  act: (action) => {
+    const g = get().game;
+    if (!g) return;
+    const next = { ...applyAction(g, action), updatedAt: Date.now() };
+    set({ game: next });
+    persist(next);
+    if (!next.alive) recordDeath(next);
+  },
+  canUseRewarded: (placement) => {
+    const g = get().game;
+    if (!g) return false;
+    if (placement === 'secondChance' && (g.alive || g.flags.revived === true)) return false;
+    const settings = useSettingsStore.getState();
+    if (settings.premium) return true;
+    if (!ads.isSupported()) return false;
+    return canShowRewarded(settings.adMeta, placement, Date.now());
+  },
+  rewarded: async (placement) => {
+    const g = get().game;
+    if (!g) return 'unavailable';
+    const settings = useSettingsStore.getState();
+    if (!get().canUseRewarded(placement)) return 'capped';
+    if (!settings.premium) {
+      if (!ads.isRewardedLoaded()) {
+        ads.preload();
+        return 'unavailable';
+      }
+      set({ adShowing: true });
+      const result = await ads.showRewarded();
+      set({ adShowing: false });
+      if (result !== 'earned') return result === 'dismissed' ? 'dismissed' : 'unavailable';
+      settings.updateAdMeta((m) => recordRewardedUsed(m, placement, Date.now()));
+    }
+    const current = get().game ?? g;
+    const next = { ...(placement === 'secondChance' ? secondChance(current) : applyAction(current, { type: 'rewarded', placement })), updatedAt: Date.now() };
+    set({ game: next });
+    persist(next);
+    return 'granted';
+  },
+  abandonLife: () => {
+    set({ game: null });
+    persist(null);
+  },
+  clearResult: () => {
+    const g = get().game;
+    if (!g || !g.lastResult) return;
+    set({ game: { ...g, lastResult: null } });
+  },
+}));
