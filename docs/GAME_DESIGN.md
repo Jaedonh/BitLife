@@ -14,7 +14,7 @@ Working title "LifeLoop"; Teen / 13+ content rating target.
 
 ## 2. Core loop
 
-**Between age-ups** the player can act freely (study, work actions, interact with people, buy things, activities, crimes) limited by per-year caps and a small **energy** budget (1 at ages 0-5, 2 at 6-12, 3 from 13) that gates social/physical actions so a year is a small budgeting puzzle (Another Life's idea, trimmed).
+**Between age-ups** the player can act freely (study, work actions, interact with people, buy things, activities, crimes) limited by per-year caps and a small **energy** budget (1 at ages 0-5, 2 at 6-12, 4 from 13, 3 from 60) that gates social/physical actions so a year is a small budgeting puzzle (Another Life's idea, trimmed). Money and admin actions are free and Age+ is never blocked.
 
 **Age up** (`src/engine/ageUp.ts`) runs these phases in this order:
 
@@ -33,6 +33,7 @@ Working title "LifeLoop"; Teen / 13+ content rating target.
 13. Mortality roll and the critical-health countdown (§5).
 14. If the year was otherwise quiet, one flavour line (so no year is empty).
 15. Schedule 0-3 random events (§15) and open the first one as a card.
+16. The app shows a one-line **year summary** (stat deltas, cash change) once the year's cards are closed.
 
 A card must be answered before anything else happens. Resolving it may queue follow-ups.
 
@@ -178,6 +179,16 @@ A one-line tutorial tip on the first life ("Tap the green + …"). Settings: hap
 - **Verdant:** random birth era and country rule tables; stat decay with hidden potential caps; relationship decay with NPC memory; side hustles; simple investing with market noise; the auto-generated obituary; a visible "no paywall" promise.
 - **Another Life:** a small per-year **energy** budget so a year is a budgeting puzzle; explicit, priced stat training (gym, library, tutoring-style activities); the "promotion on request" career ladder.
 - **Mind Vacation's Life Simulator:** the low-health **death countdown warning**; side hustles with viral breakouts; a transparent finances panel with last year's income/expenses/taxes; rewarded ad as an income boost rather than a gate.
+
+## 20a. Design-panel decisions
+
+Three independent designs (parity-first, retention-first, systems-first) were scored by two judges; both picked the systems-first design, which is the one built on this engine, and asked for a few grafts. See `DESIGN_PANEL_SYNTHESIS.md` for the full proposal. Adopted now:
+
+- **Year summary toast** after each age-up: stat deltas and cash change, shown after the year's event cards close (never a mandatory modal).
+- **Yearly energy** raised to 1 / 2 / 4 / 3 pips (ages 0-5 / 6-12 / 13-59 / 60+) so a year allows 3-4 social or physical actions; money and admin actions stay free and Age+ is never blocked.
+- One premium SKU at $4.99 with the existing ids; one free generation hand-off per family line.
+
+Deferred to the roadmap (below): a shared seeded market cycle driving index fund, house values and rental vacancy; birth-era gates and era events; near-miss ribbon hints on the tombstone; 40 achievements; a six-key skills record; a trial event with plead/lawyer choices; the "ad in N years" counter.
 
 ## 21. Post-MVP roadmap
 
