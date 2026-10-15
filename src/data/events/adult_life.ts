@@ -653,7 +653,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
   {
     id: 'ad_fortieth',
     category: 'random',
-    title: 'Forty',
+    title: 'Turning forty',
     text: "I turned forty. People keep saying it is 'the new thirty', which is not how numbers work. There is a cake, a card about being over the hill, and a feeling.",
     minAge: 40,
     maxAge: 40,
@@ -792,7 +792,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
   {
     id: 'ad_long_lost_sibling',
     category: 'random',
-    title: 'A stranger with my nose',
+    title: 'Stranger with my nose',
     text: 'A DNA test, a genealogy site and a very polite email: someone claims to be my half-sibling. They have my nose in their photo. They want to meet.',
     minAge: 30,
     maxAge: 59,
@@ -969,7 +969,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
   {
     id: 'ad_godparent',
     category: 'random',
-    title: 'Godparent?',
+    title: 'Godparent request',
     text: '{{person}} asked me to be a godparent. There is a ceremony, a small speech, and an implied promise to show up for birthdays forever.',
     minAge: 30,
     maxAge: 59,
