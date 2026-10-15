@@ -1228,7 +1228,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
                 effects: [
                   {
                     chance: 0.15,
-                    then: [{ death: 'a car crash in a winter storm' }],
+                    then: [{ log: 'I never made it home. The roads were worse than anyone had said.', kind: 'bad' }, { death: 'a car crash in a winter storm' }],
                     else: [{ injury: 15 }, { money: -800 }, { asset: 'damage', kind: 'car', amount: 60 }, { stat: 'happiness', delta: -8 }, { log: 'The crash was bad. I woke up in a hospital far from anyone, with the holiday happening somewhere without me.', kind: 'bad' }],
                   },
                 ],
