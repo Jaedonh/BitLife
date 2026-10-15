@@ -17,9 +17,15 @@ export function addStats(state: GameState, deltas: Partial<Stats>): GameState {
   return { ...state, character: { ...state.character, stats: next } };
 }
 
+/** Adds (or removes) cash. A shortfall never makes cash negative: it becomes debt. */
 export function addMoney(state: GameState, amount: number): GameState {
-  const cash = Math.round(state.finances.cash + amount);
-  return { ...state, finances: { ...state.finances, cash } };
+  let cash = Math.round(state.finances.cash + amount);
+  let debt = state.finances.debt;
+  if (cash < 0) {
+    debt += -cash;
+    cash = 0;
+  }
+  return { ...state, finances: { ...state.finances, cash, debt } };
 }
 
 export function addKarma(state: GameState, delta: number): GameState {

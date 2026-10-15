@@ -39,6 +39,17 @@ export function deathProbability(state: GameState): number {
   return Math.min(0.95, p);
 }
 
+function criticalCause(state: GameState): string {
+  const worst = [...state.health.illnesses].sort((a, b) => b.severity - a.severity)[0];
+  if (worst) {
+    const def = ILLNESS_BY_ID[worst.defId];
+    return `complications from ${def ? def.name : worst.name}`;
+  }
+  const addicted = Object.entries(state.health.addictions).find(([, v]) => (v ?? 0) >= 40);
+  if (addicted) return addicted[0] === 'gambling' ? 'a stress-induced heart attack' : `${addicted[0]} abuse`;
+  return state.character.age >= 60 ? 'heart failure' : 'a neglected illness';
+}
+
 const AGE_CAUSES_YOUNG = ['a car accident', 'a freak accident', 'a sudden illness', 'an undiagnosed heart condition'];
 const AGE_CAUSES_MID = ['a heart attack', 'a car accident', 'cancer', 'a stroke', 'a sudden illness'];
 const AGE_CAUSES_OLD = ['a heart attack', 'a stroke', 'natural causes', 'pneumonia', 'cancer', 'heart failure', 'old age'];
@@ -50,7 +61,7 @@ export function pickDeathCause(state: GameState, rng: Rng): string {
     const def = ILLNESS_BY_ID[ill.defId];
     return def ? def.name.replace(/^(a|an|the) /, '') : ill.name;
   }
-  if (state.health.criticalYears === 0 && state.character.stats.health <= 10) return 'organ failure';
+  if (state.health.criticalYears === 0 && state.character.stats.health <= 10) return criticalCause(state);
   const age = state.character.age;
   return rng.pick(age < 30 ? AGE_CAUSES_YOUNG : age < 60 ? AGE_CAUSES_MID : AGE_CAUSES_OLD);
 }
@@ -66,7 +77,7 @@ export function rollMortality(state: GameState, rng: Rng): GameState {
     } else {
       const left = s.health.criticalYears - 1;
       s = { ...s, health: { ...s.health, criticalYears: left } };
-      if (left <= 0) return markDeath(s, 'organ failure');
+      if (left <= 0) return markDeath(s, criticalCause(s));
       s = log(s, `My body is failing. I have maybe ${left} year${left === 1 ? '' : 's'} left unless something changes.`, 'bad');
     }
   } else if (s.health.criticalYears > 0) {

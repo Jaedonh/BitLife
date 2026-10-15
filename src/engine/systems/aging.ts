@@ -11,18 +11,22 @@ export function driftStats(state: GameState, rng: Rng): GameState {
   const married = Object.values(state.people).some((p) => p.kind === 'spouse' && p.alive && p.relationship >= 50);
   const unemployedAdult = age >= 22 && age < 65 && !state.career.job && !state.education.enrolled && !state.career.retired && !state.crime.inPrison;
 
-  let happiness = rng.int(-3, 2);
+  // Mean reversion toward a set-point keeps passive lives from spiralling.
+  let happiness = Math.round((55 - c.stats.happiness) * 0.15) + rng.int(-3, 3);
   if (married) happiness += 1;
   if (unemployedAdult) happiness -= 2;
   if (state.crime.inPrison) happiness -= 5;
   if (state.finances.debt > 0) happiness -= 1;
   if (traits.includes('anxious')) happiness -= 1;
-  if (c.stats.happiness < 30) happiness += 1; // regression to the mean
 
-  let health = age < 30 ? rng.int(-2, 2) : age < 50 ? rng.int(-3, 1) : age < 70 ? rng.int(-4, 0) : rng.int(-6, -1);
+  let health = age < 30 ? rng.int(-1, 2) : age < 50 ? rng.int(-2, 1) : age < 70 ? rng.int(-3, 1) : age < 85 ? rng.int(-4, 0) : rng.int(-5, -1);
   if (traits.includes('iron_constitution')) health += 1;
   if (traits.includes('athletic')) health += 1;
-  for (const ill of state.health.illnesses) health -= ill.treated ? Math.ceil(ill.severity / 2) : ill.severity * 2;
+  // The body heals a little when run down and nothing serious is wrong.
+  if (c.stats.health < 40 && !state.health.illnesses.some((i) => i.severity >= 4)) health += age < 60 ? 2 : 1;
+  let illnessDrain = 0;
+  for (const ill of state.health.illnesses) illnessDrain += ill.chronic ? (ill.treated ? 0 : Math.max(1, ill.severity - 1)) : ill.treated ? 1 : Math.ceil(ill.severity * 1.5);
+  health -= Math.min(6, illnessDrain);
   for (const level of Object.values(state.health.addictions)) if ((level ?? 0) >= 40) health -= 2;
 
   let looks = age < 20 ? rng.int(-1, 3) : age < 35 ? rng.int(-2, 1) : age < 55 ? rng.int(-3, 0) : rng.int(-4, -1);

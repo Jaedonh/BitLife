@@ -28,6 +28,17 @@ export function yearlyHealth(state: GameState, rng: Rng): GameState {
     } else remaining.push({ ...ill, yearsLeft: left });
   }
   s = { ...s, health: { ...s.health, illnesses: remaining } };
+  // Children get taken to the doctor by their parents.
+  if (c.age < 18 && s.health.illnesses.length && Object.values(s.people).some((p) => (p.kind === 'mother' || p.kind === 'father' || p.kind === 'stepmother' || p.kind === 'stepfather') && p.alive)) {
+    const kept = [];
+    for (const ill of s.health.illnesses) {
+      const def = ILLNESS_BY_ID[ill.defId];
+      if (rng.chance(def?.cureChance ?? 0.7)) s = log(s, `My parents took me to the doctor and I got over ${ill.name}.`, 'good');
+      else kept.push({ ...ill, treated: true });
+    }
+    s = { ...s, health: { ...s.health, illnesses: kept } };
+    s = addStats(s, { health: 3 });
+  }
   // New illness
   let p = band === 0 ? 0.1 : band === 1 ? 0.13 : 0.28;
   p *= 1.3 - c.stats.health / 150;
