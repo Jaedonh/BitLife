@@ -28,7 +28,7 @@ cheap to extend with content.
 │  countries · names · events/* · jobs · majors · activities · assets · illnesses · ribbons  │
 └────────────────────────────────────────────────────────────────────────────────────────────┘
 
-services (src/services): ads (AdMob) · purchases (RevenueCat) · storage · analytics-ready hooks
+services (src/services): ads (AdMob) · purchases (RevenueCat) · storage · analytics seam (no SDK shipped)
 ```
 
 ## Layering rules

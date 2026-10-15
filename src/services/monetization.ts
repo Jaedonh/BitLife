@@ -1,4 +1,5 @@
 import { ads } from './ads';
+import { track } from './analytics';
 import { purchases } from './purchases';
 import { useSettingsStore } from '@/store/settingsStore';
 
@@ -34,12 +35,18 @@ export async function bootMonetization(): Promise<void> {
 
 export async function buyPremium(): Promise<'purchased' | 'cancelled' | 'error' | 'unavailable'> {
   const result = await purchases.purchasePremium();
-  if (result === 'purchased') useSettingsStore.getState().setPremium(true);
+  if (result === 'purchased') {
+    useSettingsStore.getState().setPremium(true);
+    track({ name: 'premium_purchased' });
+  }
   return result;
 }
 
 export async function restorePremium(): Promise<boolean> {
   const ok = await purchases.restore();
-  if (ok) useSettingsStore.getState().setPremium(true);
+  if (ok) {
+    useSettingsStore.getState().setPremium(true);
+    track({ name: 'premium_restored' });
+  }
   return ok;
 }

@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { ageUp as engineAgeUp, applyAction, createLife, EVENT_REGISTRY, randomSeed, resolveChoice, secondChance } from '@/engine';
 import type { GameState, NewLifeOptions, PlayerAction } from '@/engine/types';
 import { ads } from '@/services/ads';
+import { track } from '@/services/analytics';
 import { canShowRewarded, recordAgeUp, recordInterstitialShown, recordRewardedUsed, shouldShowInterstitial } from '@/services/ads/policy';
 import { readJson, remove, StorageKeys, writeJson } from '@/services/storage';
 import { migrateSave } from './migrations';
@@ -40,6 +41,7 @@ function persist(game: GameState | null) {
 
 function recordDeath(game: GameState) {
   if (game.alive || !game.death) return;
+  track({ name: 'life_ended', age: game.character.age, ribbon: game.death.ribbonId, cause: game.death.cause });
   useSettingsStore.getState().addToGraveyard({
     id: game.character.id,
     name: `${game.character.firstName} ${game.character.lastName}`,
@@ -71,6 +73,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const game = createLife(options, randomSeed(), Date.now());
     set({ game });
     persist(game);
+    track({ name: 'life_started', generation: game.generation, custom: !!(options.firstName || options.countryCode || options.customStats) });
   },
   continueAsHeir: (childId) => {
     const prev = get().game;
@@ -78,6 +81,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const game = createLife({ heir: { childId, previous: prev } }, randomSeed(), Date.now());
     set({ game });
     persist(game);
+    track({ name: 'heir_continued', generation: game.generation });
   },
   ageUp: async () => {
     const g = get().game;
@@ -89,13 +93,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
       set({ adShowing: true });
       const shown = await ads.showInterstitial();
       set({ adShowing: false });
-      if (shown) meta = settings.updateAdMeta((m) => recordInterstitialShown(m, Date.now()));
+      if (shown) {
+        meta = settings.updateAdMeta((m) => recordInterstitialShown(m, Date.now()));
+        track({ name: 'interstitial_shown' });
+      }
     }
     const current = get().game;
     if (!current || current !== g) return;
     const next = { ...engineAgeUp(current), updatedAt: Date.now() };
     set({ game: next });
     persist(next);
+    track({ name: 'age_up', age: next.character.age });
     if (!next.alive) recordDeath(next);
     if (!settings.premium) ads.preload();
   },
@@ -105,6 +113,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const next = { ...resolveChoice(g, choiceId, EVENT_REGISTRY), updatedAt: Date.now() };
     set({ game: next });
     persist(next);
+    track({ name: 'event_choice', eventId: g.pendingEvent.eventId, choiceId });
     if (!next.alive) recordDeath(next);
   },
   act: (action) => {
@@ -137,6 +146,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       set({ adShowing: true });
       const result = await ads.showRewarded();
       set({ adShowing: false });
+      track({ name: 'rewarded_ad', placement, result });
       if (result !== 'earned') return result === 'dismissed' ? 'dismissed' : 'unavailable';
       settings.updateAdMeta((m) => recordRewardedUsed(m, placement, Date.now()));
     }

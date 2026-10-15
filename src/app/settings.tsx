@@ -59,6 +59,7 @@ export default function SettingsScreen() {
         <Section title="Premium">
           <Card style={styles.card}>
             <T kind="body">{premium ? '✨ Premium is active on this device.' : 'Remove ads and unlock premium perks with a one-time purchase.'}</T>
+            <T kind="small">Free forever: every event, career, country, relationship, asset, activity, crime and ribbon, one generation hand-off per family line, and all future core content. Premium only adds no ads, custom starting stats, unlimited generations and instant second chances.</T>
             <View style={styles.row}>
               {!premium ? <Button title="Go Premium" onPress={() => router.push('/premium')} style={styles.flex} testID="settings-premium" /> : null}
               <Button title="Restore purchases" variant="secondary" loading={restoring} onPress={() => void restore()} style={styles.flex} testID="restore-purchases" />
