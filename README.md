@@ -6,6 +6,12 @@ LifeLoop is a BitLife-style life simulator built with **Expo (React Native) + Ty
 
 The game engine is a **pure, deterministic TypeScript simulation** with no React or native dependencies, so it is unit-tested, replayable from a seed, and extended by adding data, not code.
 
+| Life screen | Work & School | A person | Tombstone |
+| --- | --- | --- | --- |
+| ![Life](docs/screenshots/life.png) | ![Work](docs/screenshots/work.png) | ![Person](docs/screenshots/person.png) | ![Death](docs/screenshots/death.png) |
+
+_Screenshots are captured automatically from the web export by `npm run e2e`._
+
 ## Quick start
 
 ```bash
