@@ -1,4 +1,6 @@
-# LifeLoop — a text life simulator for iOS and Android
+# LifeLoop (working title) — a text life simulator for iOS and Android
+
+> **Name before you ship:** "LifeLoop" is a placeholder and likely collides with an existing software brand. `docs/RELEASE_CHECKLIST.md` lists every place to change it.
 
 LifeLoop is a BitLife-style life simulator built with **Expo (React Native) + TypeScript**. You are born into a random family and country, tap once per year, and face hand-written events with real consequences until you die, earn a ribbon, read your auto-generated obituary, and continue as your child.
 

@@ -4,12 +4,12 @@ Work top to bottom. Items marked **(long pole)** take days or weeks of calendar 
 
 ## 0. Accounts and identities
 
-- [ ] **(long pole)** Google Play developer account ($25 one-time). Personal accounts created after Nov 2023 must run a **closed test with ≥ 12 testers opted in for 14 continuous days** before production access is granted. Recruit testers now.
+- [ ] **(long pole)** Google Play developer account ($25 one-time). Personal accounts created after Nov 2023 must run a **closed test with ≥ 12 testers opted in for 14 continuous days** before production access is granted (re-verify the current numbers in Play Console help, answer 14151465, the day you create the account). Recruit testers now.
 - [ ] **(long pole)** Apple Developer Program ($99/yr). Identity verification can take days.
-- [ ] Expo account; `npm i -g eas-cli && eas login`; `eas init` (writes the real `projectId`; set `EAS_PROJECT_ID` or replace the placeholder in `app.config.ts`).
+- [ ] Expo account; `npm i -g eas-cli && eas login`; `eas init` (writes the real `projectId`; set `EAS_PROJECT_ID` or replace the placeholder in `app.config.ts`). The free plan's monthly build quota is small (assume ~15 iOS builds): iterate with development builds and `eas update`, keep production builds to 1-2 per platform.
 - [ ] AdMob account → create the app on both platforms → copy the **App IDs** (`ca-app-pub-…~…`) and create three ad units per platform: anchored banner, interstitial, rewarded. Link the AdMob app to the store listings once they exist (new accounts often serve no fill until then).
 - [ ] RevenueCat project → add iOS and Android apps → create entitlement `premium`, product `lifeloop_premium` (non-consumable, one-time) on both stores, an offering `default` with a `lifetime` package → copy the public SDK keys.
-- [ ] Choose the final app name and check it is free on both stores and not a registered trademark. The working title is "LifeLoop"; change it in `app.config.ts` (`name`, `slug`, bundle id / package) and `docs/STORE_LISTING.md`.
+- [ ] **(blocking)** Choose the final app name. "LifeLoop" is only a working title and is likely already a US software brand (a senior-living platform of that name exists), so do not create store records under it. Pick 2-3 candidates, search USPTO TESS/TSDR (classes 9 and 41), EUIPO eSearch, and exact-name searches on both stores, then change `name`/`slug`/bundle id/package in `app.config.ts`, the title in `src/app/index.tsx`, `src/app/life.tsx`, `src/app/premium.tsx`, `src/app/settings.tsx`, `scripts/generate-icons.sh` (re-run it), and `docs/STORE_LISTING.md`.
 
 ## 1. Secrets and configuration
 
@@ -77,7 +77,7 @@ eas build --profile production --platform ios
 
 ### App Store Connect
 
-- [ ] **App Privacy** (nutrition label): "Yes, we collect data": Device ID (linked, **tracking**), Advertising Data (**tracking**), Product Interaction, Purchase History (linked), User ID (linked), Crash Data, Performance Data. The iOS privacy manifest in `app.config.ts` mirrors this. No location, contacts, or health data.
+- [ ] **App Privacy** (nutrition label): "Yes, we collect data": Device ID (linked, **tracking**), Advertising Data (**tracking**), Product Interaction, Purchase History (App Functionality; RevenueCat uses an anonymous id, so not linked and not tracking), User ID (linked), Crash Data, Performance Data. Generate Xcode's privacy report from the production archive and reconcile; the iOS privacy manifest in `app.config.ts` mirrors this. No location, contacts, or health data. The 50 SKAdNetwork ids in `app.config.ts` match Google's current list; re-diff before each release.
 - [ ] Privacy policy URL; support URL; copyright line; `ITSAppUsesNonExemptEncryption` is already `false`.
 - [ ] Create the in-app purchase `lifeloop_premium` (non-consumable), attach it to the version, with a localized display name, description and a review screenshot of the Premium screen.
 - [ ] Review notes: "Free game with ads (Google AdMob). One non-consumable IAP removes ads and unlocks perks. No account. Restore purchases: Settings → Restore purchases."
