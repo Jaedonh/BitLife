@@ -93,22 +93,33 @@ await run(async ({ page, shot }) => {
   await shot('settings');
   await back(page);
 
-  // Play to adulthood, grab a job if possible, then run to death.
-  for (let i = 0; i < 6; i++) await ageOnce(page);
-  await page.locator(tid('tab-occupation')).click();
-  await page.waitForTimeout(300);
-  const applyButtons = page.locator('[data-testid^="apply-"]');
-  const n = await applyButtons.count();
-  for (let i = 0; i < n; i++) {
-    const b = applyButtons.nth(i);
-    if (await b.isEnabled()) {
-      await b.click();
-      break;
+  // Play to adulthood and keep applying for jobs until hired (interviews can fail).
+  for (let i = 0; i < 4; i++) await ageOnce(page);
+  let hired = false;
+  for (let attempt = 0; attempt < 8 && !hired; attempt++) {
+    await ageOnce(page);
+    if (await visible(page, 'tombstone')) break;
+    await page.locator(tid('tab-occupation')).click();
+    await page.waitForTimeout(300);
+    if ((await page.locator(tid('quit-job')).count()) > 0 || (await page.locator(tid('work-harder')).count()) > 0) {
+      hired = true;
+    } else {
+      const applyButtons = page.locator('[data-testid^="apply-"]');
+      const n = await applyButtons.count();
+      for (let i = 0; i < n; i++) {
+        const b = applyButtons.nth(i);
+        if (await b.isEnabled()) {
+          await b.click();
+          await page.waitForTimeout(150);
+          break;
+        }
+      }
+      hired = (await page.locator(tid('work-harder')).count()) > 0;
     }
+    if (attempt === 0 || hired) await shot(hired ? 'occupation-hired' : 'occupation-adult');
+    await back(page);
   }
-  await page.waitForTimeout(200);
-  await shot('occupation-adult');
-  await back(page);
+  console.log(hired ? 'hired' : 'not hired within 8 years (rejections or no eligible listing)');
 
   let died = false;
   for (let i = 0; i < 130; i++) {
