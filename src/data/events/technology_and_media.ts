@@ -6,6 +6,9 @@ import type { EventDef } from '@/engine/events/schema';
  * breaches, catfish, streamer "emergencies", reply-all disasters, deepfakes,
  * lost phones, and the people on the other side of the screen. No brand names.
  * Follow-ups (followUpOnly) are queued by the events that set them up.
+ *
+ * Pronoun placeholders render as he/she, so lines that use {{they}} / {{They}}
+ * stick to past-tense or modal verbs ("{{They}} made", "{{they}} refused").
  */
 export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ going viral
@@ -25,6 +28,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         label: 'Lean into it',
         effects: [
           { fame: 8 },
+          { energy: -1 },
           {
             chance: 0.6,
             then: [{ log: 'I posted a follow-up bow. Then a bow tutorial. For one glorious month I was the Bow of {{city}}.', kind: 'good' }, { stat: 'happiness', delta: 6 }, { fame: 4 }],
@@ -39,7 +43,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
       },
       {
         id: 'takedown',
-        label: 'Ask for it taken down',
+        label: 'Ask for a takedown',
         effects: [
           {
             chance: 0.5,
@@ -59,7 +63,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 1,
     cooldown: 5,
-    conditions: [{ fame: { gte: 15 } }],
+    conditions: [{ fame: { gte: 15 } }, { inPrison: false }],
     choices: [
       {
         id: 'statement',
@@ -76,6 +80,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         id: 'lawyer',
         label: 'Hire a lawyer',
         hint: '{{$8000}}',
+        conditions: [{ money: { gte: 8000 } }],
         effects: [
           { money: -8000 },
           {
@@ -107,7 +112,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 60,
     weight: 1,
     cooldown: 5,
-    conditions: [{ any: [{ fame: { gte: 5 } }, { stat: 'looks', gte: 65 }] }],
+    conditions: [{ any: [{ fame: { gte: 5 } }, { stat: 'looks', gte: 65 }] }, { inPrison: false }],
     choices: [
       {
         id: 'honest',
@@ -151,6 +156,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 35,
     weight: 2,
     cooldown: 3,
+    conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend'] },
     choices: [
       {
@@ -194,22 +200,30 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 50,
     weight: 1.2,
     cooldown: 5,
+    conditions: [{ inPrison: false }],
     person: { kind: ['sibling'] },
     choices: [
       {
         id: 'embrace',
         label: 'Embrace the soup song',
-        effects: [{ stat: 'happiness', delta: 4 }, { relationship: 'person', delta: 3 }, { log: 'I reposted it with the lyrics as captions. The soup song now has a fanbase of eleven people.', kind: 'good' }],
+        effects: [
+          { relationship: 'person', delta: 3 },
+          {
+            chance: 0.7,
+            then: [{ log: 'I reposted it with the lyrics as captions. The soup song now has a fanbase of eleven people.', kind: 'good' }, { stat: 'happiness', delta: 5 }, { fame: 1 }],
+            else: [{ log: 'I reposted it. By Monday someone was singing the soup song at me across a corridor. Every morning.', kind: 'bad' }, { stat: 'happiness', delta: -3 }],
+          },
+        ],
       },
       {
         id: 'remove',
-        label: 'Demand it comes down',
+        label: 'Demand it come down',
         effects: [
-          { relationship: 'person', delta: -4 },
+          { relationship: 'person', delta: -3 },
           {
             chance: 0.6,
-            then: [{ log: '{{person}} took it down, grumbling that art should be free.' }, { stat: 'happiness', delta: 1 }],
-            else: [{ log: '{{person}} refused on principle. The principle is that {{they}} find it funny.', kind: 'bad' }, { stat: 'happiness', delta: -4 }],
+            then: [{ log: '{{person}} took it down, grumbling that art should be free.' }, { stat: 'happiness', delta: 3 }],
+            else: [{ log: '{{person}} refused on principle. The principle is comedy.', kind: 'bad' }, { stat: 'happiness', delta: -4 }, { relationship: 'person', delta: -2 }],
           },
         ],
       },
@@ -229,6 +243,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1.2,
     cooldown: 5,
+    conditions: [{ inPrison: false }],
     person: { kind: ['ex'] },
     choices: [
       {
@@ -243,7 +258,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
       },
       {
         id: 'scroll',
-        label: 'Scroll their whole profile',
+        label: 'Scroll {{their}} whole profile',
         effects: [{ stat: 'happiness', delta: -6 }, { stat: 'health', delta: -1 }, { log: "I went four years deep into {{person}}'s photos. I learned nothing new and slept at four.", kind: 'bad' }],
       },
     ],
@@ -257,12 +272,13 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 80,
     weight: 1.5,
     cooldown: 3,
+    conditions: [{ inPrison: false }],
     person: { kind: ['lover', 'spouse'] },
     choices: [
       {
         id: 'basket',
         label: 'Propose a phone basket',
-        effects: [{ love: 6 }, { relationship: 'person', delta: 4 }, { stat: 'happiness', delta: 2 }, { log: 'We put our phones in a basket at dinner now. We talk. Sometimes about the raccoon.', kind: 'good' }],
+        effects: [{ love: 6 }, { relationship: 'person', delta: 4 }, { stat: 'happiness', delta: -1 }, { log: 'We put our phones in a basket at dinner now. We talk. I miss the raccoon a little, but only a little.', kind: 'good' }],
       },
       {
         id: 'raccoon',
@@ -270,14 +286,14 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.4,
-            then: [{ log: '{{person}} looked at the raccoon. {{They}} agreed it was a good raccoon. Dinner continued.' }, { stat: 'happiness', delta: 2 }, { love: 1 }],
+            then: [{ log: '{{person}} looked at the raccoon. {{They}} agreed it was a good raccoon. Dinner continued.', kind: 'good' }, { stat: 'happiness', delta: 4 }, { love: 2 }],
             else: [{ log: '{{person}} did not want to see the raccoon. Dinner ended early and coldly.', kind: 'bad' }, { love: -6 }, { relationship: 'person', delta: -4 }, { stat: 'happiness', delta: -3 }],
           },
         ],
       },
       {
         id: 'dismiss',
-        label: "Say {{they}}'re overreacting",
+        label: 'Call it an overreaction',
         effects: [{ love: -8 }, { relationship: 'person', delta: -6 }, { stat: 'happiness', delta: -2 }, { karma: -2 }, { log: 'That went badly. The raccoon thread, I now accept, was not worth it.', kind: 'bad' }],
       },
     ],
@@ -286,12 +302,12 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     id: 'tm_child_social',
     category: 'random',
     title: 'The account request',
-    text: "{{person}} has asked for a social media account because 'literally everyone' has one. {{They}} have prepared a slideshow. Slide four is titled 'Trust'.",
+    text: "{{person}} has asked for a social media account because 'literally everyone' has one. {{They}} made a slideshow. Slide four is titled 'Trust'.",
     minAge: 24,
     maxAge: 65,
     weight: 1.5,
     cooldown: 4,
-    conditions: [{ hasChildren: true }],
+    conditions: [{ hasChildren: true }, { inPrison: false }],
     person: { kind: ['child'], minAge: 8, maxAge: 15 },
     choices: [
       {
@@ -316,12 +332,12 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         id: 'no',
         label: 'Not yet',
         effects: [
-          { relationship: 'person', delta: -7 },
-          { stat: 'happiness', delta: -1 },
+          { relationship: 'person', delta: -6 },
+          { karma: 1 },
           {
             chance: 0.5,
-            then: [{ log: '{{person}} sulked for a week and then made an account anyway under a name I did not know.', kind: 'bad' }],
-            else: [{ log: '{{person}} grumbled and went back to the dog. The slideshow was saved, for next year.' }],
+            then: [{ log: '{{person}} sulked for a week and then made an account anyway under a name I did not know.', kind: 'bad' }, { stat: 'happiness', delta: -3 }],
+            else: [{ log: '{{person}} grumbled and went back to the dog. The slideshow was saved, for next year. The house stayed quiet.' }, { stat: 'happiness', delta: 2 }],
           },
         ],
       },
@@ -336,12 +352,13 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 65,
     weight: 1.5,
     cooldown: 3,
+    conditions: [{ inPrison: false }],
     person: { kind: ['mother', 'father', 'stepmother', 'stepfather'], minAge: 55 },
     choices: [
       {
         id: 'visit',
         label: 'Go round and fix it all',
-        effects: [{ energy: -1 }, { karma: 3 }, { relationship: 'person', delta: 8 }, { stat: 'happiness', delta: 2 }, { log: 'Two hours, four fixes, one cup of tea. {{person}} called me a genius. The phone had been zoomed in.', kind: 'good' }],
+        effects: [{ energy: -2 }, { karma: 3 }, { relationship: 'person', delta: 8 }, { stat: 'happiness', delta: 2 }, { log: 'Two hours, four fixes, one cup of tea. {{person}} called me a genius. The phone had been zoomed in.', kind: 'good' }],
       },
       {
         id: 'remote',
@@ -349,7 +366,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.5,
-            then: [{ log: "Forty minutes of 'the blue one, no, the OTHER blue one' and it was fixed." }, { relationship: 'person', delta: 3 }, { stat: 'happiness', delta: -1 }],
+            then: [{ log: "Forty minutes of 'the blue one, no, the OTHER blue one' and it was fixed. {{person}} sounded proud of us both.", kind: 'good' }, { relationship: 'person', delta: 4 }, { stat: 'happiness', delta: 1 }, { karma: 1 }],
             else: [{ log: '{{person}} pressed something and now the printer speaks another language. We are both tired.', kind: 'bad' }, { relationship: 'person', delta: -2 }, { stat: 'happiness', delta: -3 }],
           },
         ],
@@ -357,7 +374,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
       {
         id: 'link',
         label: 'Send a tutorial link',
-        effects: [{ relationship: 'person', delta: -5 }, { stat: 'happiness', delta: 1 }, { log: "I sent a link. {{person}} replied 'thanks' three days later, and then 'how do I open links'." }],
+        effects: [{ relationship: 'person', delta: -5 }, { stat: 'happiness', delta: 2 }, { log: "I sent a link. {{person}} replied 'thanks' three days later, and then 'how do I open links'." }],
       },
     ],
   },
@@ -365,12 +382,12 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     id: 'tm_screen_time_intervention',
     category: 'random',
     title: 'Phone confiscated',
-    text: '{{person}} saw my screen time report and went pale. Nine hours a day, mostly videos of people organising fridges. {{They}} want the phone until my grades improve.',
+    text: '{{person}} saw my screen time report and went pale. Nine hours a day, mostly videos of people organising fridges. {{They}} held out a hand and said the phone goes in a drawer until my grades improve.',
     minAge: 10,
     maxAge: 17,
     weight: 2,
     cooldown: 3,
-    conditions: [{ enrolled: true }],
+    conditions: [{ enrolled: true }, { inPrison: false }],
     person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
@@ -412,6 +429,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 16,
     weight: 2,
     cooldown: 3,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'forward',
@@ -445,10 +463,11 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     category: 'random',
     title: 'Suspicious text',
     text: 'A text says a parcel is waiting for me and I must pay a small redelivery fee at a link made of random letters. I have not ordered anything. The parcel sounds lovely, though.',
-    minAge: 14,
+    minAge: 16,
     maxAge: 100,
     weight: 2,
     cooldown: 4,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'pay',
@@ -491,6 +510,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 100,
     weight: 1.5,
     cooldown: 5,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'passwords',
@@ -555,12 +575,13 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 60,
     weight: 1.2,
     cooldown: 4,
-    conditions: [{ hasLover: false }],
+    conditions: [{ hasLover: false }, { inPrison: false }],
     choices: [
       {
         id: 'send',
         label: 'Send the money',
         hint: '{{$600}}',
+        conditions: [{ money: { gte: 600 } }],
         effects: [
           { money: -600 },
           {
@@ -604,11 +625,13 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 45,
     weight: 1,
     cooldown: 5,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'send',
         label: 'Send {{$40}}',
         hint: '{{$40}}',
+        conditions: [{ money: { gte: 40 } }],
         effects: [
           { money: -40 },
           {
@@ -646,11 +669,13 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 80,
     weight: 1.2,
     cooldown: 5,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'service',
         label: 'Pay a recovery service',
         hint: '{{$120}}',
+        conditions: [{ money: { gte: 120 } }],
         effects: [
           { money: -120 },
           {
@@ -689,6 +714,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 1.5,
     cooldown: 6,
+    conditions: [{ inPrison: false }],
     choices: [
       { id: 'cancel', label: 'Cancel it', effects: [{ stat: 'happiness', delta: 2 }, { stat: 'smarts', delta: 1 }, { log: 'I cancelled it. The app sent a sad notification. I did not breathe for it.' }] },
       {
@@ -706,6 +732,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         id: 'use',
         label: 'Actually use it this time',
         hint: '{{$120}} a year',
+        conditions: [{ money: { gte: 120 } }],
         effects: [{ money: -120 }, { stat: 'health', delta: 3 }, { stat: 'happiness', delta: 1 }, { log: 'I kept it and actually meditated most mornings this year. Cheaper than the alternative, which was more apps.' }],
       },
     ],
@@ -727,7 +754,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         id: 'keep',
         label: 'Keep the rice',
         hint: '{{$90}}',
-        effects: [{ money: -90 }, { stat: 'happiness', delta: 2 }, { stat: 'health', delta: 1 }, { log: 'I kept it. I ate rice for eleven months. I became very, very good at rice.' }],
+        effects: [{ money: -90 }, { stat: 'happiness', delta: 2 }, { stat: 'health', delta: 1 }, { stat: 'smarts', delta: 1 }, { log: 'I kept it. I ate rice for eleven months. I became very, very good at rice.' }],
       },
       {
         id: 'return',
@@ -744,7 +771,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         id: 'donate',
         label: 'Donate it to a food bank',
         hint: '{{$90}}',
-        effects: [{ money: -90 }, { karma: 4 }, { stat: 'happiness', delta: 5 }, { log: 'The food bank took every sack. The volunteer said I was their rice person now.', kind: 'good' }],
+        effects: [{ money: -90 }, { karma: 4 }, { stat: 'happiness', delta: 3 }, { log: 'The food bank took every sack. The volunteer said I was their rice person now.', kind: 'good' }],
       },
     ],
   },
@@ -768,7 +795,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
             chance: 0.5,
             then: [{ log: 'The tracker put it at a taxi depot. A bored dispatcher handed it over with half the battery and no questions.', kind: 'good' }, { stat: 'happiness', delta: 4 }],
             else: [
-              { log: 'The tracker showed it crossing the city for a day, then went dark. Goodbye, phone.', kind: 'bad' },
+              { log: 'The tracker showed it crossing the city for a day, then went dark. Goodbye, phone. Hello, cheap replacement.', kind: 'bad' },
               { money: -500 },
               { stat: 'happiness', delta: -4 },
               { chance: 0.3, then: [{ queue: 'tm_lost_phone_returned' }] },
@@ -780,6 +807,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         id: 'replace',
         label: 'Buy a new one',
         hint: '{{$700}}',
+        conditions: [{ money: { gte: 700 } }],
         effects: [{ money: -700 }, { stat: 'happiness', delta: 2 }, { log: 'I bought a newer, shinier phone and spent a week re-entering passwords I had forgotten I had.', kind: 'money' }],
       },
       {
@@ -803,6 +831,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         id: 'reward',
         label: 'Reward them',
         hint: '{{$50}}',
+        conditions: [{ money: { gte: 50 } }],
         effects: [{ money: -50 }, { karma: 2 }, { stat: 'happiness', delta: 4 }, { log: 'I gave them {{$50}} and my thanks. Now I have two phones and one restored faith in people.', kind: 'good' }],
       },
       {
@@ -832,11 +861,15 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         id: 'outside',
         label: 'Go outside',
         effects: [
+          { energy: -1 },
           { stat: 'health', delta: 3 },
           { stat: 'happiness', delta: 3 },
           {
             chance: 0.4,
-            then: [{ newPerson: { kind: 'friend', relationship: 50, log: '{{person}} from three doors down and I ended up talking in the road for an hour. We are friends now.' } }],
+            then: [
+              { log: 'I went outside. The whole street was out there, blinking at the sky like moles.', kind: 'good' },
+              { newPerson: { kind: 'friend', relationship: 50, log: '{{person}} from three doors down and I ended up talking in the road for an hour. We are friends now.' } },
+            ],
             else: [{ log: 'I walked, read, and noticed the park has a pond. It has had a pond for years.' }],
           },
         ],
@@ -858,7 +891,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         id: 'hotspot',
         label: 'Drain my phone data',
         hint: '{{$30}}',
-        effects: [{ money: -30 }, { stat: 'happiness', delta: 1 }, { log: 'I tethered everything to my phone and streamed in low resolution like a pioneer. The bill was unkind.' }],
+        conditions: [{ money: { gte: 30 } }],
+        effects: [{ money: -30 }, { stat: 'happiness', delta: 2 }, { log: 'I tethered everything to my phone and streamed in low resolution like a pioneer. The bill was unkind.' }],
       },
     ],
   },
@@ -871,7 +905,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 60,
     weight: 2,
     cooldown: 4,
-    conditions: [{ any: [{ enrolled: true }, { hasJob: true }] }],
+    conditions: [{ any: [{ enrolled: true }, { hasJob: true }] }, { inPrison: false }],
     choices: [
       {
         id: 'binge',
@@ -899,6 +933,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 2,
     cooldown: 3,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'allnight',
@@ -1021,7 +1056,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     id: 'tm_reply_all',
     category: 'random',
     title: 'Reply all',
-    text: 'I meant to send a joke about the quarterly meeting to one friend at {{company}}. I hit reply all. Four hundred people, including the person the joke was about, now have it.',
+    text: 'I meant to send a joke about the quarterly meeting to one friend at {{company}}. I hit reply all. Everyone in the building, including the person the joke was about, now has it.',
     minAge: 18,
     maxAge: 65,
     weight: 1.2,
