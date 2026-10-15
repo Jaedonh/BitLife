@@ -1003,9 +1003,9 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
         conditions: [{ addiction: 'drugs' }],
         effects: [
           {
-            chance: 0.6,
-            then: [{ loseJob: true, reason: 'fired' }, { stat: 'happiness', delta: -8 }, { log: 'The test came back positive. I was fired on the spot.', kind: 'bad' }],
-            else: [{ stat: 'happiness', delta: 3 }, { log: 'Somehow I passed. I took it as a warning, briefly.', kind: 'info' }],
+            chance: 0.4,
+            then: [{ stat: 'happiness', delta: 3 }, { log: 'Somehow I passed. I took it as a warning, briefly.', kind: 'info' }],
+            else: [{ loseJob: true, reason: 'fired' }, { stat: 'happiness', delta: -8 }, { log: 'The test came back positive. I was fired on the spot.', kind: 'bad' }],
           },
         ],
       },
@@ -1239,9 +1239,9 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
           { relationship: 'coworker', delta: -3 },
           { stat: 'happiness', delta: 3 },
           {
-            chance: 0.4,
-            then: [{ jobPerformance: -2 }, { log: 'The rota maker was my manager. We have a new rota. I am on it three times.', kind: 'bad' }],
-            else: [{ log: 'The rota disappeared and so did the issue. Office legend says it was me.', kind: 'info' }],
+            chance: 0.6,
+            then: [{ log: 'The rota disappeared and so did the issue. Office legend says it was me.', kind: 'info' }],
+            else: [{ jobPerformance: -2 }, { log: 'The rota maker was my manager. We have a new rota. I am on it three times.', kind: 'bad' }],
           },
         ],
       },
@@ -1331,8 +1331,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.5,
-            then: [{ stat: 'happiness', delta: -5 }, { relationship: 'coworker', delta: -5 }, { log: 'The union won anyway. Someone wrote my name on the break-room whiteboard with no comment.', kind: 'bad' }],
-            else: [{ money: 200 }, { jobPerformance: 3 }, { log: 'The union lost. My manager gave me a gift card and a slightly better shift.', kind: 'info' }],
+            then: [{ money: 200 }, { jobPerformance: 3 }, { log: 'The union lost. My manager gave me a gift card and a slightly better shift.', kind: 'info' }],
+            else: [{ stat: 'happiness', delta: -5 }, { relationship: 'coworker', delta: -5 }, { log: 'The union won anyway. Someone wrote my name on the break-room whiteboard with no comment.', kind: 'bad' }],
           },
         ],
       },
@@ -1530,7 +1530,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.75,
             then: [{ log: 'Ten minutes, done, no harm. My supervisor nodded.', kind: 'info' }],
-            else: [{ injury: 12 }, { stat: 'happiness', delta: -5 }, { log: 'I fell. Not far, but far enough. Three weeks of pain for ten minutes saved.', kind: 'bad' }, { chance: 0.2, then: [{ illness: 'back_pain' }] }],
+            else: [{ injury: 12 }, { stat: 'happiness', delta: -5 }, { log: 'I fell. Not far, but far enough. Three weeks of pain for ten minutes saved.', kind: 'bad' }, { chance: 0.8, then: [], else: [{ illness: 'back_pain' }] }],
           },
         ],
       },
@@ -1612,9 +1612,9 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
           { money: 500 },
           { karma: -2 },
           {
-            chance: 0.2,
-            then: [{ jobPerformance: -10 }, { log: 'A colleague saw the envelope. I was reported and given a formal warning.', kind: 'bad' }],
-            else: [{ log: 'I accepted. They cried, I nearly did, and nobody mentioned the policy.', kind: 'money' }],
+            chance: 0.8,
+            then: [{ log: 'I accepted. They cried, I nearly did, and nobody mentioned the policy.', kind: 'money' }],
+            else: [{ jobPerformance: -10 }, { log: 'A colleague saw the envelope. I was reported and given a formal warning.', kind: 'bad' }],
           },
         ],
       },
@@ -1646,9 +1646,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
         label: 'Go in',
         effects: [
           {
-            chance: 0.05,
-            then: [{ death: 'died pulling a stranger from a burning car' }],
-            else: [
+            chance: 0.95,
+            then: [
               {
                 random: [
                   { weight: 6, effects: [{ injury: 4 }, { fame: 4 }, { karma: 6 }, { stat: 'happiness', delta: 8 }, { log: 'I got them out. There was a photo in the paper and a burn on my forearm I will not explain twice.', kind: 'milestone' }] },
@@ -1656,6 +1655,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
                 ],
               },
             ],
+            else: [{ death: 'died pulling a stranger from a burning car' }],
           },
         ],
       },
@@ -1705,9 +1705,9 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
           { money: 600 },
           { karma: -2 },
           {
-            chance: 0.2,
-            then: [{ jobPerformance: -10 }, { log: 'Someone mentioned it at work. My boss called it "moonlighting with my clients". I kept the job, barely.', kind: 'bad' }],
-            else: [{ log: 'Saturday, done, paid in notes. Nobody asked.', kind: 'money' }],
+            chance: 0.8,
+            then: [{ log: 'Saturday, done, paid in notes. Nobody asked.', kind: 'money' }],
+            else: [{ jobPerformance: -10 }, { log: 'Someone mentioned it at work. My boss called it "moonlighting with my clients". I kept the job, barely.', kind: 'bad' }],
           },
         ],
       },
