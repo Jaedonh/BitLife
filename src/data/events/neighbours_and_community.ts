@@ -1259,7 +1259,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
       {
         id: 'tea',
         label: 'Invite them in for tea',
-        effects: [{ stat: 'happiness', delta: 5 }, { karma: 1 }, { newPerson: { kind: 'friend', gender: 'male', minAge: 35, maxAge: 75, relationship: 65, log: 'Tea became dinner. The man I saved, {{person}}, is now a friend.' } }],
+        effects: [{ stat: 'happiness', delta: 5 }, { karma: 1 }, { log: 'Tea became dinner, and dinner became a standing invitation.', kind: 'good' }, { newPerson: { kind: 'friend', gender: 'male', minAge: 35, maxAge: 75, relationship: 65, log: 'The man I saved, {{person}}, is now a friend.' } }],
       },
     ],
   },
