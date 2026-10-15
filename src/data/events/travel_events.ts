@@ -91,7 +91,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
         effects: [
           {
             random: [
-              { weight: 70, effects: [{ stat: 'happiness', delta: 5 }, { log: 'There was no catch. The agent just liked my face, or disliked whoever was meant to get it. I did not ask twice.', kind: 'good' }] },
+              { weight: 70, effects: [{ stat: 'happiness', delta: 5 }, { stat: 'smarts', delta: 1 }, { log: 'There was no catch. The agent just liked my face, or disliked whoever was meant to get it. I did not ask twice.', kind: 'good' }] },
               { weight: 30, effects: [{ stat: 'happiness', delta: -3 }, { log: 'The catch was that it was a mistake. She took the boarding pass back. Lesson: never ask.', kind: 'bad' }] },
             ],
           },
@@ -108,7 +108,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     maxAge: 85,
     weight: 1.5,
     cooldown: 3,
-    conditions: [{ inPrison: false }, { money: { gte: 150 } }],
+    conditions: [{ inPrison: false }, { money: { gte: 200 } }],
     choices: [
       {
         id: 'buy',
@@ -412,7 +412,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
         effects: [
           { karma: 1 },
           {
-            chance: 0.75,
+            chance: 0.6,
             then: [{ stat: 'happiness', delta: 5 }, { log: 'She took my arm, walked me six streets, and would not leave until she had seen my hotel sign with her own eyes.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -2 }, { log: 'She gave me directions in a language I do not speak, with great confidence. I thanked her and got lost somewhere new.' }],
           },
@@ -422,6 +422,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
         id: 'taxi',
         label: 'Flag down a taxi',
         hint: '{{$40}}',
+        conditions: [{ money: { gte: 40 } }],
         effects: [
           { money: -40 },
           { stat: 'happiness', delta: 2 },
@@ -470,7 +471,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
           {
             chance: 0.6,
             then: [{ stat: 'happiness', delta: -2 }, { log: 'I walked away. He shouted. The hotel doorman shrugged. Nothing happened, which somehow felt worse.' }],
-            else: [{ money: -220 }, { stat: 'happiness', delta: -8 }, { log: 'A police officer appeared with suspicious speed and sided with the driver. The fine was more than the fare.', kind: 'bad' }],
+            else: [{ money: -200 }, { stat: 'happiness', delta: -8 }, { log: 'A police officer appeared with suspicious speed and sided with the driver. The fine was more than the fare.', kind: 'bad' }],
           },
         ],
       },
@@ -503,7 +504,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.4,
-            then: [{ stat: 'happiness', delta: 2 }, { stat: 'smarts', delta: 1 }, { log: 'Through mime and a napkin drawing we reached an understanding. The sardines went to the next table, who were thrilled.' }],
+            then: [{ stat: 'happiness', delta: 3 }, { stat: 'smarts', delta: 1 }, { log: 'Through mime and a napkin drawing we reached an understanding. The sardines went to the next table, who were thrilled.', kind: 'good' }],
             else: [{ money: -12 }, { stat: 'happiness', delta: -3 }, { log: 'My explanation produced a second plate of sardines. I stopped explaining.', kind: 'bad' }],
           },
         ],
@@ -538,7 +539,6 @@ export const TRAVEL_EVENTS: EventDef[] = [
           { money: -300 },
           { stat: 'happiness', delta: -4 },
           { log: 'The tow truck took ninety minutes and the driver talked about his divorce the whole way. Car fixed by Tuesday.', kind: 'money' },
-          { chance: 0.5, then: [{ asset: 'damage', kind: 'car', amount: 15 }] },
         ],
       },
       {
@@ -562,11 +562,10 @@ export const TRAVEL_EVENTS: EventDef[] = [
         id: 'hitch',
         label: 'Hitch a lift to town',
         effects: [
-          { money: -150 },
           {
             chance: 0.7,
-            then: [{ karma: 1 }, { stat: 'happiness', delta: 3 }, { log: 'A farmer in a pickup gave me a lift, a sandwich and a lecture on radiator hoses. The car came later, on a trailer.', kind: 'good' }],
-            else: [{ stat: 'happiness', delta: -5 }, { stat: 'health', delta: -3 }, { log: 'Nobody stopped for two hours. I walked to town in the dark, cursing cows.', kind: 'bad' }],
+            then: [{ money: -120 }, { karma: 1 }, { stat: 'happiness', delta: 3 }, { log: 'A farmer in a pickup gave me a lift, a sandwich and a lecture on radiator hoses. His cousin towed the car for cash and a handshake.', kind: 'good' }],
+            else: [{ money: -300 }, { stat: 'happiness', delta: -5 }, { stat: 'health', delta: -3 }, { log: 'Nobody stopped for two hours. I walked to town in the dark, cursing cows, and paid for the tow truck anyway.', kind: 'bad' }],
           },
         ],
       },
@@ -640,11 +639,11 @@ export const TRAVEL_EVENTS: EventDef[] = [
         label: 'Hide in the cabin',
         effects: [
           { counter: 'vacations' },
-          { stat: 'happiness', delta: -4 },
+          { stat: 'happiness', delta: -3 },
           {
-            chance: 0.25,
+            chance: 0.15,
             then: [{ illness: 'food_poisoning' }, { stat: 'health', delta: -3 }, { log: 'I hid, I washed my hands raw, and I still caught it, through the air vents probably. Two days of misery with a sea view.', kind: 'bad' }],
-            else: [{ log: 'I spent the cruise in a cabin the size of a wardrobe, reading, and arrived home healthy and slightly pale.' }],
+            else: [{ stat: 'health', delta: 1 }, { log: 'I spent the cruise in a cabin the size of a wardrobe, reading, and arrived home healthy and slightly pale.' }],
           },
         ],
       },
@@ -677,7 +676,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
             then: [{ money: 600 }, { log: 'The cruise line issued a voucher and, after a strongly worded letter, actual money. The bug was worth it. Almost.', kind: 'money' }],
             else: [{ log: 'The cruise line sent a form letter and a fruit basket. The fruit basket was, ironically, the best meal of the week.' }],
           },
-          { chance: 0.3, then: [{ illness: 'food_poisoning' }, { stat: 'health', delta: -3 }, { log: 'I also caught the bug while queuing at the complaints desk.', kind: 'bad' }] },
+          { chance: 0.35, then: [{ illness: 'food_poisoning' }, { stat: 'health', delta: -3 }, { log: 'I also caught the bug while queuing at the complaints desk.', kind: 'bad' }] },
         ],
       },
     ],
@@ -747,7 +746,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     maxAge: 85,
     weight: 1.5,
     cooldown: 3,
-    conditions: [{ inPrison: false }, { money: { lte: 2500 } }],
+    conditions: [{ inPrison: false }, { money: { gte: 100, lte: 2500 } }],
     choices: [
       {
         id: 'buy',
@@ -808,7 +807,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
           { stat: 'health', delta: 3 },
           { stat: 'smarts', delta: 4 },
           { counter: 'vacations' },
-          { log: 'Six months. Eleven countries. One backpack. I came home with no job, no money, and more stories than anyone wanted to hear.', kind: 'milestone' },
+          { log: 'Six months. Eleven countries. One backpack. I came home with no job, almost no money, and more stories than anyone wanted to hear.', kind: 'milestone' },
         ],
       },
       {
@@ -859,7 +858,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
         effects: [
           { energy: -1 },
           { stat: 'health', delta: 3 },
-          { stat: 'happiness', delta: 7 },
+          { stat: 'happiness', delta: 6 },
           { relationship: 'person', delta: 6 },
           { log: 'We reached the ridge as the sky went from grey to gold. Neither of us said anything for ten minutes. Best ten minutes of the year.', kind: 'good' },
         ],
@@ -870,8 +869,11 @@ export const TRAVEL_EVENTS: EventDef[] = [
         effects: [
           { stat: 'health', delta: 2 },
           { stat: 'happiness', delta: 4 },
-          { relationship: 'person', delta: 1 },
-          { log: 'I complained for two hours uphill and then shut up completely when the sun came over the hills. {{person}} let me have both.' },
+          {
+            chance: 0.5,
+            then: [{ relationship: 'person', delta: 3 }, { log: 'I complained for two hours uphill and {{person}} laughed at every word. Then the sun came over the hills and I shut up completely.', kind: 'good' }],
+            else: [{ relationship: 'person', delta: -2 }, { log: 'I complained for two hours uphill. {{person}} stopped answering halfway. The sunrise was still good, in a quiet sort of way.' }],
+          },
         ],
       },
       {
@@ -895,8 +897,8 @@ export const TRAVEL_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1,
     cooldown: 6,
-    conditions: [{ inPrison: false }, { money: { gte: 500 } }],
-    person: { kind: ['friend', 'bestFriend', 'sibling', 'coworker'], minRelationship: 40 },
+    conditions: [{ inPrison: false }, { money: { gte: 900 } }],
+    person: { kind: ['friend', 'bestFriend', 'sibling', 'coworker'], minRelationship: 40, minAge: 18 },
     choices: [
       {
         id: 'go',
@@ -910,6 +912,21 @@ export const TRAVEL_EVENTS: EventDef[] = [
           { counter: 'vacations' },
           { log: 'Sand in the ceremony, sunburn at the reception, a speech I did not plan to give. {{person}} cried. So did I, slightly.', kind: 'good' },
           { chance: 0.2, then: [{ newPerson: { kind: 'friend', relationship: 50, log: 'I spent the whole reception talking to {{person}}, another guest, and we stayed in touch.' } }] },
+        ],
+      },
+      {
+        id: 'budget',
+        label: 'Go on the cheap',
+        hint: '{{$900}}',
+        effects: [
+          { money: -900 },
+          { relationship: 'person', delta: 8 },
+          { counter: 'vacations' },
+          {
+            chance: 0.65,
+            then: [{ stat: 'happiness', delta: 6 }, { log: 'Two layovers, a borrowed sofa and a borrowed shirt. I made the ceremony with minutes to spare. {{person}} did not care how I got there.', kind: 'good' }],
+            else: [{ stat: 'happiness', delta: 2 }, { stat: 'health', delta: -2 }, { log: 'Three layovers and a night on an airport bench. I arrived grey and slightly feverish, but I arrived. {{person}} hugged me anyway.' }],
+          },
         ],
       },
       {
@@ -949,7 +966,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1.5,
     once: true,
-    conditions: [{ inPrison: false }, { married: true }],
+    conditions: [{ inPrison: false }, { married: true }, { money: { gte: 900 } }],
     person: { kind: ['spouse'] },
     choices: [
       {
@@ -1034,9 +1051,9 @@ export const TRAVEL_EVENTS: EventDef[] = [
         id: 'push',
         label: 'Push on through',
         effects: [
-          { stat: 'happiness', delta: -4 },
+          { stat: 'happiness', delta: -3 },
           { stat: 'health', delta: -1 },
-          { relationship: 'person', delta: -4 },
+          { relationship: 'person', delta: -3 },
           { log: 'We did not stop. Nobody enjoyed the last two hours. We arrived forty minutes earlier and it was not worth it.' },
         ],
       },
@@ -1131,8 +1148,12 @@ export const TRAVEL_EVENTS: EventDef[] = [
         hint: '{{$200}}',
         effects: [
           { money: -200 },
-          { stat: 'happiness', delta: -4 },
-          { log: 'I changed hotels at a cost I will not discuss. Some reunions are not worth a sunlounger.' },
+          { stat: 'happiness', delta: -2 },
+          {
+            chance: 0.5,
+            then: [{ stat: 'happiness', delta: 4 }, { log: 'I changed hotels at a cost I will not discuss. The new one had a better pool and no exes in it. Money well spent, arguably.', kind: 'good' }],
+            else: [{ stat: 'happiness', delta: -2 }, { log: 'I changed hotels at a cost I will not discuss. The new one had a view of a car park. Some reunions are still not worth a sunlounger.' }],
+          },
         ],
       },
     ],
@@ -1140,7 +1161,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
   {
     id: 'tr_work_trip',
     category: 'random',
-    title: 'Conference abroad',
+    title: 'Conference trip',
     text: '{{company}} is sending me to a conference in another city and {{person}} is coming along. Three days of lanyards, lukewarm coffee and a hotel with a surprisingly good view.',
     minAge: 20,
     maxAge: 65,
