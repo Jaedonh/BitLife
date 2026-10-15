@@ -1,12 +1,12 @@
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
+import { kindEmoji, kindLabel } from '@/components/game/people';
 import { ScreenHeader } from '@/components/game/ScreenHeader';
 import { Button, Card, Screen, Section, StatBar, T } from '@/components/ui';
 import { availableInteractions } from '@/engine';
 import { useGameStore } from '@/store/gameStore';
 import { colors, spacing } from '@/theme';
-import { kindEmoji, kindLabel } from '../relationships';
 
 export default function PersonScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
