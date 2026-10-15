@@ -136,7 +136,7 @@ Content budget: 12 category files (early childhood, kid years, teen years, young
 
 ## 16. Death, obituary, ribbons, legacy
 
-On death: cause (illness-driven where one exists; otherwise age-appropriate), net worth, one **ribbon** from 26 by priority (Deadly, Jailbird, Tycoon, Famous, Rich, Academic, Family First, Heartbreaker, Cunning, Scandalous, High Roller, Fit, Bookworm, Globetrotter, Generous, Loyal, Hustler, Survivor, Addict, Lazy, Centenarian, Wasted, Successful, Happy, Miserable, Mediocre), an **obituary** generated from career, education, family, money and convictions, and an epitaph. The tombstone screen shows all of it plus karma. The graveyard keeps the last 200 lives and the ribbon collection.
+On death: cause (illness-driven where one exists; otherwise age-appropriate), net worth, one **ribbon** from 25 by priority (Deadly, Jailbird, Tycoon, Famous, Rich, Academic, Family First, Heartbreaker, Cunning, Scandalous, Fit, Bookworm, Globetrotter, Generous, Loyal, Hustler, Survivor, Addict, Lazy, Centenarian, Wasted, Successful, Happy, Miserable, Mediocre), an **obituary** generated from career, education, family, money and convictions, and an epitaph. The tombstone screen shows all of it plus karma. The graveyard keeps the last 200 lives and the ribbon collection.
 
 **Legacy:** continue as any living child: the new life keeps the surname, the family tree (the dead player becomes a dead parent; the other parent and siblings persist), generation counter and ancestor list. Free play: one hand-off per family line (generation 1 → 2); premium: unlimited. **Second chance:** once per life, death can be undone (rewarded ad, or instantly for premium): health is restored to ~45 and severe illnesses removed.
 

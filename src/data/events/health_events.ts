@@ -2,7 +2,7 @@ import type { EventDef } from '@/engine/events/schema';
 
 /**
  * Health events for every age: sports injuries, food poisoning, a mystery
- * rash, a scare that needs tests, the dentist, insomnia, a fitness bet with a
+ * rash, a scare that needs tests, the dentist, insomnia, a fitness challenge with a
  * friend, a lifestyle lecture, allergies, a car crash, temptation after a
  * rough week, a wellness scam, giving blood, a near miss, a flu year, bad
  * news about a relative, and a handful of age-specific scrapes.
@@ -610,16 +610,15 @@ export const HEALTH_EVENTS: EventDef[] = [
         ],
       },
       {
-        id: 'casino',
-        label: 'The casino, just once',
+        id: 'spree',
+        label: 'Retail therapy, no limits',
         effects: [
-          { addiction: 'gambling', delta: 8 },
-          { counter: 'gamblingSessions' },
+          { stat: 'happiness', delta: 6 },
           { relationship: 'person', delta: 2 },
           {
             random: [
-              { weight: 4, effects: [{ money: 400 }, { stat: 'happiness', delta: 6 }, { counter: 'gamblingWon' }, { log: 'I walked out {{$400}} up and convinced I had a system. I do not have a system.', kind: 'money' }] },
-              { weight: 6, effects: [{ money: -500 }, { stat: 'happiness', delta: -4 }, { counter: 'gamblingLost' }, { log: 'I lost {{$500}} and a little self-respect. {{person}} lost more and wanted to go again.', kind: 'bad' }] },
+              { weight: 4, effects: [{ money: -250 }, { log: 'I bought a jacket, a lamp and a plant I will probably kill. The jacket is excellent.', kind: 'money' }] },
+              { weight: 6, effects: [{ money: -700 }, { stat: 'happiness', delta: -4 }, { log: 'I spent {{$700}} on things I cannot explain. {{person}} spent more and wanted to go again.', kind: 'bad' }] },
             ],
           },
         ],
@@ -639,7 +638,7 @@ export const HEALTH_EVENTS: EventDef[] = [
   {
     id: 'hl_fitness_challenge',
     category: 'health',
-    title: 'The fitness bet',
+    title: 'The fitness challenge',
     text: "{{person}} has decided we are both 'getting in shape' this year and wants a challenge: most workouts by December wins. {{They}} seemed alarmingly serious.",
     minAge: 14,
     maxAge: 70,
@@ -663,16 +662,16 @@ export const HEALTH_EVENTS: EventDef[] = [
         ],
       },
       {
-        id: 'bet',
-        label: 'Make it a money bet',
+        id: 'stakes',
+        label: 'Loser buys dinner',
         hint: '{{$100}}',
         effects: [
           { counter: 'workouts', by: 3 },
           { stat: 'health', delta: 5 },
           {
             chance: 0.5,
-            then: [{ money: 100 }, { stat: 'happiness', delta: 4 }, { log: 'I beat {{them}} by a week and took the {{$100}} with no grace whatsoever.', kind: 'money' }],
-            else: [{ money: -100 }, { relationship: 'person', delta: 3 }, { log: '{{person}} crushed me. I paid up and {{they}} framed the receipt.', kind: 'bad' }],
+            then: [{ stat: 'happiness', delta: 4 }, { log: 'I beat {{them}} by a week and ordered the most expensive thing on the menu with no grace whatsoever.', kind: 'good' }],
+            else: [{ money: -100 }, { relationship: 'person', delta: 3 }, { log: '{{person}} crushed me. Dinner cost {{$100}} and {{they}} framed the receipt.', kind: 'bad' }],
           },
         ],
       },

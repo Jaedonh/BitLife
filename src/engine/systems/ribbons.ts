@@ -23,7 +23,6 @@ export const RIBBONS: readonly RibbonDef[] = [
   { id: 'heartbreaker', name: 'Heartbreaker', emoji: '💔', description: 'Had 10+ lovers.', priority: 65, test: (s) => s.counters.lovers >= 10 },
   { id: 'cunning', name: 'Cunning', emoji: '🦊', description: 'Committed 10+ crimes without ever being convicted.', priority: 62, test: (s) => s.counters.crimes >= 10 && s.crime.convictions === 0 },
   { id: 'scandalous', name: 'Scandalous', emoji: '🚔', description: 'Arrested 5+ times.', priority: 60, test: (s) => s.counters.arrests >= 5 },
-  { id: 'high_roller', name: 'High Roller', emoji: '🎰', description: 'Won more than $250K gambling.', priority: 58, test: (s) => s.counters.gamblingWon >= 250_000 },
   { id: 'fit', name: 'Fit', emoji: '💪', description: 'Worked out 40+ times and stayed healthy.', priority: 55, test: (s) => s.counters.workouts >= 40 && s.character.stats.health >= 70 },
   { id: 'bookworm', name: 'Bookworm', emoji: '📚', description: 'Visited the library 40+ times.', priority: 52, test: (s) => s.counters.libraryVisits >= 40 },
   { id: 'globetrotter', name: 'Globetrotter', emoji: '✈️', description: 'Took 25+ vacations.', priority: 50, test: (s) => s.counters.vacations >= 25 },

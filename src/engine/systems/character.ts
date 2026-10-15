@@ -23,7 +23,7 @@ export const TRAIT_LABELS: Record<TraitId, { label: string; description: string 
   quick_learner: { label: 'Quick learner', description: 'Studying and library visits give more Smarts.' },
   charming: { label: 'Charming', description: 'People warm to you faster; compliments land better.' },
   iron_constitution: { label: 'Iron constitution', description: 'Illnesses are rarer and milder.' },
-  lucky: { label: 'Lucky', description: 'Better odds in gambling, lotteries and risky choices.' },
+  lucky: { label: 'Lucky', description: 'Better odds in risky choices and lucky finds.' },
   hot_headed: { label: 'Hot-headed', description: 'Arguments escalate; insults sting more.' },
   thrifty: { label: 'Thrifty', description: 'Living expenses are 15% lower.' },
   creative: { label: 'Creative', description: 'Creative careers and hustles pay off faster.' },
