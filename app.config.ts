@@ -35,17 +35,22 @@ const REQUIRED_PRODUCTION_ENV = [
   'EXPO_PUBLIC_ADMOB_IOS_REWARDED',
   'EXPO_PUBLIC_RC_IOS_KEY',
   'EXPO_PUBLIC_RC_ANDROID_KEY',
+  'EXPO_PUBLIC_PRIVACY_URL',
+  'EXPO_PUBLIC_SUPPORT_EMAIL',
 ] as const;
+
+/** Defaults in src/config/legal.ts: fine for development, never for a store build. */
+const PLACEHOLDER_VALUES = new Set(['https://jaedonh.github.io/lifeloop-privacy/', 'support@lifeloop.app']);
 
 if (isProd) {
   const missing = REQUIRED_PRODUCTION_ENV.filter((name) => {
     const value = (process.env[name] ?? '').trim();
-    return value.length === 0 || value.startsWith(SAMPLE_PUBLISHER);
+    return value.length === 0 || value.startsWith(SAMPLE_PUBLISHER) || PLACEHOLDER_VALUES.has(value);
   });
   if (missing.length > 0) {
     throw new Error(
-      `[app.config] APP_VARIANT=production but ${missing.join(', ')} ${missing.length === 1 ? 'is' : 'are'} unset or still Google's sample value. ` +
-        'A store build must not ship sample AdMob IDs, test ad units or a disabled paywall. ' +
+      `[app.config] APP_VARIANT=production but ${missing.join(', ')} ${missing.length === 1 ? 'is' : 'are'} unset or still a sample or placeholder value. ` +
+        'A store build must not ship sample AdMob IDs, test ad units, a disabled paywall or placeholder privacy and support contacts. ' +
         'Set them with `eas env:create --scope project --environment production` (visibility "Plain text" or "Sensitive", not "Secret": EAS CLI needs them to evaluate this config) ' +
         'or in a local .env, then retry. See docs/RELEASE_CHECKLIST.md §1.',
     );

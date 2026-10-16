@@ -20,6 +20,8 @@ const REQUIRED = [
   'EXPO_PUBLIC_ADMOB_IOS_REWARDED',
   'EXPO_PUBLIC_RC_IOS_KEY',
   'EXPO_PUBLIC_RC_ANDROID_KEY',
+  'EXPO_PUBLIC_PRIVACY_URL',
+  'EXPO_PUBLIC_SUPPORT_EMAIL',
 ] as const;
 
 const REAL: Record<(typeof REQUIRED)[number], string> = {
@@ -33,6 +35,8 @@ const REAL: Record<(typeof REQUIRED)[number], string> = {
   EXPO_PUBLIC_ADMOB_IOS_REWARDED: 'ca-app-pub-1111111111111111/6',
   EXPO_PUBLIC_RC_IOS_KEY: 'appl_test',
   EXPO_PUBLIC_RC_ANDROID_KEY: 'goog_test',
+  EXPO_PUBLIC_PRIVACY_URL: 'https://studio.example.org/privacy/',
+  EXPO_PUBLIC_SUPPORT_EMAIL: 'help@studio.example.org',
 };
 
 const MANAGED = [...REQUIRED, 'APP_VARIANT'] as const;
@@ -93,9 +97,14 @@ describe('app.config.ts production guard', () => {
   });
 
   it("rejects Google's sample publisher even when a variable is set, and blank values", () => {
-    expect(() => loadConfig({ APP_VARIANT: 'production', ...REAL, ADMOB_ANDROID_APP_ID: 'ca-app-pub-3940256099942544~3347511713' })).toThrow(/ADMOB_ANDROID_APP_ID is unset or still Google's sample value/);
+    expect(() => loadConfig({ APP_VARIANT: 'production', ...REAL, ADMOB_ANDROID_APP_ID: 'ca-app-pub-3940256099942544~3347511713' })).toThrow(/ADMOB_ANDROID_APP_ID is unset or still a sample or placeholder value/);
     expect(() => loadConfig({ APP_VARIANT: 'production', ...REAL, EXPO_PUBLIC_ADMOB_IOS_BANNER: 'ca-app-pub-3940256099942544/2934735716' })).toThrow(/EXPO_PUBLIC_ADMOB_IOS_BANNER/);
     expect(() => loadConfig({ APP_VARIANT: 'production', ...REAL, EXPO_PUBLIC_RC_IOS_KEY: '   ' })).toThrow(/EXPO_PUBLIC_RC_IOS_KEY/);
+  });
+
+  it('rejects the placeholder privacy URL and support email that development builds use', () => {
+    expect(() => loadConfig({ APP_VARIANT: 'production', ...REAL, EXPO_PUBLIC_PRIVACY_URL: 'https://jaedonh.github.io/lifeloop-privacy/' })).toThrow(/EXPO_PUBLIC_PRIVACY_URL/);
+    expect(() => loadConfig({ APP_VARIANT: 'production', ...REAL, EXPO_PUBLIC_SUPPORT_EMAIL: 'support@lifeloop.app' })).toThrow(/EXPO_PUBLIC_SUPPORT_EMAIL/);
   });
 
   it('builds the store config with the real AdMob app IDs once everything is set', () => {
