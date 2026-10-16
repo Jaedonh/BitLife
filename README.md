@@ -21,6 +21,7 @@ npm run start        # Expo dev server for a device/simulator (Expo Go works; ad
 npm test             # engine unit + property tests (simulates hundreds of lives)
 npm run typecheck && npm run lint
 npm run build:web && npm run e2e   # static web export + scripted Playwright playthrough with screenshots in e2e/screenshots/
+npm run balance      # plays hundreds of seeded lives per play style and prints the economy and ribbon numbers against the design targets
 ```
 
 Real ads and purchases need a development build: `eas build --profile development --platform all`.
@@ -50,7 +51,7 @@ src/store/             zustand stores + persistence + migrations
 src/services/          ads (AdMob), purchases (RevenueCat), storage, monetization bootstrap
 docs/                  GAME_DESIGN, ARCHITECTURE, PRIVACY_POLICY, STORE_LISTING, RELEASE_CHECKLIST
 e2e/                   Playwright playthrough against the web export
-scripts/               icon generation, event validator
+scripts/               icon generation, event validator, balance report, privacy-URL check
 legacy/                the original Python prototype
 ```
 
@@ -62,7 +63,7 @@ legacy/                the original Python prototype
 
 ## Releasing
 
-Follow `docs/RELEASE_CHECKLIST.md`. In short: create AdMob and RevenueCat apps, set the EAS secrets, `eas build --profile production`, `eas submit`, answer the content questionnaires as documented, and start the Play closed test early.
+Follow `docs/RELEASE_CHECKLIST.md`. In short: create AdMob and RevenueCat apps, publish the privacy policy, set the EAS production variables (the six `EXPO_PUBLIC_ADMOB_*` unit IDs, `ADMOB_ANDROID_APP_ID`, `ADMOB_IOS_APP_ID`, `EXPO_PUBLIC_RC_IOS_KEY`, `EXPO_PUBLIC_RC_ANDROID_KEY`, `EXPO_PUBLIC_PRIVACY_URL`, `EXPO_PUBLIC_SUPPORT_EMAIL`), then `eas build --profile production` and `eas submit`. A production build refuses to start while any of these is missing or still a sample or placeholder value, and fails if the privacy policy URL is not live. Answer the content questionnaires as documented and start the Play closed test early.
 
 ## License
 
