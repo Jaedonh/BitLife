@@ -5,6 +5,19 @@ export const clamp = (v: number, min = 0, max = 100): number => Math.max(min, Ma
 
 export const clampStat = (v: number): number => Math.round(clamp(v, 0, 100));
 
+/** Peak fame this life (kept in flags so older saves need no migration). */
+export function peakFame(s: GameState): number {
+  const peak = s.flags.peakFame;
+  return Math.max(s.character.fame, typeof peak === 'number' ? peak : 0);
+}
+
+/** Sets fame (clamped) and remembers the life's peak, which the Famous ribbon uses. */
+export function withFame(s: GameState, fame: number): GameState {
+  const next = clampStat(fame);
+  const peak = Math.max(next, peakFame(s));
+  return { ...s, character: { ...s.character, fame: next }, flags: { ...s.flags, peakFame: peak } };
+}
+
 export function addStats(state: GameState, deltas: Partial<Stats>): GameState {
   const s = state.character.stats;
   const p = state.character.potential;

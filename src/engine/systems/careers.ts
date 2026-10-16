@@ -5,7 +5,7 @@ import { removeJob } from '../events/effects';
 import { scaleMoney } from '../events/text';
 import { Rng } from '../rng';
 import type { GameState, Job, JobListing } from '../types';
-import { addStats, bump, clampStat, log, setResult } from '../util';
+import { addStats, bump, clampStat, log, setResult, withFame } from '../util';
 import { randomCompany } from './character';
 import { bachelorMajor, hasDegree, hasHighSchool } from './education';
 
@@ -208,7 +208,7 @@ export function yearlyCareer(state: GameState, rng: Rng): GameState {
     s = bump(s, 'yearsEmployed');
     s = addStats(s, { happiness: -Math.round(def.stress / 25), health: -Math.round(def.stress / 30) });
     // Fame comes from the rungs above entry level; out of the spotlight it fades.
-    if (def.fame) s = { ...s, character: { ...s.character, fame: clampStat(s.character.fame + def.fame * updated.level) } };
+    if (def.fame) s = withFame(s, s.character.fame + def.fame * updated.level);
     else if (s.character.fame > 0) s = { ...s, character: { ...s.character, fame: clampStat(s.character.fame - 3) } };
     if (rng.chance(def.danger / 400)) {
       s = addStats(s, { health: -rng.int(4, 12) });
@@ -279,7 +279,7 @@ function yearlyHustle(state: GameState, rng: Rng): GameState {
     s = addStats(s, { happiness: 8 });
   }
   if (level > h.level) s = log(s, `My ${def.name.toLowerCase()} is growing (level ${level}).`, 'good');
-  if (level >= 3 && def.fame) s = { ...s, character: { ...s.character, fame: clampStat(s.character.fame + def.fame) } };
+  if (level >= 3 && def.fame) s = withFame(s, s.character.fame + def.fame);
   if (level >= 5) s = { ...s, flags: { ...s.flags, hustleMaxed: true } };
   s = { ...s, career: { ...s.career, hustle: { ...h, level, yearsActive: h.yearsActive + 1, lastIncome: income, followers: Math.round(h.followers * 1.1 + level * level * 1000) } } };
   return s;

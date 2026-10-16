@@ -3,7 +3,7 @@ import type { Rng } from '../rng';
 import { makePerson } from '../systems/character';
 import { markDeath } from '../systems/death';
 import type { GameState, Illness, Person } from '../types';
-import { addKarma, addMoney, addStats, bump, clampStat, incFlag, log, setFlag } from '../util';
+import { addKarma, addMoney, addStats, bump, clampStat, incFlag, log, setFlag, withFame } from '../util';
 import type { Effect } from './schema';
 import { renderText, scaleMoney, type TextContext } from './text';
 
@@ -86,7 +86,7 @@ export function applyEffect(state: GameState, rng: Rng, e: Effect, ctx: EffectCo
   if ('stats' in e) return addStats(s, e.stats);
   if ('money' in e) return addMoney(s, scaleMoney(s, e.money));
   if ('karma' in e) return addKarma(s, e.karma);
-  if ('fame' in e) return { ...s, character: { ...s.character, fame: clampStat(s.character.fame + e.fame) } };
+  if ('fame' in e) return withFame(s, s.character.fame + e.fame);
   if ('energy' in e) return { ...s, character: { ...s.character, energy: Math.max(0, Math.min(s.character.energyMax, s.character.energy + e.energy)) } };
   if ('log' in e) return log(s, renderText(e.log, s, textCtx), e.kind ?? 'info');
   if ('flag' in e) {

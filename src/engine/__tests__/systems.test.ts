@@ -137,6 +137,16 @@ describe('careers', () => {
     expect(s.character.fame).toBe(8);
     s = healthy(ageUp({ ...s, career: { ...s.career, job: null } }, noEvents));
     expect(s.character.fame).toBe(5);
+    // The life's peak is remembered for the Famous ribbon even after fame fades.
+    expect(s.flags.peakFame).toBe(8);
+  });
+
+  it('a star who retires keeps the Famous ribbon although current fame fades', () => {
+    const base = createLife({ countryCode: 'US' }, 26);
+    let s = { ...base, character: { ...base.character, age: 91, fame: 24 }, flags: { ...base.flags, peakFame: 100 } };
+    expect(awardRibbon(s).id).toBe('famous');
+    s = { ...s, flags: { ...s.flags, peakFame: 60 } };
+    expect(awardRibbon(s).id).not.toBe('famous');
   });
 });
 
