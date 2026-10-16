@@ -1,5 +1,5 @@
 import type { PropsWithChildren } from 'react';
-import { Pressable, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { colors, radius, spacing } from '@/theme';
 
@@ -23,10 +23,13 @@ export function Card({ children, style, onPress, disabled, testID }: Props) {
       </Pressable>
     );
   }
+  // Static container: a plain View so inner buttons, switches and inputs stay
+  // individually reachable by screen readers (a disabled Pressable is exposed as
+  // one dimmed accessibility element and swallows its children).
   return (
-    <Pressable testID={testID} style={[styles.card, style]} disabled>
+    <View testID={testID} style={[styles.card, style]}>
       {children}
-    </Pressable>
+    </View>
   );
 }
 

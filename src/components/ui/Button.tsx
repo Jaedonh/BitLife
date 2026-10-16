@@ -15,6 +15,8 @@ type Props = {
   style?: StyleProp<ViewStyle>;
   testID?: string;
   accessibilityLabel?: string;
+  /** Max label lines before tail truncation. Defaults to 1; raise it where the label must stay fully readable. */
+  numberOfLines?: number;
 };
 
 export function Button({
@@ -27,6 +29,7 @@ export function Button({
   style,
   testID,
   accessibilityLabel,
+  numberOfLines = 1,
 }: Props) {
   const isDisabled = disabled || loading;
   return (
@@ -49,7 +52,7 @@ export function Button({
       {loading ? (
         <ActivityIndicator color={colors.text} />
       ) : (
-        <Text style={[styles.text, textSizes[size], variant === 'accent' && styles.textOnAccent]} numberOfLines={1}>
+        <Text style={[styles.text, textSizes[size], variant === 'accent' && styles.textOnAccent]} numberOfLines={numberOfLines}>
           {title}
         </Text>
       )}
@@ -67,7 +70,7 @@ const styles = StyleSheet.create({
   },
   pressed: { opacity: 0.8 },
   disabled: { opacity: 0.45 },
-  text: { color: colors.text, fontWeight: '700' },
+  text: { color: colors.text, fontWeight: '700', textAlign: 'center' },
   textOnAccent: { color: '#0F0E1A' },
 });
 

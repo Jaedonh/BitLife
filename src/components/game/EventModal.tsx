@@ -29,6 +29,7 @@ export function EventModal() {
                   title={c.label}
                   variant={i === 0 ? 'primary' : 'secondary'}
                   size="lg"
+                  numberOfLines={3}
                   onPress={() => {
                     if (haptics && Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
                     choose(c.id);
