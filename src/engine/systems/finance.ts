@@ -2,7 +2,7 @@ import { ASSET_BY_ID } from '@/data/assets';
 import { getCountry } from '@/data/countries';
 import { scaleMoney } from '../events/text';
 import type { Rng } from '../rng';
-import type { GameState, InvestmentKind } from '../types';
+import type { Career, GameState, InvestmentKind } from '../types';
 import { addMoney, addStats, log, netWorth, setResult } from '../util';
 
 export const INVESTMENT_LABELS: Record<InvestmentKind, { name: string; description: string }> = {
@@ -10,6 +10,13 @@ export const INVESTMENT_LABELS: Record<InvestmentKind, { name: string; descripti
   index: { name: 'Index fund', description: 'Steady growth with some bumps. ~7% a year on average.' },
   crypto: { name: 'Crypto', description: 'Wild swings. Could double, could halve.' },
 };
+
+/** 35% of the salary the character retired from (the best one, if they retired more than once). */
+export function pensionSalary(career: Career): number {
+  const retiredFrom = career.history.filter((h) => h.reason === 'retired');
+  const base = retiredFrom.length ? Math.max(...retiredFrom.map((h) => h.salary)) : (career.history[career.history.length - 1]?.salary ?? 0);
+  return Math.round(base * 0.35);
+}
 
 function investmentReturn(kind: InvestmentKind, rng: Rng): number {
   if (kind === 'savings') return 0.02;
@@ -24,18 +31,18 @@ export function yearlyFinance(state: GameState, rng: Rng): GameState {
   const country = getCountry(c.countryCode);
   const adult = c.age >= 18;
 
-  // Income
+  // Income: a job pays its own salary; a retiree without a job draws the pension.
   const job = s.career.job;
-  let salary = job ? (s.crime.inPrison ? 0 : job.salary) : 0;
-  if (s.career.retired) salary = Math.round((s.career.history[s.career.history.length - 1]?.salary ?? 0) * 0.35);
+  let salary = job ? (s.crime.inPrison ? 0 : job.salary) : s.career.retired ? pensionSalary(s.career) : 0;
   if (s.finances.incomeBoostYears > 0 && job) salary *= 2;
   const hustleIncome = s.career.hustle?.lastIncome ?? 0;
 
+  // Investment returns stay in the investment balance (unrealised until withdrawn);
+  // only rent is paid out as passive cash income.
   let passive = 0;
   const investments = s.finances.investments.map((inv) => {
     const r = investmentReturn(inv.kind, rng);
     const gain = Math.round(inv.amount * r);
-    passive += gain;
     return { ...inv, amount: Math.max(0, inv.amount + gain) };
   });
   for (const a of s.assets) {
@@ -53,8 +60,10 @@ export function yearlyFinance(state: GameState, rng: Rng): GameState {
   if (adult && !s.crime.inPrison) {
     const ownsHome = s.assets.some((a) => a.kind === 'house' && a.primary && !a.rentedOut);
     const livingWithParents = c.age < 24 && !ownsHome && gross < scaleMoney(s, 20_000) && Object.values(s.people).some((p) => (p.kind === 'mother' || p.kind === 'father') && p.alive);
-    const base = ownsHome ? 7_000 : livingWithParents ? 2_500 : 9_000 + Math.min(12_000, gross * 0.08);
-    expenses += scaleMoney(s, base) * (c.traits.includes('thrifty') ? 0.85 : 1);
+    const housing = ownsHome ? 7_000 : livingWithParents ? 2_500 : 9_000;
+    // Lifestyle creep: spending rises with income above the basics, so a salary alone does not compound into a fortune.
+    const lifestyle = Math.min(scaleMoney(s, 50_000), Math.max(0, gross - scaleMoney(s, 12_000)) * 0.3);
+    expenses += (scaleMoney(s, housing) + lifestyle) * (c.traits.includes('thrifty') ? 0.85 : 1);
     const kids = Object.values(s.people).filter((p) => p.kind === 'child' && p.alive && p.age < 18).length;
     expenses += kids * scaleMoney(s, 4_000);
   }

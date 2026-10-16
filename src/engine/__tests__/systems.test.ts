@@ -2,12 +2,13 @@ import { getCountry } from '@/data/countries';
 import { ageUp } from '../ageUp';
 import { applyAction } from '../actions';
 import { makeRegistry } from '../events/select';
-import { createLife } from '../systems/character';
+import { createLife, emptyMemory } from '../systems/character';
 import { canBuy, yearlyMortgagePayment } from '../systems/assets';
-import { meetsRequirements, rollListings } from '../systems/careers';
+import { meetsRequirements, rollListings, salaryCap } from '../systems/careers';
+import { awardRibbon } from '../systems/ribbons';
 import { JOB_BY_ID } from '@/data/jobs';
 import { Rng } from '../rng';
-import type { GameState } from '../types';
+import type { GameState, Job, Person } from '../types';
 import { netWorth } from '../util';
 
 const noEvents = makeRegistry([]);
@@ -85,6 +86,71 @@ describe('careers', () => {
     // either still employed with a higher salary, or promoted/fired/laid off (logged in history)
     expect((job && job.salary > salary0) || hist.length > 0 || s.counters.promotions > 0).toBe(true);
   });
+
+  it('a retiree who takes a new job is paid that job, and the pension returns when it ends', () => {
+    let s = createLife({ countryCode: 'US', customStats: { smarts: 95, looks: 80 } }, 22);
+    s = healthy({ ...s, character: { ...s.character, age: 60 }, year: s.character.birthYear + 60, education: { ...s.education, degrees: ['high_school'], stage: 'done' } });
+    const job: Job = { defId: 'janitor', title: 'Facilities Supervisor', company: 'Acme', salary: 90000, level: 2, performance: 90, yearsHeld: 10, yearsAtLevel: 5, category: 'service', partTime: false, askedThisYear: false, workedHarderThisYear: false };
+    s = { ...s, career: { ...s.career, job } };
+    s = applyAction(s, { type: 'retire' });
+    expect(s.career.retired).toBe(true);
+    s = healthy(ageUp(s, noEvents));
+    expect(s.finances.lastYear.salary).toBe(31_500); // 35% of the $90k they retired from
+    // Comes out of retirement for a cheaper gig.
+    const listing = { id: 'l_test', defId: 'musician', title: 'Session Musician', company: 'Blue Note', salary: 24_000, category: 'creative' as const, partTime: false };
+    for (let i = 0; i < 20 && !s.career.job; i++) s = applyAction({ ...s, career: { ...s.career, listings: [listing] } }, { type: 'applyJob', listingId: 'l_test' });
+    expect(s.career.job?.salary).toBe(24_000);
+    s = healthy(ageUp(s, noEvents));
+    expect(s.career.job).not.toBeNull();
+    expect(s.finances.lastYear.salary).toBe(s.career.job!.salary); // the job's pay, not the pension
+    s = applyAction(s, { type: 'quitJob' });
+    s = healthy(ageUp(s, noEvents));
+    expect(s.finances.lastYear.salary).toBe(31_500); // the pension is still based on the career they retired from
+  });
+
+  it('raises and promotions never push pay past the rung ceiling', () => {
+    let s = createLife({ countryCode: 'US', customStats: { smarts: 95 } }, 23);
+    s = healthy({ ...s, character: { ...s.character, age: 25 }, year: s.character.birthYear + 25, education: { ...s.education, degrees: ['high_school'], stage: 'done' } });
+    const job: Job = { defId: 'janitor', title: 'Janitor', company: 'Acme', salary: 26000, level: 0, performance: 90, yearsHeld: 1, yearsAtLevel: 1, category: 'service', partTime: false, askedThisYear: false, workedHarderThisYear: false };
+    s = { ...s, career: { ...s.career, job } };
+    let maxSalary = job.salary;
+    s = ageTo(s, 60, (x) => {
+      const j = x.career.job;
+      if (j) {
+        expect(j.salary).toBeLessThanOrEqual(salaryCap(x, JOB_BY_ID[j.defId]!, j.level));
+        maxSalary = Math.max(maxSalary, j.salary);
+      }
+      return applyAction(applyAction(healthy(x), { type: 'workHarder' }), { type: 'askRaise' });
+    });
+    expect(maxSalary).toBeGreaterThan(job.salary);
+    expect(maxSalary).toBeLessThanOrEqual(salaryCap(s, JOB_BY_ID.janitor!, JOB_BY_ID.janitor!.ladder.length - 1));
+  });
+
+  it('fame comes from rungs above entry level and fades out of the spotlight', () => {
+    let s = createLife({ countryCode: 'US', customStats: { smarts: 95 } }, 24);
+    s = healthy({ ...s, character: { ...s.character, age: 25 }, year: s.character.birthYear + 25 });
+    const entry: Job = { defId: 'musician', title: 'Session Musician', company: 'Acme', salary: 22000, level: 0, performance: 90, yearsHeld: 10, yearsAtLevel: 5, category: 'creative', partTime: false, askedThisYear: false, workedHarderThisYear: false };
+    s = healthy(ageUp({ ...s, career: { ...s.career, job: entry } }, noEvents));
+    expect(s.character.fame).toBe(0);
+    s = healthy(ageUp({ ...s, career: { ...s.career, job: { ...entry, title: 'Touring Musician', level: 1, performance: 90 } } }, noEvents));
+    expect(s.career.job).not.toBeNull();
+    expect(s.character.fame).toBe(8);
+    s = healthy(ageUp({ ...s, career: { ...s.career, job: null } }, noEvents));
+    expect(s.character.fame).toBe(5);
+  });
+});
+
+describe('ribbons', () => {
+  it('money ribbons scale with the country, Survivor needs 15 illnesses and Centenarian outranks it', () => {
+    const us = createLife({ countryCode: 'US' }, 25);
+    const ng = createLife({ countryCode: 'NG' }, 25);
+    expect(awardRibbon({ ...us, finances: { ...us.finances, cash: 150_000 } }).id).not.toBe('rich');
+    expect(awardRibbon({ ...ng, finances: { ...ng.finances, cash: 150_000 } }).id).toBe('rich');
+    const old = { ...us, character: { ...us.character, age: 100 }, counters: { ...us.counters, illnesses: 14 } };
+    expect(awardRibbon(old).id).toBe('centenarian');
+    expect(awardRibbon({ ...old, character: { ...old.character, age: 80 } }).id).not.toBe('survivor');
+    expect(awardRibbon({ ...old, character: { ...old.character, age: 80 }, counters: { ...old.counters, illnesses: 15 } }).id).toBe('survivor');
+  });
 });
 
 describe('finance and assets', () => {
@@ -114,6 +180,31 @@ describe('finance and assets', () => {
     s = applyAction(s, { type: 'payDebt', amount: 1_000_000 });
     expect(s.finances.debt).toBe(0);
   });
+
+  it('investment returns stay in the balance and are not paid out as cash', () => {
+    let s = createLife({ countryCode: 'US' }, 21);
+    s = healthy({ ...s, character: { ...s.character, age: 30 }, year: s.character.birthYear + 30, finances: { ...s.finances, cash: 150_000 } });
+    s = applyAction(s, { type: 'invest', kind: 'savings', amount: 100_000 });
+    expect(s.finances.investments[0]?.amount).toBe(100_000);
+    const cashBefore = s.finances.cash;
+    s = ageUp(s, noEvents);
+    expect(s.finances.investments[0]?.amount).toBe(102_000);
+    expect(s.finances.lastYear.passive).toBe(0);
+    expect(s.finances.lastYear.income).toBe(0);
+    expect(s.finances.cash).toBe(cashBefore - s.finances.lastYear.expenses);
+  });
+
+  it('a crypto crash never turns an unrealised loss into debt', () => {
+    for (let seed = 2; seed < 32; seed++) {
+      let s = createLife({ countryCode: 'US' }, seed);
+      s = healthy({ ...s, character: { ...s.character, age: 30 }, year: s.character.birthYear + 30, finances: { ...s.finances, cash: 100_000 } });
+      s = applyAction(s, { type: 'invest', kind: 'crypto', amount: 100_000 });
+      s = ageUp(s, noEvents);
+      expect(s.finances.lastYear.passive).toBe(0);
+      // Only the year's living expenses can create debt, never the investment swing.
+      expect(s.finances.debt).toBeLessThanOrEqual(s.finances.lastYear.expenses);
+    }
+  });
 });
 
 describe('relationships', () => {
@@ -139,5 +230,23 @@ describe('relationships', () => {
     s = applyAction({ ...s, actionsThisYear: {}, character: { ...s.character, energy: 3 } }, { type: 'interact', personId: lover.id, interaction: 'divorce' });
     expect(s.people[lover.id]!.kind).toBe('ex');
     expect(s.counters.divorces).toBe(1);
+  });
+
+  it('people are only neglected in years without an interaction', () => {
+    let s = createLife({ countryCode: 'US', gender: 'male' }, 26);
+    s = healthy({ ...s, character: { ...s.character, age: 30, energy: 4, energyMax: 4 }, year: s.character.birthYear + 30 });
+    const spouse: Person = { ...Object.values(s.people)[0]!, id: 'p_spouse', kind: 'spouse', gender: 'female', age: 29, alive: true, health: 95, relationship: 75, love: 64, memory: emptyMemory(30) };
+    s = { ...s, people: { ...s.people, [spouse.id]: spouse } };
+    s = applyAction(s, { type: 'interact', personId: spouse.id, interaction: 'spendTime' });
+    const rel = s.people[spouse.id]!.relationship;
+    const love = s.people[spouse.id]!.love!;
+    s = healthy(ageUp(s, noEvents));
+    expect(s.people[spouse.id]!.memory.yearsNeglected).toBe(0);
+    expect(s.people[spouse.id]!.relationship).toBe(rel);
+    expect(s.people[spouse.id]!.love).toBe(love);
+    s = healthy(ageUp(s, noEvents));
+    expect(s.people[spouse.id]!.memory.yearsNeglected).toBe(1);
+    expect(s.people[spouse.id]!.relationship).toBe(rel - 4);
+    expect(s.people[spouse.id]!.love).toBe(love - 5);
   });
 });

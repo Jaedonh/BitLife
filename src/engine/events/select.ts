@@ -65,9 +65,10 @@ export function openNextEvent(state: GameState, registry: EventRegistry): GameSt
     s = { ...s, eventQueue: rest };
     const def = registry.byId[next!.eventId];
     if (!def) continue;
-    // Re-validate: the state may have changed since scheduling (e.g. death of the bound person).
-    if (next!.personId && !s.people[next!.personId]) continue;
+    // Re-validate: an earlier card may have killed, dumped or alienated the bound person since scheduling.
     const person = next!.personId ? s.people[next!.personId] : undefined;
+    if (next!.personId && !person) continue;
+    if (person && def.person && !candidatesFor(s, def.person).some((p) => p.id === person.id)) continue;
     const choices = def.choices.filter((c) => evaluateAll(s, c.conditions));
     if (choices.length === 0) continue;
     const pending: PendingEvent = {

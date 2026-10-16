@@ -47,7 +47,7 @@ A card must be answered before anything else happens. Resolving it may queue fol
 | Looks | 0-100 | 0-100 | <20 −1..+3 · 20-34 −2..+1 · 35-54 −3..0 · 55+ −4..−1; −1 when health <30 | gym (+3), salon (+3), surgery (+15, 12% botch −18) | age |
 | Money | — | 0 | see §9 | salary, hustles, passive income, inheritance, windfalls | living costs, upkeep, taxes, debt interest |
 | Karma (hidden) | 0-100 | 50 | — | compliments (+1), gifts (+1), giving money (+2), volunteering (+4), meditation (+1), kind event choices | insults (−2), crimes (−3..−20), cruel event choices |
-| Fame | 0-100 | 0 | — | fame-track jobs (actor, musician, athlete, journalist, politician), hustles at level ≥3 | — |
+| Fame | 0-100 | 0 | −3/yr while not in a fame job | fame-track jobs above the entry rung (job fame × rung per year: actor, musician, athlete, journalist, politician…), hustles at level ≥3 | fading out of the spotlight |
 
 Hidden **potential** caps (Smarts 60-100, Looks 60-100, Health 85-100, raised by traits) stop training from pushing a stat past the character's natural ceiling. Each stat is shown with a coloured bar; 0-100 integer.
 
@@ -79,25 +79,25 @@ University: 25 majors with Smarts thresholds (25-65), 4-5 years, tuition $11-16k
 
 71 job ladders (3-6 rungs) in 13 categories; 6 part-time teen jobs. Each listing rolls a company name and ±8-12% salary. Requirements: education level or specific professional degree, accepted majors, Smarts/Looks/Health minimums, years of experience, no criminal record. Interview success = 65% + (Smarts−50)/200 + (Looks−50)/400, +10% charming, −10% with a record (clamped 15-95%).
 
-Yearly: performance drifts ±7 ± (Smarts−50)/20, −5 when unhappy or unhealthy, −8 with an addiction; **Work harder** +8 once a year; raise 1-5% when performance ≥ 65; promotion chance 30% when performance ≥ 72 and 2+ years at the rung; **Ask for a raise** (60%/35%/10% by performance) and **Ask for promotion** (55%/40%/8%) once a year; fired at 50% when performance < 18; 2% random layoff; injury chance = danger/400; stress reduces Happiness/Health each year; fame jobs add fame. Retirement from 60 pays 35% of the last salary. Prison ends employment.
+Yearly: performance drifts ±7 ± (Smarts−50)/20, −5 when unhappy or unhealthy, −8 with an addiction; **Work harder** +8 once a year; raise 1-5% when performance ≥ 65, capped at 125% of the rung's base pay (only a promotion moves the cap); promotion chance 30% when performance ≥ 72 and 2+ years at the rung; **Ask for a raise** (60%/35%/10% by performance) and **Ask for promotion** (55%/40%/8%) once a year; fired at 50% when performance < 18; 2% random layoff; injury chance = danger/400; stress reduces Happiness/Health each year; fame jobs add fame. Retirement from 60 pays 35% of the salary retired from (the best one, if retired more than once); a retiree who takes a new job is paid that job instead, and the pension resumes when it ends. Prison ends employment.
 
 ## 8. Side hustles and investing
 
 Six hustles (streaming, indie apps, craft shop, rideshare – needs a car, tutoring, furniture flipping), levels 0-5. Level-up chance = growth × (0.3 + stat/120) (+15% creative trait on creative hustles); 8% chance to slip a level; income by level ($0 → $18k-180k) ±20%; viral bonus chance 2-6% from level 2; level 5 sets the Hustler ribbon flag.
 
-Investments: savings (2%), index fund (normal 7% ± 15%, clamped −45..+60%), crypto (normal 12% ± 60%, clamped −80..+250%). Invest 25% of cash per tap; withdraw all.
+Investments: savings (2%), index fund (normal 7% ± 15%, clamped −45..+60%), crypto (normal 12% ± 60%, clamped −80..+250%). Invest 25% of cash per tap; withdraw all. Returns accrue to the balance (unrealised until withdrawn) and never move cash on their own.
 
 ## 9. Finances and expenses
 
-Income = salary (×2 in a windfall-boost year; 0 in prison; pension when retired) + hustle income − taxes + passive (investment gains, rent at 3.5-6% of a rented-out home's value). Tax = gross × country rate × min(1, 0.6 + gross/250k).
+Income = salary (×2 in a windfall-boost year; 0 in prison; pension when retired) + hustle income − taxes + passive (rent at 3.5-6% of a rented-out home's value; investment returns stay in the investment balance). Tax = gross × country rate × min(1, 0.6 + gross/250k).
 
-Adult expenses: living $7k (own home) / $2.5k (living with parents, under 24 and earning < $20k) / $9k + 8% of gross (renting, capped +$12k); −15% thrifty trait; $4k per child under 18; asset upkeep; mortgage payments; student loan repayments; debt: 15% interest, repaid at 20%/yr (min $1k). Cash never goes negative: shortfalls become **debt** (also for event costs and fines). Bankruptcy when debt > $250k and exceeds net worth + $250k: non-primary assets and investments are lost, debt cleared, −15 Happiness. All dollar figures are scaled by the country's salary multiplier.
+Adult expenses: housing $7k (own home) / $2.5k (living with parents, under 24 and earning < $20k) / $9k (renting), plus lifestyle spending of 30% of gross income above $12k (capped at $50k) so a salary alone does not compound into a fortune; −15% thrifty trait; $4k per child under 18; asset upkeep; mortgage payments; student loan repayments; debt: 15% interest, repaid at 20%/yr (min $1k). Cash never goes negative: shortfalls become **debt** (also for event costs and fines). Bankruptcy when debt > $250k and exceeds net worth + $250k: non-primary assets and investments are lost, debt cleared, −15 Happiness. All dollar figures are scaled by the country's salary multiplier.
 
 ## 10. Relationships
 
 People: parents, step-parents, siblings, children, friends/best friends, lovers, spouses, exes, coworkers, classmates, enemies, pets. Each has relationship 0-100 (lovers/spouses also **love** 0-100), looks/smarts/health, craziness (volatility), occupation, money, and a **memory** (last interaction age, insults, compliments, gifts, fights, years neglected).
 
-Yearly: neglected people lose relationship (−2 family, −4 friends/partners) and partners lose 5 love; partners with love < 20 leave (40%/yr); friends under 15 drift away; new friends appear (40%/yr under 25, 20% after, max 4); a new partner appears for singles 16-74 (25% + looks/400); NPCs age and can die (age/health curve); parents/spouses leave inheritances (80% split among children, or 100% to a spouse).
+Yearly: neglected people (no interaction during the year just played) lose relationship (−2 family, −4 friends/partners) and partners lose 5 love; partners with love < 20 leave (40%/yr); friends under 15 drift away; new friends appear (40%/yr under 25, 20% after, max 4); a new partner appears for singles 16-74 (25% + looks/400); NPCs age and can die (age/health curve); parents/spouses leave inheritances (80% split among children, or 100% to a spouse).
 
 14 interactions with energy/money costs and yearly caps: spend time, conversation (argument chance from craziness and low relationship), compliment, insult (retaliation chance), gift ($150), ask for money, give money ($1k), date ($120), propose ($2.5k; needs love ≥ 55), break up, divorce (30% of cash settlement), try for a baby (55%/yr while fertile), play/walk with pets.
 
@@ -136,9 +136,9 @@ Content budget: 12 category files (early childhood, kid years, teen years, young
 
 ## 16. Death, obituary, ribbons, legacy
 
-On death: cause (illness-driven where one exists; otherwise age-appropriate), net worth, one **ribbon** from 25 by priority (Deadly, Jailbird, Tycoon, Famous, Rich, Academic, Family First, Heartbreaker, Cunning, Scandalous, Fit, Bookworm, Globetrotter, Generous, Loyal, Hustler, Survivor, Addict, Lazy, Centenarian, Wasted, Successful, Happy, Miserable, Mediocre), an **obituary** generated from career, education, family, money and convictions, and an epitaph. The tombstone screen shows all of it plus karma. The graveyard keeps the last 200 lives and the ribbon collection.
+On death: cause (illness-driven where one exists; otherwise age-appropriate), net worth, one **ribbon** from 25 by priority (Deadly, Jailbird, Tycoon, Famous, Rich, Academic, Family First, Heartbreaker, Cunning, Scandalous, Fit, Bookworm, Globetrotter, Generous, Loyal, Hustler, Centenarian, Survivor (15+ illnesses), Addict, Lazy, Wasted, Successful, Happy, Miserable, Mediocre; money thresholds scale with the country's salary multiplier), an **obituary** generated from career, education, family, money and convictions, and an epitaph. The tombstone screen shows all of it plus karma. The graveyard keeps the last 200 lives and the ribbon collection.
 
-**Legacy:** continue as any living child: the new life keeps the surname, the family tree (the dead player becomes a dead parent; the other parent and siblings persist), generation counter and ancestor list. Free play: one hand-off per family line (generation 1 → 2); premium: unlimited. **Second chance:** once per life, death can be undone (rewarded ad, or instantly for premium): health is restored to ~45 and severe illnesses removed.
+**Legacy:** continue as any living child: the new life starts as that child (their name, gender, age, looks/smarts/health, country and city) in the year of the death, with their share of the estate (80% of the net worth split between the children), the family tree (the dead player becomes a dead parent; the other parent and siblings persist), generation counter and ancestor list. Free play: one hand-off per family line (generation 1 → 2); premium: unlimited. **Second chance:** once per life, death can be undone (rewarded ad, or instantly for premium): health is restored to ~45 and severe illnesses removed.
 
 ## 17. Onboarding and settings
 

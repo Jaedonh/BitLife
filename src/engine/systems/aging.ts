@@ -60,7 +60,8 @@ export function ageNpcs(state: GameState, rng: Rng): GameState {
       continue;
     }
     const next: Person = { ...p, age: p.age + 1, memory: { ...p.memory } };
-    const neglected = next.memory.lastInteractionAge < s.character.age;
+    // advanceYear has already incremented the age: an interaction during the year just played counts.
+    const neglected = next.memory.lastInteractionAge < s.character.age - 1;
     if (neglected) {
       next.memory.yearsNeglected += 1;
       const decay = next.kind === 'spouse' || next.kind === 'lover' ? -4 : next.kind === 'friend' || next.kind === 'bestFriend' ? -4 : -2;
@@ -112,11 +113,16 @@ function formatInherit(state: GameState, amount: number): string {
   return `${c.currencySymbol}${Math.round(amount).toLocaleString('en-US')}`;
 }
 
+/** Yearly social-energy budget by age (GAME_DESIGN §2). */
+export function energyMaxFor(age: number): number {
+  return age < 6 ? 1 : age < 13 ? 2 : age < 60 ? 4 : 3;
+}
+
 /** Advances age/year and resets per-year counters. */
 export function advanceYear(state: GameState): GameState {
   const c = state.character;
   const nextAge = c.age + 1;
-  const energyMax = nextAge < 6 ? 1 : nextAge < 13 ? 2 : nextAge < 60 ? 4 : 3;
+  const energyMax = energyMaxFor(nextAge);
   return {
     ...state,
     year: state.year + 1,

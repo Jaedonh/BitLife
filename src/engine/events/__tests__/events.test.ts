@@ -1,5 +1,5 @@
 import { EVENTS } from '@/data/events';
-import { createLife } from '../../systems/character';
+import { createLife, makePerson } from '../../systems/character';
 import { Rng } from '../../rng';
 import { applyEffects } from '../effects';
 import { makeRegistry, openNextEvent, resolveChoice, scheduleYearEvents } from '../select';
@@ -94,6 +94,42 @@ describe('event flow', () => {
     }
     expect(sawCool).toBe(true);
     expect(sawOnce).toBe(false);
+  });
+
+  it('drops a queued event whose bound person died or left before it opened', () => {
+    const base = { category: 'random', minAge: 0, maxAge: 100, weight: 1 } as const;
+    const reg = makeRegistry([
+      { ...base, id: 'kill', title: 'Loss', text: '{{person}} is gone.', person: { kind: ['friend'] }, choices: [{ id: 'ok', label: 'Ok', effects: [{ personDies: true }] }] },
+      { ...base, id: 'after', title: 'Rumour', text: '{{person}} pulled me aside.', person: { kind: ['friend'] }, choices: [{ id: 'ok', label: 'Ok', effects: [] }] },
+      { ...base, id: 'dump', title: 'Fight', text: 'It is over with {{person}}.', person: { kind: ['lover'] }, choices: [{ id: 'ok', label: 'Ok', effects: [{ removePerson: true }] }] },
+      { ...base, id: 'date', title: 'Date', text: 'Dinner with {{person}}.', person: { kind: ['lover'] }, choices: [{ id: 'ok', label: 'Ok', effects: [] }] },
+    ]);
+    let s = createLife({ countryCode: 'US' }, 44);
+    const friend = makePerson(new Rng(1), { kind: 'friend', age: 20, countryCode: 'US', playerAge: 20 });
+    const lover = makePerson(new Rng(2), { kind: 'lover', age: 20, countryCode: 'US', playerAge: 20 });
+    lover.love = 60;
+    s = {
+      ...s,
+      character: { ...s.character, age: 20 },
+      people: { ...s.people, [friend.id]: friend, [lover.id]: lover },
+      eventQueue: [
+        { eventId: 'kill', context: {}, personId: friend.id },
+        { eventId: 'after', context: {}, personId: friend.id },
+        { eventId: 'dump', context: {}, personId: lover.id },
+        { eventId: 'date', context: {}, personId: lover.id },
+      ],
+    };
+    s = openNextEvent(s, reg);
+    expect(s.pendingEvent?.eventId).toBe('kill');
+    s = resolveChoice(s, 'ok', reg);
+    expect(s.people[friend.id]?.alive).toBe(false);
+    // 'after' is skipped because the friend just died; 'dump' opens next.
+    expect(s.pendingEvent?.eventId).toBe('dump');
+    s = resolveChoice(s, 'ok', reg);
+    expect(s.people[lover.id]?.kind).toBe('ex');
+    // 'date' is skipped because the lover is now an ex.
+    expect(s.pendingEvent).toBeNull();
+    expect(s.eventQueue).toEqual([]);
   });
 });
 

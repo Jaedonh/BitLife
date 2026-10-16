@@ -47,6 +47,11 @@ export function meetsRequirements(state: GameState, def: JobDef): { ok: boolean;
   return { ok: true };
 }
 
+/** Pay ceiling for a rung: listings roll up to 1.12x the base, raises can push ~12% further. */
+export function salaryCap(state: GameState, def: JobDef, level: number): number {
+  return Math.round(scaleMoney(state, def.ladder[Math.min(level, def.ladder.length - 1)]!.salary) * 1.25);
+}
+
 export function listingSalary(state: GameState, def: JobDef, level: number, rng: Rng): number {
   const base = def.ladder[Math.min(level, def.ladder.length - 1)]!.salary;
   return Math.round(scaleMoney(state, base) * rng.float(0.92, 1.12));
@@ -131,11 +136,14 @@ export function askForRaise(state: GameState, rng: Rng): GameState {
   const job = state.career.job;
   if (!job) return state;
   if (job.askedThisYear) return setResult(state, 'I already asked this year. Best not to push it.', 'info');
+  const def = JOB_BY_ID[job.defId];
+  const cap = def ? salaryCap(state, def, job.level) : Infinity;
+  if (job.salary >= cap) return setResult(state, "I'm already at the top of the pay band for this role.", 'info');
   const chance = job.performance >= 80 ? 0.6 : job.performance >= 60 ? 0.35 : 0.1;
   let s: GameState = { ...state, career: { ...state.career, job: { ...job, askedThisYear: true } } };
   if (rng.chance(chance + (state.character.traits.includes('charming') ? 0.1 : 0))) {
     const pct = rng.int(4, 10);
-    s = { ...s, career: { ...s.career, job: { ...s.career.job!, salary: Math.round(job.salary * (1 + pct / 100)) } } };
+    s = { ...s, career: { ...s.career, job: { ...s.career.job!, salary: Math.min(cap, Math.round(job.salary * (1 + pct / 100))) } } };
     s = log(s, `I asked for a raise and got ${pct}%.`, 'good');
     return setResult(s, `Raise approved: +${pct}%.`, 'good');
   }
@@ -147,7 +155,7 @@ export function askForRaise(state: GameState, rng: Rng): GameState {
 function promote(state: GameState, rng: Rng, job: Job, def: JobDef): GameState {
   const nextLevel = job.level + 1;
   const title = def.ladder[nextLevel]!.title;
-  const salary = Math.max(Math.round(job.salary * 1.1), listingSalary(state, def, nextLevel, rng));
+  const salary = Math.max(job.salary, Math.min(salaryCap(state, def, nextLevel), Math.max(Math.round(job.salary * 1.1), listingSalary(state, def, nextLevel, rng))));
   let s: GameState = { ...state, career: { ...state.career, job: { ...job, level: nextLevel, title, salary, yearsAtLevel: 0, performance: clampStat(job.performance - 10) } } };
   s = bump(s, 'promotions');
   s = addStats(s, { happiness: 6 });
@@ -199,7 +207,9 @@ export function yearlyCareer(state: GameState, rng: Rng): GameState {
     s = { ...s, career: { ...s.career, job: updated, totalYearsWorked: s.career.totalYearsWorked + 1, experience: { ...s.career.experience, [def.category]: (s.career.experience[def.category] ?? 0) + 1 } } };
     s = bump(s, 'yearsEmployed');
     s = addStats(s, { happiness: -Math.round(def.stress / 25), health: -Math.round(def.stress / 30) });
-    if (def.fame) s = { ...s, character: { ...s.character, fame: clampStat(s.character.fame + def.fame * (1 + updated.level)) } };
+    // Fame comes from the rungs above entry level; out of the spotlight it fades.
+    if (def.fame) s = { ...s, character: { ...s.character, fame: clampStat(s.character.fame + def.fame * updated.level) } };
+    else if (s.character.fame > 0) s = { ...s, character: { ...s.character, fame: clampStat(s.character.fame - 3) } };
     if (rng.chance(def.danger / 400)) {
       s = addStats(s, { health: -rng.int(4, 12) });
       s = { ...s, health: { ...s.health, injuries: s.health.injuries + 1 } };
@@ -219,12 +229,15 @@ export function yearlyCareer(state: GameState, rng: Rng): GameState {
     }
     if (perf >= 65 && updated.yearsAtLevel >= 1) {
       const pct = rng.int(1, 5);
-      updated = { ...updated, salary: Math.round(updated.salary * (1 + pct / 100)) };
+      // Yearly raises stop at the rung's pay ceiling; only a promotion moves the ceiling.
+      updated = { ...updated, salary: Math.max(updated.salary, Math.min(salaryCap(s, def, updated.level), Math.round(updated.salary * (1 + pct / 100)))) };
       s = { ...s, career: { ...s.career, job: updated } };
     }
     if (!updated.partTime && updated.level < def.ladder.length - 1 && perf >= 72 && updated.yearsAtLevel >= 2 && rng.chance(0.3)) {
       s = promote(s, rng, updated, def);
     }
+  } else if (s.character.fame > 0) {
+    s = { ...s, character: { ...s.character, fame: clampStat(s.character.fame - 3) } };
   }
   return yearlyHustle(s, rng);
 }
