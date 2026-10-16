@@ -4,7 +4,8 @@ import type { PurchasesService } from './types';
 export const purchases: PurchasesService = {
   init: async () => {},
   isSupported: () => false,
-  isPremium: async () => false,
+  isPremium: async () => null,
+  onPremiumChange: () => () => {},
   getPremiumOffer: async () => null,
   purchasePremium: async () => 'unavailable',
   restore: async () => false,

@@ -1,3 +1,5 @@
+import type { CustomerInfo } from 'react-native-purchases';
+
 import { PREMIUM_ENTITLEMENT, PREMIUM_PRODUCT_ID, revenueCatApiKey } from '@/config/monetization';
 import type { PremiumOffer, PurchaseOutcome, PurchasesService } from './types';
 
@@ -32,15 +34,42 @@ async function init(): Promise<void> {
   }
 }
 
-async function isPremium(): Promise<boolean> {
+function hasPremium(info: CustomerInfo): boolean {
+  return info.entitlements.active[PREMIUM_ENTITLEMENT] != null;
+}
+
+/**
+ * `null` when the store cannot answer (no SDK, not configured, lookup failed)
+ * so the caller keeps its cached flag; `false` only when the SDK answered and
+ * the entitlement is not active (never bought, refunded, revoked).
+ */
+async function isPremium(): Promise<boolean | null> {
   const P = Purchases();
-  if (!P || !configured) return false;
+  if (!P || !configured) return null;
   try {
     const info = await P.getCustomerInfo();
-    return info.entitlements.active[PREMIUM_ENTITLEMENT] != null;
+    return hasPremium(info);
   } catch {
-    return false;
+    return null;
   }
+}
+
+function onPremiumChange(listener: (premium: boolean) => void): () => void {
+  const P = Purchases();
+  if (!P || !configured) return () => {};
+  const rcListener = (info: CustomerInfo) => listener(hasPremium(info));
+  try {
+    P.addCustomerInfoUpdateListener(rcListener);
+  } catch {
+    return () => {};
+  }
+  return () => {
+    try {
+      P.removeCustomerInfoUpdateListener(rcListener);
+    } catch {
+      // ignore
+    }
+  };
 }
 
 async function findPremiumPackage() {
@@ -80,7 +109,7 @@ async function purchasePremium(): Promise<PurchaseOutcome> {
     const pkg = await findPremiumPackage();
     if (!pkg) return 'unavailable';
     const result = await P.purchasePackage(pkg);
-    return result.customerInfo.entitlements.active[PREMIUM_ENTITLEMENT] != null ? 'purchased' : 'error';
+    return hasPremium(result.customerInfo) ? 'purchased' : 'error';
   } catch (e: unknown) {
     const err = e as { userCancelled?: boolean; code?: string | number };
     if (err?.userCancelled || String(err?.code) === String(rc?.PURCHASES_ERROR_CODE?.PURCHASE_CANCELLED_ERROR)) {
@@ -95,7 +124,7 @@ async function restore(): Promise<boolean> {
   if (!P || !configured) return false;
   try {
     const info = await P.restorePurchases();
-    return info.entitlements.active[PREMIUM_ENTITLEMENT] != null;
+    return hasPremium(info);
   } catch {
     return false;
   }
@@ -105,6 +134,7 @@ export const purchases: PurchasesService = {
   init,
   isSupported: () => rc != null && !!revenueCatApiKey,
   isPremium,
+  onPremiumChange,
   getPremiumOffer,
   purchasePremium,
   restore,
