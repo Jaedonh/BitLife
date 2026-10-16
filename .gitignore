@@ -20,6 +20,10 @@ expo-env.d.ts
 google-services.json
 GoogleService-Info.plist
 
+# Store credentials (eas.json → submit.production.android.serviceAccountKeyPath): never commit
+google-play-service-account.json
+*service-account*.json
+
 # Metro
 .metro-health-check*
 
@@ -32,9 +36,11 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
+# local env files (Expo loads .env, .env.local and .env.<NODE_ENV>[.local]; any of them may hold keys)
 .env
+.env.*
 .env*.local
+!.env.example
 
 # typescript
 *.tsbuildinfo

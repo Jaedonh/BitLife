@@ -94,8 +94,9 @@ are stored under separate keys so clearing a life never loses purchases.
   premium.
 * `src/services/ads/adsImpl.native.tsx` gathers UMP consent (and ATT on iOS)
   before initialising the SDK, uses Google test unit IDs unless `EXPO_PUBLIC_ADMOB_*`
-  are set, and exposes a `Banner` component plus `showInterstitial` /
-  `showRewarded` promises.
+  are set (`app.config.ts` refuses to evaluate a production build without them),
+  and exposes a `Banner` component plus `showInterstitial` / `showRewarded`
+  promises.
 * `src/services/purchases/*` wraps RevenueCat. The `premium` entitlement unlocks
   ad removal and premium perks (see `GAME_DESIGN.md §19`). The premium flag is
   cached locally and re-validated on launch; "Restore purchases" is in Settings.

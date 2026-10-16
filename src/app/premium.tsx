@@ -40,7 +40,7 @@ export default function PremiumScreen() {
       setMsg('Welcome to Premium!');
       setTimeout(() => router.back(), 800);
     } else if (r === 'cancelled') setMsg(null);
-    else if (r === 'unavailable') setMsg('Purchases are not available in this build. Install the store version to upgrade.');
+    else if (r === 'unavailable') setMsg('Purchases are not available right now. Please try again later.');
     else setMsg('The purchase could not be completed. Please try again.');
   };
 
@@ -70,7 +70,7 @@ export default function PremiumScreen() {
           </Card>
         ) : (
           <>
-            <Button testID="buy-premium" title={offer ? `Unlock Premium · ${offer.priceString}` : supported ? 'Unlock Premium' : 'Unlock Premium (store build only)'} size="lg" variant="accent" loading={busy} disabled={!supported} onPress={() => void buy()} />
+            <Button testID="buy-premium" title={offer ? `Unlock Premium · ${offer.priceString}` : supported ? 'Unlock Premium' : 'Unlock Premium (unavailable in this build)'} size="lg" variant="accent" loading={busy} disabled={!supported} onPress={() => void buy()} />
             <Button title="Restore purchases" variant="ghost" onPress={() => void restorePremium().then((ok) => setMsg(ok ? 'Premium restored.' : 'Nothing to restore on this account.'))} testID="premium-restore" />
           </>
         )}

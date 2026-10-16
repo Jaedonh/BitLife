@@ -13,7 +13,7 @@ Work top to bottom. Items marked **(long pole)** take days or weeks of calendar 
 
 ## 1. Secrets and configuration
 
-Set these as EAS environment variables (`eas env:create --scope project --environment production`) or in a local `.env` for `npx expo run:*`:
+Set these as EAS environment variables (`eas env:create --scope project --environment production`, visibility **Plain text** or **Sensitive**: all of them end up in the binary anyway, and EAS CLI only loads those two kinds when it evaluates `app.config.ts` locally before a build) or in a local `.env` for `npx expo run:*`:
 
 | Variable | Used by |
 | --- | --- |
@@ -23,9 +23,9 @@ Set these as EAS environment variables (`eas env:create --scope project --enviro
 | `EXPO_PUBLIC_RC_IOS_KEY`, `EXPO_PUBLIC_RC_ANDROID_KEY` | `src/config/monetization.ts` |
 | `EAS_PROJECT_ID` | `app.config.ts` |
 
-- [ ] Without these, builds use Google's **sample** app IDs and **test** ad units (safe, serves test ads) and purchases report "unavailable".
+- [ ] Development and preview builds (and Expo Go / web) run without these: Google's **sample** app IDs and **test** ad units (safe, serves test ads), purchases report "unavailable", and the Settings footer shows `· test ads`. A **production** build refuses to evaluate `app.config.ts` until every variable above is set (locally, before any build minutes are spent, and again on the EAS build server), so a store build can never ship sample IDs, test ad units or a paywall that cannot sell. Verify with `APP_VARIANT=production npx expo config --type public` once the variables are in your shell or `.env`.
 - [ ] Never click live ads on your own devices (invalid traffic). Register test devices in the AdMob console.
-- [ ] Fill `eas.json` → `submit.production.ios.ascAppId` after creating the App Store Connect record, and either keep `google-play-service-account.json` locally (git-ignored) or upload it with `eas credentials`.
+- [ ] Fill `eas.json` → `submit.production.ios.ascAppId` after creating the App Store Connect record, and either keep `google-play-service-account.json` locally (git-ignored, as are `*service-account*.json` and `.env.*`) or upload it with `eas credentials`.
 - [ ] Publish `docs/PRIVACY_POLICY.md` (fill in the legal name and email) at a public URL that contains **no third-party trademark**: it is opened from Settings → Privacy policy and entered in both store consoles. Default: a separate GitHub Pages repo named `lifeloop-privacy` whose `index.md` is the policy (repo Settings → Pages → deploy from `main`), served at `https://<user>.github.io/lifeloop-privacy/`. Then set `PRIVACY_URL` and `SUPPORT_EMAIL` in `src/config/legal.ts` to match and run `npm run check:privacy`, which fails until the URL answers HTTP 200 (a dead in-app policy link is an Apple 5.1.1(i) / Play User Data rejection).
 
 ## 2. Builds
@@ -33,6 +33,7 @@ Set these as EAS environment variables (`eas env:create --scope project --enviro
 ```bash
 npm ci && npm run typecheck && npm run lint && npm test && npm run build:web && npm run e2e   # all green
 npm run check:privacy   # the published privacy policy answers HTTP 200 at PRIVACY_URL
+APP_VARIANT=production npx expo config --type public   # with the §1 variables in your shell/.env: fails until all are set
 eas build --profile development --platform all   # dev client: test real ads/IAP on devices
 eas build --profile production --platform android
 eas build --profile production --platform ios

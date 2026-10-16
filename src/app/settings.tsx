@@ -7,6 +7,7 @@ import { Alert, Linking, Platform, ScrollView, StyleSheet, Switch, Text, View } 
 import { ScreenHeader } from '@/components/game/ScreenHeader';
 import { Button, Card, Screen, Section, T } from '@/components/ui';
 import { PRIVACY_URL, SUPPORT_EMAIL } from '@/config/legal';
+import { usingTestAds } from '@/config/monetization';
 import { ads } from '@/services/ads';
 import { restorePremium } from '@/services/monetization';
 import { useGameStore } from '@/store/gameStore';
@@ -89,6 +90,8 @@ export default function SettingsScreen() {
         </Section>
         <Text style={styles.version}>
           LifeLoop {Application.nativeApplicationVersion ?? '1.0.0'} ({Application.nativeBuildVersion ?? 'web'})
+          {/* Visible proof that this binary serves Google's test ad units (dev/preview builds; never a store build). */}
+          {ads.isSupported() && usingTestAds ? ' · test ads' : ''}
         </Text>
       </ScrollView>
     </Screen>

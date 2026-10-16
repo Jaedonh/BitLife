@@ -6,20 +6,54 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
  * APP_VARIANT (set by the eas.json build profiles) selects:
  *   development / preview -> Google's SAMPLE AdMob app IDs (safe, serves test ads)
  *   production            -> real IDs from ADMOB_ANDROID_APP_ID / ADMOB_IOS_APP_ID
- * Set those two secrets in EAS (eas env:create --scope project) before a store build.
+ * A production build throws below until every monetization variable in
+ * docs/RELEASE_CHECKLIST.md §1 is set, so a store build can never ship sample
+ * AdMob IDs, test ad units or a paywall that cannot sell anything.
  */
 const variant = process.env.APP_VARIANT ?? 'development';
 const isProd = variant === 'production';
 
 const SAMPLE_ANDROID_APP_ID = 'ca-app-pub-3940256099942544~3347511713';
 const SAMPLE_IOS_APP_ID = 'ca-app-pub-3940256099942544~1458002511';
+/** Google's sample AdMob publisher: every demo app ID and test ad unit starts with it. */
+const SAMPLE_PUBLISHER = 'ca-app-pub-3940256099942544';
+
+/**
+ * Everything a store build needs (docs/RELEASE_CHECKLIST.md §1). EAS CLI evaluates
+ * this file locally with the build environment's "Plain text" and "Sensitive" EAS
+ * variables (never "Secret" ones) before anything is uploaded, and the build server
+ * evaluates it again, so a missing value fails the build before it costs anything.
+ */
+const REQUIRED_PRODUCTION_ENV = [
+  'ADMOB_ANDROID_APP_ID',
+  'ADMOB_IOS_APP_ID',
+  'EXPO_PUBLIC_ADMOB_ANDROID_BANNER',
+  'EXPO_PUBLIC_ADMOB_ANDROID_INTERSTITIAL',
+  'EXPO_PUBLIC_ADMOB_ANDROID_REWARDED',
+  'EXPO_PUBLIC_ADMOB_IOS_BANNER',
+  'EXPO_PUBLIC_ADMOB_IOS_INTERSTITIAL',
+  'EXPO_PUBLIC_ADMOB_IOS_REWARDED',
+  'EXPO_PUBLIC_RC_IOS_KEY',
+  'EXPO_PUBLIC_RC_ANDROID_KEY',
+] as const;
+
+if (isProd) {
+  const missing = REQUIRED_PRODUCTION_ENV.filter((name) => {
+    const value = (process.env[name] ?? '').trim();
+    return value.length === 0 || value.startsWith(SAMPLE_PUBLISHER);
+  });
+  if (missing.length > 0) {
+    throw new Error(
+      `[app.config] APP_VARIANT=production but ${missing.join(', ')} ${missing.length === 1 ? 'is' : 'are'} unset or still Google's sample value. ` +
+        'A store build must not ship sample AdMob IDs, test ad units or a disabled paywall. ' +
+        'Set them with `eas env:create --scope project --environment production` (visibility "Plain text" or "Sensitive", not "Secret": EAS CLI needs them to evaluate this config) ' +
+        'or in a local .env, then retry. See docs/RELEASE_CHECKLIST.md §1.',
+    );
+  }
+}
 
 const androidAppId = (isProd && process.env.ADMOB_ANDROID_APP_ID) || SAMPLE_ANDROID_APP_ID;
 const iosAppId = (isProd && process.env.ADMOB_IOS_APP_ID) || SAMPLE_IOS_APP_ID;
-
-if (isProd && (androidAppId === SAMPLE_ANDROID_APP_ID || iosAppId === SAMPLE_IOS_APP_ID)) {
-  console.warn('[app.config] Production build is using SAMPLE AdMob app IDs. Set ADMOB_ANDROID_APP_ID / ADMOB_IOS_APP_ID.');
-}
 
 /** Google's recommended SKAdNetwork identifiers for AdMob (re-check before each release). */
 const SK_AD_NETWORK_IDS = [
