@@ -10,10 +10,10 @@ import { useSettingsStore } from '@/store/settingsStore';
 import { colors, spacing, typography } from '@/theme';
 
 const PERKS = [
-  ['🚫', 'No ads, ever', 'No banners, no interstitials. Rewarded perks are granted instantly.'],
+  ['🚫', 'No ads, ever', 'No banners, no interstitials. Rewarded perks are granted instantly, within the same daily limits.'],
   ['🎚️', 'Custom starting stats', 'Choose Happiness, Health, Smarts and Looks, or be born into wealth.'],
   ['🧬', 'Unlimited generations', 'Free play hands off to your child once per family line; Premium continues forever.'],
-  ['✨', 'Instant second chances', 'Undo death once per life without watching anything.'],
+  ['✨', 'Instant second chances', 'Undo death once per life (up to once a day) without watching anything.'],
   ['🔮', 'Everything we add next', 'All future core content stays free for everyone; premium perks keep growing.'],
 ] as const;
 

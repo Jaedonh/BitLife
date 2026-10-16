@@ -10,6 +10,7 @@ import type { AssetKind, InvestmentKind } from '@/engine/types';
 import { formatMoney, formatMoneyFull } from '@/engine/util';
 import { useRewarded } from '@/hooks/useRewarded';
 import { useGameStore } from '@/store/gameStore';
+import { useSettingsStore } from '@/store/settingsStore';
 import { colors, spacing } from '@/theme';
 
 const KIND_LABEL: Record<AssetKind, string> = { car: 'Vehicles', house: 'Property', item: 'Luxury items' };
@@ -18,6 +19,7 @@ export default function AssetsScreen() {
   const game = useGameStore((s) => s.game);
   const act = useGameStore((s) => s.act);
   const canUseRewarded = useGameStore((s) => s.canUseRewarded);
+  const premium = useSettingsStore((s) => s.premium);
   const { notice: rewardedNotice, run: runRewarded } = useRewarded();
   const [shop, setShop] = useState<AssetKind>('car');
   if (!game) return <Redirect href="/" />;
@@ -41,7 +43,7 @@ export default function AssetsScreen() {
             {fin.lastYear.taxes > 0 ? <Row label="Taxes paid" value={formatMoneyFull(fin.lastYear.taxes, cc)} /> : null}
             <View style={styles.row}>
               {fin.debt > 0 ? <Button title="Pay debt" size="sm" onPress={() => act({ type: 'payDebt', amount: fin.cash })} style={styles.flex} testID="pay-debt" /> : null}
-              {canUseRewarded('cashBoost') ? <Button title="📺 Windfall" size="sm" variant="accent" onPress={() => void runRewarded('cashBoost')} style={styles.flex} testID="rewarded-cash" /> : null}
+              {canUseRewarded('cashBoost') ? <Button title={premium ? '✨ Windfall' : '📺 Windfall'} size="sm" variant="accent" onPress={() => void runRewarded('cashBoost')} style={styles.flex} testID="rewarded-cash" /> : null}
             </View>
             {rewardedNotice ? (
               <T kind="small" testID="rewarded-notice">

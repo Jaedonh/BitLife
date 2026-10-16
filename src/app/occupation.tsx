@@ -9,12 +9,14 @@ import { enrollOptions, hustleOptions, meetsRequirements, STAGE_LABELS } from '@
 import { formatMoney, formatMoneyFull } from '@/engine/util';
 import { useRewarded } from '@/hooks/useRewarded';
 import { useGameStore } from '@/store/gameStore';
+import { useSettingsStore } from '@/store/settingsStore';
 import { colors, spacing } from '@/theme';
 
 export default function OccupationScreen() {
   const game = useGameStore((s) => s.game);
   const act = useGameStore((s) => s.act);
   const canUseRewarded = useGameStore((s) => s.canUseRewarded);
+  const premium = useSettingsStore((s) => s.premium);
   const { notice: rewardedNotice, run: runRewarded } = useRewarded();
   const [showAllJobs, setShowAllJobs] = useState(false);
   if (!game) return <Redirect href="/" />;
@@ -108,7 +110,7 @@ export default function OccupationScreen() {
             title="Job listings"
             right={
               canUseRewarded('reroll') ? (
-                <Button title="📺 New listings" size="sm" variant="ghost" onPress={() => void runRewarded('reroll')} testID="reroll-jobs" />
+                <Button title={premium ? '✨ New listings' : '📺 New listings'} size="sm" variant="ghost" onPress={() => void runRewarded('reroll')} testID="reroll-jobs" />
               ) : undefined
             }
           >
