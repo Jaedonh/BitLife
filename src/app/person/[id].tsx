@@ -29,7 +29,7 @@ export default function PersonScreen() {
           <StatBar label="Health" value={p.health} color={colors.health} />
           <T kind="small">
             {p.alive ? `Known since you were ${p.metAtAge}.` : `Died at ${p.deathAge} of ${p.deathCause}.`}
-            {p.memory.yearsNeglected >= 2 ? ` You haven't spoken in ${p.memory.yearsNeglected} years.` : ''}
+            {p.alive && game.character.age - p.memory.lastInteractionAge >= 2 ? ` You haven't spoken in ${game.character.age - p.memory.lastInteractionAge} years.` : ''}
             {p.marriedAtAge !== undefined ? ` Married when you were ${p.marriedAtAge}.` : ''}
           </T>
         </Card>
