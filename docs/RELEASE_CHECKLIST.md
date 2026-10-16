@@ -26,12 +26,13 @@ Set these as EAS environment variables (`eas env:create --scope project --enviro
 - [ ] Without these, builds use Google's **sample** app IDs and **test** ad units (safe, serves test ads) and purchases report "unavailable".
 - [ ] Never click live ads on your own devices (invalid traffic). Register test devices in the AdMob console.
 - [ ] Fill `eas.json` → `submit.production.ios.ascAppId` after creating the App Store Connect record, and either keep `google-play-service-account.json` locally (git-ignored) or upload it with `eas credentials`.
-- [ ] Update `PRIVACY_URL` and `SUPPORT_EMAIL` in `src/app/settings.tsx`, and publish `docs/PRIVACY_POLICY.md` (fill in the legal name and email) at that URL.
+- [ ] Publish `docs/PRIVACY_POLICY.md` (fill in the legal name and email) at a public URL that contains **no third-party trademark**: it is opened from Settings → Privacy policy and entered in both store consoles. Default: a separate GitHub Pages repo named `lifeloop-privacy` whose `index.md` is the policy (repo Settings → Pages → deploy from `main`), served at `https://<user>.github.io/lifeloop-privacy/`. Then set `PRIVACY_URL` and `SUPPORT_EMAIL` in `src/config/legal.ts` to match and run `npm run check:privacy`, which fails until the URL answers HTTP 200 (a dead in-app policy link is an Apple 5.1.1(i) / Play User Data rejection).
 
 ## 2. Builds
 
 ```bash
 npm ci && npm run typecheck && npm run lint && npm test && npm run build:web && npm run e2e   # all green
+npm run check:privacy   # the published privacy policy answers HTTP 200 at PRIVACY_URL
 eas build --profile development --platform all   # dev client: test real ads/IAP on devices
 eas build --profile production --platform android
 eas build --profile production --platform ios

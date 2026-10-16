@@ -1,7 +1,7 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { ScreenHeader } from '@/components/game/ScreenHeader';
-import { Card, Screen, T } from '@/components/ui';
+import { Button, Card, Screen, T } from '@/components/ui';
 import { getCountry } from '@/data/countries';
 import { RIBBON_BY_ID, RIBBONS } from '@/engine';
 import { formatMoney } from '@/engine/util';
@@ -10,7 +10,23 @@ import { colors, spacing, typography } from '@/theme';
 
 export default function GraveyardScreen() {
   const graveyard = useSettingsStore((s) => s.graveyard);
+  const clearGraveyard = useSettingsStore((s) => s.clearGraveyard);
   const earned = new Set(graveyard.map((g) => g.ribbonId));
+
+  // The privacy policy promises this deletion path (docs/PRIVACY_POLICY.md, "Information we store on your device").
+  const clear = () => {
+    const title = 'Clear the graveyard?';
+    const message = 'Every remembered life, obituary and earned ribbon on this device will be deleted. This cannot be undone.';
+    if (Platform.OS === 'web') {
+      if (globalThis.confirm?.(`${title}\n\n${message}`)) clearGraveyard();
+      return;
+    }
+    Alert.alert(title, message, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: clearGraveyard },
+    ]);
+  };
+
   return (
     <Screen>
       <ScreenHeader title="Graveyard" subtitle={`${graveyard.length} lives · ${earned.size}/${RIBBONS.length} ribbons`} />
@@ -42,6 +58,12 @@ export default function GraveyardScreen() {
             </Card>
           );
         })}
+        {graveyard.length > 0 ? (
+          <View style={styles.danger}>
+            <T kind="small">Past lives are stored only on this device. Clearing the graveyard also resets your ribbon collection.</T>
+            <Button title="Clear graveyard" variant="danger" onPress={clear} testID="clear-graveyard" />
+          </View>
+        ) : null}
       </ScrollView>
     </Screen>
   );
@@ -55,4 +77,5 @@ const styles = StyleSheet.create({
   ribbonEmoji: { fontSize: 26 },
   ribbonName: { fontSize: 10, color: colors.textMuted, fontWeight: '600' },
   grave: { gap: 2 },
+  danger: { gap: spacing.sm, marginTop: spacing.lg },
 });

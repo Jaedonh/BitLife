@@ -6,14 +6,12 @@ import { Alert, Linking, Platform, ScrollView, StyleSheet, Switch, Text, View } 
 
 import { ScreenHeader } from '@/components/game/ScreenHeader';
 import { Button, Card, Screen, Section, T } from '@/components/ui';
+import { PRIVACY_URL, SUPPORT_EMAIL } from '@/config/legal';
 import { ads } from '@/services/ads';
 import { restorePremium } from '@/services/monetization';
 import { useGameStore } from '@/store/gameStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { colors, spacing, typography } from '@/theme';
-
-export const PRIVACY_URL = 'https://jaedonh.github.io/BitLife/privacy';
-export const SUPPORT_EMAIL = 'support@lifeloop.app';
 
 export default function SettingsScreen() {
   const settings = useSettingsStore((s) => s.settings);

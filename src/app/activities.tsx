@@ -7,6 +7,7 @@ import { ACTIVITIES, type ActivityGroup } from '@/data/activities';
 import { CRIMES } from '@/data/crimes';
 import { activityAvailability, crimeAvailability } from '@/engine';
 import { formatMoney } from '@/engine/util';
+import { useRewarded } from '@/hooks/useRewarded';
 import { useGameStore } from '@/store/gameStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { spacing } from '@/theme';
@@ -20,8 +21,8 @@ const GROUPS: { id: ActivityGroup; title: string }[] = [
 export default function ActivitiesScreen() {
   const game = useGameStore((s) => s.game);
   const act = useGameStore((s) => s.act);
-  const rewarded = useGameStore((s) => s.rewarded);
   const canUseRewarded = useGameStore((s) => s.canUseRewarded);
+  const { notice: rewardedNotice, run: runRewarded } = useRewarded();
   const premium = useSettingsStore((s) => s.premium);
   if (!game) return <Redirect href="/" />;
   const boost = canUseRewarded('statBoost');
@@ -35,9 +36,14 @@ export default function ActivitiesScreen() {
           <Section title={premium ? 'Premium boost' : 'Watch an ad for a boost'}>
             <View style={styles.boostRow}>
               {(['happiness', 'health', 'smarts', 'looks'] as const).map((stat) => (
-                <Button key={stat} testID={`boost-${stat}`} size="sm" variant="accent" style={styles.boostBtn} title={`${premium ? '✨' : '📺'} ${stat === 'happiness' ? 'Happiness +30' : stat === 'health' ? 'Health +30' : stat === 'smarts' ? 'Smarts +16' : 'Looks +16'}`} onPress={() => void rewarded('statBoost', stat)} />
+                <Button key={stat} testID={`boost-${stat}`} size="sm" variant="accent" style={styles.boostBtn} title={`${premium ? '✨' : '📺'} ${stat === 'happiness' ? 'Happiness +30' : stat === 'health' ? 'Health +30' : stat === 'smarts' ? 'Smarts +16' : 'Looks +16'}`} onPress={() => void runRewarded('statBoost', stat)} />
               ))}
             </View>
+            {rewardedNotice ? (
+              <T kind="small" testID="rewarded-notice">
+                {rewardedNotice}
+              </T>
+            ) : null}
           </Section>
         ) : null}
         {GROUPS.map((g) => {

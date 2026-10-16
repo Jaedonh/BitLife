@@ -5,6 +5,7 @@ import { Button, Card, ListRow, Screen, Section, T } from '@/components/ui';
 import { getCountry } from '@/data/countries';
 import { RIBBON_BY_ID } from '@/engine';
 import { formatMoneyFull } from '@/engine/util';
+import { useRewarded } from '@/hooks/useRewarded';
 import { useGameStore } from '@/store/gameStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { colors, radius, spacing, typography } from '@/theme';
@@ -15,8 +16,8 @@ export default function DeathScreen() {
   const game = useGameStore((s) => s.game);
   const newLife = useGameStore((s) => s.newLife);
   const continueAsHeir = useGameStore((s) => s.continueAsHeir);
-  const rewarded = useGameStore((s) => s.rewarded);
   const canUseRewarded = useGameStore((s) => s.canUseRewarded);
+  const { notice: rewardedNotice, run: runRewarded } = useRewarded();
   const premium = useSettingsStore((s) => s.premium);
   if (!game) return <Redirect href="/" />;
   if (game.alive) return <Redirect href="/life" />;
@@ -64,7 +65,14 @@ export default function DeathScreen() {
         </Card>
 
         {revive ? (
-          <Button testID="second-chance" title={premium ? '✨ Second chance (premium)' : '📺 Watch an ad for a second chance'} variant="accent" size="lg" onPress={() => void rewarded('secondChance').then((r) => r === 'granted' && router.replace('/life'))} />
+          <View style={styles.revive}>
+            <Button testID="second-chance" title={premium ? '✨ Second chance (premium)' : '📺 Watch an ad for a second chance'} variant="accent" size="lg" onPress={() => void runRewarded('secondChance').then((r) => r === 'granted' && router.replace('/life'))} />
+            {rewardedNotice ? (
+              <T kind="small" style={styles.notice} testID="rewarded-notice">
+                {rewardedNotice}
+              </T>
+            ) : null}
+          </View>
         ) : null}
 
         {heirs.length ? (
@@ -112,6 +120,8 @@ const styles = StyleSheet.create({
   ribbonName: { ...typography.heading, color: colors.accent },
   epitaph: { ...typography.body, fontStyle: 'italic', color: colors.textMuted, textAlign: 'center', marginTop: spacing.md },
   card: { gap: spacing.sm },
+  revive: { gap: spacing.xs },
+  notice: { textAlign: 'center' },
   kv: { flexDirection: 'row', justifyContent: 'space-between' },
   k: { color: colors.textMuted, fontSize: 14 },
   v: { color: colors.text, fontSize: 14, fontWeight: '600' },

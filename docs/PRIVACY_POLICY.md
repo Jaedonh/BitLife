@@ -43,7 +43,7 @@ Purchases are completed by the store. We never see your payment details. The sto
 - Game saves (your current life and past lives), settings, and ad-frequency counters, stored in the app's private storage.
 - The premium unlock flag.
 
-This data stays on your device. Deleting the app deletes it. You can delete your current life from Settings → Delete current life, and the graveyard from the Graveyard screen.
+This data stays on your device. Deleting the app deletes it. You can delete your current life from Settings → Delete current life, and every past life (the graveyard, including the names you typed and the generated obituaries) from Graveyard → Clear graveyard.
 
 ## Data retention
 

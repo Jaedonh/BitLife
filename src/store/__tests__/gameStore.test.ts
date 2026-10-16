@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { ads } from '@/services/ads';
 import { StorageKeys } from '@/services/storage';
-import { useGameStore } from '../gameStore';
+import { rewardedOutcomeMessage, useGameStore } from '../gameStore';
 import { useSettingsStore } from '../settingsStore';
 
 jest.mock('@react-native-async-storage/async-storage', () =>
@@ -161,6 +161,32 @@ describe('gameStore', () => {
     expect(graveyard[0]!.age).toBe(dead2.character.age);
     await flush();
     expect(JSON.parse((await AsyncStorage.getItem(StorageKeys.graveyard))!)).toHaveLength(1);
+  });
+
+  it('free users only get rewarded buttons once the ads SDK is initialised, and a tap with no ad loaded reports it', async () => {
+    useGameStore.getState().newLife({ countryCode: 'US' });
+    jest.spyOn(ads, 'isSupported').mockReturnValue(true);
+    const ready = jest.spyOn(ads, 'isReady').mockReturnValue(false);
+    // SDK linked but not initialised (still booting, init failed, consent blocked): no dead button.
+    expect(useGameStore.getState().canUseRewarded('cashBoost')).toBe(false);
+    expect(await useGameStore.getState().rewarded('cashBoost')).toBe('capped');
+    ready.mockReturnValue(true);
+    expect(useGameStore.getState().canUseRewarded('cashBoost')).toBe(true);
+    // Initialised but nothing loaded yet: the tap says so and kicks a preload instead of showing.
+    jest.spyOn(ads, 'isRewardedLoaded').mockReturnValue(false);
+    const preload = jest.spyOn(ads, 'preload').mockImplementation(() => {});
+    const show = jest.spyOn(ads, 'showRewarded');
+    expect(await useGameStore.getState().rewarded('cashBoost')).toBe('unavailable');
+    expect(preload).toHaveBeenCalled();
+    expect(show).not.toHaveBeenCalled();
+    expect(useSettingsStore.getState().adMeta.rewardedToday.cashBoost ?? 0).toBe(0);
+  });
+
+  it('every non-granted rewarded outcome has a distinct player-facing message', () => {
+    expect(rewardedOutcomeMessage('granted')).toBeNull();
+    const messages = (['unavailable', 'dismissed', 'capped'] as const).map(rewardedOutcomeMessage);
+    for (const m of messages) expect(typeof m === 'string' && m.length > 0).toBe(true);
+    expect(new Set(messages).size).toBe(3);
   });
 
   it('free users cannot use rewarded placements where ads are unsupported', () => {

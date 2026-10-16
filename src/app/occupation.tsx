@@ -7,14 +7,15 @@ import { Button, Card, ListRow, Screen, Section, StatBar, T } from '@/components
 import { JOB_BY_ID } from '@/data/jobs';
 import { enrollOptions, hustleOptions, meetsRequirements, STAGE_LABELS } from '@/engine';
 import { formatMoney, formatMoneyFull } from '@/engine/util';
+import { useRewarded } from '@/hooks/useRewarded';
 import { useGameStore } from '@/store/gameStore';
 import { colors, spacing } from '@/theme';
 
 export default function OccupationScreen() {
   const game = useGameStore((s) => s.game);
   const act = useGameStore((s) => s.act);
-  const rewarded = useGameStore((s) => s.rewarded);
   const canUseRewarded = useGameStore((s) => s.canUseRewarded);
+  const { notice: rewardedNotice, run: runRewarded } = useRewarded();
   const [showAllJobs, setShowAllJobs] = useState(false);
   if (!game) return <Redirect href="/" />;
   const cc = game.character.countryCode;
@@ -107,10 +108,15 @@ export default function OccupationScreen() {
             title="Job listings"
             right={
               canUseRewarded('reroll') ? (
-                <Button title="📺 New listings" size="sm" variant="ghost" onPress={() => void rewarded('reroll')} testID="reroll-jobs" />
+                <Button title="📺 New listings" size="sm" variant="ghost" onPress={() => void runRewarded('reroll')} testID="reroll-jobs" />
               ) : undefined
             }
           >
+            {rewardedNotice ? (
+              <T kind="small" testID="rewarded-notice">
+                {rewardedNotice}
+              </T>
+            ) : null}
             {visibleListings.map((l) => {
               const def = JOB_BY_ID[l.defId];
               const req = def ? meetsRequirements(game, def) : { ok: false, reason: 'Unknown' };

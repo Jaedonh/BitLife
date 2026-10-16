@@ -10,6 +10,19 @@ import { migrateSave } from './migrations';
 import { useSettingsStore } from './settingsStore';
 
 export type RewardedPlacement = 'cashBoost' | 'statBoost' | 'secondChance' | 'reroll';
+export type RewardedOutcome = 'granted' | 'unavailable' | 'dismissed' | 'capped';
+
+const REWARDED_OUTCOME_MESSAGES: Record<RewardedOutcome, string | null> = {
+  granted: null,
+  unavailable: 'No ad is ready right now. Try again in a moment.',
+  dismissed: 'Watch the whole ad to earn the reward.',
+  capped: 'You have used this reward up for today. Come back tomorrow.',
+};
+
+/** What to tell the player when a rewarded placement did not pay out (null when it did). */
+export function rewardedOutcomeMessage(outcome: RewardedOutcome): string | null {
+  return REWARDED_OUTCOME_MESSAGES[outcome];
+}
 
 interface GameStore {
   hydrated: boolean;
@@ -26,7 +39,7 @@ interface GameStore {
   choose: (choiceId: string) => void;
   act: (action: PlayerAction) => void;
   /** Shows a rewarded ad (or grants directly for premium) and applies the reward. */
-  rewarded: (placement: RewardedPlacement, option?: string) => Promise<'granted' | 'unavailable' | 'dismissed' | 'capped'>;
+  rewarded: (placement: RewardedPlacement, option?: string) => Promise<RewardedOutcome>;
   canUseRewarded: (placement: RewardedPlacement) => boolean;
   abandonLife: () => void;
   clearResult: () => void;
@@ -165,7 +178,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!g) return false;
     if (placement === 'secondChance' && (g.alive || g.flags.revived === true)) return false;
     const settings = useSettingsStore.getState();
-    if (!settings.premium && !ads.isSupported()) return false;
+    // Free users need the ads SDK linked *and* initialised: before init (or when consent blocked it)
+    // no rewarded ad can ever show, so the button would be a dead tap.
+    if (!settings.premium && !(ads.isSupported() && ads.isReady())) return false;
     // Premium skips the ad, not the daily cap (GAME_DESIGN §19: the same rewards, instantly).
     return canShowRewarded(settings.adMeta, placement, Date.now());
   },
