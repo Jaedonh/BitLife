@@ -188,7 +188,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const g = get().game;
     if (!g) return 'unavailable';
     const settings = useSettingsStore.getState();
-    if (!get().canUseRewarded(placement)) return 'capped';
+    if (!get().canUseRewarded(placement)) {
+      // Distinguish 'no ad can show yet' from 'daily cap reached' so the message is honest.
+      const adsUsable = settings.premium || (ads.isSupported() && ads.isReady());
+      return adsUsable ? 'capped' : 'unavailable';
+    }
     if (!settings.premium) {
       if (!ads.isRewardedLoaded()) {
         ads.preload();

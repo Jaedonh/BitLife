@@ -169,7 +169,8 @@ describe('gameStore', () => {
     const ready = jest.spyOn(ads, 'isReady').mockReturnValue(false);
     // SDK linked but not initialised (still booting, init failed, consent blocked): no dead button.
     expect(useGameStore.getState().canUseRewarded('cashBoost')).toBe(false);
-    expect(await useGameStore.getState().rewarded('cashBoost')).toBe('capped');
+    // The SDK not being up is 'unavailable' (try again), not 'capped' (used up for today).
+    expect(await useGameStore.getState().rewarded('cashBoost')).toBe('unavailable');
     ready.mockReturnValue(true);
     expect(useGameStore.getState().canUseRewarded('cashBoost')).toBe(true);
     // Initialised but nothing loaded yet: the tap says so and kicks a preload instead of showing.

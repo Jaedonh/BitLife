@@ -7,7 +7,7 @@ jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
 );
 jest.mock('@/services/ads', () => ({
-  ads: { init: jest.fn(async () => {}), preload: jest.fn() },
+  ads: { init: jest.fn(async () => {}), preload: jest.fn(), isReady: jest.fn(() => true) },
 }));
 jest.mock('@/services/purchases', () => ({
   purchases: {
@@ -85,6 +85,17 @@ describe('bootMonetization premium re-validation', () => {
     // A downgraded user is a free user: ads start on this launch.
     expect(t.ads.init).toHaveBeenCalledTimes(1);
     expect(t.ads.preload).toHaveBeenCalledTimes(1);
+    // Readiness is published to the store so open screens re-render.
+    expect(t.useSettingsStore.getState().adsReady).toBe(true);
+  });
+
+  it('publishes adsReady=false when the SDK did not start (consent blocked or init failed)', async () => {
+    const t = await load({ cachedPremium: false, storeAnswer: false });
+    jest.mocked(t.ads.init).mockRejectedValueOnce(new Error('consent blocked'));
+    jest.mocked(t.ads.isReady).mockReturnValue(false);
+    await t.bootMonetization();
+    await flush();
+    expect(t.useSettingsStore.getState().adsReady).toBe(false);
   });
 
   it('keeps the cached flag when the store cannot answer', async () => {
@@ -94,6 +105,7 @@ describe('bootMonetization premium re-validation', () => {
     expect(t.useSettingsStore.getState().premium).toBe(true);
     expect(await t.storedPremium()).toBe(true);
     expect(t.ads.init).not.toHaveBeenCalled();
+    expect(t.useSettingsStore.getState().adsReady).toBe(false);
   });
 
   it('upgrades a stale cache when the store says premium', async () => {

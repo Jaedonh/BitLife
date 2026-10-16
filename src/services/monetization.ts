@@ -21,6 +21,10 @@ async function startAdsForFreeUser(): Promise<void> {
     ads.preload();
   } catch {
     // ignore
+  } finally {
+    // Publish readiness through the store so screens drawn during startup re-render
+    // and show their rewarded buttons once the SDK is up.
+    useSettingsStore.getState().setAdsReady(ads.isReady());
   }
 }
 

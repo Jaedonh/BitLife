@@ -82,7 +82,7 @@ beforeEach(async () => {
   mockRouter.replace.mockClear();
   mockRouter.push.mockClear();
   useGameStore.setState({ game: null, hydrated: false, adShowing: false, pendingSummary: null });
-  useSettingsStore.setState({ premium: false, graveyard: [] });
+  useSettingsStore.setState({ premium: false, adsReady: false, graveyard: [] });
   await useSettingsStore.getState().hydrate();
 });
 
@@ -105,8 +105,9 @@ describe('DeathScreen second chance (free user)', () => {
     // SDK linked but not initialised (still booting, init failed or consent blocked): no dead button.
     expect(button(tree, 'second-chance')).toBeUndefined();
 
+    // Startup finishes while the tombstone is open: the store flag alone must re-render it.
     ready.mockReturnValue(true);
-    act(() => tree.update(<DeathScreen />));
+    act(() => useSettingsStore.getState().setAdsReady(true));
     expect(button(tree, 'second-chance')).toBeDefined();
   });
 

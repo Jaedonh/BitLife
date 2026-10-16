@@ -31,11 +31,14 @@ interface SettingsState {
   hydrated: boolean;
   settings: Settings;
   premium: boolean;
+  /** True once the ads SDK has started (consent gathered, SDK initialised). Not persisted. */
+  adsReady: boolean;
   adMeta: AdMeta;
   graveyard: GraveyardEntry[];
   hydrate: () => Promise<void>;
   setSetting: <K extends keyof Settings>(key: K, value: Settings[K]) => void;
   setPremium: (premium: boolean) => void;
+  setAdsReady: (ready: boolean) => void;
   updateAdMeta: (fn: (meta: AdMeta) => AdMeta) => AdMeta;
   addToGraveyard: (entry: GraveyardEntry) => void;
   /** Undoes the most recent grave of a character (second chance). */
@@ -49,6 +52,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   hydrated: false,
   settings: DEFAULT_SETTINGS,
   premium: false,
+  adsReady: false,
   adMeta: emptyAdMeta(Date.now()),
   graveyard: [],
   hydrate: async () => {
@@ -74,6 +78,9 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   setPremium: (premium) => {
     set({ premium });
     void writeJson(StorageKeys.premium, { premium });
+  },
+  setAdsReady: (adsReady) => {
+    if (get().adsReady !== adsReady) set({ adsReady });
   },
   updateAdMeta: (fn) => {
     const adMeta = fn(get().adMeta);
