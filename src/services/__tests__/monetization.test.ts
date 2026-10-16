@@ -71,7 +71,7 @@ async function load(opts: { cachedPremium: boolean; storeAnswer: boolean | null;
     const raw = await AsyncStorage.getItem(StorageKeys.premium);
     return raw == null ? null : (JSON.parse(raw) as { premium: boolean }).premium;
   };
-  return { useSettingsStore, purchases, ads, bootMonetization, storedPremium };
+  return { useSettingsStore, purchases, ads, bootMonetization, buyPremium: monetization.buyPremium, storedPremium };
 }
 
 describe('bootMonetization premium re-validation', () => {
@@ -135,6 +135,23 @@ describe('bootMonetization premium re-validation', () => {
     expect(await t.storedPremium()).toBe(true);
     // Ads SDK is only started once per process.
     expect(t.ads.init).toHaveBeenCalledTimes(1);
+  });
+
+  it('a purchase that completes while the first entitlement query is pending is not undone by its stale answer', async () => {
+    const t = await load({ cachedPremium: false, storeAnswer: false });
+    let release!: (v: boolean | null) => void;
+    jest.mocked(t.purchases.isPremium).mockImplementationOnce(() => new Promise((r) => (release = r)));
+    jest.mocked(t.purchases.purchasePremium).mockResolvedValueOnce('purchased');
+    const boot = t.bootMonetization();
+    await flush();
+    // The listener is registered before the query, so pushed updates are never missed.
+    expect(t.purchases.onPremiumChange).toHaveBeenCalledTimes(1);
+    expect(await t.buyPremium()).toBe('purchased');
+    release(false); // the pre-purchase answer arrives late
+    await boot;
+    await flush();
+    expect(t.useSettingsStore.getState().premium).toBe(true);
+    expect(t.ads.init).not.toHaveBeenCalled();
   });
 
   it('leaves the cache alone when no store exists on this build', async () => {

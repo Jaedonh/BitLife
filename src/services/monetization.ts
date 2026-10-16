@@ -5,6 +5,8 @@ import { useSettingsStore } from '@/store/settingsStore';
 
 let booted = false;
 let adsStarted = false;
+/** Bumped by a successful purchase or restore, so a stale boot answer cannot undo it. */
+let grantEpoch = 0;
 
 /** Mirrors a definitive store answer into the cached flag (both directions). */
 function applyPremium(premium: boolean): void {
@@ -39,15 +41,18 @@ export async function bootMonetization(): Promise<void> {
   try {
     await purchases.init();
     if (purchases.isSupported()) {
-      const premium = await purchases.isPremium();
-      // A definitive answer wins over the cache, so a refunded or revoked purchase
-      // loses premium; `null` (store unreachable) keeps the cached flag.
-      if (premium !== null) applyPremium(premium);
-      // Honour revocations pushed by the store while the app is open.
+      // Listen first, so an update the store pushes while the first query is in flight is not missed.
       purchases.onPremiumChange((now) => {
         applyPremium(now);
         if (!now) void startAdsForFreeUser();
       });
+      const epoch = grantEpoch;
+      const premium = await purchases.isPremium();
+      // A definitive answer wins over the cache, so a refunded or revoked purchase
+      // loses premium; `null` (store unreachable) keeps the cached flag. A `false`
+      // that was requested before a purchase or restore finished is stale: ignore it.
+      const stale = premium === false && grantEpoch !== epoch;
+      if (premium !== null && !stale) applyPremium(premium);
     }
   } catch {
     // ignore
@@ -58,6 +63,7 @@ export async function bootMonetization(): Promise<void> {
 export async function buyPremium(): Promise<'purchased' | 'cancelled' | 'error' | 'unavailable'> {
   const result = await purchases.purchasePremium();
   if (result === 'purchased') {
+    grantEpoch++;
     useSettingsStore.getState().setPremium(true);
     track({ name: 'premium_purchased' });
   }
@@ -67,6 +73,7 @@ export async function buyPremium(): Promise<'purchased' | 'cancelled' | 'error' 
 export async function restorePremium(): Promise<boolean> {
   const ok = await purchases.restore();
   if (ok) {
+    grantEpoch++;
     useSettingsStore.getState().setPremium(true);
     track({ name: 'premium_restored' });
   }
