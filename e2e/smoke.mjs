@@ -15,6 +15,8 @@ import path from 'node:path';
 const DIST = path.resolve('dist');
 const OUT = path.resolve('e2e/screenshots');
 const PORT = 8123;
+/** Serve and open the export under a subpath, as GitHub Pages does (e.g. BASE_PATH=/BitLife). */
+const BASE = (process.env.BASE_PATH ?? '').replace(/\/$/, '');
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.ico': 'image/x-icon', '.json': 'application/json', '.ttf': 'font/ttf', '.woff2': 'font/woff2', '.svg': 'image/svg+xml' };
 
 function findChrome() {
@@ -31,7 +33,9 @@ async function serve() {
   const server = createServer(async (req, res) => {
     try {
       const url = new URL(req.url, `http://localhost:${PORT}`);
-      let file = path.join(DIST, decodeURIComponent(url.pathname));
+      // Anything outside the base path 404s, like on GitHub Pages, so a wrong asset URL fails the run.
+      if (BASE && url.pathname !== BASE && !url.pathname.startsWith(`${BASE}/`)) throw new Error('outside base path');
+      let file = path.join(DIST, decodeURIComponent(url.pathname.slice(BASE.length) || '/'));
       if (!file.startsWith(DIST)) throw new Error('bad path');
       let s = await stat(file).catch(() => null);
       if (!s || s.isDirectory()) {
@@ -61,7 +65,7 @@ export async function run(steps) {
   let shots = 0;
   const shot = async (name) => { shots++; await page.screenshot({ path: path.join(OUT, `${String(shots).padStart(2, '0')}-${name}.png`) }); };
   try {
-    await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle' });
+    await page.goto(`http://localhost:${PORT}${BASE}/`, { waitUntil: 'networkidle' });
     await steps({ page, shot });
   } finally {
     await browser.close();

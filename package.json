@@ -17,7 +17,8 @@
     "e2e": "node e2e/playthrough.mjs",
     "check:privacy": "tsx scripts/check-privacy-url.ts",
     "eas-build-post-install": "if [ \"$APP_VARIANT\" = \"production\" ]; then npm run check:privacy; fi",
-    "balance": "tsx scripts/balance-report.ts"
+    "balance": "tsx scripts/balance-report.ts",
+    "build:pages": "expo export --platform web && node scripts/prepare-pages.mjs"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",

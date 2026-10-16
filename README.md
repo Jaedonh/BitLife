@@ -26,6 +26,10 @@ npm run balance      # plays hundreds of seeded lives per play style and prints 
 
 Real ads and purchases need a development build: `eas build --profile development --platform all`.
 
+## Live web preview
+
+Every push to `master` or `claude/bitlife-clone-mvp-8ogicm` builds the web version, plays it through with Playwright, and publishes it to the `gh-pages` branch (`.github/workflows/preview.yml`). Turn it on once in **Settings → Pages → Build and deployment**: Source **Deploy from a branch**, branch **gh-pages**, folder **/ (root)**. The game is then playable at **https://jaedonh.github.io/BitLife/** and saves in the browser. Ads and purchases are switched off on the web.
+
 ## What is in the MVP
 
 - **Core loop:** four stats (Happiness, Health, Smarts, Looks), money, hidden karma; Age+ advances one year with stat drift, finances, school, career, relationships, health and mortality; events pop up as choice cards.

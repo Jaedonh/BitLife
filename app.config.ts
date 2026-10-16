@@ -156,6 +156,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ],
   experiments: {
     typedRoutes: true,
+    // Web preview on GitHub Pages lives under /<repo>/ (set by .github/workflows/preview.yml).
+    ...(process.env.EXPO_BASE_URL ? { baseUrl: process.env.EXPO_BASE_URL } : {}),
   },
   extra: {
     eas: {
