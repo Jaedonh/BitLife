@@ -121,7 +121,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
     }
     const current = get().game;
-    if (!current || current !== g) return;
+    // Compare a gameplay marker, not object identity: the toast's clearResult replaces the game
+    // object without changing the life, and must not swallow the age-up the player just sat through an ad for.
+    if (!current || current.character.id !== g.character.id || current.updatedAt !== g.updatedAt) return;
     let next = { ...engineAgeUp(current), updatedAt: Date.now() };
     const summary = next.alive ? yearSummary(current, next) : null;
     if (summary && !next.pendingEvent) {
@@ -163,8 +165,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!g) return false;
     if (placement === 'secondChance' && (g.alive || g.flags.revived === true)) return false;
     const settings = useSettingsStore.getState();
-    if (settings.premium) return true;
-    if (!ads.isSupported()) return false;
+    if (!settings.premium && !ads.isSupported()) return false;
+    // Premium skips the ad, not the daily cap (GAME_DESIGN §19: the same rewards, instantly).
     return canShowRewarded(settings.adMeta, placement, Date.now());
   },
   rewarded: async (placement, option) => {
@@ -182,10 +184,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
       set({ adShowing: false });
       track({ name: 'rewarded_ad', placement, result });
       if (result !== 'earned') return result === 'dismissed' ? 'dismissed' : 'unavailable';
-      settings.updateAdMeta((m) => recordRewardedUsed(m, placement, Date.now()));
     }
+    settings.updateAdMeta((m) => recordRewardedUsed(m, placement, Date.now()));
     const current = get().game ?? g;
     const next = { ...(placement === 'secondChance' ? secondChance(current) : applyAction(current, { type: 'rewarded', placement, option })), updatedAt: Date.now() };
+    // The death was undone: take the tombstone back so the graveyard only lists finished lives.
+    if (placement === 'secondChance' && !current.alive && next.alive) useSettingsStore.getState().removeFromGraveyard(current.character.id);
     set({ game: next });
     persist(next);
     return 'granted';

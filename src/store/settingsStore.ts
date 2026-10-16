@@ -38,6 +38,8 @@ interface SettingsState {
   setPremium: (premium: boolean) => void;
   updateAdMeta: (fn: (meta: AdMeta) => AdMeta) => AdMeta;
   addToGraveyard: (entry: GraveyardEntry) => void;
+  /** Undoes the most recent grave of a character (second chance). */
+  removeFromGraveyard: (id: string) => void;
   clearGraveyard: () => void;
 }
 
@@ -81,6 +83,14 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   },
   addToGraveyard: (entry) => {
     const graveyard = [entry, ...get().graveyard].slice(0, 200);
+    set({ graveyard });
+    void writeJson(StorageKeys.graveyard, graveyard);
+  },
+  removeFromGraveyard: (id) => {
+    // Newest first, so the first match is this character's latest grave.
+    const i = get().graveyard.findIndex((e) => e.id === id);
+    if (i < 0) return;
+    const graveyard = get().graveyard.filter((_, idx) => idx !== i);
     set({ graveyard });
     void writeJson(StorageKeys.graveyard, graveyard);
   },
