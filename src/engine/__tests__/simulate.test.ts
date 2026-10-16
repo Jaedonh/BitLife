@@ -46,6 +46,16 @@ describe('whole-life simulation', () => {
     expect(reckless.some((x) => x.arrests > 0)).toBe(true);
   });
 
+  it('a working life is solvent: rare bankruptcy, and Rich is earned, not the default', () => {
+    // Guards the economy tuning (docs/GAME_DESIGN.md §9; measure with npm run balance).
+    const share = (set: LifeSummary[], f: (x: LifeSummary) => boolean) => set.filter(f).length / set.length;
+    expect(share(balanced, (x) => x.bankrupt)).toBeLessThanOrEqual(0.08);
+    expect(share(balanced, (x) => x.ribbonId === 'rich')).toBeLessThanOrEqual(0.25);
+    const counts = new Map<string, number>();
+    for (const x of balanced) counts.set(x.ribbonId, (counts.get(x.ribbonId) ?? 0) + 1);
+    expect(Math.max(...counts.values()) / balanced.length).toBeLessThanOrEqual(0.4);
+  });
+
   it('ribbons are diverse', () => {
     const ids = new Set([...passive, ...balanced, ...reckless].map((x) => x.ribbonId));
     expect(ids.size).toBeGreaterThanOrEqual(4);

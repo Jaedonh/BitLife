@@ -4,7 +4,8 @@ import { applyAction } from '../actions';
 import { makeRegistry } from '../events/select';
 import { createLife, emptyMemory } from '../systems/character';
 import { canBuy, yearlyMortgagePayment } from '../systems/assets';
-import { meetsRequirements, rollListings, salaryCap } from '../systems/careers';
+import { meetsRequirements, PART_TIME_LIVING_WAGE, rollListings, salaryCap } from '../systems/careers';
+import { lifestyleFactor, SPENDING, yearlyFinance } from '../systems/finance';
 import { awardRibbon } from '../systems/ribbons';
 import { JOB_BY_ID } from '@/data/jobs';
 import { Rng } from '../rng';
@@ -141,6 +142,28 @@ describe('careers', () => {
     expect(s.flags.peakFame).toBe(8);
   });
 
+  it('a student job kept past 24 goes full hours and pays a living wage', () => {
+    let s = createLife({ countryCode: 'US', customStats: { smarts: 95 } }, 27);
+    s = healthy({ ...s, character: { ...s.character, age: 20 }, year: s.character.birthYear + 20 });
+    const barista = JOB_BY_ID.pt_barista!;
+    const job: Job = { defId: 'pt_barista', title: 'Barista', company: 'Bean There', salary: 12_500, level: 0, performance: 90, yearsHeld: 4, yearsAtLevel: 4, category: 'service', partTime: true, askedThisYear: false, workedHarderThisYear: false };
+    s = { ...s, career: { ...s.career, job } };
+    // A student is capped at 125% of the $12k base like any rung.
+    expect(salaryCap(s, barista, 0)).toBe(15_000);
+    s = healthy(ageUp(s, noEvents));
+    expect(s.career.job!.salary).toBeLessThanOrEqual(15_000);
+    // Past 24 the same job pays at least an entry-level full-time wage, and raises can add 25% on top.
+    s = { ...s, character: { ...s.character, age: 25 }, year: s.character.birthYear + 25 };
+    s = healthy(ageUp(s, noEvents));
+    expect(s.career.job?.defId).toBe('pt_barista');
+    expect(s.career.job!.salary).toBeGreaterThanOrEqual(PART_TIME_LIVING_WAGE);
+    expect(salaryCap(s, barista, 0)).toBe(PART_TIME_LIVING_WAGE * 1.25);
+    expect(s.log.some((l) => l.text.includes('full hours'))).toBe(true);
+    // Country-scaled like every other wage.
+    const fr = createLife({ countryCode: 'FR' }, 27);
+    expect(salaryCap({ ...fr, character: { ...fr.character, age: 30 } }, barista, 0)).toBe(Math.round(PART_TIME_LIVING_WAGE * 0.8 * 1.25));
+  });
+
   it('a star who retires keeps the Famous ribbon although current fame fades', () => {
     const base = createLife({ countryCode: 'US' }, 26);
     let s = { ...base, character: { ...base.character, age: 91, fame: 24 }, flags: { ...base.flags, peakFame: 100 } };
@@ -202,6 +225,59 @@ describe('finance and assets', () => {
     expect(s.finances.lastYear.passive).toBe(0);
     expect(s.finances.lastYear.income).toBe(0);
     expect(s.finances.cash).toBe(cashBefore - s.finances.lastYear.expenses);
+  });
+
+  /** A 30-year-old renter on a $50k US salary with no kids, traits or assets: income $40,400, housing $9k, full lifestyle $11,400. */
+  function worker(cash: number, debt: number, countryCode = 'US'): GameState {
+    const s = createLife({ countryCode }, 28);
+    const job: Job = { defId: 'graphic_designer', title: 'Designer', company: 'Acme', salary: 50_000, level: 0, performance: 60, yearsHeld: 3, yearsAtLevel: 3, category: 'creative', partTime: false, askedThisYear: false, workedHarderThisYear: false };
+    return { ...s, character: { ...s.character, age: 30, traits: [] }, year: s.character.birthYear + 30, career: { ...s.career, job }, finances: { ...s.finances, cash, debt } };
+  }
+
+  it('lifestyle spending shrinks while in debt or short of a year of expenses', () => {
+    expect(lifestyleFactor(50_000, 1, 20_000)).toBe(0);
+    expect(lifestyleFactor(0, 0, 20_000)).toBe(0);
+    expect(lifestyleFactor(10_000, 0, 20_000)).toBe(0.5);
+    expect(lifestyleFactor(80_000, 0, 20_000)).toBe(1);
+    // Cushioned: housing $9k + lifestyle 30% of (50k - 12k).
+    expect(yearlyFinance(worker(100_000, 0), new Rng(1)).finances.lastYear.expenses).toBe(9_000 + 11_400);
+    // Half a year of expenses saved: half the extras.
+    expect(yearlyFinance(worker(10_200, 0), new Rng(1)).finances.lastYear.expenses).toBe(9_000 + 5_700);
+  });
+
+  it('a worker coming out of a jobless stretch with debt pays it down instead of spiralling', () => {
+    // The traced case: a French designer on 50k with 140k of debt. No extras while in debt, so the surplus beats the interest.
+    let s = worker(0, 140_000, 'FR');
+    s = yearlyFinance(s, new Rng(1));
+    // Income 50k - 13.2k tax = 36.8k; expenses 7.2k housing + 28k debt payment (20%), no lifestyle.
+    expect(s.finances.lastYear.expenses).toBe(7_200 + 28_000);
+    expect(s.finances.debt).toBe(140_000 + 21_000 - 28_000);
+    expect(s.finances.cash).toBe(1_600);
+    let debt = s.finances.debt;
+    for (let i = 0; i < 5; i++) {
+      s = yearlyFinance({ ...s, finances: { ...s.finances, cash: 0 } }, new Rng(1));
+      expect(s.finances.debt).toBeLessThan(debt);
+      debt = s.finances.debt;
+    }
+  });
+
+  it('savings above the comfortable level are spent on a richer life, so wealth plateaus', () => {
+    const comfortable = SPENDING.comfortable;
+    // Below the threshold there is no wealth effect: $20k a year is saved.
+    const modest = yearlyFinance(worker(comfortable - 50_000, 0), new Rng(1));
+    expect(modest.finances.lastYear.expenses).toBe(20_400);
+    // $100k above it: 10% of the excess goes on lifestyle.
+    const comfy = yearlyFinance(worker(comfortable + 100_000, 0), new Rng(1));
+    expect(comfy.finances.lastYear.expenses).toBe(20_400 + 100_000 * SPENDING.wealthShare);
+    // Far above it the spending is capped at the year's spare income: cash stops growing but never falls.
+    const rich = yearlyFinance(worker(3_000_000, 0), new Rng(1));
+    expect(rich.finances.lastYear.expenses).toBe(rich.finances.lastYear.income);
+    expect(rich.finances.cash).toBe(3_000_000);
+    // With no income it never eats into savings or creates debt.
+    const jobless = worker(3_000_000, 0);
+    const idle = yearlyFinance({ ...jobless, career: { ...jobless.career, job: null } }, new Rng(1));
+    expect(idle.finances.lastYear.expenses).toBe(9_000);
+    expect(idle.finances.debt).toBe(0);
   });
 
   it('a crypto crash never turns an unrealised loss into debt', () => {

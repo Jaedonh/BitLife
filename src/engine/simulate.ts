@@ -64,6 +64,7 @@ export interface LifeSummary {
   marriages: number;
   arrests: number;
   peakSmarts: number;
+  bankrupt: boolean;
 }
 
 /** Plays a whole life with a policy. Throws if an invariant breaks. */
@@ -110,6 +111,7 @@ export function simulateLife(seed: number, policy: Policy, maxYears = 130): { st
       marriages: s.counters.marriages,
       arrests: s.counters.arrests,
       peakSmarts,
+      bankrupt: s.finances.bankrupt,
     },
   };
 }

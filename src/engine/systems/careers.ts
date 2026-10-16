@@ -5,7 +5,7 @@ import { removeJob } from '../events/effects';
 import { scaleMoney } from '../events/text';
 import { Rng } from '../rng';
 import type { GameState, Job, JobListing } from '../types';
-import { addStats, bump, clampStat, log, setResult, withFame } from '../util';
+import { addStats, bump, clampStat, formatMoney, log, setResult, withFame } from '../util';
 import { randomCompany } from './character';
 import { bachelorMajor, hasDegree, hasHighSchool } from './education';
 
@@ -47,9 +47,18 @@ export function meetsRequirements(state: GameState, def: JobDef): { ok: boolean;
   return { ok: true };
 }
 
+/** A student job kept past 24 moves to full hours: its base pay becomes at least an entry-level full-time wage (USD, country-scaled). */
+export const PART_TIME_LIVING_WAGE = 24_000;
+
+/** The rung's base pay in local money; a part-time rung held past 24 is paid at least the living wage. */
+function rungBase(state: GameState, def: JobDef, level: number): number {
+  const base = scaleMoney(state, def.ladder[Math.min(level, def.ladder.length - 1)]!.salary);
+  return def.partTime && state.character.age > 24 ? Math.max(base, scaleMoney(state, PART_TIME_LIVING_WAGE)) : base;
+}
+
 /** Pay ceiling for a rung: listings roll up to 1.12x the base, raises can push ~12% further. */
 export function salaryCap(state: GameState, def: JobDef, level: number): number {
-  return Math.round(scaleMoney(state, def.ladder[Math.min(level, def.ladder.length - 1)]!.salary) * 1.25);
+  return Math.round(rungBase(state, def, level) * 1.25);
 }
 
 export function listingSalary(state: GameState, def: JobDef, level: number, rng: Rng): number {
@@ -204,6 +213,12 @@ export function yearlyCareer(state: GameState, rng: Rng): GameState {
     if ((s.health.addictions.alcohol ?? 0) >= 40 || (s.health.addictions.drugs ?? 0) >= 40) perf -= 8;
     perf = clampStat(perf);
     let updated: Job = { ...job, performance: perf, yearsHeld: job.yearsHeld + 1, yearsAtLevel: job.yearsAtLevel + 1 };
+    const floor = rungBase(s, def, job.level);
+    if (job.partTime && c.age > 24 && updated.salary < floor) {
+      // A student job kept past 24 goes full hours, so it pays enough to live on.
+      updated = { ...updated, salary: floor };
+      s = log(s, `${job.company} moved me to full hours. My pay rose to ${formatMoney(floor, c.countryCode)} a year.`, 'money');
+    }
     s = { ...s, career: { ...s.career, job: updated, totalYearsWorked: s.career.totalYearsWorked + 1, experience: { ...s.career.experience, [def.category]: (s.career.experience[def.category] ?? 0) + 1 } } };
     s = bump(s, 'yearsEmployed');
     s = addStats(s, { happiness: -Math.round(def.stress / 25), health: -Math.round(def.stress / 30) });

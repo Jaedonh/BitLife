@@ -18,6 +18,35 @@ export function pensionSalary(career: Career): number {
   return Math.round(base * 0.35);
 }
 
+/**
+ * Spending rules. Dollar amounts are USD at US prices and scale with the country's salary multiplier.
+ * Tuned with scripts/balance-report.ts; documented in docs/GAME_DESIGN.md §9.
+ */
+export const SPENDING = {
+  /** Lifestyle creep: this share of gross income above `lifestyleFloor` goes on extras, up to `lifestyleCap`. */
+  lifestyleShare: 0.3,
+  lifestyleFloor: 12_000,
+  lifestyleCap: 50_000,
+  /** Wealth effect: this share of savings above `comfortable` is spent each year on a richer life. */
+  wealthShare: 0.1,
+  comfortable: 250_000,
+} as const;
+
+/**
+ * Frugality: how much of the usual lifestyle spending happens this year (0..1).
+ * Nothing on extras while in debt; below a year of expenses in savings, extras shrink in proportion.
+ */
+export function lifestyleFactor(savings: number, debt: number, yearOfExpenses: number): number {
+  if (debt > 0) return 0;
+  if (yearOfExpenses <= 0) return 1;
+  return Math.max(0, Math.min(1, savings / yearOfExpenses));
+}
+
+/** Wealth effect: yearly spending from savings (cash + investments − debt) above the comfortable threshold. */
+export function wealthSpending(state: GameState, savings: number): number {
+  return Math.max(0, savings - scaleMoney(state, SPENDING.comfortable)) * SPENDING.wealthShare;
+}
+
 function investmentReturn(kind: InvestmentKind, rng: Rng): number {
   if (kind === 'savings') return 0.02;
   if (kind === 'index') return rng.normal(0.07, 0.15, -0.45, 0.6);
@@ -57,15 +86,21 @@ export function yearlyFinance(state: GameState, rng: Rng): GameState {
 
   // Expenses
   let expenses = 0;
+  let wealthSpend = 0;
   if (adult && !s.crime.inPrison) {
+    const thrift = c.traits.includes('thrifty') ? 0.85 : 1;
     const ownsHome = s.assets.some((a) => a.kind === 'house' && a.primary && !a.rentedOut);
     const livingWithParents = c.age < 24 && !ownsHome && gross < scaleMoney(s, 20_000) && Object.values(s.people).some((p) => (p.kind === 'mother' || p.kind === 'father') && p.alive);
-    const housing = ownsHome ? 7_000 : livingWithParents ? 2_500 : 9_000;
+    const housing = scaleMoney(s, ownsHome ? 7_000 : livingWithParents ? 2_500 : 9_000);
+    const kids = Object.values(s.people).filter((p) => p.kind === 'child' && p.alive && p.age < 18).length * scaleMoney(s, 4_000);
     // Lifestyle creep: spending rises with income above the basics, so a salary alone does not compound into a fortune.
-    const lifestyle = Math.min(scaleMoney(s, 50_000), Math.max(0, gross - scaleMoney(s, 12_000)) * 0.3);
-    expenses += (scaleMoney(s, housing) + lifestyle) * (c.traits.includes('thrifty') ? 0.85 : 1);
-    const kids = Object.values(s.people).filter((p) => p.kind === 'child' && p.alive && p.age < 18).length;
-    expenses += kids * scaleMoney(s, 4_000);
+    const fullLifestyle = Math.min(scaleMoney(s, SPENDING.lifestyleCap), Math.max(0, gross - scaleMoney(s, SPENDING.lifestyleFloor)) * SPENDING.lifestyleShare);
+    // Frugality: a player in debt or without a year's cushion cuts back on extras first.
+    const savings = s.finances.cash + s.finances.investments.reduce((sum, i) => sum + i.amount, 0) - s.finances.debt;
+    const lifestyle = fullLifestyle * lifestyleFactor(savings, s.finances.debt, housing + kids + fullLifestyle);
+    expenses += (housing + lifestyle) * thrift + kids;
+    // Wealth effect: savings above a comfortable level fund a richer life, so wealth plateaus instead of piling up.
+    wealthSpend = wealthSpending(s, savings) * thrift;
   }
   for (const a of s.assets) {
     expenses += a.yearlyUpkeep;
@@ -82,7 +117,8 @@ export function yearlyFinance(state: GameState, rng: Rng): GameState {
     expenses += payment;
     s = { ...s, finances: { ...s.finances, debt: Math.max(0, s.finances.debt + interest - payment) } };
   }
-  expenses = Math.round(expenses);
+  // The wealth effect only spends this year's spare income: savings stop growing, they never shrink or borrow for it.
+  expenses = Math.round(expenses + Math.min(wealthSpend, Math.max(0, income - expenses)));
 
   let cash = s.finances.cash + income - expenses;
   let debt = s.finances.debt;
