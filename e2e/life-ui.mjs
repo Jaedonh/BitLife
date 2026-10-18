@@ -48,6 +48,8 @@ await run(async ({ page, shot }) => {
   await page.locator(tid('new-random-life')).click();
   await page.waitForSelector(tid('age-up'), { timeout: 10000 });
   await page.waitForTimeout(300);
+  // A new life opens with a newborn card; answer it before dismissing the tip underneath.
+  await settleEvents(page);
   if (await visible(page, 'tutorial-tip')) await onScreen(page, 'tutorial-tip').click();
 
   for (let i = 0; i < 12; i++) await ageOnce(page);
