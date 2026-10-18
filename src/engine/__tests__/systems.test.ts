@@ -174,9 +174,18 @@ describe('careers', () => {
 });
 
 describe('ribbons', () => {
+  it('a child who dies is remembered as Gone Too Soon, never Wasted', () => {
+    const base = createLife({ countryCode: 'US' }, 27);
+    expect(awardRibbon({ ...base, character: { ...base.character, age: 3 } }).id).toBe('gone_too_soon');
+    expect(awardRibbon({ ...base, character: { ...base.character, age: 15 } }).id).toBe('gone_too_soon');
+    expect(awardRibbon({ ...base, character: { ...base.character, age: 20 } }).id).toBe('wasted');
+  });
+
   it('money ribbons scale with the country, Survivor needs 15 illnesses and Centenarian outranks it', () => {
-    const us = createLife({ countryCode: 'US' }, 25);
-    const ng = createLife({ countryCode: 'NG' }, 25);
+    // Adults: a child's death always gets Gone Too Soon, whatever the money.
+    const adult = (s: ReturnType<typeof createLife>) => ({ ...s, character: { ...s.character, age: 70 } });
+    const us = adult(createLife({ countryCode: 'US' }, 25));
+    const ng = adult(createLife({ countryCode: 'NG' }, 25));
     expect(awardRibbon({ ...us, finances: { ...us.finances, cash: 150_000 } }).id).not.toBe('rich');
     expect(awardRibbon({ ...ng, finances: { ...ng.finances, cash: 150_000 } }).id).toBe('rich');
     const old = { ...us, character: { ...us.character, age: 100 }, counters: { ...us.counters, illnesses: 14 } };
