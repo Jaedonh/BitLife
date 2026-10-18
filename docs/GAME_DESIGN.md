@@ -35,7 +35,7 @@ Working title "LifeLoop"; Teen / 13+ content rating target.
 15. Schedule 0-3 random events (§15) and open the first one as a card.
 16. The app shows a one-line **year summary** (stat deltas, cash change) once the year's cards are closed.
 
-A card must be answered before anything else happens. Resolving it may queue follow-ups.
+A card must be answered before anything else happens. Resolving it may queue follow-ups. Each queued card's age range and conditions are checked again when it opens, and a card that no longer applies (the player was jailed, lost the job, got a pet) is skipped.
 
 ## 3. Stats
 

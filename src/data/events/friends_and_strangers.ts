@@ -584,6 +584,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     maxAge: 85,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend'] },
     choices: [
       {
@@ -616,6 +617,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     maxAge: 85,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend'] },
     choices: [
       {

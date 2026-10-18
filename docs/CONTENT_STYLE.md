@@ -23,7 +23,7 @@ Events are the game. This is the house style every content drop must follow. The
 - Weights: 0.3 rare, 1 normal, 3 common. Use `once` for life milestones and `cooldown` (years) for things that should not repeat soon; the engine's default minimum gap is 2 years.
 - Conditions must match the text: an event about a spouse needs `person: { kind: ['spouse'] }` or `married: true`; a work event needs `hasJob: true`.
 - Prefer binding a person (`person` selector) so names and pronouns make the event personal; move the bond with `relationship: 'person'`.
-- Follow-ups: `followUpOnly: true` events reached only through `queue`, in the same file.
+- Follow-ups: `followUpOnly: true` events reached only through `queue`, in the same file. Every queued card (random or follow-up) has its age range and `conditions` re-checked when it opens and is skipped if they no longer hold, because an earlier card that year may have jailed the player or cost them their job. A follow-up is checked after the choice that queued it, so give it the guards its text needs that the choice leaves true (usually the source's `inPrison: false`, or `hasJob: true` for work).
 
 ## Content rating (Teen / 13+)
 

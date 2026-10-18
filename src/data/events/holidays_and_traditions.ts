@@ -374,6 +374,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'train',
@@ -923,6 +924,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     maxAge: 60,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     person: { kind: ['child'] },
     choices: [
       {

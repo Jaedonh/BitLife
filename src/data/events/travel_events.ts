@@ -221,6 +221,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'write',
@@ -1271,6 +1272,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'books',

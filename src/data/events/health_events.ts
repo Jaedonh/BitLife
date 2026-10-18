@@ -386,6 +386,7 @@ export const HEALTH_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'hear',
@@ -1238,6 +1239,7 @@ export const HEALTH_EVENTS: EventDef[] = [
     maxAge: 95,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     person: { kind: ['mother', 'father', 'stepmother', 'stepfather', 'sibling'] },
     choices: [
       {

@@ -247,6 +247,7 @@ export const PET_EVENTS: EventDef[] = [
     maxAge: 85,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'laugh',
@@ -323,6 +324,7 @@ export const PET_EVENTS: EventDef[] = [
     maxAge: 85,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'sofa',

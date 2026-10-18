@@ -264,6 +264,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ hasJob: true }],
     choices: [
       {
         id: 'public',
@@ -1294,6 +1295,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ hasJob: true }],
     choices: [
       {
         id: 'board',
@@ -1387,6 +1389,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ hasJob: true }],
     choices: [
       {
         id: 'wait',

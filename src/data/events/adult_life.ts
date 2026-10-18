@@ -591,6 +591,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 80,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'enter',
@@ -870,6 +871,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 80,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'lend',
@@ -1089,6 +1091,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 80,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     person: { kind: ['mother', 'father'] },
     choices: [
       {
@@ -1435,6 +1438,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 80,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'conscience',
@@ -1508,6 +1512,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 80,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'watch',

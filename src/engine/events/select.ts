@@ -24,17 +24,23 @@ export function eventCountForYear(age: number, rng: Rng): number {
   return 1 + (rng.chance(0.3) ? 1 : 0);
 }
 
+/** The event's age range and conditions hold for the current state (no once/cooldown or person check). */
+export function fitsState(state: GameState, def: EventDef): boolean {
+  const age = state.character.age;
+  if (age < def.minAge || age > def.maxAge) return false;
+  return evaluateAll(state, def.conditions);
+}
+
 export function isEligible(state: GameState, def: EventDef): boolean {
   const age = state.character.age;
   if (def.followUpOnly) return false;
-  if (age < def.minAge || age > def.maxAge) return false;
   const last = state.firedEvents[def.id];
   if (last !== undefined) {
     if (def.once) return false;
     if (def.cooldown !== undefined && age - last < def.cooldown) return false;
     if (def.cooldown === undefined && age - last < 2) return false;
   }
-  if (!evaluateAll(state, def.conditions)) return false;
+  if (!fitsState(state, def)) return false;
   if (def.person && candidatesFor(state, def.person).length === 0) return false;
   return true;
 }
@@ -65,7 +71,11 @@ export function openNextEvent(state: GameState, registry: EventRegistry): GameSt
     s = { ...s, eventQueue: rest };
     const def = registry.byId[next!.eventId];
     if (!def) continue;
-    // Re-validate: an earlier card may have killed, dumped or alienated the bound person since scheduling.
+    // Re-validate: an earlier card this year may have jailed the player, cost them their job, spent their
+    // money or brought home a pet since scheduling. Once/cooldown already passed then. Follow-ups are checked
+    // too, after the choice that queued them, so their conditions may rely on the state it created.
+    if (!fitsState(s, def)) continue;
+    // ...or killed, dumped or alienated the bound person.
     const person = next!.personId ? s.people[next!.personId] : undefined;
     if (next!.personId && !person) continue;
     if (person && def.person && !candidatesFor(s, def.person).some((p) => p.id === person.id)) continue;

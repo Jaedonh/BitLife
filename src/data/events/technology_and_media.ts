@@ -545,6 +545,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 100,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'cash',
@@ -826,6 +827,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'reward',

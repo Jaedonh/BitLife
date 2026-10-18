@@ -269,6 +269,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
     maxAge: 85,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'testify',
@@ -425,6 +426,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
     maxAge: 80,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'plea',

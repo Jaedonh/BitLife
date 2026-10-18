@@ -300,6 +300,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     maxAge: 29,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'pay',
@@ -570,6 +571,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     maxAge: 29,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend', 'sibling'] },
     choices: [
       {
@@ -715,6 +717,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     maxAge: 29,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend', 'sibling'] },
     choices: [
       {
@@ -1242,6 +1245,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     maxAge: 29,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {

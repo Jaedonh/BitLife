@@ -283,6 +283,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     maxAge: 100,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     person: { kind: ['lover', 'spouse'] },
     choices: [
       {

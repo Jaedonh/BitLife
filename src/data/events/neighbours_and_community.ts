@@ -550,6 +550,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     maxAge: 95,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'claim',
@@ -1261,6 +1262,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     maxAge: 95,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'envelope',
@@ -1329,6 +1331,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     maxAge: 95,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'majority',

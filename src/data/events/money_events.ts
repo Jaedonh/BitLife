@@ -832,6 +832,7 @@ export const MONEY_EVENTS: EventDef[] = [
     maxAge: 80,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend'] },
     choices: [
       {

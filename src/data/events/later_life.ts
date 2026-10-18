@@ -674,6 +674,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     maxAge: 95,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'soak',
@@ -747,6 +748,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     maxAge: 95,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     person: { kind: ['ex'] },
     choices: [
       {
