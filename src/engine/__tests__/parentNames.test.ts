@@ -101,5 +101,13 @@ describe('parents in first-person narration', () => {
     expect(renderText(line, dead(s, mother))).toBe('Dad and Gwen paid. Ask Dad and Gwen first.');
     expect(renderText(line, dead(dead(noStep, mother), father))).toBe('My family paid. Ask my family first.');
   });
+
+  it('a company name ending in a period does not double the period at the end of a sentence', () => {
+    const { s } = family();
+    const job = { defId: 'it_support', title: 'IT Specialist', company: 'Nimbus Ltd.', salary: 1, level: 0, performance: 50, yearsHeld: 1, yearsAtLevel: 1, category: 'tech' as const, partTime: false, askedThisYear: false };
+    const st = { ...s, career: { ...s.career, job: { ...s.career.job!, ...job } } };
+    expect(renderText('I work at {{company}}.', st)).toBe('I work at Nimbus Ltd.');
+    expect(renderText('{{company}} called.', st)).toBe('Nimbus Ltd. called.');
+  });
 });
 

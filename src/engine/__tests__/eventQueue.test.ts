@@ -1,11 +1,11 @@
 import { ageUp } from '../ageUp';
-import { evaluateAll } from '../events/conditions';
+import { candidatesFor, evaluateAll } from '../events/conditions';
 import { sendToPrison } from '../events/effects';
 import { EVENT_REGISTRY } from '../events/registry';
 import type { EventDef } from '../events/schema';
 import { beginLife, makeRegistry, openNextEvent, resolveChoice } from '../events/select';
 import { createLife } from '../systems/character';
-import type { GameState } from '../types';
+import type { GameState, Person } from '../types';
 
 /** A 30-year-old with no pets and an empty queue. */
 function adult(): GameState {
@@ -129,3 +129,14 @@ describe('the newborn card', () => {
     expect(beginLife(older, EVENT_REGISTRY)).toBe(older);
   });
 });
+
+describe('household person selector', () => {
+  it('binds parents only while the player lives at home, and a spouse always', () => {
+    const kid = { ...createLife({ countryCode: 'US' }, 9), eventQueue: [] };
+    const sel = { kind: ['mother', 'father', 'spouse'] as Person['kind'][], household: true };
+    expect(candidatesFor(kid, sel).length).toBeGreaterThan(0);
+    const grown = adult();
+    expect(candidatesFor(grown, sel).filter((p) => p.kind === 'mother' || p.kind === 'father')).toEqual([]);
+  });
+});
+

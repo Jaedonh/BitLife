@@ -62,8 +62,10 @@ export function renderText(template: string, state: GameState, ctx: TextContext 
       return `${a === 'A' ? capitalize(art) : art} ${job}`;
     })
     .replace(/\b([Tt])he \{\{\s*company\s*\}\}/g, (_m, t: string) => `${t}he ${company.replace(/^the /, '')}`);
-  return prepared.replace(/\{\{([^}]+)\}\}/g, (_m, raw: string, offset: number, whole: string) => {
-    const value = placeholder(raw.trim());
+  return prepared.replace(/\{\{([^}]+)\}\}/g, (m, raw: string, offset: number, whole: string) => {
+    let value = placeholder(raw.trim());
+    // "Nimbus Ltd." at the end of a sentence must not print "Ltd..".
+    if (value.endsWith('.') && whole[offset + m.length] === '.') value = value.slice(0, -1);
     // Fallbacks such as "my mother" or "someone" are lower case; a sentence that opens with one needs a capital.
     return startsSentence(whole, offset) ? capitalize(value) : value;
   });

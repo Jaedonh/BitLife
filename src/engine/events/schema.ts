@@ -144,6 +144,8 @@ export type EventCategory =
 export interface PersonSelector {
   kind: RelationshipKind[];
   alive?: boolean;
+  /** Only people the player lives with: parents and siblings while the player still lives at home, a spouse, a lover they moved in with, children under 18, pets. */
+  household?: boolean;
   minRelationship?: number;
   maxRelationship?: number;
   minAge?: number;

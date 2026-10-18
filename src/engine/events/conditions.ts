@@ -97,6 +97,26 @@ export function candidatesFor(state: GameState, sel: PersonSelector): Person[] {
     if (sel.maxRelationship !== undefined && p.relationship > sel.maxRelationship) return false;
     if (sel.minAge !== undefined && p.age < sel.minAge) return false;
     if (sel.maxAge !== undefined && p.age > sel.maxAge) return false;
+    if (sel.household && !livesWithPlayer(state, p)) return false;
     return true;
   });
+}
+
+/** Whether the player still lives with their parents: as a minor, or under 24 with no home and little income (as in finance.ts). */
+export function livesAtHome(state: GameState): boolean {
+  const age = state.character.age;
+  if (age < 18) return true;
+  const ownsHome = state.assets.some((a) => a.kind === 'house' && a.primary && !a.rentedOut);
+  return age < 24 && !ownsHome && (state.career.job?.salary ?? 0) < scaleMoney(state, 20_000) && !hasPersonOfKind(state, ['spouse']);
+}
+
+function livesWithPlayer(state: GameState, p: Person): boolean {
+  switch (p.kind) {
+    case 'mother': case 'father': case 'stepmother': case 'stepfather': return livesAtHome(state);
+    case 'sibling': return livesAtHome(state) && p.age < 24;
+    case 'spouse': case 'pet': return true;
+    case 'lover': return state.flags.lf_living_together === true;
+    case 'child': return p.age < 18;
+    default: return false;
+  }
 }

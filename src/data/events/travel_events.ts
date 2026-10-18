@@ -545,7 +545,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
       {
         id: 'fix',
         label: 'Open the hood and improvise',
-        conditions: [{ ownsAsset: 'car' }],
+        conditions: [{ ownsAssetId: ['old_hatchback', 'sedan', 'pickup', 'ev', 'luxury_sedan', 'sports_car', 'supercar', 'classic_car'] }],
         effects: [
           {
             chance: 0.4,

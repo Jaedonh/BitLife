@@ -155,7 +155,7 @@ export const MONEY_EVENTS: EventDef[] = [
     maxAge: 85,
     weight: 1.5,
     cooldown: 2,
-    conditions: [{ inPrison: false }, { any: [{ ownsAsset: 'car' }, { hasJob: true }] }],
+    conditions: [{ inPrison: false }, { ownsAssetId: ['old_hatchback', 'sedan', 'pickup', 'ev', 'luxury_sedan', 'sports_car', 'supercar', 'classic_car'] }],
     choices: [
       {
         id: 'pay',
@@ -239,7 +239,7 @@ export const MONEY_EVENTS: EventDef[] = [
     maxAge: 80,
     weight: 1.5,
     cooldown: 3,
-    conditions: [{ inPrison: false }, { any: [{ ownsAsset: 'car' }, { hasJob: true }] }],
+    conditions: [{ inPrison: false }, { ownsAssetId: ['old_hatchback', 'sedan', 'pickup', 'ev', 'luxury_sedan', 'sports_car', 'supercar', 'classic_car'] }],
     choices: [
       {
         id: 'full',

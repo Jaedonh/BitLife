@@ -431,7 +431,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     maxAge: 80,
     weight: 1.2,
     cooldown: 4,
-    conditions: [{ inPrison: false }, { any: [{ ownsAsset: 'car' }, { money: { gte: 3000 } }] }],
+    conditions: [{ inPrison: false }, { ownsAssetId: ['old_hatchback', 'sedan', 'pickup', 'ev', 'luxury_sedan', 'sports_car', 'supercar', 'classic_car'] }],
     person: { kind: ['friend', 'bestFriend'] },
     choices: [
       {

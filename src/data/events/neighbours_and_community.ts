@@ -422,7 +422,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
       {
         id: 'drive',
         label: 'Drive through it',
-        conditions: [{ ownsAsset: 'car' }],
+        conditions: [{ ownsAssetId: ['old_hatchback', 'sedan', 'pickup', 'ev', 'luxury_sedan', 'sports_car', 'supercar', 'classic_car'] }],
         effects: [
           {
             random: [
@@ -449,7 +449,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     weight: 1.5,
     cooldown: 3,
     conditions: [{ inPrison: false }],
-    person: { kind: ['mother', 'father', 'stepmother', 'stepfather', 'sibling', 'spouse', 'lover', 'child', 'friend'], minAge: 5 },
+    person: { kind: ['mother', 'father', 'stepmother', 'stepfather', 'sibling', 'spouse', 'lover', 'child'], minAge: 5, household: true },
     choices: [
       {
         id: 'stories',

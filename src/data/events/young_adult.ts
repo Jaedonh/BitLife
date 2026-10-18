@@ -1285,7 +1285,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     maxAge: 29,
     weight: 2,
     cooldown: 3,
-    conditions: [{ inPrison: false }, { any: [{ ownsAsset: 'car' }, { hasJob: true }] }],
+    conditions: [{ inPrison: false }, { ownsAssetId: ['old_hatchback', 'sedan', 'pickup', 'ev', 'luxury_sedan', 'sports_car', 'supercar', 'classic_car'] }],
     choices: [
       {
         id: 'mechanic',
@@ -1309,7 +1309,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
       {
         id: 'scrap',
         label: 'Scrap it, take the bus',
-        conditions: [{ ownsAsset: 'car' }],
+        conditions: [{ ownsAssetId: ['old_hatchback', 'sedan', 'pickup', 'ev', 'luxury_sedan', 'sports_car', 'supercar', 'classic_car'] }],
         effects: [
           { asset: 'lose', kind: 'car' },
           { money: 250 },

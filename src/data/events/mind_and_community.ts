@@ -862,7 +862,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     weight: 1.5,
     once: true,
     conditions: [{ addiction: 'drugs' }],
-    person: { kind: ['mother', 'father', 'sibling', 'spouse'], minAge: 18 },
+    person: { kind: ['mother', 'father', 'sibling', 'spouse', 'lover'], minAge: 18, household: true },
     choices: [
       {
         id: 'truth',
