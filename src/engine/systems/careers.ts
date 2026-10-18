@@ -291,7 +291,7 @@ export function retire(state: GameState): GameState {
 }
 
 /** Yearly career progression: performance drift, raises, promotions, layoffs, injuries, hustle income. */
-export function yearlyCareer(state: GameState, rng: Rng): GameState {
+export function yearlyCareer(state: GameState, rng: Rng, servedYear = false): GameState {
   let s = state;
   const job = s.career.job;
   if (job && !s.crime.inPrison) {
@@ -325,13 +325,13 @@ export function yearlyCareer(state: GameState, rng: Rng): GameState {
       s = removeJob(s, 'fired');
       s = addStats(s, { happiness: -10 });
       s = log(s, def.id === 'military' ? 'I was discharged from the Army for poor performance.' : `I was fired from ${job.company} for poor performance.`, 'bad');
-      return yearlyHustle(s, rng);
+      return yearlyHustle(s, rng, servedYear);
     }
     if (rng.chance(0.02)) {
       s = removeJob(s, 'fired');
       s = addStats(s, { happiness: -8 });
       s = log(s, def.id === 'military' ? 'The Army cut its numbers and I was discharged.' : `${capitalize(job.company)} made cutbacks and I was laid off.`, 'bad');
-      return yearlyHustle(s, rng);
+      return yearlyHustle(s, rng, servedYear);
     }
     if (perf >= 65 && updated.yearsAtLevel >= 1) {
       const pct = rng.int(1, 5);
@@ -345,7 +345,7 @@ export function yearlyCareer(state: GameState, rng: Rng): GameState {
   } else if (s.character.fame > 0) {
     s = { ...s, character: { ...s.character, fame: clampStat(s.character.fame - 3) } };
   }
-  return yearlyHustle(s, rng);
+  return yearlyHustle(s, rng, servedYear);
 }
 
 /** Owns a car that can carry passengers (a bike or scooter does not count). */
@@ -393,10 +393,10 @@ export function stopHustle(state: GameState): GameState {
   return setResult(s, 'Hustle closed.', 'info');
 }
 
-function yearlyHustle(before: GameState, rng: Rng): GameState {
+function yearlyHustle(before: GameState, rng: Rng, servedYear: boolean): GameState {
   const state = dropCarlessHustle(before);
   const h = state.career.hustle;
-  if (!h || state.crime.inPrison) return h ? { ...state, career: { ...state.career, hustle: { ...h, lastIncome: 0 } } } : state;
+  if (!h || state.crime.inPrison || servedYear) return h ? { ...state, career: { ...state.career, hustle: { ...h, lastIncome: 0 } } } : state;
   const def = HUSTLE_BY_ID[h.defId];
   if (!def) return state;
   const c = state.character;

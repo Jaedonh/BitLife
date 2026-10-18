@@ -27,9 +27,11 @@ export function ageUp(state: GameState, registry: EventRegistry = EVENT_REGISTRY
   s = log(s, `${s.year}: Age ${s.character.age}`, 'year');
   s = milestones(s);
   s = driftStats(s, rng);
+  // A year that started behind bars earns nothing on the outside, even if it ends in release.
+  const servedYear = s.crime.inPrison;
   s = yearlyPrison(s, rng);
   s = yearlyEducation(s, rng);
-  s = yearlyCareer(s, rng);
+  s = yearlyCareer(s, rng, servedYear);
   s = yearlyAssets(s, rng);
   s = yearlyFinance(s, rng);
   s = yearlyHealth(s, rng);

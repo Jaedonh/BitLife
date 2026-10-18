@@ -143,6 +143,11 @@ export function skipClass(state: GameState, rng: Rng): GameState {
   s = { ...s, character: { ...s.character, energy: s.character.energy - SKIP_CLASS_ENERGY }, education: { ...s.education, grade: clampStat(s.education.grade - 8) } };
   const college = state.education.stage === 'university' || state.education.stage === 'graduate';
   if (rng.chance(0.25)) {
+    const parents = Object.values(s.people).some((p) => (p.kind === 'mother' || p.kind === 'father' || p.kind === 'stepmother' || p.kind === 'stepfather') && p.alive);
+    if (!parents) {
+      s = addStats(log(s, college ? 'I skipped class and got caught. The professor noticed, and so did my grade.' : 'I skipped class and got caught. Detention, and a note in my file.', 'bad'), { happiness: -3 });
+      return setResult(s, college ? 'Caught skipping. My grade took the hit.' : 'Caught skipping. Detention.', 'bad');
+    }
     s = log(s, college ? 'I skipped class and got caught. Word got back to my parents, who were furious.' : 'I skipped class and got caught. My parents were furious.', 'bad');
     for (const p of Object.values(s.people)) if ((p.kind === 'mother' || p.kind === 'father') && p.alive) s = { ...s, people: { ...s.people, [p.id]: { ...p, relationship: clampStat(p.relationship - 6) } } };
     s = addStats(s, { happiness: -3 });

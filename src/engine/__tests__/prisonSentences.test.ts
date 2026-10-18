@@ -1,4 +1,6 @@
 import { EVENTS } from '@/data/events';
+import { ageUp } from '../ageUp';
+import { applyAction } from '../actions';
 import { applyEffects, sendToPrison } from '../events/effects';
 import { EVENT_REGISTRY } from '../events/registry';
 import { validateEvent, type Effect, type EventDef } from '../events/schema';
@@ -109,5 +111,15 @@ describe('arrest and court cards in prison', () => {
     const s = openNextEvent({ ...jailed, rng: { s: 2 }, eventQueue: [{ eventId: 'cp_false_charge_court', context: {} }] }, EVENT_REGISTRY);
     expect(s.pendingEvent).toBeNull();
     expect(s.crime.sentenceYearsLeft).toBe(12);
+  });
+
+  it('a side hustle earns nothing and does not grow in the year of release', () => {
+    let s = applyAction(aged(25), { type: 'startHustle', defId: 'streamer' });
+    expect(s.career.hustle).not.toBeNull();
+    s = sendToPrison(s, 1);
+    s = ageUp({ ...s, pendingEvent: null }, makeRegistry([]));
+    expect(s.crime.inPrison).toBe(false);
+    expect(s.career.hustle?.lastIncome).toBe(0);
+    expect(s.career.hustle?.yearsActive).toBe(0);
   });
 });
