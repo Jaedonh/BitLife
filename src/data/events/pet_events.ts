@@ -1,7 +1,7 @@
 import type { EventDef } from '@/engine/events/schema';
 
 /**
- * Pets, ages 4+: getting one, keeping one, losing one.
+ * Pets, ages 6+ (owner events mostly 13+): getting one, keeping one, losing one.
  *
  * The no-pet events (stray cat, a friend's dog, the class hamster, the shelter,
  * an inherited parrot, a sibling's rabbit) create pets with `newPerson`. The pet
@@ -15,12 +15,12 @@ export const PET_EVENTS: EventDef[] = [
     id: 'pt_stray_cat_rain',
     category: 'family',
     title: 'The rainy stray',
-    text: 'It rained all evening and a soaked tabby cat followed me the whole way home, then sat on the step staring at the door as if I were the one who was late. No collar. Very loud.',
-    minAge: 4,
+    text: 'It rained all evening and a soaked tabby cat followed me the whole way home, then sat on the front step staring at the door as if I were the one who was late. No collar. Very loud.',
+    minAge: 6,
     maxAge: 75,
     weight: 1,
     once: true,
-    conditions: [{ noPerson: ['pet'] }],
+    conditions: [{ noPerson: ['pet'] }, { inPrison: false }],
     choices: [
       {
         id: 'let_in',
@@ -39,7 +39,7 @@ export const PET_EVENTS: EventDef[] = [
           { karma: 3 },
           {
             chance: 0.5,
-            then: [{ log: 'A woman three streets over cried when I handed the cat back. I got a tin of biscuits for my trouble.', kind: 'good' }, { stat: 'happiness', delta: 3 }],
+            then: [{ log: 'A woman three streets over cried when I handed the cat back. I got a tin of cookies for my trouble.', kind: 'good' }, { stat: 'happiness', delta: 3 }],
             else: [
               { log: 'No one claimed the cat. After a week of posters, the cat claimed us.', kind: 'milestone' },
               { newPerson: { kind: 'pet', species: 'cat', relationship: 60, log: 'So {{person}} stayed, on {{their}} own terms.' } },
@@ -51,7 +51,7 @@ export const PET_EVENTS: EventDef[] = [
       {
         id: 'shoo',
         label: 'Shoo it away',
-        effects: [{ karma: -2 }, { stat: 'happiness', delta: -2 }, { log: 'I clapped my hands. It left, slowly, like it was doing me a favour.' }],
+        effects: [{ karma: -2 }, { stat: 'happiness', delta: -2 }, { log: 'I clapped my hands. It left, slowly, like it was doing me a favor.' }],
       },
     ],
   },
@@ -59,19 +59,19 @@ export const PET_EVENTS: EventDef[] = [
     id: 'pt_friends_dog_rehome',
     category: 'family',
     title: 'Dog needs a home',
-    text: '{{person}} is moving abroad for work and cannot take {{their}} dog. {{They}} asked me, with the face of someone who has already asked everyone else.',
+    text: '{{person}} is moving abroad, and the new place does not allow dogs. {{They}} asked me to take {{their}} dog, with the face of someone who has already asked everyone else.',
     minAge: 14,
     maxAge: 70,
     weight: 1,
     once: true,
-    conditions: [{ noPerson: ['pet'] }],
+    conditions: [{ noPerson: ['pet'] }, { inPrison: false }],
     person: { kind: ['friend', 'bestFriend'] },
     choices: [
       {
         id: 'take',
         label: 'Take the dog',
         effects: [
-          { newPerson: { kind: 'pet', species: 'dog', relationship: 55, log: '{{person}} arrived with a lead, a bed and a list of rules. {{They}} ignored the rules by Tuesday.' } },
+          { newPerson: { kind: 'pet', species: 'dog', relationship: 55, log: '{{person}} arrived with a leash, a bed and a list of rules. {{They}} ignored the rules by Tuesday.' } },
           { relationship: 'person', delta: 10 },
           { karma: 3 },
           { stat: 'happiness', delta: 5 },
@@ -87,7 +87,7 @@ export const PET_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 3 },
           {
             chance: 0.7,
-            then: [{ log: 'We found a retired couple with a garden. The dog chose them within four minutes.', kind: 'good' }, { stat: 'happiness', delta: 2 }],
+            then: [{ log: 'We found a retired couple with a big yard. The dog chose them within four minutes.', kind: 'good' }, { stat: 'happiness', delta: 2 }],
             else: [{ log: 'Nobody suitable turned up. {{person}} left in tears and the dog went to a shelter.', kind: 'bad' }, { stat: 'happiness', delta: -4 }],
           },
         ],
@@ -103,7 +103,7 @@ export const PET_EVENTS: EventDef[] = [
     id: 'pt_classroom_hamster',
     category: 'family',
     title: 'The class hamster',
-    text: 'Our class hamster needs somewhere to go over the holidays and my name came out of the hat. The cage is enormous. The hamster is called Professor.',
+    text: 'Our class hamster needs a place to stay over the school break, and my name came out of the hat. The cage is enormous. The hamster is called Professor.',
     minAge: 6,
     maxAge: 11,
     weight: 1.2,
@@ -118,7 +118,7 @@ export const PET_EVENTS: EventDef[] = [
           { grade: 2 },
           {
             chance: 0.8,
-            then: [{ log: 'Professor survived the holidays, fatter and, I think, fond of me. The teacher was visibly relieved.', kind: 'good' }, { stat: 'happiness', delta: 4 }, { karma: 1 }],
+            then: [{ log: 'Professor survived the break, fatter and, I think, fond of me. The teacher was visibly relieved.', kind: 'good' }, { stat: 'happiness', delta: 4 }, { karma: 1 }],
             else: [{ log: 'Professor escaped behind the fridge for three days. We got him back. Nobody at school needs to know.', kind: 'bad' }, { stat: 'happiness', delta: -3 }],
           },
         ],
@@ -132,10 +132,10 @@ export const PET_EVENTS: EventDef[] = [
           {
             chance: 0.3,
             then: [
-              { log: 'The teacher was so impressed she asked if I would keep Professor for good. Reader, I kept him.', kind: 'milestone' },
-              { newPerson: { kind: 'pet', species: 'hamster', relationship: 70, log: 'Professor, now officially {{person}}, moved in permanently.' } },
+              { log: 'The teacher was so impressed she offered me Professor for good. I said yes before she finished.', kind: 'milestone' },
+              { newPerson: { kind: 'pet', species: 'hamster', relationship: 70, log: 'Professor, officially renamed {{person}}, moved in for good.' } },
             ],
-            else: [{ log: 'Three storeys of cardboard tubes. Professor used one. I was still proud.', kind: 'good' }],
+            else: [{ log: 'Three stories of cardboard tubes. Professor used one. I was still proud.', kind: 'good' }],
           },
         ],
       },
@@ -149,13 +149,13 @@ export const PET_EVENTS: EventDef[] = [
   {
     id: 'pt_shelter_open_day',
     category: 'family',
-    title: 'Shelter open day',
-    text: 'The animal shelter in {{city}} has thrown its doors open: too many animals, not enough people. A volunteer handed me a leaflet and a very direct stare.',
+    title: 'Shelter open house',
+    text: 'The animal shelter in {{city}} has thrown its doors open: too many animals, not enough people. A volunteer handed me a flyer and a very direct stare.',
     minAge: 18,
     maxAge: 70,
     weight: 0.8,
     cooldown: 6,
-    conditions: [{ noPerson: ['pet'] }, { money: { gte: 100 } }],
+    conditions: [{ noPerson: ['pet'] }, { money: { gte: 100 } }, { inPrison: false }],
     choices: [
       {
         id: 'dog',
@@ -167,7 +167,7 @@ export const PET_EVENTS: EventDef[] = [
           { newPerson: { kind: 'pet', species: 'dog', relationship: 60, log: 'A dog with one ear up and one ear down came home with me. {{person}}, from now on.' } },
           { stat: 'happiness', delta: 7 },
           { karma: 3 },
-          { log: 'The volunteer cried a little. I pretended not to notice and drove home very carefully.', kind: 'good' },
+          { log: 'The volunteer cried a little. I pretended not to notice and walked the dog home very carefully.', kind: 'good' },
           { queue: 'pt_first_night_home' },
         ],
       },
@@ -180,7 +180,7 @@ export const PET_EVENTS: EventDef[] = [
           { newPerson: { kind: 'pet', species: 'cat', relationship: 60, log: 'A cat who had been there eleven months looked at me once. {{person}} came home in a cardboard box.' } },
           { stat: 'happiness', delta: 6 },
           { karma: 3 },
-          { log: 'Eleven months in a pen and within an hour the cat owned the flat.', kind: 'good' },
+          { log: 'Eleven months in a pen and within an hour the cat owned the place.', kind: 'good' },
           { queue: 'pt_first_night_home' },
         ],
       },
@@ -193,14 +193,14 @@ export const PET_EVENTS: EventDef[] = [
           { newPerson: { kind: 'pet', species: 'rabbit', relationship: 55, log: 'Nobody else had looked at the rabbit all day. {{person}} came home with me and a bag of hay.' } },
           { stat: 'happiness', delta: 4 },
           { karma: 4 },
-          { log: 'A rabbit is quieter than a dog and more judgemental than a cat. I did not know that.', kind: 'good' },
+          { log: 'A rabbit is quieter than a dog and more judgmental than a cat. I did not know that.', kind: 'good' },
         ],
       },
       {
         id: 'donate',
         label: 'Just donate',
         hint: '{{$50}}',
-        effects: [{ money: -50 }, { karma: 2 }, { stat: 'happiness', delta: 1 }, { log: 'I put money in the tin and left before anything with eyes could change my mind.' }],
+        effects: [{ money: -50 }, { karma: 2 }, { stat: 'happiness', delta: 1 }, { log: 'I put money in the donation jar and left before anything with eyes could change my mind.' }],
       },
     ],
   },
@@ -213,7 +213,7 @@ export const PET_EVENTS: EventDef[] = [
     maxAge: 75,
     weight: 0.5,
     once: true,
-    conditions: [{ noPerson: ['pet'] }],
+    conditions: [{ noPerson: ['pet'] }, { inPrison: false }],
     choices: [
       {
         id: 'keep',
@@ -276,13 +276,13 @@ export const PET_EVENTS: EventDef[] = [
     id: 'pt_sibling_rabbit',
     category: 'family',
     title: 'The abandoned rabbit',
-    text: '{{person}} has left for university and {{their}} rabbit has not. It sits in the hutch looking betrayed. Nobody else in the house will claim it.',
+    text: '{{person}} has left for college and {{their}} rabbit has not. It sits in the hutch looking betrayed. Nobody else in the house will claim it.',
     minAge: 8,
-    maxAge: 40,
+    maxAge: 17,
     weight: 0.8,
     once: true,
-    conditions: [{ noPerson: ['pet'] }],
-    person: { kind: ['sibling'], minAge: 17 },
+    conditions: [{ noPerson: ['pet'] }, { inPrison: false }],
+    person: { kind: ['sibling'], minAge: 17, maxAge: 24 },
     choices: [
       {
         id: 'adopt',
@@ -292,7 +292,7 @@ export const PET_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 4 },
           { karma: 2 },
           { relationship: 'person', delta: 3 },
-          { log: '{{person}} sent a thumbs-up from halls and has not mentioned the rabbit since.', kind: 'good' },
+          { log: '{{person}} sent a thumbs-up from the dorms and has not mentioned the rabbit since.', kind: 'good' },
         ],
       },
       {
@@ -303,13 +303,13 @@ export const PET_EVENTS: EventDef[] = [
           {
             chance: 0.6,
             then: [{ log: '{{person}} drove back grumbling and took the rabbit. It did not look grateful either.' }, { stat: 'happiness', delta: 1 }],
-            else: [{ log: '{{person}} said {{they}} would sort it and did not. I fed it anyway.', kind: 'bad' }, { stat: 'happiness', delta: -2 }, { karma: 1 }],
+            else: [{ log: '{{person}} said {{they}} would deal with it and did not. I fed it anyway.', kind: 'bad' }, { stat: 'happiness', delta: -2 }, { karma: 1 }],
           },
         ],
       },
       {
         id: 'rehome',
-        label: "Give it to a neighbour's kid",
+        label: "Give it to a neighbor's kid",
         effects: [{ karma: 2 }, { stat: 'happiness', delta: 1 }, { log: 'A small child next door now owns a rabbit and will not stop thanking me.' }],
       },
     ],
@@ -345,12 +345,13 @@ export const PET_EVENTS: EventDef[] = [
     id: 'pt_pet_sitting_gig',
     category: 'family',
     title: 'The pet-sitting job',
-    text: "{{person}} is away for a fortnight and asked me to look after {{their}} dog. There is money in it, and a long list of instructions about the dog's feelings.",
+    text: "{{person}} is going away for two weeks and asked me to look after {{their}} dog. There is money in it, and a long list of instructions about the dog's feelings.",
     minAge: 13,
     maxAge: 70,
     weight: 1,
     cooldown: 3,
-    person: { kind: ['friend', 'bestFriend', 'sibling', 'coworker'] },
+    conditions: [{ inPrison: false }],
+    person: { kind: ['friend', 'bestFriend', 'sibling', 'coworker'], minAge: 18 },
     choices: [
       {
         id: 'accept',
@@ -372,15 +373,15 @@ export const PET_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.5,
-            then: [{ money: 300 }, { karma: -2 }, { log: '{{person}} paid double without blinking. I felt rich and slightly grubby.', kind: 'money' }],
-            else: [{ relationship: 'person', delta: -5 }, { log: '{{person}} laughed and found a teenager who would do it for sweets.', kind: 'bad' }],
+            then: [{ money: 300 }, { karma: -2 }, { log: '{{person}} paid double without blinking. I felt rich and a little greedy.', kind: 'money' }],
+            else: [{ relationship: 'person', delta: -5 }, { log: '{{person}} laughed and found a kid down the street who would do it for candy.', kind: 'bad' }],
           },
         ],
       },
       {
         id: 'free',
         label: 'Do it for free',
-        effects: [{ karma: 3 }, { relationship: 'person', delta: 8 }, { stat: 'happiness', delta: 2 }, { log: 'I did it for nothing. {{person}} brought me back a fridge magnet and a lifetime of favours.', kind: 'good' }],
+        effects: [{ karma: 3 }, { relationship: 'person', delta: 8 }, { stat: 'happiness', delta: 2 }, { log: 'I did it for nothing. {{person}} brought me back a fridge magnet and a lifetime of favors.', kind: 'good' }],
       },
       {
         id: 'decline',
@@ -396,10 +397,11 @@ export const PET_EVENTS: EventDef[] = [
     category: 'family',
     title: 'The vet bill',
     text: '{{person}} has stopped eating and lies by the door looking at nothing. The vet frowned, ran tests, and slid a bill across the desk: {{$600}}.',
-    minAge: 6,
+    minAge: 13,
     maxAge: 85,
     weight: 1.5,
     cooldown: 3,
+    conditions: [{ inPrison: false }],
     person: { kind: ['pet'] },
     choices: [
       {
@@ -420,6 +422,7 @@ export const PET_EVENTS: EventDef[] = [
         id: 'cheaper',
         label: 'Ask for the cheap option',
         hint: '{{$180}}',
+        conditions: [{ money: { gte: 180 } }],
         effects: [
           { money: -180 },
           {
@@ -429,7 +432,7 @@ export const PET_EVENTS: EventDef[] = [
               {
                 chance: 0.5,
                 then: [{ personDies: true, cause: 'illness' }, { stat: 'happiness', delta: -12 }, { log: 'It was not enough. {{person}} slipped away a week later, at home, on the good blanket.', kind: 'bad' }],
-                else: [{ money: -400 }, { stat: 'happiness', delta: -5 }, { log: 'It got worse and we paid for the full treatment anyway. {{person}} pulled through.', kind: 'bad' }],
+                else: [{ money: -400 }, { stat: 'happiness', delta: -5 }, { log: 'It got worse and I paid for the full treatment anyway. {{person}} pulled through.', kind: 'bad' }],
               },
             ],
           },
@@ -446,7 +449,7 @@ export const PET_EVENTS: EventDef[] = [
             chance: 0.6,
             then: [{ relationship: 'person', delta: 5 }, { stat: 'happiness', delta: 3 }, { log: 'My parents paid, with a lecture attached. {{person}} recovered. So did I, eventually.', kind: 'good' }],
             else: [
-              { log: 'They said no, kindly. We went with the cheap treatment.' },
+              { log: 'They said no, kindly. I paid for the cheap treatment myself.' },
               { money: -180 },
               {
                 chance: 0.6,
@@ -476,10 +479,11 @@ export const PET_EVENTS: EventDef[] = [
     category: 'family',
     title: 'Something inedible',
     text: '{{person}} has eaten an entire sock, part of a candle and, judging by the wrapper, a bar of chocolate. {{They}} seems fine. {{They}} seems too fine.',
-    minAge: 5,
+    minAge: 13,
     maxAge: 85,
     weight: 1.5,
     cooldown: 3,
+    conditions: [{ inPrison: false }],
     person: { kind: ['pet'] },
     choices: [
       {
@@ -498,7 +502,7 @@ export const PET_EVENTS: EventDef[] = [
       },
       {
         id: 'helpline',
-        label: 'Call the pet helpline',
+        label: 'Call the pet poison hotline',
         hint: '{{$30}}',
         effects: [
           { money: -30 },
@@ -509,8 +513,8 @@ export const PET_EVENTS: EventDef[] = [
             else: [
               {
                 chance: 0.8,
-                then: [{ money: -400 }, { stat: 'happiness', delta: -2 }, { log: 'The calm voice said "vet, now". It was the right call. {{person}} is fine and I am poorer.', kind: 'bad' }],
-                else: [{ personDies: true, cause: 'an accident' }, { stat: 'happiness', delta: -12 }, { log: 'The calm voice said "vet, now". We went, but the chocolate had a head start. We lost {{person}}.', kind: 'bad' }],
+                then: [{ money: -400 }, { stat: 'happiness', delta: -2 }, { log: 'The calm voice said, "Vet. Now." It was the right call. {{person}} is fine and I am poorer.', kind: 'bad' }],
+                else: [{ personDies: true, cause: 'an accident' }, { stat: 'happiness', delta: -12 }, { log: 'The calm voice said, "Vet. Now." We went, but the chocolate had a head start. We lost {{person}}.', kind: 'bad' }],
               },
             ],
           },
@@ -522,7 +526,7 @@ export const PET_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.6,
-            then: [{ relationship: 'person', delta: 2 }, { stat: 'happiness', delta: -1 }, { log: 'Everything came out eventually, in the garden, in an order I will not describe.' }],
+            then: [{ relationship: 'person', delta: 2 }, { stat: 'happiness', delta: -1 }, { log: 'Everything came out eventually, in the yard, in an order I will not describe.' }],
             else: [
               {
                 chance: 0.75,
@@ -539,11 +543,12 @@ export const PET_EVENTS: EventDef[] = [
     id: 'pt_ran_away',
     category: 'family',
     title: 'Gone missing',
-    text: 'The gate was open, or the window was, and {{person}} is gone. I have walked every street in {{city}} twice, calling {{their}} name in a voice I did not recognise.',
-    minAge: 5,
+    text: 'The gate was open, or the window was, and {{person}} is gone. I have walked every street in {{city}} twice, calling {{their}} name in a voice I did not recognize.',
+    minAge: 13,
     maxAge: 85,
     weight: 1.2,
     cooldown: 4,
+    conditions: [{ inPrison: false }],
     person: { kind: ['pet'] },
     choices: [
       {
@@ -566,7 +571,7 @@ export const PET_EVENTS: EventDef[] = [
           { money: -80 },
           {
             chance: 0.75,
-            then: [{ relationship: 'person', delta: 5 }, { stat: 'happiness', delta: 5 }, { log: 'A kid rang three days later. {{person}} had been living like royalty two streets away.', kind: 'good' }],
+            then: [{ relationship: 'person', delta: 5 }, { stat: 'happiness', delta: 5 }, { log: 'A kid called three days later. {{person}} had been living like royalty two streets away.', kind: 'good' }],
             else: [{ log: 'The posters went soft in the rain. Nobody called about {{person}}.', kind: 'bad' }, { removePerson: true }, { stat: 'happiness', delta: -12 }],
           },
         ],
@@ -587,12 +592,13 @@ export const PET_EVENTS: EventDef[] = [
   {
     id: 'pt_local_show',
     category: 'family',
-    title: 'The local show',
-    text: '{{city}} is holding its annual pet show in the park: rosettes, a tea tent, and a judge with a clipboard. {{person}} has, to my knowledge, never been judged.',
-    minAge: 7,
+    title: 'The pet show',
+    text: '{{city}} is holding its annual pet show in the park: ribbons, a snack tent, and a judge with a clipboard. {{person}} has, to my knowledge, never been judged.',
+    minAge: 13,
     maxAge: 80,
     weight: 0.8,
     cooldown: 3,
+    conditions: [{ inPrison: false }],
     person: { kind: ['pet'] },
     choices: [
       {
@@ -603,9 +609,9 @@ export const PET_EVENTS: EventDef[] = [
           { money: -25 },
           {
             random: [
-              { weight: 2, effects: [{ money: 150 }, { fame: 1 }, { stat: 'happiness', delta: 8 }, { relationship: 'person', delta: 6 }, { log: '{{person}} won. First place, a rosette the size of a dinner plate and a voucher. I cried a bit.', kind: 'milestone' }] },
-              { weight: 4, effects: [{ stat: 'happiness', delta: 3 }, { relationship: 'person', delta: 3 }, { log: "{{person}} got a rosette for 'Most Enthusiastic', which the judge wrote with a straight face.", kind: 'good' }] },
-              { weight: 2, effects: [{ stat: 'happiness', delta: -2 }, { log: '{{person}} disgraced us in front of the judge in a way that cleared the tea tent.', kind: 'bad' }] },
+              { weight: 2, effects: [{ money: 150 }, { fame: 1 }, { stat: 'happiness', delta: 8 }, { relationship: 'person', delta: 6 }, { log: '{{person}} won. First place, a ribbon the size of a dinner plate and a gift card. I cried a bit.', kind: 'milestone' }] },
+              { weight: 4, effects: [{ stat: 'happiness', delta: 3 }, { relationship: 'person', delta: 3 }, { log: "{{person}} got a ribbon for 'Most Enthusiastic,' which the judge handed over with a straight face.", kind: 'good' }] },
+              { weight: 2, effects: [{ stat: 'happiness', delta: -2 }, { log: '{{person}} disgraced us in front of the judge in a way that cleared the snack tent.', kind: 'bad' }] },
             ],
           },
         ],
@@ -622,7 +628,7 @@ export const PET_EVENTS: EventDef[] = [
           {
             random: [
               { weight: 4, effects: [{ money: 150 }, { fame: 1 }, { stat: 'happiness', delta: 9 }, { log: 'All those weeks paid off. {{person}} sat, stayed, and won. The judge asked who trained {{them}}.', kind: 'milestone' }] },
-              { weight: 3, effects: [{ stat: 'happiness', delta: 3 }, { log: 'Second place. {{person}} ate the rosette. We were both happy.', kind: 'good' }] },
+              { weight: 3, effects: [{ stat: 'happiness', delta: 3 }, { log: 'Second place. {{person}} ate the ribbon. We were both happy.', kind: 'good' }] },
               { weight: 1, effects: [{ stat: 'happiness', delta: -3 }, { log: 'On the day, {{person}} forgot everything and sat on the judge. Lessons wasted.', kind: 'bad' }] },
             ],
           },
@@ -638,12 +644,13 @@ export const PET_EVENTS: EventDef[] = [
   {
     id: 'pt_getting_old',
     category: 'family',
-    title: 'Grey whiskers',
-    text: '{{person}} is old now. The stairs take planning, the walks are shorter, and {{they}} sleeps most of the day in the one patch of sun. {{They}} still knows my step.',
+    title: 'Gray whiskers',
+    text: '{{person}} is old now. The stairs take planning, the zoomies are a memory, and {{they}} sleeps most of the day in the one patch of sun. {{They}} still knows my step.',
     minAge: 10,
     maxAge: 90,
     weight: 1.5,
     cooldown: 2,
+    conditions: [{ inPrison: false }],
     person: { kind: ['pet'], minAge: 10 },
     choices: [
       {
@@ -655,7 +662,7 @@ export const PET_EVENTS: EventDef[] = [
           {
             chance: 0.3,
             then: [{ log: 'One morning {{person}} did not wake up, warm and asleep in the sun. It was a good last year.', kind: 'bad' }, { personDies: true, cause: 'old age' }, { stat: 'happiness', delta: -10 }],
-            else: [{ log: 'Slow walks, soft food, the best spot on the sofa. Another year with {{person}}, and a good one.', kind: 'good' }],
+            else: [{ log: 'Slow mornings, soft food, the best spot on the sofa. Another year with {{person}}, and a good one.', kind: 'good' }],
           },
         ],
       },
@@ -691,11 +698,12 @@ export const PET_EVENTS: EventDef[] = [
     id: 'pt_furniture',
     category: 'family',
     title: 'The sofa',
-    text: 'I came home to find the sofa opened up like a textbook and {{person}} sitting in the stuffing, radiating innocence. There is foam in rooms the sofa has never been in.',
-    minAge: 5,
+    text: 'I came home to find the sofa gutted like a fish and {{person}} sitting in the stuffing, radiating innocence. There is foam in rooms the sofa has never been in.',
+    minAge: 13,
     maxAge: 85,
     weight: 1.5,
     cooldown: 3,
+    conditions: [{ inPrison: false }],
     person: { kind: ['pet'] },
     choices: [
       {
@@ -719,7 +727,7 @@ export const PET_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ log: 'A stern talk. {{person}} looked devastated for a full minute and never touched the sofa again.' }],
-            else: [{ asset: 'damage', kind: 'house', amount: 8 }, { stat: 'happiness', delta: -3 }, { log: '{{person}} listened, blinked, and did the armchair the next day.', kind: 'bad' }],
+            else: [{ asset: 'damage', kind: 'house', amount: 8 }, { stat: 'happiness', delta: -3 }, { log: '{{person}} listened, blinked, and shredded the armchair the next day.', kind: 'bad' }],
           },
         ],
       },
@@ -729,19 +737,20 @@ export const PET_EVENTS: EventDef[] = [
     id: 'pt_noise_complaint',
     category: 'family',
     title: 'The note',
-    text: "A note through the door, in capital letters, about the racket {{person}} makes whenever I go out. The neighbour has underlined 'EVERY DAY' twice and signed it 'Regards'.",
-    minAge: 10,
+    text: "A note under my door, in capital letters, about the racket {{person}} makes whenever I go out. The neighbor has underlined 'EVERY DAY' twice and signed it 'Regards.'",
+    minAge: 18,
     maxAge: 85,
     weight: 1.2,
     cooldown: 4,
+    conditions: [{ inPrison: false }],
     person: { kind: ['pet'] },
     choices: [
       {
         id: 'apologise',
-        label: 'Apologise with cake',
+        label: 'Apologize with cake',
         hint: '{{$25}}',
         conditions: [{ money: { gte: 25 } }],
-        effects: [{ money: -25 }, { karma: 2 }, { stat: 'happiness', delta: 1 }, { log: 'Cake and an apology. The neighbour thawed and called {{person}} "quite sweet, actually".', kind: 'good' }],
+        effects: [{ money: -25 }, { karma: 2 }, { stat: 'happiness', delta: 1 }, { log: 'Cake and an apology. The neighbor thawed and called {{person}} "kind of sweet, actually."', kind: 'good' }],
       },
       {
         id: 'ignore',
@@ -750,8 +759,8 @@ export const PET_EVENTS: EventDef[] = [
           { karma: -1 },
           {
             chance: 0.5,
-            then: [{ money: -150 }, { stat: 'happiness', delta: -4 }, { log: 'The council got involved. A fine, a warning, and a neighbour who now waves with one finger.', kind: 'bad' }],
-            else: [{ log: 'No more notes. Either {{person}} got quieter or the neighbour moved. I did not ask.' }],
+            then: [{ money: -150 }, { stat: 'happiness', delta: -4 }, { log: 'The city got involved: a fine, a warning, and a neighbor who now waves with one finger.', kind: 'bad' }],
+            else: [{ log: 'No more notes. Either {{person}} got quieter or the neighbor moved. I did not ask.' }],
           },
         ],
       },
@@ -765,7 +774,7 @@ export const PET_EVENTS: EventDef[] = [
           {
             chance: 0.7,
             then: [{ relationship: 'person', delta: 5 }, { stat: 'happiness', delta: 2 }, { log: 'Three sessions and a puzzle feeder. {{person}} now spends my absences on puzzles, not howling.', kind: 'good' }],
-            else: [{ stat: 'happiness', delta: -2 }, { log: 'The trainer left shaking her head. {{person}} howled her out of the door.', kind: 'bad' }],
+            else: [{ stat: 'happiness', delta: -2 }, { log: 'The trainer left shaking her head. {{person}} howled her out the door.', kind: 'bad' }],
           },
         ],
       },
@@ -776,10 +785,11 @@ export const PET_EVENTS: EventDef[] = [
     category: 'family',
     title: 'The sneezing',
     text: 'I have been sneezing for a month and the doctor has an opinion: it is {{person}}. Hair, dander, the works. {{They}} sat on my lap through the whole phone call.',
-    minAge: 5,
+    minAge: 13,
     maxAge: 80,
     weight: 0.7,
     once: true,
+    conditions: [{ inPrison: false }],
     person: { kind: ['pet'] },
     choices: [
       {
@@ -790,15 +800,15 @@ export const PET_EVENTS: EventDef[] = [
           { money: -60 },
           {
             chance: 0.65,
-            then: [{ stat: 'health', delta: 1 }, { stat: 'happiness', delta: 2 }, { relationship: 'person', delta: 3 }, { log: 'One tablet a day and a lot of vacuuming. {{person}} stays. My nose can cope.', kind: 'good' }],
-            else: [{ stat: 'health', delta: -3 }, { stat: 'happiness', delta: -2 }, { log: 'The tablets took the edge off and no more. {{person}} and I sneeze through it together.', kind: 'bad' }],
+            then: [{ stat: 'health', delta: 1 }, { stat: 'happiness', delta: 2 }, { relationship: 'person', delta: 3 }, { log: 'One pill a day and a lot of vacuuming. {{person}} stays. My nose can cope.', kind: 'good' }],
+            else: [{ stat: 'health', delta: -3 }, { stat: 'happiness', delta: -2 }, { log: 'The pills took the edge off and no more. {{person}} and I sneeze through it together.', kind: 'bad' }],
           },
         ],
       },
       {
         id: 'rehome',
         label: 'Rehome {{person}}',
-        effects: [{ log: 'A colleague with a big garden took {{person}}. I get photos. I cannot look at them yet.', kind: 'bad' }, { removePerson: true }, { stat: 'happiness', delta: -10 }, { stat: 'health', delta: 4 }],
+        effects: [{ log: 'A friend with a big yard took {{person}}. I get photos. I cannot look at them yet.', kind: 'bad' }, { removePerson: true }, { stat: 'happiness', delta: -10 }, { stat: 'health', delta: 4 }],
       },
       {
         id: 'tough',
@@ -811,12 +821,12 @@ export const PET_EVENTS: EventDef[] = [
     id: 'pt_landlord',
     category: 'family',
     title: 'No pets allowed',
-    text: "My landlord did an inspection and met {{person}}, who was not mentioned in the lease. He has given me a week to 'resolve the situation' and keeps saying the word 'deposit'.",
+    text: "My landlord did an inspection and met {{person}}, who was not mentioned in the lease. He has given me a week to 'resolve the situation' and keeps saying the word 'deposit.'",
     minAge: 18,
     maxAge: 70,
     weight: 0.8,
     once: true,
-    conditions: [{ noAsset: 'house' }],
+    conditions: [{ noAsset: 'house' }, { inPrison: false }],
     person: { kind: ['pet'] },
     choices: [
       {
@@ -854,7 +864,7 @@ export const PET_EVENTS: EventDef[] = [
     maxAge: 80,
     weight: 1,
     cooldown: 5,
-    conditions: [{ hasLover: true }],
+    conditions: [{ hasLover: true }, { inPrison: false }],
     person: { kind: ['pet'] },
     choices: [
       {
@@ -901,7 +911,7 @@ export const PET_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.6,
-            then: [{ jobPerformance: 4 }, { stat: 'happiness', delta: 6 }, { relationship: 'person', delta: 4 }, { log: '{{person}} was the most popular colleague in the building by lunch. The boss wants {{them}} back.', kind: 'good' }],
+            then: [{ jobPerformance: 4 }, { stat: 'happiness', delta: 6 }, { relationship: 'person', delta: 4 }, { log: '{{person}} was the most popular coworker in the building by lunch. The boss wants {{them}} back.', kind: 'good' }],
             else: [{ jobPerformance: -5 }, { stat: 'happiness', delta: -3 }, { log: "{{person}} ate the director's sandwich and then, somehow, part of a presentation. We were sent home.", kind: 'bad' }],
           },
         ],
@@ -922,11 +932,12 @@ export const PET_EVENTS: EventDef[] = [
     id: 'pt_park_regulars',
     category: 'family',
     title: 'The park regulars',
-    text: 'Walking {{person}} at the same time every morning, I keep meeting the same people: the man with three greyhounds, the woman who knows every dog by name and no human by theirs.',
+    text: 'Every morning at the same time, {{person}} and I do a lap of the park, and I keep meeting the same people: the man with three greyhounds, the woman who knows every pet by name and no human by theirs.',
     minAge: 14,
     maxAge: 75,
     weight: 1,
     cooldown: 4,
+    conditions: [{ inPrison: false }],
     person: { kind: ['pet'] },
     choices: [
       {
@@ -941,7 +952,7 @@ export const PET_EVENTS: EventDef[] = [
               { stat: 'happiness', delta: 4 },
               { log: 'Mornings have a purpose now. {{person}} is suspicious of the greyhounds but tolerates the man.', kind: 'good' },
             ],
-            else: [{ stat: 'happiness', delta: 1 }, { log: 'Small talk about weather and worming tablets. Nobody exchanged names. That seems to be the rule.' }],
+            else: [{ stat: 'happiness', delta: 1 }, { log: 'Small talk about the weather and flea medicine. Nobody exchanged names. That seems to be the rule.' }],
           },
         ],
       },
@@ -952,7 +963,7 @@ export const PET_EVENTS: EventDef[] = [
       },
       {
         id: 'picnic',
-        label: 'Organise a park picnic',
+        label: 'Organize a park picnic',
         hint: '{{$40}}',
         effects: [
           { money: -40 },
@@ -960,11 +971,11 @@ export const PET_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [
-              { newPerson: { kind: 'friend', relationship: 55, log: 'The picnic produced one real friend, {{person}}, and about forty sausage rolls.' } },
+              { newPerson: { kind: 'friend', relationship: 55, log: 'The picnic produced one real friend, {{person}}, and about forty pigs in a blanket.' } },
               { stat: 'happiness', delta: 5 },
-              { log: 'Eleven dogs, one cat on a lead, no incidents worth a lawsuit. A success by any measure.', kind: 'good' },
+              { log: 'Eleven dogs, one cat on a leash, no incidents worth a lawsuit. A success by any measure.', kind: 'good' },
             ],
-            else: [{ stat: 'happiness', delta: -2 }, { log: 'It rained. Four people came. {{person}} ate most of the sausage rolls, which was arguably the plan.', kind: 'bad' }],
+            else: [{ stat: 'happiness', delta: -2 }, { log: 'It rained. Four people came. {{person}} ate most of the snacks, which was arguably the plan.', kind: 'bad' }],
           },
         ],
       },
@@ -973,12 +984,13 @@ export const PET_EVENTS: EventDef[] = [
   {
     id: 'pt_lonely_pet',
     category: 'family',
-    title: 'Waiting by the door',
-    text: 'The neighbours tell me {{person}} sits at the window all day, every day, until I come home. I did not know that. Now I cannot stop thinking about it.',
+    title: 'Waiting at the window',
+    text: 'The neighbors tell me {{person}} sits at the window all day, every day, until I come home. I did not know that. Now I cannot stop thinking about it.',
     minAge: 16,
     maxAge: 80,
     weight: 0.8,
     once: true,
+    conditions: [{ inPrison: false }],
     person: { kind: ['pet'], minRelationship: 55 },
     choices: [
       {
@@ -1019,17 +1031,18 @@ export const PET_EVENTS: EventDef[] = [
     category: 'family',
     title: 'The roast',
     text: 'The whole family came for dinner. The roast rested on the counter for exactly as long as it took {{person}} to get it onto the floor and halfway through it.',
-    minAge: 10,
+    minAge: 18,
     maxAge: 85,
     weight: 0.8,
     cooldown: 5,
+    conditions: [{ inPrison: false }],
     person: { kind: ['pet'] },
     choices: [
       {
         id: 'takeaway',
-        label: 'Laugh and order takeaway',
+        label: 'Laugh and order takeout',
         hint: '{{$70}}',
-        effects: [{ money: -70 }, { stat: 'happiness', delta: 4 }, { relationship: 'person', delta: 2 }, { log: 'Takeaway for nine. The story improved with every telling. {{person}} slept through dessert.', kind: 'good' }],
+        effects: [{ money: -70 }, { stat: 'happiness', delta: 4 }, { relationship: 'person', delta: 2 }, { log: 'Takeout for nine. The story improved with every telling. {{person}} slept through dessert.', kind: 'good' }],
       },
       {
         id: 'serve',
@@ -1039,7 +1052,7 @@ export const PET_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ stat: 'happiness', delta: 2 }, { log: 'I trimmed the edges and said nothing. Nobody noticed. {{person}} and I share a secret now.' }],
-            else: [{ illness: 'food_poisoning' }, { stat: 'happiness', delta: -5 }, { log: 'Someone noticed a tooth mark. Then everyone noticed. Then I was ill, which felt fair.', kind: 'bad' }],
+            else: [{ illness: 'food_poisoning' }, { stat: 'happiness', delta: -5 }, { log: 'Someone noticed a tooth mark. Then everyone noticed. Then I got sick, which felt fair.', kind: 'bad' }],
           },
         ],
       },
@@ -1054,12 +1067,12 @@ export const PET_EVENTS: EventDef[] = [
     id: 'pt_kid_and_pet',
     category: 'family',
     title: 'Best friends',
-    text: 'My child and {{person}} have become inseparable. They share a bed, a biscuit and, I suspect, a secret language. Today the child tried to put {{person}} in school uniform.',
-    minAge: 20,
-    maxAge: 70,
+    text: 'My kid and {{person}} have become inseparable. They share a bed, a cookie and, I suspect, a secret language. Today my kid tried to sign {{person}} up for school.',
+    minAge: 25,
+    maxAge: 50,
     weight: 1,
     cooldown: 5,
-    conditions: [{ hasChildren: true }],
+    conditions: [{ hasChildren: true }, { inPrison: false }],
     person: { kind: ['pet'] },
     choices: [
       {
@@ -1070,7 +1083,7 @@ export const PET_EVENTS: EventDef[] = [
       {
         id: 'rules',
         label: 'Set some rules',
-        effects: [{ relationship: 'child', delta: -2 }, { stat: 'health', delta: 1 }, { log: 'No pets in the bath, no biscuits from the mouth. The rules lasted a fortnight.' }],
+        effects: [{ relationship: 'child', delta: -2 }, { stat: 'health', delta: 1 }, { log: 'No pets in the bathtub, no sharing cookies. The rules lasted two weeks.' }],
       },
       {
         id: 'photos',
@@ -1079,7 +1092,7 @@ export const PET_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 3 },
           {
             chance: 0.3,
-            then: [{ fame: 1 }, { money: 100 }, { log: 'One photo went round the internet. A magazine paid for it. The child wants an agent.', kind: 'money' }],
+            then: [{ fame: 1 }, { money: 100 }, { log: 'One photo went viral. A magazine paid for it. Now my kid wants an agent.', kind: 'money' }],
             else: [{ log: 'A thousand photos, four of them in focus. Those four are on every wall in the house.' }],
           },
         ],
@@ -1095,6 +1108,7 @@ export const PET_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 0.7,
     once: true,
+    conditions: [{ inPrison: false }],
     person: { kind: ['pet'], alive: false },
     choices: [
       {
@@ -1127,7 +1141,7 @@ export const PET_EVENTS: EventDef[] = [
       {
         id: 'bin',
         label: 'Throw it away',
-        effects: [{ stat: 'happiness', delta: -3 }, { log: 'I put it in the bin, then took it out, then put it back. Three times.' }],
+        effects: [{ stat: 'happiness', delta: -3 }, { log: 'I put it in the trash, then took it out, then put it back. Three times.' }],
       },
     ],
   },

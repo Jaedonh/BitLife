@@ -5,7 +5,7 @@ import type { EventDef } from '@/engine/events/schema';
  * a found wallet, friends who need a loan, a cousin with a crypto tip, a
  * distant inheritance, identity theft, side gigs, raise gossip, rent hikes,
  * car trouble, wedding gifts, scam emails, charity, a bank error in your
- * favour and a year-end bonus, plus rich and poor variants (an investment
+ * favor and a year-end bonus, plus rich and poor variants (an investment
  * pitch for the flush, an empty fridge for the broke).
  * Follow-ups (followUpOnly) are queued by the events that set them up and
  * never fire on their own.
@@ -16,7 +16,7 @@ export const MONEY_EVENTS: EventDef[] = [
     id: 'mn_tax_audit',
     category: 'money',
     title: 'Tax audit',
-    text: "A thick envelope from the tax office arrived. I am being audited. The letter uses the word 'discrepancies' three times and does not use the word 'sorry' once.",
+    text: 'A thick envelope from the tax agency arrived. I am being audited. The letter uses the word "discrepancies" three times and does not use the word "sorry" once.',
     minAge: 20,
     maxAge: 80,
     weight: 0.8,
@@ -65,7 +65,7 @@ export const MONEY_EVENTS: EventDef[] = [
     id: 'mn_surprise_bill',
     category: 'money',
     title: 'Surprise bill',
-    text: "A bill arrived for {{$900}} from a clinic visit I barely remember. The itemised list includes a 'facility fee', which I can only assume is the price of the chairs.",
+    text: 'A bill arrived for {{$900}} from a clinic visit I barely remember. The itemized list includes a "facility fee," which I can only assume is the price of the chairs.',
     minAge: 18,
     maxAge: 85,
     weight: 2,
@@ -85,7 +85,7 @@ export const MONEY_EVENTS: EventDef[] = [
           {
             chance: 0.45,
             then: [{ money: -300 }, { stat: 'happiness', delta: 3 }, { log: 'After three phone calls and one hold-music playlist, they knocked it down to {{$300}}.', kind: 'good' }],
-            else: [{ money: -900 }, { stat: 'happiness', delta: -4 }, { log: "Four hours on hold to be told the facility fee is 'standard'. I paid in full.", kind: 'bad' }],
+            else: [{ money: -900 }, { stat: 'happiness', delta: -4 }, { log: 'Four hours on hold to be told the facility fee is "standard." I paid in full.', kind: 'bad' }],
           },
         ],
       },
@@ -107,7 +107,7 @@ export const MONEY_EVENTS: EventDef[] = [
     id: 'mn_debt_collector',
     category: 'money',
     title: 'A voice on the phone',
-    text: "A man called about an 'outstanding balance' of {{$640}} from a gym I may or may not have joined years ago. He was very polite and very sure of himself.",
+    text: 'A man called about an "outstanding balance" of {{$640}} from a gym I may or may not have joined years ago. He was very polite and very sure of himself.',
     minAge: 20,
     maxAge: 85,
     weight: 1,
@@ -170,7 +170,7 @@ export const MONEY_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ stat: 'happiness', delta: 5 }, { stat: 'smarts', delta: 1 }, { log: 'My photo essay on the tree won the appeal. I have never felt more alive.', kind: 'good' }],
-            else: [{ money: -90 }, { stat: 'happiness', delta: -3 }, { log: 'The council admired the photos and rejected the appeal. The tree stays. So does the fine.', kind: 'info' }],
+            else: [{ money: -90 }, { stat: 'happiness', delta: -3 }, { log: 'The city admired the photos and rejected the appeal. The tree stays. So does the fine.', kind: 'info' }],
           },
         ],
       },
@@ -203,7 +203,7 @@ export const MONEY_EVENTS: EventDef[] = [
         id: 'pay',
         label: 'Pay the increase',
         hint: '{{$2160}} a year',
-        effects: [{ money: -2160 }, { stat: 'happiness', delta: -5 }, { log: 'I paid. Over the year it came to {{$2160}}. The boiler still rattles.', kind: 'money' }],
+        effects: [{ money: -2160 }, { stat: 'happiness', delta: -5 }, { log: 'I paid. Over the year it came to {{$2160}}. The radiator still rattles.', kind: 'money' }],
       },
       {
         id: 'negotiate',
@@ -211,7 +211,7 @@ export const MONEY_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.5,
-            then: [{ money: -1000 }, { stat: 'happiness', delta: 2 }, { log: 'I pointed out the rattling boiler and the missing tiles. We settled on half the increase.', kind: 'good' }],
+            then: [{ money: -1000 }, { stat: 'happiness', delta: 2 }, { log: 'I pointed out the rattling radiator and the missing tiles. We settled on half the increase.', kind: 'good' }],
             else: [{ money: -2160 }, { stat: 'happiness', delta: -3 }, { log: 'The landlord listened politely and raised it anyway. The tiles remain missing.', kind: 'bad' }],
           },
         ],
@@ -224,8 +224,8 @@ export const MONEY_EVENTS: EventDef[] = [
           { money: -900 },
           { stat: 'happiness', delta: -4 },
           { stat: 'health', delta: -2 },
-          { log: 'I moved. It cost {{$900}} and a weekend, but the new place is cheaper and the boiler is silent.', kind: 'info' },
-          { chance: 0.3, then: [{ stat: 'happiness', delta: 8 }, { log: 'The new neighbourhood turned out to be lovely. Best decision I made all year.', kind: 'good' }] },
+          { log: 'I moved. It cost {{$900}} and a weekend, but the new place is cheaper and the radiator is silent.', kind: 'info' },
+          { chance: 0.3, then: [{ stat: 'happiness', delta: 8 }, { log: 'The new neighborhood turned out to be lovely. Best decision I made all year.', kind: 'good' }] },
         ],
       },
     ],
@@ -263,7 +263,7 @@ export const MONEY_EVENTS: EventDef[] = [
       {
         id: 'bus',
         label: 'Take the bus for a while',
-        effects: [{ stat: 'happiness', delta: -4 }, { stat: 'health', delta: 2 }, { jobPerformance: -2 }, { log: 'I left it on the drive and took the bus. I was late twice and read three books.', kind: 'info' }],
+        effects: [{ stat: 'happiness', delta: -4 }, { stat: 'health', delta: 2 }, { jobPerformance: -2 }, { log: 'I left it in the driveway and took the bus. I was late twice and read three books.', kind: 'info' }],
       },
     ],
   },
@@ -303,7 +303,7 @@ export const MONEY_EVENTS: EventDef[] = [
           {
             chance: 0.15,
             then: [{ stat: 'happiness', delta: -6 }, { log: 'I kept it. The library card had an address two doors from mine. Awkward does not begin to cover it.', kind: 'bad' }],
-            else: [{ log: "I kept the cash and dropped the wallet in a postbox. Finder's fee, I told myself.", kind: 'money' }],
+            else: [{ log: "I kept the cash and dropped the wallet in a mailbox. Finder's fee, I told myself.", kind: 'money' }],
           },
         ],
       },
@@ -372,7 +372,7 @@ export const MONEY_EVENTS: EventDef[] = [
     id: 'mn_scratch_card',
     category: 'money',
     title: 'The joke gift',
-    text: "{{person}} gave me a {{$40}} voucher for a shop that sells only novelty socks, as a joke birthday present. 'Don't spend it all at once,' {{they}} said. It expires next month.",
+    text: 'As a joke birthday present, {{person}} gave me a {{$40}} gift card for a store that sells only novelty socks. "Don\'t spend it all at once," {{they}} said. It expires next month.',
     minAge: 18,
     maxAge: 85,
     weight: 0.8,
@@ -382,15 +382,15 @@ export const MONEY_EVENTS: EventDef[] = [
     choices: [
       {
         id: 'scratch',
-        label: 'Go and spend it',
+        label: 'Go spend it',
         hint: '{{$20}} bus fare',
         effects: [
           { money: -20 },
           {
             random: [
               { weight: 6, effects: [{ stat: 'happiness', delta: 3 }, { stat: 'looks', delta: 1 }, { log: 'I now own socks with lobsters on them. People comment. I let them.', kind: 'good' }] },
-              { weight: 3, effects: [{ stat: 'happiness', delta: -2 }, { log: 'The shop had closed down. I stood outside it holding a voucher for nothing, then got the bus home.', kind: 'bad' }] },
-              { weight: 1, effects: [{ stat: 'happiness', delta: 5 }, { relationship: 'person', delta: 2 }, { log: 'The owner was so thrilled to see a voucher that he threw in a second pair. Lobsters and toast.', kind: 'good' }] },
+              { weight: 3, effects: [{ stat: 'happiness', delta: -2 }, { log: 'The store had closed down. I stood outside holding a gift card for nothing, then took the bus home.', kind: 'bad' }] },
+              { weight: 1, effects: [{ stat: 'happiness', delta: 5 }, { relationship: 'person', delta: 2 }, { log: 'The owner was so thrilled to see a customer that he threw in a second pair. Lobsters and toast.', kind: 'good' }] },
             ],
           },
         ],
@@ -402,14 +402,14 @@ export const MONEY_EVENTS: EventDef[] = [
           {
             chance: 0.7,
             then: [{ relationship: 'person', delta: 4 }, { stat: 'happiness', delta: 3 }, { log: 'Returned on {{their}} birthday, rewrapped. {{They}} laughed for a full minute. A tradition was born.', kind: 'good' }],
-            else: [{ relationship: 'person', delta: -3 }, { stat: 'happiness', delta: -1 }, { log: "{{They}} did not find it funny. Apparently the socks were 'a whole thing'. I did not ask.", kind: 'bad' }],
+            else: [{ relationship: 'person', delta: -3 }, { stat: 'happiness', delta: -1 }, { log: '{{They}} did not find it funny. Apparently the socks were "a whole thing." I did not ask.', kind: 'bad' }],
           },
         ],
       },
       {
         id: 'keep',
         label: 'Keep it in my wallet',
-        effects: [{ stat: 'happiness', delta: 1 }, { log: 'I never spent it. It lives in my wallet as a small unspent possibility, worth more than {{$40}}.', kind: 'info' }],
+        effects: [{ stat: 'happiness', delta: 1 }, { log: 'I never spent it. It lives in my wallet as a small possibility, worth more than {{$40}}.', kind: 'info' }],
       },
     ],
   },
@@ -417,7 +417,7 @@ export const MONEY_EVENTS: EventDef[] = [
     id: 'mn_scam_email',
     category: 'money',
     title: 'Too good to be true',
-    text: "An email from a 'prince' says I have inherited {{$8000000}} and need only send {{$150}} in processing fees. It is addressed to 'Dear Beloved'.",
+    text: 'An email from a "prince" says I have inherited {{$8000000}} and need only send {{$150}} in processing fees. It is addressed to "Dear Beloved."',
     minAge: 18,
     maxAge: 85,
     weight: 2,
@@ -437,7 +437,7 @@ export const MONEY_EVENTS: EventDef[] = [
           { money: -150 },
           {
             chance: 0.9,
-            then: [{ money: -600 }, { stat: 'happiness', delta: -5 }, { log: "The {{$150}} unlocked a 'second fee', then a third. I lost {{$750}} before the prince went quiet.", kind: 'bad' }],
+            then: [{ money: -600 }, { stat: 'happiness', delta: -5 }, { log: 'The {{$150}} unlocked a "second fee," then a third. I lost {{$750}} before the prince went quiet.', kind: 'bad' }],
             else: [{ money: 150 }, { log: 'I sent it, felt foolish at once, and my bank reversed it before it cleared. Lesson learned, cheaply.', kind: 'info' }],
           },
         ],
@@ -450,7 +450,7 @@ export const MONEY_EVENTS: EventDef[] = [
           {
             random: [
               { weight: 7, effects: [{ stat: 'happiness', delta: 4 }, { log: 'I kept the prince talking for three weeks about my fictional llama farm. The llamas are thriving.', kind: 'good' }] },
-              { weight: 3, effects: [{ stat: 'happiness', delta: -2 }, { log: 'The prince got bored, then angry, and signed me up to every newsletter on earth. Inbox: ruined.', kind: 'bad' }] },
+              { weight: 3, effects: [{ stat: 'happiness', delta: -2 }, { log: 'The prince got bored, then angry, and signed me up for every newsletter on earth. Inbox: ruined.', kind: 'bad' }] },
             ],
           },
         ],
@@ -484,7 +484,7 @@ export const MONEY_EVENTS: EventDef[] = [
         id: 'specialist',
         label: 'Hire a fraud specialist',
         hint: '{{$400}}',
-        effects: [{ money: -400 }, { stat: 'happiness', delta: -1 }, { stat: 'smarts', delta: 1 }, { log: 'The specialist unpicked it in days. Every purchase now pings my phone, which is its own punishment.', kind: 'good' }],
+        effects: [{ money: -400 }, { stat: 'happiness', delta: -1 }, { stat: 'smarts', delta: 1 }, { log: 'The specialist untangled it in days. Every purchase now pings my phone, which is its own punishment.', kind: 'good' }],
       },
       {
         id: 'later',
@@ -504,7 +504,7 @@ export const MONEY_EVENTS: EventDef[] = [
     id: 'mn_crypto_tip',
     category: 'money',
     title: 'A hot tip',
-    text: "My cousin messaged at midnight about a coin that is 'guaranteed to ten-x by spring'. The coin has a cartoon dog on it. The cousin has never been right about anything.",
+    text: 'My cousin messaged at midnight about a coin that is "guaranteed to ten-x by spring." The coin has a cartoon dog on it. My cousin has never been right about anything.',
     minAge: 18,
     maxAge: 75,
     weight: 1,
@@ -553,7 +553,7 @@ export const MONEY_EVENTS: EventDef[] = [
     id: 'mn_distant_inheritance',
     category: 'money',
     title: 'An unexpected will',
-    text: "A solicitor rang about a great-aunt I met twice. She left me {{$40000}} and a cabinet of porcelain owls, on the condition that I 'do something sensible with it'.",
+    text: 'A lawyer called about a great-aunt I met twice. She left me {{$40000}} and a cabinet of porcelain owls, on the condition that I "do something sensible with it."',
     minAge: 25,
     maxAge: 85,
     weight: 0.3,
@@ -635,12 +635,12 @@ export const MONEY_EVENTS: EventDef[] = [
     id: 'mn_bonus',
     category: 'money',
     title: 'Year-end bonus',
-    text: "{{company}} handed out year-end bonuses and mine was {{$2000}}. My boss shook my hand and said 'don't spend it all in one place', which is advice nobody has ever taken.",
+    text: '{{company}} handed out year-end bonuses and mine was {{$2000}}. My boss shook my hand and said, "Don\'t spend it all in one place," which is advice nobody has ever taken.',
     minAge: 18,
     maxAge: 70,
     weight: 1.2,
     cooldown: 2,
-    conditions: [{ inPrison: false }, { hasJob: true }],
+    conditions: [{ inPrison: false }, { hasJob: true }, { partTime: false }],
     choices: [
       {
         id: 'save',
@@ -663,13 +663,13 @@ export const MONEY_EVENTS: EventDef[] = [
     id: 'mn_raise_tip',
     category: 'money',
     title: 'Insider advice',
-    text: "{{person}} told me the budget for raises at {{company}} gets decided next week, and that people who ask early get 'rounded up'. {{They}} said this in a whisper, so it must be true.",
+    text: '{{person}} told me the budget for raises at {{company}} gets decided next week, and that people who ask early get "rounded up." {{They}} said this in a whisper, so it must be true.',
     minAge: 20,
     maxAge: 65,
     weight: 1,
     cooldown: 3,
-    conditions: [{ inPrison: false }, { hasJob: true }],
-    person: { kind: ['friend', 'bestFriend', 'coworker', 'sibling'], minRelationship: 40 },
+    conditions: [{ inPrison: false }, { hasJob: true }, { partTime: false }],
+    person: { kind: ['friend', 'bestFriend', 'coworker', 'sibling'], minAge: 18, minRelationship: 40 },
     choices: [
       {
         id: 'ask',
@@ -679,7 +679,7 @@ export const MONEY_EVENTS: EventDef[] = [
           {
             chance: 0.55,
             then: [{ money: 1500 }, { stat: 'happiness', delta: 6 }, { jobPerformance: 2 }, { log: 'I asked. My boss blinked, checked a spreadsheet, and said yes. {{person}} was right.', kind: 'good' }],
-            else: [{ stat: 'happiness', delta: -3 }, { log: "I asked. My boss said 'let's circle back', which in office terms means no.", kind: 'bad' }],
+            else: [{ stat: 'happiness', delta: -3 }, { log: 'I asked. My boss said, "Let\'s circle back," which in office terms means no.', kind: 'bad' }],
           },
         ],
       },
@@ -707,7 +707,7 @@ export const MONEY_EVENTS: EventDef[] = [
     id: 'mn_side_gig',
     category: 'money',
     title: 'A side gig',
-    text: "A neighbour's cousin runs a weekend delivery crew and needs an extra pair of hands. The pay is decent, the hours are brutal and the van smells of onions.",
+    text: "A neighbor's cousin runs a weekend delivery crew and needs an extra pair of hands. The pay is decent, the hours are brutal and the van smells of onions.",
     minAge: 18,
     maxAge: 70,
     weight: 1.2,
@@ -735,13 +735,13 @@ export const MONEY_EVENTS: EventDef[] = [
     id: 'mn_mlm_pitch',
     category: 'money',
     title: 'A business opportunity',
-    text: "{{person}} invited me to coffee and then unveiled a presentation about 'wellness oils'. There is a starter kit. There is a 'downline'. There is no coffee.",
+    text: '{{person}} invited me to coffee and then unveiled a presentation about "wellness oils." There is a starter kit. There is a "downline." There is no coffee.',
     minAge: 18,
     maxAge: 70,
     weight: 1.2,
     cooldown: 4,
     conditions: [{ inPrison: false }, { money: { gte: 200 } }],
-    person: { kind: ['friend', 'bestFriend', 'coworker', 'sibling'], minRelationship: 25 },
+    person: { kind: ['friend', 'bestFriend', 'coworker', 'sibling'], minAge: 18, minRelationship: 25 },
     choices: [
       {
         id: 'buy',
@@ -754,7 +754,7 @@ export const MONEY_EVENTS: EventDef[] = [
           {
             random: [
               { weight: 15, effects: [{ money: 600 }, { log: 'Astonishingly, I sold enough oil to come out {{$200}} ahead. Two friends no longer answer my calls.', kind: 'money' }] },
-              { weight: 85, effects: [{ stat: 'happiness', delta: -5 }, { log: "I own {{$400}} of oil and a group chat I cannot leave. {{person}} calls me a 'rising star'. Untrue.", kind: 'bad' }] },
+              { weight: 85, effects: [{ stat: 'happiness', delta: -5 }, { log: 'I own {{$400}} of oil and a group chat I cannot leave. {{person}} calls me a "rising star." Untrue.', kind: 'bad' }] },
             ],
           },
         ],
@@ -762,7 +762,7 @@ export const MONEY_EVENTS: EventDef[] = [
       {
         id: 'decline',
         label: 'Decline kindly',
-        effects: [{ relationship: 'person', delta: -4 }, { stat: 'happiness', delta: 1 }, { log: "I said it was not for me. {{person}} said {{they}} would 'check in next quarter'. {{They}} will.", kind: 'info' }],
+        effects: [{ relationship: 'person', delta: -4 }, { stat: 'happiness', delta: 1 }, { log: 'I said it was not for me. {{person}} said {{they}} would "check in next quarter." {{They}} will.', kind: 'info' }],
       },
       {
         id: 'intervene',
@@ -771,8 +771,8 @@ export const MONEY_EVENTS: EventDef[] = [
           { karma: 3 },
           {
             chance: 0.4,
-            then: [{ relationship: 'person', delta: 8 }, { stat: 'happiness', delta: 4 }, { log: 'I showed {{person}} the maths. {{They}} stared, then returned the kit. We got actual coffee.', kind: 'good' }],
-            else: [{ relationship: 'person', delta: -10 }, { stat: 'happiness', delta: -3 }, { log: "{{They}} said I was 'blocking {{their}} abundance'. We have not spoken since. The oils continue.", kind: 'bad' }],
+            then: [{ relationship: 'person', delta: 8 }, { stat: 'happiness', delta: 4 }, { log: 'I showed {{person}} the math. {{They}} stared, then returned the kit. We got actual coffee.', kind: 'good' }],
+            else: [{ relationship: 'person', delta: -10 }, { stat: 'happiness', delta: -3 }, { log: '{{They}} said I was "blocking {{their}} abundance." We have not spoken since. The oils continue.', kind: 'bad' }],
           },
         ],
       },
@@ -790,7 +790,7 @@ export const MONEY_EVENTS: EventDef[] = [
     weight: 1.5,
     cooldown: 4,
     conditions: [{ inPrison: false }, { money: { gte: 500 } }],
-    person: { kind: ['friend', 'bestFriend'], minRelationship: 30 },
+    person: { kind: ['friend', 'bestFriend'], minAge: 18, minRelationship: 30 },
     choices: [
       {
         id: 'lend',
@@ -841,7 +841,7 @@ export const MONEY_EVENTS: EventDef[] = [
           {
             chance: 0.55,
             then: [{ money: 1200 }, { relationship: 'person', delta: -2 }, { log: '{{person}} paid me back in full, slightly sheepishly. The headphones, apparently, were a gift.', kind: 'good' }],
-            else: [{ money: 200 }, { relationship: 'person', delta: -10 }, { stat: 'happiness', delta: -4 }, { log: "{{They}} got defensive and sent me {{$200}} 'for now'. The rest, I suspect, lives in the headphones.", kind: 'bad' }],
+            else: [{ money: 200 }, { relationship: 'person', delta: -10 }, { stat: 'happiness', delta: -4 }, { log: '{{They}} got defensive and sent me {{$200}} "for now." The rest, I suspect, lives in the headphones.', kind: 'bad' }],
           },
         ],
       },
@@ -858,7 +858,7 @@ export const MONEY_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: -2 },
           {
             chance: 0.4,
-            then: [{ money: 1200 }, { log: 'The photo of my empty fridge did the trick. The money arrived at 2am with no message.', kind: 'money' }],
+            then: [{ money: 1200 }, { log: 'The photo of my empty fridge did the trick. The money arrived at 2 a.m. with no message.', kind: 'money' }],
             else: [{ log: '{{person}} left me on read. Still no money, now also no reply.', kind: 'bad' }],
           },
         ],
@@ -869,7 +869,7 @@ export const MONEY_EVENTS: EventDef[] = [
     id: 'mn_wedding_gift',
     category: 'money',
     title: 'Wedding gift',
-    text: "{{person}} is getting married, and the registry has a 'suggested contribution' of {{$300}} per guest. The word 'suggested' is doing a lot of lifting.",
+    text: '{{person}} is getting married, and the registry has a "suggested contribution" of {{$300}} per guest. The word "suggested" is doing a lot of heavy lifting.',
     minAge: 20,
     maxAge: 80,
     weight: 1.2,
@@ -904,8 +904,8 @@ export const MONEY_EVENTS: EventDef[] = [
       },
       {
         id: 'skip',
-        label: 'Send apologies',
-        effects: [{ relationship: 'person', delta: -10 }, { stat: 'happiness', delta: -2 }, { log: 'I sent apologies and a card. The card did not contain money. {{person}} noticed.', kind: 'info' }],
+        label: 'Send my regrets',
+        effects: [{ relationship: 'person', delta: -10 }, { stat: 'happiness', delta: -2 }, { log: 'I sent my regrets and a card. The card did not contain money. {{person}} noticed.', kind: 'info' }],
       },
     ],
   },
@@ -913,7 +913,7 @@ export const MONEY_EVENTS: EventDef[] = [
     id: 'mn_charity_ask',
     category: 'money',
     title: 'The donation call',
-    text: "A volunteer stopped me outside the shops collecting for a children's hospice. She had a clipboard, a kind face, and clearly all afternoon.",
+    text: "A volunteer stopped me outside the grocery store, collecting for a children's hospice. She had a clipboard, a kind face, and clearly all afternoon.",
     minAge: 18,
     maxAge: 85,
     weight: 1.5,
@@ -951,7 +951,7 @@ export const MONEY_EVENTS: EventDef[] = [
     id: 'mn_broke_week',
     category: 'money',
     title: 'Running on empty',
-    text: 'There is {{$12}} in my account and nothing due in for nine days. The fridge holds mustard, half a lemon and a sense of foreboding.',
+    text: 'There is {{$12}} in my account and nothing coming in for nine days. The fridge holds mustard, half a lemon and a sense of foreboding.',
     minAge: 18,
     maxAge: 70,
     weight: 2,
@@ -986,7 +986,7 @@ export const MONEY_EVENTS: EventDef[] = [
     id: 'mn_spouse_spending',
     category: 'money',
     title: 'The statement',
-    text: "A credit card statement arrived in {{person}}'s name that I did not know existed. {{$3800}} across six months, mostly to a shop that sells 'artisan garden features'.",
+    text: 'A statement arrived for a credit card in {{person}}\'s name, one I did not know existed: {{$3800}} over six months, mostly at a store that sells "artisan garden features."',
     minAge: 22,
     maxAge: 80,
     weight: 1.2,
@@ -1006,7 +1006,7 @@ export const MONEY_EVENTS: EventDef[] = [
         effects: [
           {
             random: [
-              { weight: 55, effects: [{ money: -1900 }, { relationship: 'person', delta: 4 }, { love: 2 }, { log: '{{They}} apologised, we split it, and the heron stayed. Honestly, the heron is growing on me.', kind: 'good' }] },
+              { weight: 55, effects: [{ money: -1900 }, { relationship: 'person', delta: 4 }, { love: 2 }, { log: '{{They}} apologized, we split it, and the heron stayed. Honestly, the heron is growing on me.', kind: 'good' }] },
               { weight: 45, effects: [{ relationship: 'person', delta: -10 }, { love: -8 }, { stat: 'happiness', delta: -6 }, { log: 'It turned into a fight about everything from the heron to my mother. The card is still open.', kind: 'bad' }] },
             ],
           },
@@ -1031,7 +1031,7 @@ export const MONEY_EVENTS: EventDef[] = [
     id: 'mn_child_allowance',
     category: 'money',
     title: 'The allowance negotiation',
-    text: "{{person}} presented a slideshow arguing for a raise in {{their}} allowance. Slide four was titled 'Inflation'. Slide five was a picture of a puppy, which I believe was unrelated.",
+    text: '{{person}} presented a slideshow arguing for a raise in {{their}} allowance. Slide four was titled "Inflation." Slide five was a picture of a puppy, which I believe was unrelated.',
     minAge: 25,
     maxAge: 70,
     weight: 1.2,
@@ -1049,12 +1049,12 @@ export const MONEY_EVENTS: EventDef[] = [
         id: 'chores',
         label: 'Tie it to chores',
         hint: '{{$150}} a year',
-        effects: [{ money: -150 }, { relationship: 'person', delta: 3 }, { karma: 1 }, { log: 'Raise granted, chores attached. The bins went out on time for a month and then we renegotiated.', kind: 'info' }],
+        effects: [{ money: -150 }, { relationship: 'person', delta: 3 }, { karma: 1 }, { log: 'Raise granted, chores attached. The trash went out on time for a month, and then we renegotiated.', kind: 'info' }],
       },
       {
         id: 'counter',
         label: 'Counter with my own slideshow',
-        effects: [{ relationship: 'person', delta: -5 }, { stat: 'smarts', delta: 1 }, { stat: 'happiness', delta: 1 }, { log: "I presented my own slideshow on household costs. {{person}} called it 'propaganda' and left.", kind: 'info' }],
+        effects: [{ relationship: 'person', delta: -5 }, { stat: 'smarts', delta: 1 }, { stat: 'happiness', delta: 1 }, { log: 'I presented my own slideshow on household costs. {{person}} called it "propaganda" and left.', kind: 'info' }],
       },
     ],
   },

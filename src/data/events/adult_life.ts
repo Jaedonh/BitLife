@@ -1,8 +1,8 @@
 import type { EventDef } from '@/engine/events/schema';
 
 /**
- * Ages 30-59: mortgages, neighbours, residents' associations, midlife
- * purchases, reunions, ageing parents, the school run, jury duty, a surprise
+ * Ages 30-59: mortgages, neighbors, homeowners' associations, midlife
+ * purchases, reunions, aging parents, the school run, jury duty, a surprise
  * inheritance, godparenting, hobbies that become obsessions, a renovation
  * gone wrong, a local election, a house fire, a long-lost sibling and burnout.
  * Follow-ups (followUpOnly) are queued by the events that set them up and
@@ -28,10 +28,10 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
         effects: [
           { relationship: 'person', delta: 10 },
           { karma: 2 },
-          { log: 'I signed. {{person}} got the keys and cried in the bank car park.', kind: 'good' },
+          { log: 'I signed. {{person}} got the keys and cried in the bank parking lot.', kind: 'good' },
           {
             chance: 0.25,
-            then: [{ money: -12000 }, { relationship: 'person', delta: -8 }, { log: 'Two years later {{they}} missed payments and the bank came to me. Family is expensive.', kind: 'bad' }],
+            then: [{ money: -12000 }, { relationship: 'person', delta: -8 }, { log: 'Two years later {{they}} missed payments and the bank came to me. Kindness is expensive.', kind: 'bad' }],
           },
         ],
       },
@@ -44,7 +44,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
         id: 'gift',
         label: 'Offer a small gift instead',
         hint: '{{$2000}}',
-        effects: [{ money: -2000 }, { relationship: 'person', delta: 4 }, { karma: 1 }, { log: 'I gave {{them}} {{$2000}} toward the deposit instead. No signatures, no risk, slightly less love.', kind: 'money' }],
+        effects: [{ money: -2000 }, { relationship: 'person', delta: 4 }, { karma: 1 }, { log: 'I gave {{them}} {{$2000}} toward the down payment instead. No signatures, no risk, slightly less love.', kind: 'money' }],
       },
     ],
   },
@@ -52,7 +52,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     id: 'ad_hoa_door',
     category: 'random',
     title: 'The door letter',
-    text: "The residents' association sent a formal notice: my front door is 'an unapproved shade of blue'. There is a hearing. There is a fine schedule. There is a man with a clipboard.",
+    text: "The homeowners' association sent a formal notice: my front door is 'an unapproved shade of blue'. There is a hearing. There is a schedule of fines. There is a man with a clipboard.",
     minAge: 30,
     maxAge: 59,
     weight: 1,
@@ -71,7 +71,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.45,
-            then: [{ stat: 'happiness', delta: 8 }, { karma: 1 }, { log: 'I brought colour charts and precedent. The committee folded. The door stays blue.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 8 }, { karma: 1 }, { log: 'I brought color charts and precedent. The committee folded. The door stays blue.', kind: 'good' }],
             else: [{ money: -600 }, { stat: 'happiness', delta: -4 }, { log: 'They fined me and made me repaint anyway. The man with the clipboard smiled.', kind: 'bad' }],
           },
         ],
@@ -96,7 +96,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     id: 'ad_neighbour_fence',
     category: 'random',
     title: 'Fence line',
-    text: 'My neighbour built a new fence and, by my measurement, it eats forty centimetres of my garden. By their measurement, I need a new tape measure.',
+    text: 'My neighbor built a new fence and, by my measurement, it eats eighteen inches of my yard. By their measurement, I need a new tape measure.',
     minAge: 30,
     maxAge: 59,
     weight: 1,
@@ -122,7 +122,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.65,
-            then: [{ stat: 'happiness', delta: 3 }, { karma: 2 }, { log: 'We split the difference and shared a pot of coffee. Civilisation, in a small way.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 3 }, { karma: 2 }, { log: 'We split the difference and shared a pot of coffee. Civilization, in a small way.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -2 }, { log: 'The coffee was fine. The fence did not move.' }],
           },
         ],
@@ -130,7 +130,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
       {
         id: 'let',
         label: 'Let it go',
-        effects: [{ karma: 1 }, { stat: 'happiness', delta: -2 }, { log: 'I let the fence stand. Every time I mow, I think about those forty centimetres.' }],
+        effects: [{ karma: 1 }, { stat: 'happiness', delta: -2 }, { log: 'I let the fence stand. Every time I mow, I think about those eighteen inches.' }],
       },
       {
         id: 'hedge',
@@ -140,8 +140,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           { money: -300 },
           { karma: -3 },
           { stat: 'happiness', delta: 3 },
-          { log: 'I planted a hedge that will block their sun by spring. Petty, but it photosynthesises.' },
-          { chance: 0.3, then: [{ stat: 'happiness', delta: -4 }, { log: 'They reported it to the council. The paperwork war has begun.', kind: 'bad' }] },
+          { log: 'I planted a hedge that will block their sun by spring. Petty, but it photosynthesizes.' },
+          { chance: 0.3, then: [{ stat: 'happiness', delta: -4 }, { log: 'They reported it to the city. The paperwork war has begun.', kind: 'bad' }] },
         ],
       },
     ],
@@ -150,7 +150,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     id: 'ad_neighbour_noise',
     category: 'random',
     title: 'Next-door drums',
-    text: 'New people moved in next door and their teenager has discovered the drums. Enthusiasm is loud. Talent, so far, is not.',
+    text: 'New people moved in next door and their teenager has discovered the drums. The enthusiasm is loud. The talent, so far, is not.',
     minAge: 30,
     maxAge: 59,
     weight: 1.5,
@@ -170,18 +170,18 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
       },
       {
         id: 'headphones',
-        label: 'Buy noise-cancelling headphones',
+        label: 'Buy noise-canceling headphones',
         hint: '{{$250}}',
         effects: [{ money: -250 }, { stat: 'happiness', delta: 3 }, { log: 'The headphones work. I now hear nothing at all, including the doorbell.' }],
       },
       {
         id: 'report',
-        label: 'Report them',
+        label: 'File a noise complaint',
         effects: [
           { karma: -2 },
           {
             chance: 0.5,
-            then: [{ stat: 'happiness', delta: 2 }, { log: 'The council sent a letter and the drumming stopped. So did the neighbourly waves.' }],
+            then: [{ stat: 'happiness', delta: 2 }, { log: 'The city sent a letter and the drumming stopped. So did the neighborly waves.' }],
             else: [{ stat: 'happiness', delta: -4 }, { log: 'Nothing happened, except that now they know it was me.', kind: 'bad' }],
           },
         ],
@@ -202,8 +202,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
   {
     id: 'ad_new_neighbours',
     category: 'random',
-    title: 'New neighbours',
-    text: 'A removal van has been parked outside the house next door all day. Boxes, a piano and a very nervous dog have gone in. People will follow.',
+    title: 'New neighbors',
+    text: 'A moving truck has been parked outside the house next door all day. Boxes, a piano and a very nervous dog have gone in. People will follow.',
     minAge: 30,
     maxAge: 59,
     weight: 1.5,
@@ -227,7 +227,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
       {
         id: 'wait',
         label: 'Wait and see',
-        effects: [{ log: 'I waited. They waited. We now nod at the bins.' }],
+        effects: [{ log: 'I waited. They waited. We now nod at each other over the trash cans.' }],
       },
       {
         id: 'window',
@@ -236,7 +236,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 1 },
           { stat: 'smarts', delta: 1 },
           { log: 'I learned they own a piano, a kayak and a disconcerting number of lamps.' },
-          { chance: 0.3, then: [{ stat: 'happiness', delta: -2 }, { log: 'They saw me. Curtain-twitcher status: achieved.', kind: 'bad' }] },
+          { chance: 0.3, then: [{ stat: 'happiness', delta: -2 }, { log: 'They saw me. Nosy-neighbor status: achieved.', kind: 'bad' }] },
         ],
       },
     ],
@@ -245,7 +245,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     id: 'ad_neighbour_cat',
     category: 'random',
     title: 'The cat decides',
-    text: "A neighbour's cat has started sleeping on my doormat, then my sofa, then my bed. It has a collar and a different name at home. It has chosen me.",
+    text: "A neighbor's cat has started sleeping on my doormat, then my couch, then my bed. It has a collar and a different name at home. It has chosen me.",
     minAge: 30,
     maxAge: 59,
     weight: 1,
@@ -258,8 +258,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
         effects: [
           { stat: 'happiness', delta: 5 },
           { karma: -2 },
-          { log: 'I stopped carrying it home. It has two houses now and one favourite.', kind: 'good' },
-          { newPerson: { kind: 'pet', species: 'cat', relationship: 70, log: 'The cat, now known as {{person}}, lives here. Officially, it is still my neighbour\'s.' } },
+          { log: 'I stopped carrying it home. It has two houses now and one favorite.', kind: 'good' },
+          { newPerson: { kind: 'pet', species: 'cat', relationship: 70, log: 'The cat, now known as {{person}}, lives here. Officially, it is still my neighbor\'s.' } },
         ],
       },
       {
@@ -268,7 +268,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
         effects: [
           { karma: 3 },
           { stat: 'happiness', delta: -1 },
-          { log: 'I carried it home eleven times. The neighbour and I are friends now, mostly out of exhaustion.' },
+          { log: 'I carried it home eleven times. The neighbor and I are friends now, mostly out of exhaustion.' },
           { chance: 0.5, then: [{ newPerson: { kind: 'friend', relationship: 50, log: 'Cat diplomacy made {{person}} a friend.' } }] },
         ],
       },
@@ -298,7 +298,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           { money: -6000 },
           { stat: 'happiness', delta: -3 },
           { asset: 'damage', kind: 'house', amount: 10 },
-          { log: 'A second contractor finished it, tutting at every wall. I have a sink again.' },
+          { log: 'A second contractor finished it, sighing at every wall. I have a sink again.' },
           { chance: 0.4, then: [{ stat: 'happiness', delta: 6 }, { log: 'Honestly, the new kitchen is lovely.', kind: 'good' }] },
         ],
       },
@@ -313,7 +313,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ stat: 'happiness', delta: 6 }, { log: 'Videos, swearing, three weekends. It works, and I did it.', kind: 'good' }],
-            else: [{ stat: 'happiness', delta: -5 }, { injury: 4 }, { asset: 'damage', kind: 'house', amount: 20 }, { log: 'I flooded the downstairs and learned which fuse the whole house is on.', kind: 'bad' }],
+            else: [{ stat: 'happiness', delta: -5 }, { injury: 4 }, { asset: 'damage', kind: 'house', amount: 20 }, { log: 'I flooded the downstairs and learned which breaker the whole house is on.', kind: 'bad' }],
           },
         ],
       },
@@ -324,7 +324,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.45,
             then: [{ money: -1000 }, { stat: 'happiness', delta: 2 }, { log: 'I found him at another job. He came back, sheepish, and finished at a discount.' }],
-            else: [{ money: -3000 }, { stat: 'happiness', delta: -6 }, { log: "He had gone, with my deposit and everybody else's. I washed dishes in the bath for a month.", kind: 'bad' }],
+            else: [{ money: -3000 }, { stat: 'happiness', delta: -6 }, { log: "He skipped town with my deposit and everybody else's. I washed dishes in the bathtub for a month.", kind: 'bad' }],
           },
         ],
       },
@@ -334,7 +334,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     id: 'ad_house_fire',
     category: 'random',
     title: 'Smoke alarm',
-    text: 'I woke at three to the smoke alarm and a smell like burnt toast, except the kitchen was orange. Fire moves faster than anyone tells you.',
+    text: 'I woke at 3 a.m. to the smoke alarm and a smell like burnt toast, except the kitchen was glowing orange. Fire moves faster than anyone tells you.',
     minAge: 30,
     maxAge: 59,
     weight: 0.3,
@@ -398,8 +398,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
   {
     id: 'ad_surprise_inheritance',
     category: 'random',
-    title: 'A solicitor calls',
-    text: 'A solicitor rang about a relative I have never heard of, who died in a town I have never visited, and left a will with my name in it.',
+    title: 'A lawyer calls',
+    text: 'An estate lawyer called about a relative I have never heard of, who died in a town I have never visited and left a will with my name in it.',
     minAge: 30,
     maxAge: 59,
     weight: 0.3,
@@ -420,7 +420,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
       },
       {
         id: 'contest',
-        label: 'Hire a lawyer for more',
+        label: 'Hire my own lawyer for more',
         hint: '{{$3000}}',
         effects: [
           { money: -3000 },
@@ -428,14 +428,14 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.3,
             then: [{ money: 60000 }, { log: 'The lawyer found a second account. Greed, rewarded, slightly.', kind: 'money' }],
-            else: [{ money: 3000 }, { stat: 'happiness', delta: -4 }, { log: 'The lawyer found nothing and billed me for finding it.', kind: 'bad' }],
+            else: [{ money: 3000 }, { stat: 'happiness', delta: -4 }, { log: 'My lawyer found nothing extra and billed me for the search. After fees, my share came to zero.', kind: 'bad' }],
           },
         ],
       },
       {
         id: 'donate',
         label: 'Decline and donate',
-        effects: [{ karma: 6 }, { stat: 'happiness', delta: 4 }, { log: 'I signed it over to a charity in their town. The solicitor said that had never happened before.', kind: 'good' }],
+        effects: [{ karma: 6 }, { stat: 'happiness', delta: 4 }, { log: 'I signed it over to a charity in their town. The estate lawyer said that had never happened before.', kind: 'good' }],
       },
     ],
   },
@@ -445,7 +445,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     id: 'ad_midlife_crisis',
     category: 'random',
     title: 'Something must change',
-    text: 'I looked in the mirror this morning and did not recognise the tired person squinting back. Something has to change, and it has to be dramatic and probably expensive.',
+    text: 'I looked in the mirror this morning and did not recognize the tired person squinting back. Something has to change, and it has to be dramatic and probably expensive.',
     minAge: 38,
     maxAge: 55,
     weight: 1.5,
@@ -462,7 +462,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           { stat: 'looks', delta: 3 },
           {
             chance: 0.15,
-            then: [{ injury: 10 }, { log: 'I dropped the bike at a roundabout. Pride and collarbone both bruised.', kind: 'bad' }],
+            then: [{ injury: 10 }, { log: 'I dropped the bike at a stop sign. Pride and collarbone both bruised.', kind: 'bad' }],
             else: [{ log: 'I ride now. Slowly, in daylight, but I ride.', kind: 'good' }],
           },
         ],
@@ -477,7 +477,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 4 },
           { stat: 'looks', delta: 2 },
           { energy: -1 },
-          { log: 'I ran a marathon. Four hours of pain, one medal, a week on the stairs sideways.', kind: 'good' },
+          { log: 'I ran a marathon. Four hours of pain, one medal, a week of taking the stairs sideways.', kind: 'good' },
           { chance: 0.25, then: [{ injury: 3 }, { log: 'Training also gave me shin splints that outlasted the medal.', kind: 'bad' }] },
         ],
       },
@@ -527,7 +527,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.4,
             then: [{ money: 900 }, { log: 'I booked them three birthday parties and took ten percent. Entrepreneurship.', kind: 'money' }],
-            else: [{ stat: 'happiness', delta: -3 }, { log: "The first gig was cancelled when the drummer's van broke. Management is mostly phone calls." }],
+            else: [{ stat: 'happiness', delta: -3 }, { log: "The first gig was canceled when the drummer's van broke down. Management is mostly phone calls." }],
           },
         ],
       },
@@ -542,7 +542,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     id: 'ad_hobby_obsession',
     category: 'random',
     title: 'A new hobby',
-    text: 'I took up a hobby to relax. Six weeks later I own specialist equipment, follow forum arguments, and have opinions about things I did not know existed in spring.',
+    text: 'I took up a hobby to relax. Six weeks later I own specialized gear, follow forum arguments, and have strong opinions about things I had never heard of two months ago.',
     minAge: 30,
     maxAge: 59,
     weight: 1.2,
@@ -600,7 +600,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           { money: -80 },
           {
             chance: 0.35,
-            then: [{ stat: 'happiness', delta: 10 }, { fame: 2 }, { money: 500 }, { log: 'I placed. The trophy is as enormous as promised and lives on the fridge.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 10 }, { fame: 2 }, { money: 500 }, { log: 'I placed. The trophy is as enormous as promised and lives on top of the fridge.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -3 }, { stat: 'smarts', delta: 2 }, { log: 'I did not place. I learned exactly what the judges want and resent them for it.' }],
           },
         ],
@@ -626,10 +626,11 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 1.2,
     once: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'glasses',
-        label: 'Get an eye test',
+        label: 'Get an eye exam',
         hint: '{{$250}}',
         effects: [
           { money: -250 },
@@ -638,7 +639,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ stat: 'looks', delta: 2 }, { log: 'Reading glasses. I look distinguished and can read again.', kind: 'good' }],
-            else: [{ stat: 'looks', delta: -1 }, { log: 'Reading glasses. I look like my parent and can read again.' }],
+            else: [{ stat: 'looks', delta: -1 }, { log: 'Reading glasses. I look exactly like my parents and can read again.' }],
           },
         ],
       },
@@ -664,6 +665,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 40,
     weight: 3,
     once: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'party',
@@ -693,11 +695,11 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
       {
         id: 'ignore',
         label: 'Ignore it entirely',
-        effects: [{ stat: 'happiness', delta: -3 }, { log: 'I worked, ate leftovers, and told nobody. Forty happened anyway.' }],
+        effects: [{ stat: 'happiness', delta: -3 }, { log: 'I ate leftovers, went to bed early and told nobody. Forty happened anyway.' }],
       },
       {
         id: 'list',
-        label: 'List for the next decade',
+        label: 'Plan the next decade',
         effects: [{ stat: 'smarts', delta: 2 }, { stat: 'happiness', delta: 3 }, { log: "I wrote a list. Item one was 'stop writing lists'. Progress." }],
       },
     ],
@@ -708,7 +710,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     id: 'ad_school_reunion',
     category: 'random',
     title: 'Class reunion',
-    text: 'An invitation arrived for my school reunion. Twenty-odd years, a hotel function room, a buffet, and everyone pretending they have not looked each other up online.',
+    text: 'An invitation arrived for my high school reunion. A hotel ballroom, a buffet, name tags, and everyone pretending they have not looked each other up online.',
     minAge: 35,
     maxAge: 59,
     weight: 1,
@@ -734,8 +736,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.4,
-            then: [{ stat: 'happiness', delta: 8 }, { log: 'I found the old flame by the buffet. Twenty years vanished in a sentence.', kind: 'good' }, { newPerson: { kind: 'lover', relationship: 60, log: 'The old spark with {{person}} was still there. We left the buffet early.' } }],
-            else: [{ stat: 'happiness', delta: -5 }, { log: 'The old flame is married, happy, and has a boat. I ate three vol-au-vents in silence.', kind: 'bad' }],
+            then: [{ stat: 'happiness', delta: 8 }, { log: 'I found the old flame by the buffet. The years vanished in a sentence.', kind: 'good' }, { newPerson: { kind: 'lover', relationship: 60, log: 'The old spark with {{person}} was still there. We left the buffet early.' } }],
+            else: [{ stat: 'happiness', delta: -5 }, { log: 'The old flame is married, happy, and has a boat. I ate three pigs in a blanket in silence.', kind: 'bad' }],
           },
         ],
       },
@@ -747,7 +749,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 4 },
           {
             chance: 0.35,
-            then: [{ stat: 'happiness', delta: -6 }, { log: 'Someone fact-checked me by dessert. The function room went quiet.', kind: 'bad' }],
+            then: [{ stat: 'happiness', delta: -6 }, { log: 'Someone fact-checked me by dessert. The ballroom went quiet.', kind: 'bad' }],
             else: [{ log: 'I was briefly the most interesting person at table four.' }],
           },
         ],
@@ -763,11 +765,12 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     id: 'ad_bully_apology',
     category: 'random',
     title: 'A message from school',
-    text: 'Someone who made my school years miserable has messaged out of nowhere. They are in a programme, they say, and step nine is apologising. They would like to talk.',
+    text: 'Someone who made my school years miserable has messaged out of nowhere. They are in a program, they say, and step nine is making amends. They would like to talk.',
     minAge: 30,
     maxAge: 59,
     weight: 0.8,
     once: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'forgive',
@@ -781,7 +784,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
       },
       {
         id: 'telloff',
-        label: 'Say what I always wanted',
+        label: 'Say what I always wanted to',
         effects: [
           { karma: -2 },
           { stat: 'happiness', delta: 4 },
@@ -803,6 +806,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 0.5,
     once: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'meet',
@@ -843,7 +847,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
             then: [
               { stat: 'happiness', delta: 6 },
               { log: 'The second test agreed with the first. I have a sibling.', kind: 'good' },
-              { newPerson: { kind: 'sibling', relationship: 40, log: 'The test agreed. {{person}} and I are related, and both deeply relieved I checked.' } },
+              { newPerson: { kind: 'sibling', relationship: 40, log: 'The test agreed. {{person}} and I are related, and both a little relieved I double-checked.' } },
               { queue: 'ad_lost_sibling_favor' },
             ],
             else: [{ stat: 'happiness', delta: -2 }, { log: 'The second test disagreed. Someone, somewhere, has my nose and is not related to me.' }],
@@ -860,7 +864,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
   {
     id: 'ad_lost_sibling_favor',
     category: 'random',
-    title: 'The favour',
+    title: 'The favor',
     text: "A few weeks after we met, my newfound sibling asked to borrow {{$4000}} for 'a short-term thing'. It was said casually. It did not feel casual.",
     minAge: 30,
     maxAge: 80,
@@ -897,7 +901,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     id: 'ad_sibling_feud',
     category: 'random',
     title: 'The long silence',
-    text: '{{person}} and I have not properly spoken in years. A cousin is getting married and has seated us together, which {{they}} swears was an accident.',
+    text: '{{person}} and I have not properly spoken in years. A cousin is getting married and has seated us side by side. The cousin swears it was an accident.',
     minAge: 30,
     maxAge: 59,
     weight: 1,
@@ -912,7 +916,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.55,
             then: [{ relationship: 'person', delta: 15 }, { stat: 'happiness', delta: 6 }, { karma: 3 }, { log: 'By the speeches we were laughing. Years of silence over nothing, like most of them.', kind: 'good' }],
-            else: [{ relationship: 'person', delta: -5 }, { stat: 'happiness', delta: -4 }, { log: 'We lasted until the starters. The old argument has not aged.', kind: 'bad' }],
+            else: [{ relationship: 'person', delta: -5 }, { stat: 'happiness', delta: -4 }, { log: 'We lasted until the appetizers. The old argument has not aged.', kind: 'bad' }],
           },
         ],
       },
@@ -949,7 +953,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 6 },
           {
             chance: 0.15,
-            then: [{ money: 1500 }, { log: 'I sold the kit on to three colleagues. I am now the problem.', kind: 'money' }],
+            then: [{ money: 1500 }, { log: 'I sold kits to three coworkers. I am now the problem.', kind: 'money' }],
             else: [{ stat: 'happiness', delta: -4 }, { log: 'The kit is in the garage. I have four hundred units of a shampoo nobody wants.', kind: 'bad' }],
           },
         ],
@@ -966,7 +970,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           { karma: 3 },
           {
             chance: 0.5,
-            then: [{ relationship: 'person', delta: 8 }, { stat: 'happiness', delta: 3 }, { log: '{{They}} listened. The triangle lost a tier and I gained a grateful friend.', kind: 'good' }],
+            then: [{ relationship: 'person', delta: 8 }, { stat: 'happiness', delta: 3 }, { log: '{{They}} listened. The triangle lost a tier, and {{person}} thanked me later.', kind: 'good' }],
             else: [{ relationship: 'person', delta: -12 }, { stat: 'happiness', delta: -3 }, { log: '{{They}} called me negative and blocked me. Sales must go on.', kind: 'bad' }],
           },
         ],
@@ -977,13 +981,13 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     id: 'ad_godparent',
     category: 'random',
     title: 'Godparent request',
-    text: '{{person}} asked me to be a godparent. There is a ceremony, a small speech, and an implied promise to show up for birthdays forever.',
+    text: '{{person}} just had a baby and asked me to be the godparent. There is a ceremony, a small speech, and an implied promise to show up for birthdays forever.',
     minAge: 30,
     maxAge: 59,
     weight: 1,
     cooldown: 6,
     conditions: [{ inPrison: false }],
-    person: { kind: ['friend', 'bestFriend', 'sibling'] },
+    person: { kind: ['friend', 'bestFriend', 'sibling'], maxAge: 45 },
     choices: [
       {
         id: 'yes',
@@ -1000,13 +1004,13 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 14 },
           { karma: 2 },
           { stat: 'happiness', delta: 5 },
-          { log: 'I bought a savings bond, a tiny suit and a cake the size of a tyre. {{person}} was overwhelmed.' },
+          { log: 'I bought a savings bond, a tiny suit and a cake the size of a tire. {{person}} was overwhelmed.' },
         ],
       },
       {
         id: 'no',
         label: 'Decline gracefully',
-        effects: [{ relationship: 'person', delta: -8 }, { stat: 'happiness', delta: -2 }, { log: 'I said I was honoured but not the right person. {{person}} said that was fine, slowly.' }],
+        effects: [{ relationship: 'person', delta: -8 }, { stat: 'happiness', delta: -2 }, { log: 'I said I was honored but not the right person. {{person}} said that was fine, slowly.' }],
       },
     ],
   },
@@ -1016,7 +1020,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     id: 'ad_parent_care',
     category: 'random',
     title: 'A fall at home',
-    text: '{{person}} had a fall at home and lay on the kitchen floor for an hour before a neighbour heard. {{They}} insists it was nothing. The doctor disagrees.',
+    text: '{{person}} had a fall at home and lay on the kitchen floor for an hour before a neighbor heard. {{They}} insists it was nothing. The doctor disagrees.',
     minAge: 30,
     maxAge: 59,
     weight: 1.2,
@@ -1026,26 +1030,26 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     choices: [
       {
         id: 'movein',
-        label: 'Move them in with me',
+        label: 'Move {{them}} in with me',
         hint: '{{$2500}}',
         effects: [
           { money: -2500 },
           { relationship: 'person', delta: 15 },
           { karma: 4 },
           { stat: 'happiness', delta: -3 },
-          { log: '{{person}} moved into the spare room. We argue about the thermostat and I would not change it.' },
+          { log: '{{person}} moved into the spare room. We argue about the thermostat, and I would not change a thing.' },
           { queue: 'ad_parent_care_worsens' },
         ],
       },
       {
         id: 'carer',
-        label: 'Hire a home carer',
+        label: 'Hire a home caregiver',
         hint: '{{$6000}}',
         effects: [
           { money: -6000 },
           { relationship: 'person', delta: 8 },
           { karma: 2 },
-          { log: "A carer visits twice daily. {{person}} calls her 'the inspector' but likes her." },
+          { log: "A caregiver visits twice a day. {{person}} calls her 'the inspector' but likes her." },
           { queue: 'ad_parent_care_worsens' },
         ],
       },
@@ -1080,7 +1084,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     id: 'ad_parent_care_worsens',
     category: 'random',
     title: 'Not alone anymore',
-    text: "{{person}}'s doctor was blunt: {{they}} can no longer safely live alone. The options are expensive, exhausting, or both, and {{person}} wants a say in all of them.",
+    text: "{{person}}'s doctor was blunt: {{they}} needs more care than {{they}} is getting now. The options are expensive, exhausting, or both, and {{person}} wants a say in all of them.",
     minAge: 30,
     maxAge: 80,
     weight: 1,
@@ -1089,7 +1093,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     choices: [
       {
         id: 'home',
-        label: 'Make room at my place',
+        label: 'Take on the care myself',
         hint: '{{$4000}}',
         effects: [
           { money: -4000 },
@@ -1097,19 +1101,19 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           { stat: 'health', delta: -2 },
           { relationship: 'person', delta: 15 },
           { karma: 5 },
-          { log: '{{person}} lives with me now. Some days are hard. Most days I am glad.', kind: 'milestone' },
+          { log: "I became {{person}}'s caregiver. Some days are hard. Most days I am glad.", kind: 'milestone' },
         ],
       },
       {
         id: 'carehome',
-        label: 'Find a good care home',
+        label: 'Find a good nursing home',
         hint: '{{$18000}}',
         effects: [
           { money: -18000 },
           { relationship: 'person', delta: 4 },
           { karma: 1 },
           { stat: 'happiness', delta: -2 },
-          { log: 'The care home has a garden and a Tuesday quiz. {{person}} dominates the quiz.' },
+          { log: 'The nursing home has a garden and Tuesday trivia. {{person}} dominates trivia.' },
         ],
       },
       {
@@ -1140,7 +1144,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     id: 'ad_parent_tech_support',
     category: 'random',
     title: 'The printer again',
-    text: "{{person}} rang for the fourth time this week. The printer is 'being weird', the television is 'doing the thing', and somehow I am the expert.",
+    text: "{{person}} called for the fourth time this week. The printer is 'being weird', the television is 'doing the thing', and somehow I am the expert.",
     minAge: 30,
     maxAge: 59,
     weight: 1.5,
@@ -1155,7 +1159,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
       },
       {
         id: 'phone',
-        label: 'Talk them through it',
+        label: 'Talk {{them}} through it',
         effects: [
           { stat: 'smarts', delta: 1 },
           {
@@ -1167,7 +1171,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
       },
       {
         id: 'tablet',
-        label: 'Buy them something simpler',
+        label: 'Buy {{them}} something simpler',
         hint: '{{$300}}',
         effects: [{ money: -300 }, { relationship: 'person', delta: 5 }, { log: 'I bought a device with three buttons. {{They}} has already found a fourth problem.' }],
       },
@@ -1192,7 +1196,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
         label: 'Set up a carpool',
         effects: [
           { stat: 'happiness', delta: 3 },
-          { log: 'Three families, one rota, fewer mornings in the car for everyone.' },
+          { log: 'Three families, one schedule, fewer mornings in the car for everyone.' },
           { chance: 0.6, then: [{ newPerson: { kind: 'friend', relationship: 50, log: 'Another parent, {{person}}, and I now split mornings and gossip.' } }] },
         ],
       },
@@ -1203,13 +1207,13 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
       },
       {
         id: 'bus',
-        label: 'Put them on the bus',
+        label: 'Put {{them}} on the bus',
         effects: [
           { relationship: 'person', delta: -3 },
           { stat: 'happiness', delta: 3 },
           {
             chance: 0.15,
-            then: [{ relationship: 'person', delta: -4 }, { log: '{{person}} got off at the wrong stop and spent an hour at a petrol station. The school rang.', kind: 'bad' }],
+            then: [{ relationship: 'person', delta: -4 }, { log: '{{person}} got off at the wrong stop and spent an hour at a gas station. The school called.', kind: 'bad' }],
             else: [{ log: '{{person}} loves the bus. I love the quiet. Everyone wins slightly.' }],
           },
         ],
@@ -1219,8 +1223,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
   {
     id: 'ad_parent_teacher_night',
     category: 'random',
-    title: "Parents' evening",
-    text: "Parents' evening for {{person}}. Tiny chairs, long queues, and a teacher who starts every sentence with 'so' in a way that makes me nervous.",
+    title: 'Parent-teacher night',
+    text: "Parent-teacher night for {{person}}. Tiny chairs, long lines, and a teacher who starts every sentence with 'so' in a way that makes me nervous.",
     minAge: 30,
     maxAge: 59,
     weight: 1.2,
@@ -1237,7 +1241,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
             random: [
               { weight: 5, effects: [{ relationship: 'person', delta: 4 }, { log: "Apparently {{person}} is 'a joy'. I took the credit.", kind: 'good' }] },
               { weight: 3, effects: [{ stat: 'happiness', delta: -3 }, { relationship: 'person', delta: 2 }, { log: "There were 'concerns'. We talked about them in the car, gently." }] },
-              { weight: 2, effects: [{ stat: 'happiness', delta: -5 }, { log: "{{person}} has been skipping. The 'so' was warranted.", kind: 'bad' }] },
+              { weight: 2, effects: [{ stat: 'happiness', delta: -5 }, { log: "{{person}} has not handed in homework in a month. The 'so' was warranted.", kind: 'bad' }] },
             ],
           },
         ],
@@ -1268,7 +1272,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     id: 'ad_anniversary_forgot',
     category: 'random',
     title: 'Forgotten anniversary',
-    text: '{{person}} came down for breakfast wearing something nice and a hopeful expression. It is our anniversary. I have remembered this exactly now, and I have nothing.',
+    text: '{{person}} came down for breakfast wearing something nice and a hopeful expression. It is our anniversary. I have remembered this just now, and I have nothing.',
     minAge: 30,
     maxAge: 59,
     weight: 1,
@@ -1285,8 +1289,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           { karma: 1 },
           {
             chance: 0.6,
-            then: [{ stat: 'happiness', delta: 2 }, { log: '{{They}} laughed, mostly. We ordered takeaway and watched something old.' }],
-            else: [{ love: -6 }, { log: 'The laugh was not a real laugh. The sofa and I got reacquainted.', kind: 'bad' }],
+            then: [{ stat: 'happiness', delta: 2 }, { log: '{{They}} laughed, mostly. We ordered takeout and watched something old.' }],
+            else: [{ love: -6 }, { log: 'The laugh was not a real laugh. The couch and I got reacquainted.', kind: 'bad' }],
           },
         ],
       },
@@ -1298,7 +1302,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           { money: -400 },
           {
             chance: 0.65,
-            then: [{ love: 8 }, { relationship: 'person', delta: 6 }, { stat: 'happiness', delta: 4 }, { log: 'A booked table, flowers from the petrol station, and {{they}} never knew. Or pretended not to.', kind: 'good' }],
+            then: [{ love: 8 }, { relationship: 'person', delta: 6 }, { stat: 'happiness', delta: 4 }, { log: 'A booked table, flowers from the gas station, and {{they}} never knew. Or pretended not to.', kind: 'good' }],
             else: [{ love: -5 }, { stat: 'happiness', delta: -3 }, { log: '{{They}} saw the receipt timestamp. Busted at dessert.', kind: 'bad' }],
           },
         ],
@@ -1332,7 +1336,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     choices: [
       {
         id: 'back',
-        label: 'Back them completely',
+        label: 'Back {{them}} completely',
         hint: '{{$10000}}',
         conditions: [{ money: { gte: 10000 } }],
         effects: [
@@ -1341,7 +1345,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 10 },
           {
             chance: 0.45,
-            then: [{ money: 18000 }, { stat: 'happiness', delta: 10 }, { log: 'The bakery works. Queues on Saturdays and flour in every part of our lives.', kind: 'good' }],
+            then: [{ money: 18000 }, { stat: 'happiness', delta: 10 }, { log: 'The bakery works. Lines out the door on Saturdays and flour in every part of our lives.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -5 }, { log: 'The bakery closed within two years. {{They}} says it was worth it. I say nothing.', kind: 'bad' }],
           },
         ],
@@ -1363,7 +1367,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
       },
       {
         id: 'no',
-        label: 'Talk them out of it',
+        label: 'Talk {{them}} out of it',
         effects: [
           { love: -10 },
           { relationship: 'person', delta: -8 },
@@ -1426,7 +1430,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     id: 'ad_jury_verdict',
     category: 'random',
     title: 'The deliberation room',
-    text: 'The trial ran three weeks. In the deliberation room, eleven people want to go home and one of them is not sure, and the one who is not sure is me.',
+    text: 'The trial ran three weeks. In the deliberation room, eleven jurors want to go home. The twelfth is not sure, and the twelfth is me.',
     minAge: 30,
     maxAge: 80,
     weight: 1,
@@ -1448,7 +1452,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.4,
-            then: [{ karma: 4 }, { stat: 'happiness', delta: 6 }, { fame: 2 }, { log: 'By day three they came around. One juror sent me a card afterwards.', kind: 'good' }],
+            then: [{ karma: 4 }, { stat: 'happiness', delta: 6 }, { fame: 2 }, { log: 'By day three they came around. One juror sent me a card afterward.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -6 }, { stat: 'health', delta: -2 }, { log: 'Hung jury. Three weeks for nothing and a lifelong dislike of fluorescent lights.', kind: 'bad' }],
           },
         ],
@@ -1458,8 +1462,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
   {
     id: 'ad_local_election',
     category: 'random',
-    title: 'Run for council',
-    text: 'A seat opened on the local council and three separate people have suggested I run. One of them was joking. The other two were worryingly serious.',
+    title: 'Run for city council',
+    text: 'A seat opened on the city council and three separate people have suggested I run. One of them was joking. The other two were worryingly serious.',
     minAge: 30,
     maxAge: 59,
     weight: 0.8,
@@ -1474,7 +1478,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           { money: -1500 },
           { energy: -1 },
           { fame: 2 },
-          { log: 'I ran. I knocked on four hundred doors and now know every dog in the ward.' },
+          { log: 'I ran. I knocked on four hundred doors and now know every dog in the district.' },
           { queue: 'ad_election_night' },
         ],
       },
@@ -1484,8 +1488,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
         effects: [
           { karma: 2 },
           { stat: 'happiness', delta: 2 },
-          { log: 'I leafleted for a candidate I mostly agreed with. My shoes did not survive it.' },
-          { chance: 0.5, then: [{ newPerson: { kind: 'friend', relationship: 50, log: 'Leafleting with {{person}} in the rain made us friends.' } }] },
+          { log: 'I handed out flyers for a candidate I mostly agreed with. My shoes did not survive it.' },
+          { chance: 0.5, then: [{ newPerson: { kind: 'friend', relationship: 50, log: 'Handing out flyers with {{person}} in the rain made us friends.' } }] },
         ],
       },
       {
@@ -1511,7 +1515,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.4,
-            then: [{ stat: 'happiness', delta: 12 }, { fame: 6 }, { karma: 2 }, { flag: 'ad_councillor', set: true }, { log: 'I won by a handful of votes. I am, apparently, a councillor now.', kind: 'milestone' }],
+            then: [{ stat: 'happiness', delta: 12 }, { fame: 6 }, { karma: 2 }, { flag: 'ad_councillor', set: true }, { log: 'I won by a handful of votes. I am, apparently, a council member now.', kind: 'milestone' }],
             else: [{ stat: 'happiness', delta: -8 }, { fame: 1 }, { log: 'I lost. Narrowly, graciously, and with a thermos.', kind: 'bad' }],
           },
         ],
@@ -1549,7 +1553,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     id: 'ad_burnout',
     category: 'random',
     title: 'Running on empty',
-    text: 'I have been tired for a year. Not sleepy, tired. I sat in the car park at {{company}} this morning for twenty minutes, unable to go in.',
+    text: 'I have been tired for a year. Not sleepy, tired. I sat in the parking lot at {{company}} this morning for twenty minutes, unable to go in.',
     minAge: 30,
     maxAge: 59,
     weight: 1.2,
@@ -1565,7 +1569,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: -6 },
           {
             chance: 0.2,
-            then: [{ illness: 'depression' }, { log: 'Pushing through pushed me somewhere darker. I have started seeing someone about it.', kind: 'bad' }],
+            then: [{ illness: 'depression' }, { log: 'Pushing through pushed me somewhere darker. I have started seeing a therapist about it.', kind: 'bad' }],
             else: [{ log: 'I pushed through. Nothing broke, exactly, but nothing healed.' }],
           },
         ],
@@ -1598,7 +1602,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     id: 'ad_commute_bridge',
     category: 'random',
     title: 'Bridge closed',
-    text: "They closed the bridge on my commute for 'eighteen months of essential works'. The detour adds forty minutes each way and passes a very tempting bakery.",
+    text: "They closed the bridge on my commute for 'eighteen months of essential repairs'. The detour adds forty minutes each way and passes a very tempting bakery.",
     minAge: 30,
     maxAge: 59,
     weight: 1,
@@ -1631,7 +1635,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.45,
-            then: [{ stat: 'happiness', delta: 6 }, { jobPerformance: 2 }, { log: 'Approved. I now commute from bed to desk and wear trousers on video days.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 6 }, { jobPerformance: 2 }, { log: 'Approved. I now commute from bed to desk and wear pants only on video calls.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -2 }, { jobPerformance: -1 }, { log: "Denied, with a speech about 'culture'." }],
           },
         ],
@@ -1639,7 +1643,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
       {
         id: 'bakery',
         label: 'Embrace the bakery',
-        effects: [{ stat: 'happiness', delta: 5 }, { stat: 'health', delta: -3 }, { stat: 'looks', delta: -2 }, { money: -400 }, { log: 'The detour has pastries. I have accepted this. My trousers have not.' }],
+        effects: [{ stat: 'happiness', delta: 5 }, { stat: 'health', delta: -3 }, { stat: 'looks', delta: -2 }, { money: -400 }, { log: 'The detour has pastries. I have accepted this. My pants have not.' }],
       },
     ],
   },

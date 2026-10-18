@@ -13,12 +13,12 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     id: 'll_retirement_party',
     category: 'elderly',
     title: 'The retirement party',
-    text: 'My old colleagues threw me a retirement party. There was a cake with my face printed on it, a speech by someone who got my name slightly wrong, and a card signed by people I had never met.',
+    text: 'My coworkers threw me a retirement party. There was a cake with my face printed on it, a speech by someone who got my name slightly wrong, and a card signed by people I had never met.',
     minAge: 60,
-    maxAge: 80,
+    maxAge: 72,
     weight: 2,
     once: true,
-    conditions: [{ retired: true }],
+    conditions: [{ inPrison: false }, { retired: true }],
     choices: [
       {
         id: 'speech',
@@ -45,8 +45,8 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
           { money: -250 },
           { stat: 'happiness', delta: 6 },
           { karma: 1 },
-          { chance: 0.5, then: [{ newPerson: { kind: 'friend', relationship: 55, log: 'I ended up talking all night with {{person}} from the other floor. We have decided to keep that up.' } }] },
           { log: 'The afterparty cost me the bill and a little of my hearing. Worth it.', kind: 'money' },
+          { chance: 0.5, then: [{ newPerson: { kind: 'friend', relationship: 55, log: 'I ended up talking all night with {{person}} from the other floor. We plan to keep that up.' } }] },
         ],
       },
     ],
@@ -60,12 +60,12 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     maxAge: 75,
     weight: 1.5,
     cooldown: 3,
-    conditions: [{ hasJob: true }, { retired: false }],
+    conditions: [{ inPrison: false }, { hasJob: true }, { retired: false }],
     choices: [
       {
         id: 'stay',
-        label: 'Retire when the cheques stop',
-        effects: [{ jobPerformance: 3 }, { stat: 'happiness', delta: 2 }, { log: 'I told them I would retire when the cheques stopped. They laughed. I did not.', kind: 'good' }],
+        label: 'Retire when the checks stop',
+        effects: [{ jobPerformance: 3 }, { stat: 'happiness', delta: 2 }, { log: 'I told them I would retire when the checks stopped. They laughed. I did not.', kind: 'good' }],
       },
       {
         id: 'lunch',
@@ -84,12 +84,12 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     id: 'll_pension_letter',
     category: 'elderly',
     title: 'A brown envelope',
-    text: 'A letter from the pension office arrived with the word RECALCULATION in capitals. Nothing good has ever been written in capitals by a pension office.',
+    text: 'A letter from the pension office arrived with the word RECALCULATION in capitals. Nothing good has ever been written in capital letters by a pension office.',
     minAge: 62,
     maxAge: 95,
     weight: 1.5,
     cooldown: 4,
-    conditions: [{ any: [{ retired: true }, { hasJob: false }] }],
+    conditions: [{ inPrison: false }, { any: [{ retired: true }, { hasJob: false }] }],
     choices: [
       {
         id: 'open',
@@ -106,7 +106,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
       },
       {
         id: 'call',
-        label: 'Ring and query it first',
+        label: 'Call them about it first',
         effects: [
           { stat: 'happiness', delta: -2 },
           { stat: 'smarts', delta: 1 },
@@ -125,7 +125,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
         label: 'Put it in the drawer',
         effects: [
           { stat: 'happiness', delta: 1 },
-          { chance: 0.5, then: [{ money: -1200 }, { stat: 'happiness', delta: -4 }, { log: 'Ignoring it added a late fee. The drawer had cost me {{$1200}}.', kind: 'bad' }], else: [{ log: 'The drawer swallowed it and nothing happened. The drawer is my favourite financial adviser.' }] },
+          { chance: 0.5, then: [{ money: -1200 }, { stat: 'happiness', delta: -4 }, { log: 'Ignoring it added a late fee. The drawer had cost me {{$1200}}.', kind: 'bad' }], else: [{ log: 'The drawer swallowed it and nothing happened. The drawer is my favorite financial advisor.' }] },
         ],
       },
     ],
@@ -136,13 +136,13 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     id: 'll_grandchild_born',
     category: 'elderly',
     title: 'A grandchild',
-    text: '{{person}} rang in the middle of the night to say I am going to be a grandparent. I sat on the stairs in the dark for a while, grinning at nothing.',
+    text: '{{person}} called in the middle of the night to say a baby is on the way. I sat on the stairs in the dark for a while, grinning at nothing.',
     minAge: 60,
     maxAge: 90,
     weight: 2,
     cooldown: 4,
-    conditions: [{ hasChildren: true }],
-    person: { kind: ['child'], minAge: 18 },
+    conditions: [{ inPrison: false }, { hasChildren: true }],
+    person: { kind: ['child'], minAge: 18, maxAge: 45 },
     choices: [
       {
         id: 'knit',
@@ -153,7 +153,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
         id: 'money',
         label: 'Offer to help with costs',
         hint: '{{$2000}}',
-        effects: [{ flag: 'grandparent', set: true }, { money: -2000 }, { relationship: 'person', delta: 10 }, { karma: 2 }, { stat: 'happiness', delta: 5 }, { log: 'I sent {{$2000}} for the cot and car seat. {{person}} cried and blamed the hour.', kind: 'milestone' }],
+        effects: [{ flag: 'grandparent', set: true }, { money: -2000 }, { relationship: 'person', delta: 10 }, { karma: 2 }, { stat: 'happiness', delta: 5 }, { log: 'I sent {{$2000}} for the crib and car seat. {{person}} cried and blamed the hour.', kind: 'milestone' }],
       },
       {
         id: 'name',
@@ -175,7 +175,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 2,
     cooldown: 3,
-    conditions: [{ hasChildren: true }],
+    conditions: [{ inPrison: false }, { hasChildren: true }],
     person: { kind: ['child'], minAge: 20 },
     choices: [
       {
@@ -194,11 +194,11 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
       },
       {
         id: 'cards',
-        label: 'Teach them cards',
+        label: 'Teach them card games',
         effects: [
           { stat: 'smarts', delta: 1 },
           { stat: 'happiness', delta: 4 },
-          { chance: 0.4, then: [{ stat: 'happiness', delta: -1 }, { log: 'I taught them cards. By Sunday they were beating me every hand and showing no mercy.' }], else: [{ log: 'I taught them cards. The youngest cheats beautifully. There is hope for this family.', kind: 'good' }] },
+          { chance: 0.4, then: [{ stat: 'happiness', delta: -1 }, { log: 'I taught them Go Fish. By Sunday they were beating me every hand and showing no mercy.' }], else: [{ log: 'I taught them Go Fish. The youngest cheats beautifully. There is hope for this family.', kind: 'good' }] },
         ],
       },
     ],
@@ -212,7 +212,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     maxAge: 95,
     weight: 1.5,
     cooldown: 4,
-    conditions: [{ hasChildren: true }],
+    conditions: [{ inPrison: false }, { hasChildren: true }],
     choices: [
       {
         id: 'embrace',
@@ -241,11 +241,12 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     id: 'll_downsizing',
     category: 'elderly',
     title: 'Too many stairs',
-    text: 'The place I live has too many stairs and too many empty rooms. I keep one of them warm for visitors who come less than I would like.',
+    text: 'The place I live has too many stairs and too many empty rooms. I keep one of them ready for visitors who come less often than I would like.',
     minAge: 62,
     maxAge: 90,
     weight: 1.5,
     once: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'smaller',
@@ -254,19 +255,19 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
           { money: 4000 },
           { stat: 'happiness', delta: -3 },
           { stat: 'health', delta: 2 },
-          { log: 'I moved: smaller place, no stairs, a car park view. Lower bills, fewer memories per square foot.', kind: 'money' },
-          { chance: 0.4, then: [{ stat: 'happiness', delta: 6 }, { log: 'The new neighbours turned out to be loud, kind and always cooking. I have been adopted.', kind: 'good' }] },
+          { log: 'I moved: smaller place, no stairs, a parking-lot view. Lower bills, fewer memories per square foot.', kind: 'money' },
+          { chance: 0.4, then: [{ stat: 'happiness', delta: 6 }, { log: 'The new neighbors turned out to be loud, kind and always cooking. I have been adopted.', kind: 'good' }] },
         ],
       },
       {
         id: 'lodger',
-        label: 'Take in a lodger',
+        label: 'Rent out a spare room',
         effects: [
           { money: 2400 },
           {
             chance: 0.7,
-            then: [{ stat: 'happiness', delta: 4 }, { newPerson: { kind: 'friend', relationship: 50, minAge: 20, maxAge: 35, log: 'My lodger, {{person}}, pays on time and cooks on Sundays. The house is noisy again.' } }],
-            else: [{ stat: 'happiness', delta: -5 }, { log: 'The lodger kept odd hours, odder friends and a drum kit. The rent nearly covered the earplugs.', kind: 'bad' }],
+            then: [{ stat: 'happiness', delta: 4 }, { newPerson: { kind: 'friend', relationship: 50, minAge: 20, maxAge: 35, log: 'My tenant, {{person}}, pays on time and cooks on Sundays. The house is noisy again.' } }],
+            else: [{ stat: 'happiness', delta: -5 }, { log: 'The tenant kept odd hours, odder friends and a drum kit. The rent nearly covered the earplugs.', kind: 'bad' }],
           },
         ],
       },
@@ -296,6 +297,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     maxAge: 95,
     weight: 1.5,
     cooldown: 3,
+    conditions: [{ inPrison: false }],
     person: { kind: ['child', 'spouse', 'friend', 'bestFriend', 'sibling'] },
     choices: [
       {
@@ -306,8 +308,8 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
           { money: -600 },
           {
             chance: 0.65,
-            then: [{ injury: 2 }, { stat: 'health', delta: 2 }, { log: 'Bruises, a sprained wrist and a lecture about stools. I was home by teatime.', kind: 'info' }],
-            else: [{ injury: 6 }, { money: -400 }, { log: 'A cracked wrist and six weeks in a cast. The cast is signed by three nurses and a porter.', kind: 'bad' }],
+            then: [{ injury: 2 }, { stat: 'health', delta: 2 }, { log: 'Bruises, a sprained wrist and a lecture about stools. I was home by dinnertime.', kind: 'info' }],
+            else: [{ injury: 6 }, { money: -400 }, { log: 'A cracked wrist and six weeks in a cast. The cast is signed by three nurses and an orderly.', kind: 'bad' }],
           },
         ],
       },
@@ -317,21 +319,21 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.5,
-            then: [{ injury: 2 }, { stat: 'happiness', delta: 1 }, { log: 'I walked it off. Mostly. The bruise went through every colour of the rainbow.' }],
+            then: [{ injury: 2 }, { stat: 'happiness', delta: 1 }, { log: 'I walked it off. Mostly. The bruise went through every color of the rainbow.' }],
             else: [{ injury: 10 }, { illness: 'back_pain' }, { stat: 'happiness', delta: -4 }, { log: 'I walked it off straight into chronic back pain. The stool has been thrown out, too late.', kind: 'bad' }],
           },
         ],
       },
       {
         id: 'call',
-        label: 'Ring {{person}}',
+        label: 'Call {{person}}',
         effects: [
           { relationship: 'person', delta: 6 },
           { stat: 'happiness', delta: 3 },
           {
             chance: 0.7,
-            then: [{ injury: 3 }, { log: '{{person}} came straight over, made tea, and quietly moved everything I use to the bottom shelf.', kind: 'good' }],
-            else: [{ injury: 6 }, { money: -600 }, { log: '{{person}} took one look at my wrist and drove me to hospital. Sprained, strapped and told off.', kind: 'bad' }],
+            then: [{ injury: 3 }, { log: '{{person}} came running, made tea, and quietly moved everything I use to the bottom shelf.', kind: 'good' }],
+            else: [{ injury: 6 }, { money: -600 }, { log: '{{person}} took one look at my wrist and drove me to the hospital. Sprained, wrapped and scolded.', kind: 'bad' }],
           },
         ],
       },
@@ -352,6 +354,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     maxAge: 95,
     weight: 1.5,
     cooldown: 3,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'lists',
@@ -367,7 +370,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
           {
             random: [
               { weight: 85, effects: [{ stat: 'happiness', delta: 4 }, { log: 'The doctor said it was normal and asked me three questions I answered perfectly, thank you.', kind: 'good' }] },
-              { weight: 15, effects: [{ illness: 'dementia' }, { stat: 'happiness', delta: -6 }, { log: 'The doctor used the word "early" a lot and gave me leaflets. We will keep an eye on it together.', kind: 'bad' }] },
+              { weight: 15, effects: [{ illness: 'dementia' }, { stat: 'happiness', delta: -6 }, { log: 'The doctor used the word "early" a lot and gave me pamphlets. We will keep an eye on it together.', kind: 'bad' }] },
             ],
           },
         ],
@@ -391,6 +394,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     maxAge: 95,
     weight: 1.5,
     once: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'fit',
@@ -401,7 +405,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
       {
         id: 'tv',
         label: 'Turn the TV up',
-        effects: [{ stat: 'happiness', delta: 1 }, { relationship: 'spouse', delta: -3 }, { relationship: 'child', delta: -1 }, { log: 'I turned the television up. The neighbours now follow the same programmes, like it or not.' }],
+        effects: [{ stat: 'happiness', delta: 1 }, { relationship: 'spouse', delta: -3 }, { relationship: 'child', delta: -1 }, { log: 'I turned the television up. The neighbors now follow the same shows, like it or not.' }],
       },
       {
         id: 'deny',
@@ -417,11 +421,12 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     id: 'll_checkup',
     category: 'elderly',
     title: 'For your age',
-    text: 'The doctor did my annual once-over and used the phrase "for your age" four times in one sentence. I felt both complimented and sorted into a bin.',
+    text: 'The doctor did my annual once-over and used the phrase "for your age" four times in one sentence. I felt both complimented and quietly filed under "old".',
     minAge: 60,
     maxAge: 95,
     weight: 1.5,
     cooldown: 3,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'all',
@@ -451,11 +456,12 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     id: 'll_scam_call',
     category: 'elderly',
     title: 'A very polite caller',
-    text: 'A very polite young man rang to say my bank account had been compromised, and he could fix it right away if I just read him the numbers on my card.',
+    text: 'A very polite young man called to say my bank account had been compromised, and he could fix it right away if I just read him the numbers on my card.',
     minAge: 60,
     maxAge: 95,
     weight: 2,
     cooldown: 3,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'hangup',
@@ -468,16 +474,16 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
         effects: [
           { energy: -1 },
           { stat: 'happiness', delta: 5 },
-          { chance: 0.15, then: [{ money: -300 }, { log: 'I wasted fifty minutes of his life, then got cocky and confirmed one number too many. {{$300}} gone.', kind: 'bad' }], else: [{ log: 'I described my garden to him for an hour. He hung up on me. A small victory for the pensioners.', kind: 'good' }] },
+          { chance: 0.15, then: [{ money: -300 }, { log: 'I wasted fifty minutes of his life, then got cocky and confirmed one number too many. {{$300}} gone.', kind: 'bad' }], else: [{ log: 'I described my garden to him for an hour. He hung up on me. A small victory for retirees everywhere.', kind: 'good' }] },
         ],
       },
       {
         id: 'bank',
-        label: 'Ring the bank to check',
+        label: 'Call the bank to check',
         effects: [
           { stat: 'smarts', delta: 2 },
           { stat: 'happiness', delta: -1 },
-          { chance: 0.2, then: [{ money: 150 }, { log: 'A scam, but while I had the bank on the line they found a dodgy charge and refunded {{$150}}.', kind: 'money' }], else: [{ log: 'The bank confirmed it was a scam and thanked me for calling. Forty minutes on hold, one good deed.' }] },
+          { chance: 0.2, then: [{ money: 150 }, { log: 'A scam, but while I had the bank on the line they found a shady charge and refunded {{$150}}.', kind: 'money' }], else: [{ log: 'The bank confirmed it was a scam and thanked me for calling. Forty minutes on hold, one good deed.' }] },
         ],
       },
     ],
@@ -486,11 +492,12 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     id: 'll_will',
     category: 'elderly',
     title: 'Where there is a will',
-    text: 'A solicitor\'s advert on the bus made me realise I have never written a will. I own a surprising amount of stuff, most of it in boxes labelled "misc".',
+    text: 'A lawyer\'s ad on the bus made me realize I have never written a will. I own a surprising amount of stuff, most of it in boxes labeled "misc".',
     minAge: 60,
     maxAge: 95,
     weight: 1,
     once: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'kids',
@@ -526,6 +533,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 1.5,
     cooldown: 4,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'wing',
@@ -534,7 +542,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
           { energy: -1 },
           { karma: 3 },
           { stat: 'happiness', delta: 6 },
-          { newPerson: { kind: 'friend', relationship: 55, minAge: 17, maxAge: 24, log: '{{person}} now comes round every Tuesday to be taught things. Last week it was how to boil an egg and why you should always keep a receipt.' } },
+          { newPerson: { kind: 'friend', relationship: 55, minAge: 17, maxAge: 24, log: '{{person}} comes over every Tuesday now. Last week: how to boil an egg, and why to keep receipts.' } },
         ],
       },
       {
@@ -563,7 +571,8 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     maxAge: 95,
     weight: 1.5,
     cooldown: 3,
-    person: { kind: ['child', 'friend', 'bestFriend', 'sibling', 'coworker'] },
+    conditions: [{ inPrison: false }],
+    person: { kind: ['child', 'friend', 'bestFriend', 'sibling', 'coworker'], maxAge: 55 },
     choices: [
       {
         id: 'truth',
@@ -582,7 +591,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ relationship: 'person', delta: 4 }, { stat: 'happiness', delta: -2 }, { log: 'I made up something about rivers and stones. {{person}} wrote it down. I felt like a fraud.' }],
-            else: [{ stat: 'happiness', delta: 3 }, { relationship: 'person', delta: 3 }, { log: '{{person}} saw straight through the river-and-stones business and we both laughed until tea.', kind: 'good' }],
+            else: [{ stat: 'happiness', delta: 3 }, { relationship: 'person', delta: 3 }, { log: '{{person}} saw straight through the river-and-stones business and we both laughed until dinner.', kind: 'good' }],
           },
         ],
       },
@@ -606,7 +615,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 3 },
           { stat: 'happiness', delta: 4 },
           { relationship: 'sibling', delta: -4 },
-          { chance: 0.15, then: [{ money: 3000 }, { fame: 4 }, { log: 'A small publisher took it. {{$3000}} and a launch in a bookshop with eleven chairs, all full.', kind: 'milestone' }], else: [{ log: 'I wrote the whole truth and printed six copies. Several relatives now avoid eye contact at dinner.', kind: 'good' }] },
+          { chance: 0.15, then: [{ money: 3000 }, { fame: 4 }, { log: 'A small publisher took it. {{$3000}} and a launch in a bookstore with eleven chairs, all full.', kind: 'milestone' }], else: [{ log: 'I wrote the whole truth and printed six copies. Several relatives now avoid eye contact at dinner.', kind: 'good' }] },
         ],
       },
       {
@@ -632,6 +641,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 1.5,
     once: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'trip',
@@ -645,7 +655,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
         label: 'Start with the whistling',
         effects: [
           { stat: 'happiness', delta: 3 },
-          { chance: 0.5, then: [{ stat: 'smarts', delta: 1 }, { log: 'After a month of practice I can whistle a full tune. The neighbour\'s dog has lodged a complaint.', kind: 'good' }], else: [{ log: 'I cannot whistle. I have made my peace with it and crossed out item seven very firmly.' }] },
+          { chance: 0.5, then: [{ stat: 'smarts', delta: 1 }, { log: 'After a month of practice I can whistle a full tune. The neighbor\'s dog has lodged a complaint.', kind: 'good' }], else: [{ log: 'I cannot whistle. I have made my peace with it and crossed out item seven very firmly.' }] },
         ],
       },
       {
@@ -701,11 +711,12 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     id: 'll_old_flame',
     category: 'elderly',
     title: 'An old name',
-    text: 'A message arrived from {{personFull}}. We had not spoken in decades. {{They}} wanted to know if I would like to get a coffee, "no agenda", which is itself an agenda.',
+    text: 'A message arrived from {{personFull}}. We had not spoken in years. {{They}} wanted to know if I would like to get coffee, "no agenda", which is itself an agenda.',
     minAge: 60,
     maxAge: 90,
     weight: 1,
     once: true,
+    conditions: [{ inPrison: false }],
     person: { kind: ['ex'] },
     choices: [
       {
@@ -722,7 +733,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
         id: 'ignore',
         label: 'Leave it unanswered',
         effects: [
-          { chance: 0.4, then: [{ stat: 'happiness', delta: -3 }, { log: 'I did not reply, then thought about not replying for a month. Cheaper than coffee, somehow dearer.', kind: 'bad' }], else: [{ log: 'I left it. The message sits there, unanswered, like most of the big questions.' }] },
+          { chance: 0.4, then: [{ stat: 'happiness', delta: -3 }, { log: 'I did not reply, then thought about not replying for a month. Cheaper than coffee, somehow pricier.', kind: 'bad' }], else: [{ log: 'I left it. The message sits there, unanswered, like most of the big questions.' }] },
         ],
       },
     ],
@@ -753,7 +764,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
       {
         id: 'friends',
         label: 'Keep it as friendship',
-        effects: [{ relationship: 'person', delta: 10 }, { stat: 'happiness', delta: 4 }, { karma: 1 }, { log: '{{person}} and I are friends now, properly. It is the best version of us and only took forty years.', kind: 'good' }],
+        effects: [{ relationship: 'person', delta: 10 }, { stat: 'happiness', delta: 4 }, { karma: 1 }, { log: '{{person}} and I are friends now, properly. It is the best version of us, and it only took this long.', kind: 'good' }],
       },
       {
         id: 'closure',
@@ -769,12 +780,12 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     id: 'll_late_romance',
     category: 'elderly',
     title: 'A saved seat',
-    text: 'There is someone at the community centre who laughs at my jokes and saves me a seat. I had assumed that part of life was over. The seat suggests otherwise.',
+    text: 'There is someone at the community center who laughs at my jokes and saves me a seat. I had assumed that part of life was over. The seat suggests otherwise.',
     minAge: 60,
     maxAge: 90,
     weight: 1.5,
     cooldown: 3,
-    conditions: [{ hasLover: false }],
+    conditions: [{ inPrison: false }, { hasLover: false }],
     choices: [
       {
         id: 'ask',
@@ -783,14 +794,14 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.6,
             then: [{ stat: 'happiness', delta: 8 }, { newPerson: { kind: 'lover', relationship: 60, log: '{{person}} said yes. We split a dessert and talked until the staff stacked the chairs around us.' } }],
-            else: [{ stat: 'happiness', delta: -3 }, { newPerson: { kind: 'friend', relationship: 50, log: '{{person}} was flattered, and married. We still share the crossword, which is its own kind of romance.' } }],
+            else: [{ stat: 'happiness', delta: -3 }, { newPerson: { kind: 'friend', relationship: 50, log: '{{person}} was flattered, and married. We still share the crossword, its own kind of romance.' } }],
           },
         ],
       },
       {
         id: 'friend',
         label: 'Keep it as friendship',
-        effects: [{ stat: 'happiness', delta: 3 }, { newPerson: { kind: 'friend', relationship: 58, log: '{{person}} and I are now the loudest table at the community centre. Nobody minds.' } }],
+        effects: [{ stat: 'happiness', delta: 3 }, { newPerson: { kind: 'friend', relationship: 58, log: '{{person}} and I are now the loudest table at the community center. Nobody minds.' } }],
       },
       {
         id: 'nothing',
@@ -808,7 +819,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     maxAge: 95,
     weight: 1.5,
     cooldown: 4,
-    conditions: [{ married: true }],
+    conditions: [{ inPrison: false }, { married: true }],
     person: { kind: ['spouse'] },
     choices: [
       {
@@ -829,7 +840,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.4,
-            then: [{ stat: 'happiness', delta: 2 }, { love: 2 }, { log: 'I forgot. So did {{person}}. We found out a week later and laughed until someone needed a sit down.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 2 }, { love: 2 }, { log: 'I forgot. So did {{person}}. We found out a week later and laughed until someone had to sit down.', kind: 'good' }],
             else: [{ love: -10 }, { relationship: 'person', delta: -8 }, { stat: 'happiness', delta: -5 }, { log: 'I forgot. {{person}} had not. The hints, it turned out, were not hints.', kind: 'bad' }],
           },
         ],
@@ -842,11 +853,12 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     id: 'll_surprise_birthday',
     category: 'elderly',
     title: 'Surprise',
-    text: 'I opened the front door and forty people shouted SURPRISE. {{person}} had organised the whole thing. I nearly dropped the milk and did drop my dignity.',
+    text: 'I opened the front door and forty people shouted SURPRISE. {{person}} had organized the whole thing. I nearly dropped the milk and did drop my dignity.',
     minAge: 60,
     maxAge: 95,
     weight: 1,
     cooldown: 5,
+    conditions: [{ inPrison: false }],
     person: { kind: ['child', 'friend', 'bestFriend', 'sibling', 'spouse'] },
     choices: [
       {
@@ -879,7 +891,8 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     maxAge: 95,
     weight: 1.5,
     cooldown: 4,
-    person: { kind: ['sibling'] },
+    conditions: [{ inPrison: false }],
+    person: { kind: ['sibling'], maxRelationship: 50 },
     choices: [
       {
         id: 'peace',
@@ -888,7 +901,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
           { karma: 2 },
           {
             chance: 0.7,
-            then: [{ relationship: 'person', delta: 18 }, { stat: 'happiness', delta: 7 }, { log: 'Four hours in, neither of us could remember what the fight was about. Scones all round.', kind: 'good' }],
+            then: [{ relationship: 'person', delta: 18 }, { stat: 'happiness', delta: 7 }, { log: 'Four hours in, neither of us could remember what the fight was about. Coffee and pie all around.', kind: 'good' }],
             else: [{ relationship: 'person', delta: -4 }, { stat: 'happiness', delta: -3 }, { log: 'We argued about who got the clock. Some things do not change, including the clock.', kind: 'bad' }],
           },
         ],
@@ -914,7 +927,8 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     maxAge: 95,
     weight: 1,
     cooldown: 4,
-    person: { kind: ['friend', 'bestFriend'] },
+    conditions: [{ inPrison: false }],
+    person: { kind: ['friend', 'bestFriend'], minAge: 55 },
     choices: [
       {
         id: 'eulogy',
@@ -943,22 +957,22 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     id: 'll_community_award',
     category: 'elderly',
     title: 'Services to the community',
-    text: 'The council wrote to say I am being given an award for "services to the community". I am not entirely sure which services, but I will be wearing a tie.',
+    text: 'The city council wrote to say I am being given an award for "services to the community". I am not entirely sure which services, but I will be wearing a tie.',
     minAge: 60,
     maxAge: 95,
     weight: 0.7,
     once: true,
-    conditions: [{ karma: { gte: 55 } }],
+    conditions: [{ inPrison: false }, { karma: { gte: 55 } }],
     choices: [
       {
         id: 'speech',
         label: 'Accept with a speech',
-        effects: [{ energy: -1 }, { stat: 'happiness', delta: 8 }, { fame: 3 }, { karma: 1 }, { log: 'I gave a speech about neighbours. The mayor shook my hand and got my name slightly wrong.', kind: 'milestone' }],
+        effects: [{ energy: -1 }, { stat: 'happiness', delta: 8 }, { fame: 3 }, { karma: 1 }, { log: 'I gave a speech about neighbors. The mayor shook my hand and said my name three different ways.', kind: 'milestone' }],
       },
       {
         id: 'quiet',
         label: 'Accept quietly',
-        effects: [{ stat: 'happiness', delta: 5 }, { fame: 1 }, { log: 'I accepted quietly and put the plaque in the downstairs loo, where visitors would be sure to see it.', kind: 'good' }],
+        effects: [{ stat: 'happiness', delta: 5 }, { fame: 1 }, { log: 'I accepted quietly and hung the plaque in the guest bathroom, where every visitor will see it.', kind: 'good' }],
       },
       {
         id: 'nominate',
@@ -966,7 +980,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
         effects: [
           { karma: 4 },
           { stat: 'happiness', delta: 2 },
-          { chance: 0.5, then: [{ newPerson: { kind: 'friend', relationship: 60, log: 'The person I nominated, {{person}}, turned up at my door with a pie and a plaque-shaped grudge. We are friends now.' } }], else: [{ log: 'I nominated the man who runs the litter patrol and the council agreed. He deserved it, the swine.' }] },
+          { chance: 0.5, then: [{ newPerson: { kind: 'friend', relationship: 60, log: '{{person}}, who got the award instead, came by with a pie to say thanks. We are friends now.' } }], else: [{ log: 'I nominated the man who runs the litter patrol and the council agreed. He deserved it, annoyingly.' }] },
         ],
       },
     ],
@@ -975,11 +989,12 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     id: 'll_allotment',
     category: 'elderly',
     title: 'The plot',
-    text: 'I took over the allotment plot behind the community hall. The soil is clay, the shed leans, and the pigeons are organised.',
+    text: 'I took over a plot in the community garden behind the rec center. The soil is clay, the shed leans, and the pigeons are organized.',
     minAge: 60,
     maxAge: 90,
     weight: 1.5,
     once: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'veg',
@@ -987,7 +1002,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
         effects: [
           { stat: 'health', delta: 3 },
           { stat: 'happiness', delta: 3 },
-          { chance: 0.35, then: [{ money: 120 }, { log: 'I grew more courgettes than one person can morally keep and sold the surplus for {{$120}}.', kind: 'money' }], else: [{ log: 'I grew vegetables. The pigeons ate the good ones and left me the honest, lumpy ones.', kind: 'good' }] },
+          { chance: 0.35, then: [{ money: 120 }, { log: 'I grew more zucchini than one person can morally keep and sold the surplus for {{$120}}.', kind: 'money' }], else: [{ log: 'I grew vegetables. The pigeons ate the good ones and left me the honest, lumpy ones.', kind: 'good' }] },
         ],
       },
       {
@@ -995,7 +1010,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
         label: 'Grow prize dahlias',
         effects: [
           { stat: 'happiness', delta: 2 },
-          { chance: 0.3, then: [{ fame: 2 }, { stat: 'happiness', delta: 7 }, { log: 'My dahlias took first prize at the show. A rival accused me of buying them. I did not. Mostly.', kind: 'good' }], else: [{ log: 'The dahlias came third out of four. The judge said "plucky", which is not a horticultural term.' }] },
+          { chance: 0.3, then: [{ fame: 2 }, { stat: 'happiness', delta: 7 }, { log: 'My dahlias won first prize at the county fair. A rival accused me of buying them. I did not. Mostly.', kind: 'good' }], else: [{ log: 'The dahlias came third out of four. The judge said "plucky", which is not a horticultural term.' }] },
         ],
       },
       {

@@ -16,7 +16,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     id: 'tm_viral_post',
     category: 'random',
     title: 'Accidentally viral',
-    text: 'Someone filmed me slipping on an icy step in {{city}} and recovering with a deep, dignified bow. Two million views overnight. Strangers are now bowing at me in the supermarket.',
+    text: 'Someone filmed me slipping on a wet step in {{city}} and recovering with a deep, dignified bow. Two million views overnight. Strangers are now bowing at me in the supermarket.',
     minAge: 13,
     maxAge: 70,
     weight: 1,
@@ -39,7 +39,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
       {
         id: 'ignore',
         label: 'Ignore it',
-        effects: [{ fame: 2 }, { stat: 'happiness', delta: 1 }, { log: 'I let it pass. By spring nobody remembered, including me. The ice, however, is still there.' }],
+        effects: [{ fame: 2 }, { stat: 'happiness', delta: 1 }, { log: 'I let it pass. By spring nobody remembered, including me. The step, however, is still slippery.' }],
       },
       {
         id: 'takedown',
@@ -47,7 +47,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.5,
-            then: [{ log: 'The poster took it down and apologised. The bow now lives only in memory, where it was even better.', kind: 'good' }, { stat: 'happiness', delta: 3 }],
+            then: [{ log: 'The poster took it down and apologized. The bow now lives only in memory, where it was even better.', kind: 'good' }, { stat: 'happiness', delta: 3 }],
             else: [{ log: 'Asking made it worse. There is now a remix with a brass section.', kind: 'bad' }, { fame: 5 }, { stat: 'happiness', delta: -5 }],
           },
         ],
@@ -122,8 +122,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
           { fame: 2 },
           {
             chance: 0.5,
-            then: [{ log: "I said it was 'fine'. People trusted that more than 'life-changing'. The company sent more cream.", kind: 'good' }, { stat: 'happiness', delta: 3 }],
-            else: [{ log: "The company was wounded by 'fine' and dropped me. I have enough cream for a decade." }, { stat: 'happiness', delta: 1 }],
+            then: [{ log: 'I called it "fine." People trusted that more than "life-changing." The company sent more cream.', kind: 'good' }, { stat: 'happiness', delta: 3 }],
+            else: [{ log: 'The company was wounded by "fine" and dropped me. I have enough cream for a decade.' }, { stat: 'happiness', delta: 1 }],
           },
         ],
       },
@@ -166,7 +166,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 6 },
           {
             chance: 0.5,
-            then: [{ log: '{{person}} was grateful and the others came round by the weekend.', kind: 'good' }, { stat: 'happiness', delta: 2 }],
+            then: [{ log: '{{person}} was grateful and the others came around by the weekend.', kind: 'good' }, { stat: 'happiness', delta: 2 }],
             else: [{ log: 'Taking sides cost me the rest of the chat for a month. {{person}} and I had a very quiet corner.', kind: 'bad' }, { stat: 'happiness', delta: -4 }],
           },
         ],
@@ -195,13 +195,13 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     id: 'tm_sibling_video',
     category: 'random',
     title: 'Childhood footage',
-    text: '{{person}} dug out a video of me aged six, performing an original song about soup, and posted it to the whole family and most of {{their}} followers. The soup song has verses.',
+    text: '{{person}} dug out a video of me at age six, performing an original song about soup, and posted it to the whole family and most of {{their}} followers. The soup song has verses.',
     minAge: 12,
     maxAge: 50,
     weight: 1.2,
     cooldown: 5,
     conditions: [{ inPrison: false }],
-    person: { kind: ['sibling'] },
+    person: { kind: ['sibling'], minAge: 13 },
     choices: [
       {
         id: 'embrace',
@@ -211,7 +211,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
           {
             chance: 0.7,
             then: [{ log: 'I reposted it with the lyrics as captions. The soup song now has a fanbase of eleven people.', kind: 'good' }, { stat: 'happiness', delta: 5 }, { fame: 1 }],
-            else: [{ log: 'I reposted it. By Monday someone was singing the soup song at me across a corridor. Every morning.', kind: 'bad' }, { stat: 'happiness', delta: -3 }],
+            else: [{ log: 'I reposted it. By Monday someone was singing the soup song at me across a hallway. Every morning.', kind: 'bad' }, { stat: 'happiness', delta: -3 }],
           },
         ],
       },
@@ -238,13 +238,13 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     id: 'tm_ex_post',
     category: 'random',
     title: 'The algorithm knows',
-    text: "My feed showed me {{person}}'s engagement post at 1am. Three hundred likes, a ring the size of a grape, and the caption 'finally found the one'. The algorithm is cruel.",
+    text: 'My feed showed me {{person}}\'s engagement post at 1am. Three hundred likes, a ring the size of a grape, and the caption "finally found the one." The algorithm is cruel.',
     minAge: 18,
     maxAge: 70,
     weight: 1.2,
     cooldown: 5,
     conditions: [{ inPrison: false }],
-    person: { kind: ['ex'] },
+    person: { kind: ['ex'], minAge: 20 },
     choices: [
       {
         id: 'like',
@@ -254,7 +254,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
       {
         id: 'block',
         label: 'Block {{them}}',
-        effects: [{ stat: 'happiness', delta: 2 }, { relationship: 'person', delta: -8 }, { log: 'I blocked {{person}}. The feed went back to showing me fridge organisation. Peace.' }],
+        effects: [{ stat: 'happiness', delta: 2 }, { relationship: 'person', delta: -8 }, { log: 'I blocked {{person}}. The feed went back to showing me fridge organization. Peace.' }],
       },
       {
         id: 'scroll',
@@ -278,7 +278,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
       {
         id: 'basket',
         label: 'Propose a phone basket',
-        effects: [{ love: 6 }, { relationship: 'person', delta: 4 }, { stat: 'happiness', delta: -1 }, { log: 'We put our phones in a basket at dinner now. We talk. I miss the raccoon a little, but only a little.', kind: 'good' }],
+        effects: [{ love: 6 }, { relationship: 'person', delta: 4 }, { stat: 'happiness', delta: -1 }, { log: 'Our phones go in a basket at dinner now. We talk. I miss the raccoon a little, but only a little.', kind: 'good' }],
       },
       {
         id: 'raccoon',
@@ -302,7 +302,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     id: 'tm_child_social',
     category: 'random',
     title: 'The account request',
-    text: "{{person}} has asked for a social media account because 'literally everyone' has one. {{They}} made a slideshow. Slide four is titled 'Trust'.",
+    text: '{{person}} has asked for a social media account because "literally everyone" has one. {{They}} made a slideshow. Slide four is titled "Trust."',
     minAge: 24,
     maxAge: 65,
     weight: 1.5,
@@ -326,7 +326,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
       {
         id: 'rules',
         label: 'Yes, with rules',
-        effects: [{ relationship: 'person', delta: 4 }, { karma: 1 }, { stat: 'happiness', delta: 1 }, { log: 'Private account, I follow {{them}}, no phone after nine. {{They}} accepted the terms with the sigh of a seasoned negotiator.' }],
+        effects: [{ relationship: 'person', delta: 4 }, { karma: 1 }, { stat: 'happiness', delta: 1 }, { log: "Private account, I follow {{them}}, no phone after nine. {{They}} accepted with a negotiator's sigh." }],
       },
       {
         id: 'no',
@@ -337,7 +337,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ log: '{{person}} sulked for a week and then made an account anyway under a name I did not know.', kind: 'bad' }, { stat: 'happiness', delta: -3 }],
-            else: [{ log: '{{person}} grumbled and went back to the dog. The slideshow was saved, for next year. The house stayed quiet.' }, { stat: 'happiness', delta: 2 }],
+            else: [{ log: '{{person}} grumbled and went back to the dog. The slideshow was saved for next year.' }, { stat: 'happiness', delta: 2 }],
           },
         ],
       },
@@ -347,7 +347,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     id: 'tm_parent_tech_help',
     category: 'random',
     title: 'The printer again',
-    text: "{{person}} called because the phone 'has gone small'. Also the printer is blinking, the television wants a password, and someone sent {{them}} a photo that will not open. I am tech support now.",
+    text: '{{person}} called because the phone "has gone small." Also the printer is blinking, the television wants a password, and someone sent {{them}} a photo that will not open. I am tech support now.',
     minAge: 25,
     maxAge: 65,
     weight: 1.5,
@@ -357,7 +357,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     choices: [
       {
         id: 'visit',
-        label: 'Go round and fix it all',
+        label: 'Go over and fix it all',
         effects: [{ energy: -2 }, { karma: 3 }, { relationship: 'person', delta: 8 }, { stat: 'happiness', delta: 2 }, { log: 'Two hours, four fixes, one cup of tea. {{person}} called me a genius. The phone had been zoomed in.', kind: 'good' }],
       },
       {
@@ -366,7 +366,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.5,
-            then: [{ log: "Forty minutes of 'the blue one, no, the OTHER blue one' and it was fixed. {{person}} sounded proud of us both.", kind: 'good' }, { relationship: 'person', delta: 4 }, { stat: 'happiness', delta: 1 }, { karma: 1 }],
+            then: [{ log: 'Forty minutes of "the blue one, no, the OTHER blue one" and it was fixed. {{person}} sounded proud.', kind: 'good' }, { relationship: 'person', delta: 4 }, { stat: 'happiness', delta: 1 }, { karma: 1 }],
             else: [{ log: '{{person}} pressed something and now the printer speaks another language. We are both tired.', kind: 'bad' }, { relationship: 'person', delta: -2 }, { stat: 'happiness', delta: -3 }],
           },
         ],
@@ -374,7 +374,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
       {
         id: 'link',
         label: 'Send a tutorial link',
-        effects: [{ relationship: 'person', delta: -5 }, { stat: 'happiness', delta: 2 }, { log: "I sent a link. {{person}} replied 'thanks' three days later, and then 'how do I open links'." }],
+        effects: [{ relationship: 'person', delta: -5 }, { stat: 'happiness', delta: 2 }, { log: 'I sent a link. {{person}} replied "thanks" three days later, then "how do I open links."' }],
       },
     ],
   },
@@ -382,7 +382,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     id: 'tm_screen_time_intervention',
     category: 'random',
     title: 'Phone confiscated',
-    text: '{{person}} saw my screen time report and went pale. Nine hours a day, mostly videos of people organising fridges. {{They}} held out a hand and said the phone goes in a drawer until my grades improve.',
+    text: '{{person}} saw my screen time report and went pale. Nine hours a day, mostly videos of people organizing fridges. {{They}} held out a hand and said the phone goes in a drawer until my grades improve.',
     minAge: 10,
     maxAge: 17,
     weight: 2,
@@ -393,7 +393,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
       {
         id: 'handover',
         label: 'Hand it over',
-        effects: [{ stat: 'happiness', delta: -5 }, { grade: 6 }, { relationship: 'person', delta: 4 }, { log: 'I handed over the phone. The first two days were agony. By week three I had read a whole book by accident.' }],
+        effects: [{ stat: 'happiness', delta: -5 }, { grade: 6 }, { relationship: 'person', delta: 4 }, { log: 'I handed over the phone. The first two days were agony. By week three I had read a book by accident.' }],
       },
       {
         id: 'negotiate',
@@ -413,8 +413,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
           { karma: -3 },
           {
             chance: 0.5,
-            then: [{ log: 'I retrieved it from the kitchen drawer every night. My grades did not improve, and neither did my sleep.' }, { stat: 'happiness', delta: 2 }, { stat: 'health', delta: -2 }, { grade: -3 }],
-            else: [{ log: '{{person}} caught me at 1am, lit by the glow of fridge videos. The phone now lives at {{their}} work.', kind: 'bad' }, { relationship: 'person', delta: -8 }, { stat: 'happiness', delta: -6 }, { grade: 2 }],
+            then: [{ log: 'I took it from the kitchen drawer every night. My grades did not improve. Neither did my sleep.' }, { stat: 'happiness', delta: 2 }, { stat: 'health', delta: -2 }, { grade: -3 }],
+            else: [{ log: '{{person}} caught me at 1am, lit by fridge videos. The phone now sleeps in {{their}} room.', kind: 'bad' }, { relationship: 'person', delta: -8 }, { stat: 'happiness', delta: -6 }, { grade: 2 }],
           },
         ],
       },
@@ -452,7 +452,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
       {
         id: 'debunk',
         label: 'Reply with a fact-check',
-        effects: [{ stat: 'smarts', delta: 3 }, { karma: 1 }, { stat: 'happiness', delta: -1 }, { log: "I replied explaining how chain messages work. The sender replied 'ok nerd'. I am, in fairness, a nerd." }],
+        effects: [{ stat: 'smarts', delta: 3 }, { karma: 1 }, { stat: 'happiness', delta: -1 }, { log: 'I explained how chain messages work. The sender replied "ok nerd." I am, in fairness, a nerd.' }],
       },
     ],
   },
@@ -462,7 +462,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     id: 'tm_phishing_text',
     category: 'random',
     title: 'Suspicious text',
-    text: 'A text says a parcel is waiting for me and I must pay a small redelivery fee at a link made of random letters. I have not ordered anything. The parcel sounds lovely, though.',
+    text: 'A text says a package is waiting for me and I must pay a small redelivery fee at a link made of random letters. I have not ordered anything. The package sounds lovely, though.',
     minAge: 16,
     maxAge: 100,
     weight: 2,
@@ -478,7 +478,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
           {
             chance: 0.6,
             then: [{ log: 'Within a week my card had bought three televisions in a country I have never visited.', kind: 'bad' }, { money: -900 }, { stat: 'happiness', delta: -5 }],
-            else: [{ log: 'Nothing happened. No parcel either. I feel cheated twice.' }, { stat: 'happiness', delta: -1 }],
+            else: [{ log: 'Nothing happened. No package either. I feel cheated twice.' }, { stat: 'happiness', delta: -1 }],
           },
         ],
       },
@@ -494,7 +494,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 3 },
           {
             chance: 0.3,
-            then: [{ log: "The scammer replied 'ok' and stopped. I consider this a victory for the arts.", kind: 'good' }],
+            then: [{ log: 'The scammer replied "ok" and stopped. I consider this a victory for the arts.', kind: 'good' }],
             else: [{ log: 'They kept texting for a month. Somehow I had started a correspondence.' }, { stat: 'happiness', delta: -2 }],
           },
         ],
@@ -505,7 +505,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     id: 'tm_data_breach',
     category: 'random',
     title: 'Data breach notice',
-    text: 'An email says a service I signed up for years ago has been breached. My password, my address and apparently my favourite colour are now on a forum somewhere.',
+    text: 'An email says a service I signed up for years ago has been breached. My password, my address and apparently my favorite color are now on a forum somewhere.',
     minAge: 16,
     maxAge: 100,
     weight: 1.5,
@@ -515,7 +515,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
       {
         id: 'passwords',
         label: 'Change every password',
-        effects: [{ energy: -1 }, { stat: 'smarts', delta: 2 }, { log: 'I spent a weekend changing passwords and setting up two-factor codes. I am now unbreakable and slightly unbearable about it.', kind: 'good' }],
+        effects: [{ energy: -1 }, { stat: 'smarts', delta: 2 }, { log: 'A weekend of new passwords and two-factor codes. I am now unbreakable and slightly unbearable.', kind: 'good' }],
       },
       {
         id: 'ignore',
@@ -525,22 +525,22 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
           {
             chance: 0.3,
             then: [{ log: 'Months later, someone logged into my shopping account and sent themselves a gift basket on my card.', kind: 'bad' }, { money: -400 }, { stat: 'happiness', delta: -3 }],
-            else: [{ log: 'Nothing happened. My favourite colour remains a secret shared only with a forum.' }],
+            else: [{ log: 'Nothing happened. My favorite color remains a secret shared only with a forum.' }],
           },
         ],
       },
       {
         id: 'lawsuit',
         label: 'Join the class action',
-        effects: [{ log: 'I filled in a form for the class action. The lawyers said to expect news in due course.' }, { queue: 'tm_data_breach_settlement' }],
+        effects: [{ log: 'I filled out a form for the class action. The lawyers said to expect news in due course.' }, { queue: 'tm_data_breach_settlement' }],
       },
     ],
   },
   {
     id: 'tm_data_breach_settlement',
     category: 'random',
-    title: 'Settlement cheque',
-    text: 'The class action over the data breach has settled. My share arrived today in an envelope that cost more to post than the cheque inside. Or so I assume, before opening it.',
+    title: 'Settlement check',
+    text: 'The class action over the data breach has settled. My share arrived today in an envelope that cost more to mail than the check inside. Or so I assume, before opening it.',
     minAge: 16,
     maxAge: 100,
     weight: 1,
@@ -552,7 +552,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         effects: [
           {
             random: [
-              { weight: 6, effects: [{ money: 12 }, { log: 'The settlement was {{$12}}. I framed the cheque instead of cashing it. Then I cashed it.', kind: 'money' }] },
+              { weight: 6, effects: [{ money: 12 }, { log: 'The settlement was {{$12}}. I framed the check instead of cashing it. Then I cashed it.', kind: 'money' }] },
               { weight: 3, effects: [{ money: 180 }, { log: 'The settlement came to {{$180}}. A modest reward for a modest leak.', kind: 'money' }, { stat: 'happiness', delta: 2 }] },
               { weight: 1, effects: [{ money: 2500 }, { log: 'Somehow my claim was approved at the top tier: {{$2500}}. The lawyers kept considerably more.', kind: 'money' }, { stat: 'happiness', delta: 5 }] },
             ],
@@ -562,7 +562,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
       {
         id: 'donate',
         label: 'Donate it to a privacy charity',
-        effects: [{ karma: 2 }, { stat: 'happiness', delta: 2 }, { log: 'I signed the cheque over to a digital rights group without looking at the amount. Somewhere, a lawyer sighed.', kind: 'good' }],
+        effects: [{ karma: 2 }, { stat: 'happiness', delta: 2 }, { log: 'I signed the check over to a digital rights group without looking at the amount. A lawyer sighed.', kind: 'good' }],
       },
     ],
   },
@@ -570,7 +570,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     id: 'tm_catfish_match',
     category: 'random',
     title: 'Suspiciously perfect match',
-    text: "I matched with someone stunning, funny and apparently a surgeon who travels constantly. They have been 'about to visit' for three months and now need a small loan for the flight.",
+    text: 'I matched with someone stunning, funny and apparently a surgeon who travels constantly. They have been "about to visit" for three months and now need a small loan for the flight.',
     minAge: 18,
     maxAge: 60,
     weight: 1.2,
@@ -590,7 +590,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
               { log: 'Against every law of the internet, they turned up. We had coffee. It was fine. Weird, but fine.', kind: 'good' },
               { newPerson: { kind: 'lover', relationship: 55, log: '{{person}} and I started seeing each other. The flight money was never mentioned again.' } },
             ],
-            else: [{ log: 'The account vanished the moment the money cleared. The surgeon was a photo of a dentist in another country.', kind: 'bad' }, { stat: 'happiness', delta: -8 }],
+            else: [{ log: "The account vanished when the money cleared. The surgeon was a dentist's photo from another country.", kind: 'bad' }, { stat: 'happiness', delta: -8 }],
           },
         ],
       },
@@ -612,7 +612,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
       {
         id: 'block',
         label: 'Block and report',
-        effects: [{ stat: 'smarts', delta: 1 }, { karma: 1 }, { stat: 'happiness', delta: 1 }, { log: "I reported the profile. The app thanked me with a notification about my 'perfect match'. Pass." }],
+        effects: [{ stat: 'smarts', delta: 1 }, { karma: 1 }, { stat: 'happiness', delta: 1 }, { log: 'I reported the profile. The app thanked me with a notification about my "perfect match." Pass.' }],
       },
     ],
   },
@@ -620,7 +620,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     id: 'tm_streamer_scam',
     category: 'random',
     title: 'Streamer emergency',
-    text: "A streamer I watch every night is in tears on camera: their account was hacked, their savings are gone, and loyal viewers can help by sending {{$40}} to a 'recovery fund'.",
+    text: 'A streamer I watch every night is in tears on camera: their account was hacked, their savings are gone, and loyal viewers can help by sending {{$40}} to a "recovery fund."',
     minAge: 12,
     maxAge: 45,
     weight: 1,
@@ -629,7 +629,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     choices: [
       {
         id: 'send',
-        label: 'Send {{$40}}',
+        label: 'Chip in to the fund',
         hint: '{{$40}}',
         conditions: [{ money: { gte: 40 } }],
         effects: [
@@ -637,7 +637,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
           {
             chance: 0.15,
             then: [{ log: 'It was real, and they thanked donors by name on stream. I heard mine. I glowed.', kind: 'good' }, { stat: 'happiness', delta: 5 }, { karma: 1 }],
-            else: [{ log: "The 'recovery fund' recovered a new car for the streamer. The crying was good acting.", kind: 'bad' }, { stat: 'happiness', delta: -5 }],
+            else: [{ log: 'The "recovery fund" recovered a new car for the streamer. The crying was good acting.', kind: 'bad' }, { stat: 'happiness', delta: -5 }],
           },
         ],
       },
@@ -648,7 +648,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 2 },
           {
             chance: 0.5,
-            then: [{ log: "The mods timed me out for 'negativity'. I took that as an answer." }, { stat: 'happiness', delta: -1 }],
+            then: [{ log: 'The mods timed me out for "negativity." I took that as an answer.' }, { stat: 'happiness', delta: -1 }],
             else: [{ log: 'Others started asking too. The stream ended early. Some mysteries solve themselves.', kind: 'good' }, { karma: 2 }],
           },
         ],
@@ -693,8 +693,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
           { energy: -1 },
           {
             chance: 0.8,
-            then: [{ log: 'Thirty days later a code arrived. Ten years of photos were waiting for me. Fine.', kind: 'good' }, { stat: 'happiness', delta: 4 }],
-            else: [{ log: "After thirty days the form said 'unable to verify'. Ten years of photos, gone.", kind: 'bad' }, { stat: 'happiness', delta: -8 }],
+            then: [{ log: 'Thirty days later a code arrived. Years of photos were waiting for me. Fine.', kind: 'good' }, { stat: 'happiness', delta: 4 }],
+            else: [{ log: 'After thirty days the form said "unable to verify." Years of photos, gone.', kind: 'bad' }, { stat: 'happiness', delta: -8 }],
           },
         ],
       },
@@ -716,7 +716,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     cooldown: 6,
     conditions: [{ inPrison: false }],
     choices: [
-      { id: 'cancel', label: 'Cancel it', effects: [{ stat: 'happiness', delta: 2 }, { stat: 'smarts', delta: 1 }, { log: 'I cancelled it. The app sent a sad notification. I did not breathe for it.' }] },
+      { id: 'cancel', label: 'Cancel it', effects: [{ stat: 'happiness', delta: 2 }, { stat: 'smarts', delta: 1 }, { log: 'I canceled it. The app sent a sad notification. I did not breathe for it.' }] },
       {
         id: 'refund',
         label: 'Demand a refund',
@@ -724,7 +724,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
           {
             chance: 0.35,
             then: [{ log: 'Support refunded six months out of pity. I thanked them with deep, calm breathing.', kind: 'money' }, { money: 60 }, { stat: 'happiness', delta: 3 }],
-            else: [{ log: "Support explained, calmly, that 'did not use it' is not a refund category." }, { stat: 'happiness', delta: -2 }],
+            else: [{ log: 'Support explained, calmly, that "did not use it" is not a refund category.' }, { stat: 'happiness', delta: -2 }],
           },
         ],
       },
@@ -733,7 +733,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         label: 'Actually use it this time',
         hint: '{{$120}} a year',
         conditions: [{ money: { gte: 120 } }],
-        effects: [{ money: -120 }, { stat: 'health', delta: 3 }, { stat: 'happiness', delta: 1 }, { log: 'I kept it and actually meditated most mornings this year. Cheaper than the alternative, which was more apps.' }],
+        effects: [{ money: -120 }, { stat: 'health', delta: 3 }, { stat: 'happiness', delta: 1 }, { log: 'I kept it and actually meditated most mornings this year. Cheaper than buying more apps.' }],
       },
     ],
   },
@@ -742,8 +742,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
   {
     id: 'tm_smart_speaker_rice',
     category: 'random',
-    title: 'Forty kilos of rice',
-    text: 'My smart speaker misheard the television and ordered forty kilograms of rice. It arrived this morning in four sacks. The delivery driver asked if I was opening a restaurant.',
+    title: 'Ninety pounds of rice',
+    text: 'My smart speaker misheard the television and ordered ninety pounds of rice. It arrived this morning in four sacks. The delivery driver asked if I was opening a restaurant.',
     minAge: 20,
     maxAge: 100,
     weight: 1,
@@ -763,7 +763,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
           {
             chance: 0.55,
             then: [{ log: 'After three phone calls and one sack dragged to a depot, I got my money back.', kind: 'good' }, { stat: 'happiness', delta: -1 }],
-            else: [{ log: "Returns did not cover 'misheard the television'. The rice stayed, and so did the charge.", kind: 'bad' }, { money: -90 }, { stat: 'happiness', delta: -3 }],
+            else: [{ log: 'Returns did not cover "misheard the television." The rice stayed, and so did the charge.', kind: 'bad' }, { money: -90 }, { stat: 'happiness', delta: -3 }],
           },
         ],
       },
@@ -780,7 +780,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     category: 'random',
     title: 'Lost phone',
     text: 'My phone is gone. I have checked every pocket twice, including the pockets of a coat I was not wearing. The last place I remember having it is the back seat of a taxi.',
-    minAge: 12,
+    minAge: 13,
     maxAge: 90,
     weight: 1.5,
     cooldown: 4,
@@ -793,9 +793,9 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
           { energy: -1 },
           {
             chance: 0.5,
-            then: [{ log: 'The tracker put it at a taxi depot. A bored dispatcher handed it over with half the battery and no questions.', kind: 'good' }, { stat: 'happiness', delta: 4 }],
+            then: [{ log: 'The tracker led me to a taxi depot. A bored dispatcher handed it over, half charged, no questions.', kind: 'good' }, { stat: 'happiness', delta: 4 }],
             else: [
-              { log: 'The tracker showed it crossing the city for a day, then went dark. Goodbye, phone. Hello, cheap replacement.', kind: 'bad' },
+              { log: 'The tracker showed it crossing the city, then it went dark. Goodbye, phone. Hello, replacement bill.', kind: 'bad' },
               { money: -500 },
               { stat: 'happiness', delta: -4 },
               { chance: 0.3, then: [{ queue: 'tm_lost_phone_returned' }] },
@@ -813,7 +813,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
       {
         id: 'without',
         label: 'Go without for a while',
-        effects: [{ stat: 'happiness', delta: -3 }, { stat: 'health', delta: 2 }, { stat: 'smarts', delta: 2 }, { money: -150 }, { log: 'I went a month without a phone. I read, I noticed trees, I missed every plan. Then I bought a cheap one.' }],
+        effects: [{ stat: 'happiness', delta: -3 }, { stat: 'health', delta: 2 }, { stat: 'smarts', delta: 2 }, { money: -150 }, { log: 'A month without a phone. I read, I noticed trees, I missed every plan. Then I bought a cheap one.' }],
       },
     ],
   },
@@ -822,7 +822,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     category: 'random',
     title: 'A stranger calls',
     text: 'A stranger messaged my new number from my old phone. They found it wedged under a taxi seat and want to return it. They have been, they add, very careful not to look at anything.',
-    minAge: 12,
+    minAge: 13,
     maxAge: 90,
     weight: 1,
     followUpOnly: true,
@@ -850,7 +850,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     id: 'tm_internet_outage',
     category: 'random',
     title: 'No signal',
-    text: "The internet went down across the whole street on Friday evening and the provider's estimate is 'Monday, possibly'. Neighbours are standing in the road holding phones up like torches.",
+    text: 'The internet went down across the whole street on Friday evening, and the provider\'s estimate is "Monday, possibly." Neighbors are standing on the sidewalk holding their phones up to the sky.',
     minAge: 13,
     maxAge: 90,
     weight: 1.5,
@@ -868,7 +868,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
             chance: 0.4,
             then: [
               { log: 'I went outside. The whole street was out there, blinking at the sky like moles.', kind: 'good' },
-              { newPerson: { kind: 'friend', relationship: 50, log: '{{person}} from three doors down and I ended up talking in the road for an hour. We are friends now.' } },
+              { newPerson: { kind: 'friend', relationship: 50, log: '{{person}} from three doors down and I talked on the sidewalk for an hour. We are friends now.' } },
             ],
             else: [{ log: 'I walked, read, and noticed the park has a pond. It has had a pond for years.' }],
           },
@@ -883,7 +883,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
           {
             chance: 0.3,
             then: [{ log: 'After two hours on hold a kind technician pushed a button and everything came back. I wept a little.', kind: 'good' }, { stat: 'happiness', delta: 6 }],
-            else: [{ log: "Two hours of hold music, one disconnection, and the estimate changed to 'Tuesday, possibly'.", kind: 'bad' }],
+            else: [{ log: 'Two hours of hold music, one disconnection, and the estimate changed to "Tuesday, possibly."', kind: 'bad' }],
           },
         ],
       },
@@ -892,7 +892,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         label: 'Drain my phone data',
         hint: '{{$30}}',
         conditions: [{ money: { gte: 30 } }],
-        effects: [{ money: -30 }, { stat: 'happiness', delta: 2 }, { log: 'I tethered everything to my phone and streamed in low resolution like a pioneer. The bill was unkind.' }],
+        effects: [{ money: -30 }, { stat: 'happiness', delta: 2 }, { log: 'I ran everything off my phone and streamed in low resolution like a pioneer. The bill was unkind.' }],
       },
     ],
   },
@@ -928,7 +928,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     id: 'tm_online_argument',
     category: 'random',
     title: 'Someone is wrong online',
-    text: 'A stranger online has confidently stated something incorrect about {{country}}, and I am the only person awake who knows it. It is eleven at night. My thumbs are ready.',
+    text: 'A stranger online has confidently posted something wrong about {{city}}, and I am the only person awake who knows it. It is eleven at night. My thumbs are ready.',
     minAge: 13,
     maxAge: 90,
     weight: 2,
@@ -943,7 +943,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 1 },
           {
             chance: 0.35,
-            then: [{ log: "At 4am they typed 'fine, you're right'. I have never felt so alive, or so tired.", kind: 'good' }, { stat: 'happiness', delta: 6 }],
+            then: [{ log: 'At 4am they typed "fine, you\'re right." I have never felt so alive, or so tired.', kind: 'good' }, { stat: 'happiness', delta: 6 }],
             else: [{ log: 'At 4am they called me a nerd and logged off. I had to be up in three hours.', kind: 'bad' }, { stat: 'happiness', delta: -5 }],
           },
         ],
@@ -956,7 +956,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
       {
         id: 'close',
         label: 'Close the app',
-        effects: [{ stat: 'happiness', delta: 1 }, { karma: 1 }, { stat: 'health', delta: 1 }, { log: 'I closed the app. They are still wrong. I am still asleep. Both are fine.' }],
+        effects: [{ stat: 'happiness', delta: 1 }, { karma: 1 }, { stat: 'health', delta: 1 }, { log: 'I closed the app and went to bed. They are still wrong. I am well rested. Both are fine.' }],
       },
     ],
   },
@@ -966,7 +966,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     id: 'tm_old_photo_at_work',
     category: 'random',
     title: 'The photo resurfaces',
-    text: "Someone at {{company}} found a photo of me, aged seventeen, dressed as a giant prawn at a fancy dress party. It is now the work chat's wallpaper.",
+    text: "Someone at {{company}} found a photo of me at seventeen, dressed as a giant shrimp at a costume party. It is now the work chat's wallpaper.",
     minAge: 20,
     maxAge: 65,
     weight: 1,
@@ -976,7 +976,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
       {
         id: 'laugh',
         label: 'Laugh it off',
-        effects: [{ stat: 'happiness', delta: 3 }, { jobPerformance: 2 }, { log: 'I changed my profile picture to the prawn. The office declared me a legend.', kind: 'good' }],
+        effects: [{ stat: 'happiness', delta: 3 }, { jobPerformance: 2 }, { log: 'I changed my profile picture to the shrimp. The office declared me a legend.', kind: 'good' }],
       },
       {
         id: 'remove',
@@ -984,7 +984,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.5,
-            then: [{ log: "HR had it taken down. The office now whispers 'prawn' when I walk past." }, { stat: 'happiness', delta: -2 }, { jobPerformance: -1 }],
+            then: [{ log: 'HR had it taken down. The office now whispers "shrimp" when I walk past.' }, { stat: 'happiness', delta: -2 }, { jobPerformance: -1 }],
             else: [{ log: 'Demanding made it funnier. Someone printed it. It is on the fridge.', kind: 'bad' }, { stat: 'happiness', delta: -5 }],
           },
         ],
@@ -996,7 +996,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 5 },
           {
             chance: 0.7,
-            then: [{ log: 'I posted the one from the next year, dressed as a filing cabinet. The office moved on to calling me a hero.', kind: 'good' }, { jobPerformance: 1 }],
+            then: [{ log: "I posted the next year's photo: me as a filing cabinet. The office now calls me a hero.", kind: 'good' }, { jobPerformance: 1 }],
             else: [{ log: 'The boss saw the filing cabinet photo and did not find it professional.', kind: 'bad' }, { jobPerformance: -4 }],
           },
         ],
@@ -1007,7 +1007,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     id: 'tm_password_sticky_note',
     category: 'random',
     title: 'The sticky note',
-    text: "My manager's password is written on a sticky note stuck to their monitor. It is 'password1'. The entire payroll system sits behind it.",
+    text: 'My manager\'s password is written on a sticky note on their monitor: "password1." The entire payroll system sits behind it.',
     minAge: 18,
     maxAge: 65,
     weight: 1,
@@ -1021,7 +1021,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
           { karma: 2 },
           {
             chance: 0.7,
-            then: [{ log: "They thanked me, went red, and changed it to 'password2'. Progress.", kind: 'good' }, { jobPerformance: 3 }],
+            then: [{ log: 'They thanked me, went red and changed it to "password2." Progress.', kind: 'good' }, { jobPerformance: 3 }],
             else: [{ log: 'They were embarrassed and brusque with me for a week.' }, { jobPerformance: -1 }, { stat: 'happiness', delta: -1 }],
           },
         ],
@@ -1076,12 +1076,12 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
       },
       {
         id: 'own',
-        label: 'Own it and apologise',
+        label: 'Own it and apologize',
         effects: [
           { karma: 2 },
           {
             chance: 0.65,
-            then: [{ log: "I sent a short, honest apology. The subject of the joke replied 'honestly, fair'. Crisis over.", kind: 'good' }, { jobPerformance: -1 }, { stat: 'happiness', delta: 1 }],
+            then: [{ log: 'I sent a short, honest apology. The subject of the joke replied "honestly, fair." Crisis over.', kind: 'good' }, { jobPerformance: -1 }, { stat: 'happiness', delta: 1 }],
             else: [{ log: 'The apology was accepted in the way that means it was not.' }, { jobPerformance: -3 }, { stat: 'happiness', delta: -3 }],
           },
         ],
@@ -1093,7 +1093,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
           { karma: -4 },
           {
             chance: 0.4,
-            then: [{ log: "IT 'investigated' and found nothing, which they reported as inconclusive. I got away with it." }, { stat: 'happiness', delta: 2 }],
+            then: [{ log: 'IT "investigated" and found nothing, which they reported as inconclusive. I got away with it.' }, { stat: 'happiness', delta: 2 }],
             else: [{ log: 'IT found the email was sent from my desk, at my login, during my lunch break. Everyone knows.', kind: 'bad' }, { jobPerformance: -8 }, { stat: 'happiness', delta: -6 }],
           },
         ],
@@ -1104,7 +1104,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     id: 'tm_video_call_mishap',
     category: 'random',
     title: 'Camera on',
-    text: 'I joined the big call at {{company}} with my camera on by mistake. I was in a dressing gown, eating cereal from a measuring jug, and the boss was mid-sentence.',
+    text: 'I joined the big call at {{company}} with my camera on by mistake. I was in a bathrobe, eating cereal out of a measuring cup, and the boss was mid-sentence.',
     minAge: 18,
     maxAge: 65,
     weight: 1.5,
@@ -1117,7 +1117,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.65,
-            then: [{ log: "I said 'jug life' and kept chewing. The call laughed. The boss used it in their next slide.", kind: 'good' }, { stat: 'happiness', delta: 4 }, { jobPerformance: 2 }],
+            then: [{ log: 'I said "portion control" and kept chewing. The call laughed. The boss used it in their next slide.', kind: 'good' }, { stat: 'happiness', delta: 4 }, { jobPerformance: 2 }],
             else: [{ log: 'Nobody laughed. The silence lasted exactly one spoonful.', kind: 'bad' }, { stat: 'happiness', delta: -4 }, { jobPerformance: -2 }],
           },
         ],
@@ -1129,15 +1129,15 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
           { karma: -1 },
           {
             chance: 0.5,
-            then: [{ log: "I 'dropped' and rejoined fully dressed. The incident was never mentioned, which is somehow worse." }, { stat: 'happiness', delta: -1 }],
-            else: [{ log: 'Someone had already taken a screenshot. The jug is now a company meme.', kind: 'bad' }, { stat: 'happiness', delta: -3 }, { fame: 1 }],
+            then: [{ log: 'I "dropped" and rejoined fully dressed. The incident was never mentioned, which is somehow worse.' }, { stat: 'happiness', delta: -1 }],
+            else: [{ log: 'Someone had already taken a screenshot. The measuring cup is now a company meme.', kind: 'bad' }, { stat: 'happiness', delta: -3 }, { fame: 1 }],
           },
         ],
       },
       {
         id: 'leave',
         label: 'Leave the meeting entirely',
-        effects: [{ jobPerformance: -3 }, { stat: 'happiness', delta: 1 }, { log: "I left the call, got dressed, and did not return. The minutes list me as 'present, briefly'." }],
+        effects: [{ jobPerformance: -3 }, { stat: 'happiness', delta: 1 }, { log: 'I left the call, got dressed and did not return. The minutes list me as "present, briefly."' }],
       },
     ],
   },

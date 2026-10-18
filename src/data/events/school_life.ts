@@ -17,7 +17,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
     maxAge: 9,
     weight: 1.5,
     cooldown: 3,
-    conditions: [{ enrolled: true }, { stage: ['primary'] }],
+    conditions: [{ enrolled: true }, { stage: ['primary'] }, { hasPerson: ['father'] }],
     choices: [
       {
         id: 'watch',
@@ -39,8 +39,9 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
       {
         id: 'ask',
         label: 'Ask {{mother}} for ideas',
+        conditions: [{ hasPerson: ['mother'] }],
         effects: [
-          { log: "{{mother}} helped me build a shoebox diorama. The teacher said 'ambitious'. I have decided that was praise.", kind: 'good' },
+          { log: "{{mother}} helped me make a shoebox diorama. The teacher said 'ambitious'. I took that as praise.", kind: 'good' },
           { relationship: 'mother', delta: 3 },
           { stat: 'smarts', delta: 2 },
           { stat: 'happiness', delta: 1 },
@@ -52,7 +53,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
     id: 'sl_lost_permission_slip',
     category: 'school',
     title: 'Permission slip',
-    text: 'The class trip to the museum is tomorrow and my permission slip has vanished. {{person}} signed it a week ago. I have searched my bag four times. It is not in my bag.',
+    text: 'The field trip to the museum is tomorrow and my permission slip has vanished. {{person}} signed it a week ago. I have searched my backpack four times. It is not in my backpack.',
     minAge: 7,
     maxAge: 12,
     weight: 1.5,
@@ -80,7 +81,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 3 },
           {
             chance: 0.8,
-            then: [{ log: '{{person}} sighed, signed a new slip, and told me to check my bag a fifth time. It was in my bag.', kind: 'good' }, { stat: 'happiness', delta: 2 }],
+            then: [{ log: '{{person}} sighed, signed a new slip, and told me to check my backpack again. It was in my backpack.', kind: 'good' }, { stat: 'happiness', delta: 2 }],
             else: [{ log: '{{person}} was fed up and refused to sign another one. I spent trip day in the library.', kind: 'bad' }, { stat: 'happiness', delta: -3 }, { stat: 'smarts', delta: 1 }],
           },
         ],
@@ -88,7 +89,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
       {
         id: 'stay',
         label: 'Stay behind quietly',
-        effects: [{ log: 'I said nothing and sat in the library all day while everyone else saw dinosaurs. Peaceful, in a sad way.' }, { stat: 'happiness', delta: -3 }, { stat: 'smarts', delta: 2 }, { karma: 1 }],
+        effects: [{ log: 'I said nothing and spent the day in the library while everyone saw dinosaurs. Peaceful, but sad.' }, { stat: 'happiness', delta: -3 }, { stat: 'smarts', delta: 2 }, { karma: 1 }],
       },
     ],
   },
@@ -130,7 +131,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
     id: 'sl_fire_drill',
     category: 'school',
     title: 'Fire drill',
-    text: "The fire alarm went off mid-lesson. The teacher said 'calm and orderly'. Half the class interpreted this as a race. I was somewhere near the door.",
+    text: "The fire alarm went off in the middle of class. The teacher said 'calm and orderly'. Half the class interpreted this as a race. I was somewhere near the door.",
     minAge: 6,
     maxAge: 12,
     weight: 1,
@@ -144,7 +145,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.7,
             then: [{ log: 'I led the line out like a tiny officer. The teacher made me class fire monitor on the spot.', kind: 'good' }, { stat: 'happiness', delta: 3 }, { karma: 2 }, { stat: 'smarts', delta: 1 }],
-            else: [{ log: 'I led confidently in the wrong direction. We ended up in the kitchen.' }, { stat: 'happiness', delta: -1 }],
+            else: [{ log: 'I led confidently in the wrong direction. We ended up in the cafeteria kitchen.' }, { stat: 'happiness', delta: -1 }],
           },
         ],
       },
@@ -155,7 +156,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.8,
             then: [{ log: 'I was first on the field by a mile. Nobody was impressed, but I was.' }, { stat: 'happiness', delta: 2 }],
-            else: [{ log: 'I tripped over a bag in the corridor and scraped both knees.', kind: 'bad' }, { injury: 2 }, { stat: 'happiness', delta: -2 }],
+            else: [{ log: 'I tripped over a backpack in the hallway and scraped both knees.', kind: 'bad' }, { injury: 2 }, { stat: 'happiness', delta: -2 }],
           },
         ],
       },
@@ -167,7 +168,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.8,
             then: [{ log: 'A younger kid froze. I held their hand all the way out. They called me their hero for a week.', kind: 'good' }, { stat: 'happiness', delta: 3 }, { karma: 1 }],
-            else: [{ log: 'The kid was fine. I was the one who froze. A teacher walked me out by the elbow, which is not how I pictured heroism.' }, { stat: 'happiness', delta: -2 }],
+            else: [{ log: 'The kid was fine. I was the one who froze. A teacher walked me out by the elbow. Not very heroic.' }, { stat: 'happiness', delta: -2 }],
           },
         ],
       },
@@ -177,7 +178,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
     id: 'sl_library_fine',
     category: 'school',
     title: 'Overdue book',
-    text: 'The school librarian stopped me in the hallway. A book about sharks that I borrowed in autumn is now overdue by a season. The fine is {{$15}}. I love that book.',
+    text: 'The school librarian stopped me in the hallway. A book about sharks that I borrowed in the fall is now overdue by a season. The fine is {{$15}}. I love that book.',
     minAge: 7,
     maxAge: 13,
     weight: 1,
@@ -193,24 +194,24 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
       },
       {
         id: 'apologise',
-        label: 'Return it and apologise',
+        label: 'Return it and apologize',
         effects: [
           {
             chance: 0.6,
-            then: [{ log: 'I returned it with a sincere apology. The librarian waived the fine and recommended a book about squid.', kind: 'good' }, { karma: 2 }, { stat: 'smarts', delta: 2 }, { stat: 'happiness', delta: 2 }],
-            else: [{ log: 'I returned the book. The fine went home in a letter. {{mother}} paid it and I did dishes for a month.', kind: 'bad' }, { relationship: 'mother', delta: -3 }, { stat: 'happiness', delta: -2 }],
+            then: [{ log: 'I returned it and apologized. The librarian waived the fine and recommended a book about squid.', kind: 'good' }, { karma: 2 }, { stat: 'smarts', delta: 2 }, { stat: 'happiness', delta: 2 }],
+            else: [{ log: 'The fine went home in a letter. My parents paid it, and I did the dishes for a month.', kind: 'bad' }, { relationship: 'mother', delta: -3 }, { stat: 'happiness', delta: -2 }],
           },
         ],
       },
       {
         id: 'deny',
-        label: 'Claim you never had it',
+        label: 'Claim I never had it',
         effects: [
           { karma: -3 },
           {
             chance: 0.5,
             then: [{ log: 'The librarian shrugged and marked it lost. I kept the shark book. I am a shark book pirate now.' }, { stat: 'happiness', delta: 2 }],
-            else: [{ log: 'The librarian pulled up the records. I learned that lying to a librarian is a special kind of foolish.', kind: 'bad' }, { grade: -2 }, { stat: 'happiness', delta: -3 }],
+            else: [{ log: 'The librarian pulled up the records. Lying to a librarian, I learned, is a special kind of foolish.', kind: 'bad' }, { grade: -2 }, { stat: 'happiness', delta: -3 }],
           },
         ],
       },
@@ -220,7 +221,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
     id: 'sl_bake_sale',
     category: 'school',
     title: 'Bake sale',
-    text: 'The class bake sale is on Friday and everyone is supposed to bring something. {{person}} offered to help, but looked at the oven the way one looks at a wild animal.',
+    text: 'The class bake sale is on Friday and everyone is supposed to bring something. {{person}} offered to help, then looked at the oven the way people look at a wild animal.',
     minAge: 8,
     maxAge: 13,
     weight: 1,
@@ -230,7 +231,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
     choices: [
       {
         id: 'solo',
-        label: 'Bake it yourself',
+        label: 'Bake it myself',
         effects: [
           {
             random: [
@@ -248,8 +249,8 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 4 },
           {
             chance: 0.75,
-            then: [{ log: '{{person}} and I baked a lopsided cake together. It sold out. The kitchen looked like a flour bomb had gone off.', kind: 'good' }, { stat: 'happiness', delta: 3 }],
-            else: [{ log: '{{person}} took over halfway through and I mostly watched. The cake sold out. I felt like a guest at my own bake sale.' }, { stat: 'happiness', delta: -1 }],
+            then: [{ log: '{{person}} and I baked a lopsided cake. It sold out. The kitchen looked like a flour bomb went off.', kind: 'good' }, { stat: 'happiness', delta: 3 }],
+            else: [{ log: '{{person}} took over halfway through. The cake sold out. I felt like a guest at my own bake sale.' }, { stat: 'happiness', delta: -1 }],
           },
         ],
       },
@@ -277,12 +278,12 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
     weight: 1.5,
     cooldown: 3,
     conditions: [{ enrolled: true }, { stage: ['primary', 'middle'] }],
-    person: { kind: ['mother', 'father', 'sibling'] },
+    person: { kind: ['mother', 'father', 'sibling'], minAge: 12 },
     choices: [
       {
         id: 'volcano',
         label: 'Build the classic volcano',
-        effects: [{ log: 'My volcano erupted on schedule. The judges had seen eleven that day. I took home a participation ribbon.' }, { stat: 'happiness', delta: 1 }, { stat: 'smarts', delta: 1 }, { grade: 1 }],
+        effects: [{ log: 'My volcano erupted on schedule. The judges had seen eleven already. I got a participation ribbon.' }, { stat: 'happiness', delta: 1 }, { stat: 'smarts', delta: 1 }, { grade: 1 }],
       },
       {
         id: 'ambitious',
@@ -295,7 +296,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
               {
                 weight: 40,
                 effects: [
-                  { log: 'My project on plants under coloured light actually worked. First place, and an invitation to the regional fair.', kind: 'milestone' },
+                  { log: 'My project on plants under colored light worked. First place, and a spot at the regional fair.', kind: 'milestone' },
                   { stat: 'happiness', delta: 8 },
                   { grade: 5 },
                   { flag: 'sl_science_fair_winner', set: true },
@@ -316,7 +317,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.7,
             then: [{ log: "{{person}} 'helped', meaning {{they}} did most of it. Second place. I felt a little hollow about it." }, { stat: 'happiness', delta: 3 }, { grade: 2 }, { karma: -1 }],
-            else: [{ log: '{{person}} and I argued about the hypothesis for two hours. We ended up submitting a poster about the argument.' }, { stat: 'happiness', delta: 1 }, { stat: 'smarts', delta: 1 }],
+            else: [{ log: '{{person}} and I argued about the hypothesis for two hours. We entered a poster about the argument.' }, { stat: 'happiness', delta: 1 }, { stat: 'smarts', delta: 1 }],
           },
         ],
       },
@@ -348,7 +349,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
       {
         id: 'wander',
         label: 'Study the other projects',
-        effects: [{ log: "I spent the day reading everyone else's posters instead of standing by mine. No prize, but my brain felt bigger." }, { stat: 'smarts', delta: 4 }, { stat: 'happiness', delta: 1 }],
+        effects: [{ log: "I read everyone else's posters instead of standing by mine. No prize, but my brain felt bigger." }, { stat: 'smarts', delta: 4 }, { stat: 'happiness', delta: 1 }],
       },
     ],
   },
@@ -371,7 +372,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.7,
             then: [{ log: 'I answered to a different name all day. The sub never knew. A perfect crime with no victims.' }, { stat: 'happiness', delta: 4 }],
-            else: [{ log: "The substitute checked the photo register. My real name went in the 'note for the teacher'.", kind: 'bad' }, { stat: 'happiness', delta: -2 }, { grade: -2 }],
+            else: [{ log: "The substitute checked the seating chart. My real name went in the 'note for the teacher'.", kind: 'bad' }, { stat: 'happiness', delta: -2 }, { grade: -2 }],
           },
         ],
       },
@@ -383,7 +384,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
       {
         id: 'nap',
         label: 'Nap behind a textbook',
-        effects: [{ log: 'I slept through a whole lesson with my eyes open. A useful life skill, in the long run.' }, { stat: 'happiness', delta: 3 }, { stat: 'health', delta: 1 }, { grade: -2 }],
+        effects: [{ log: 'I slept through a whole class with my eyes open. A useful life skill, in the long run.' }, { stat: 'happiness', delta: 3 }, { stat: 'health', delta: 1 }, { grade: -2 }],
       },
     ],
   },
@@ -404,8 +405,8 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.6,
-            then: [{ log: 'The photo came out great. Even I had to admit it. {{mother}} ordered the large print.', kind: 'good' }, { stat: 'looks', delta: 2 }, { stat: 'happiness', delta: 3 }],
-            else: [{ log: 'My outfit looked loud in print. I am immortalised, unfortunately, in the yearbook.' }, { stat: 'happiness', delta: -2 }],
+            then: [{ log: 'The photo came out great. Even I had to admit it. My parents ordered the large print.', kind: 'good' }, { stat: 'looks', delta: 2 }, { stat: 'happiness', delta: 3 }],
+            else: [{ log: 'My outfit looked loud in print. I am immortalized, unfortunately, in the yearbook.' }, { stat: 'happiness', delta: -2 }],
           },
         ],
       },
@@ -459,7 +460,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
         id: 'loyal',
         label: 'Sit with {{person}}',
         effects: [
-          { log: 'I sat with {{person}} as always. The popular table forgot about me in roughly a minute. Loyalty tastes like cafeteria pizza.', kind: 'good' },
+          { log: 'I sat with {{person}}. The popular table forgot me in a minute. Loyalty tastes like school pizza.', kind: 'good' },
           { relationship: 'person', delta: 5 },
           { karma: 2 },
           { stat: 'happiness', delta: 2 },
@@ -486,9 +487,9 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
     choices: [
       {
         id: 'cover',
-        label: 'Do their part too',
+        label: 'Do {{their}} part too',
         effects: [
-          { log: "I did {{person}}'s section at midnight. We got a good mark. {{They}} thanked me like {{they}} had helped." },
+          { log: "I did {{person}}'s part at midnight. Good grade. {{They}} thanked me like {{they}} had helped." },
           { stat: 'happiness', delta: -3 },
           { grade: 4 },
           { relationship: 'person', delta: 2 },
@@ -496,36 +497,36 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
       },
       {
         id: 'report',
-        label: 'Tell the teacher',
+        label: 'Report {{them}}',
         effects: [
           { relationship: 'person', delta: -8 },
           {
             chance: 0.7,
-            then: [{ log: "The teacher graded us separately. My mark went up, {{person}}'s went down, and so did our friendship." }, { grade: 3 }, { stat: 'happiness', delta: -1 }],
-            else: [{ log: "The teacher said 'work it out yourselves' and walked off. Nobody won, least of all me.", kind: 'bad' }, { stat: 'happiness', delta: -3 }],
+            then: [{ log: "We were graded separately. My grade went up, {{person}}'s went down, and so did our friendship." }, { grade: 3 }, { stat: 'happiness', delta: -1 }],
+            else: [{ log: "The only answer I got was 'work it out yourselves'. Nobody won, least of all me.", kind: 'bad' }, { stat: 'happiness', delta: -3 }],
           },
         ],
       },
       {
         id: 'omit',
-        label: 'Leave their name off',
+        label: 'Leave {{their}} name off',
         effects: [
           { relationship: 'person', delta: -10 },
           { karma: -2 },
           {
             chance: 0.6,
-            then: [{ log: "I submitted without {{person}}'s name. The teacher accepted it. {{person}} called me a traitor in the hallway." }, { grade: 3 }, { stat: 'happiness', delta: -2 }],
-            else: [{ log: 'The teacher noticed the missing name and gave the whole group a late penalty. Everyone blamed me.', kind: 'bad' }, { grade: -3 }, { stat: 'happiness', delta: -4 }],
+            then: [{ log: "I handed it in without {{person}}'s name. It was accepted. {{person}} called me a traitor." }, { grade: 3 }, { stat: 'happiness', delta: -2 }],
+            else: [{ log: 'Someone noticed the missing name and the whole group got a late penalty. Everyone blamed me.', kind: 'bad' }, { grade: -3 }, { stat: 'happiness', delta: -4 }],
           },
         ],
       },
       {
         id: 'confront',
-        label: 'Confront them directly',
+        label: 'Confront {{them}} directly',
         effects: [
           {
             chance: 0.5,
-            then: [{ log: 'I told {{person}} plainly that I was done covering. {{They}} apologised and pulled an all-nighter. Not bad.', kind: 'good' }, { relationship: 'person', delta: 3 }, { grade: 2 }],
+            then: [{ log: 'I told {{person}} I was done covering. {{They}} apologized and pulled an all-nighter. Not bad.', kind: 'good' }, { relationship: 'person', delta: 3 }, { grade: 2 }],
             else: [{ log: '{{person}} got defensive and did even less out of spite. We scraped a pass.' }, { stat: 'happiness', delta: -2 }, { grade: -1 }, { relationship: 'person', delta: -4 }],
           },
         ],
@@ -536,7 +537,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
     id: 'sl_detention',
     category: 'school',
     title: 'Detention hour',
-    text: "I got detention for 'excessive commentary' during a lesson. One hour after school in a silent room with a teacher who grades in red ink and sighs.",
+    text: "I got detention for 'excessive commentary' during class. One hour after school in a silent room with a teacher who grades in red ink and sighs.",
     minAge: 11,
     maxAge: 17,
     weight: 1.5,
@@ -546,7 +547,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
       {
         id: 'serve',
         label: 'Serve it quietly',
-        effects: [{ log: 'I sat in silence for an hour and accidentally finished all my homework. Detention: surprisingly productive.' }, { grade: 2 }, { stat: 'smarts', delta: 1 }, { stat: 'happiness', delta: -1 }],
+        effects: [{ log: 'I sat in silence for an hour and accidentally finished all my homework. Surprisingly productive.' }, { grade: 2 }, { stat: 'smarts', delta: 1 }, { stat: 'happiness', delta: -1 }],
       },
       {
         id: 'skip',
@@ -597,7 +598,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.65,
-            then: [{ log: '{{person}} paid without much fuss. Three days of sea air, bad bunk beds and the best time of my life so far.', kind: 'good' }, { stat: 'happiness', delta: 8 }, { stat: 'health', delta: 2 }, { relationship: 'person', delta: 3 }],
+            then: [{ log: '{{person}} paid without much fuss. Three days of sea air, bad bunk beds and the time of my life.', kind: 'good' }, { stat: 'happiness', delta: 8 }, { stat: 'health', delta: 2 }, { relationship: 'person', delta: 3 }],
             else: [{ log: '{{person}} said money was tight this year. I understood, which somehow made it worse.', kind: 'bad' }, { stat: 'happiness', delta: -5 }],
           },
         ],
@@ -612,13 +613,13 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.8,
             then: [{ log: 'I washed every dish for a month and earned my ticket. The sea was worth every plate.', kind: 'good' }, { stat: 'happiness', delta: 6 }, { stat: 'health', delta: 2 }],
-            else: [{ log: 'I did the chores. Then the trip was cancelled for weather. The dishes remained washed.' }, { stat: 'happiness', delta: -2 }],
+            else: [{ log: 'I did the chores. Then the trip was canceled for weather. The dishes remained washed.' }, { stat: 'happiness', delta: -2 }],
           },
         ],
       },
       {
         id: 'pay',
-        label: 'Pay it yourself',
+        label: 'Pay for it myself',
         hint: 'Costs {{$150}}',
         conditions: [{ money: { gte: 150 } }],
         effects: [{ money: -150 }, { log: 'I paid my own way. Three days of sea air, bad bunk beds and a new feeling of independence.', kind: 'good' }, { stat: 'happiness', delta: 8 }, { stat: 'health', delta: 2 }],
@@ -694,7 +695,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.8,
-            then: [{ log: 'It turned out I half-remembered the chapter from skimming it once. Full marks, somehow.', kind: 'good' }, { grade: 4 }, { stat: 'happiness', delta: 3 }],
+            then: [{ log: 'It turned out I half-remembered the chapter from skimming it once. A perfect score, somehow.', kind: 'good' }, { grade: 4 }, { stat: 'happiness', delta: 3 }],
             else: [{ log: 'I knew the chapter. The quiz was about the footnotes. I knew nothing about the footnotes.' }, { grade: 1 }, { stat: 'happiness', delta: -1 }],
           },
         ],
@@ -713,13 +714,13 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
       },
       {
         id: 'peek',
-        label: 'Peek at a neighbour',
+        label: "Peek at my neighbor's paper",
         effects: [
           { karma: -3 },
           {
             chance: 0.65,
             then: [{ log: 'I glanced sideways and borrowed two answers. Nobody noticed. I did not feel great about it.' }, { grade: 2 }],
-            else: [{ log: 'The teacher caught my glance. I got zero on the quiz and a note home.', kind: 'bad' }, { grade: -5 }, { stat: 'happiness', delta: -3 }],
+            else: [{ log: 'The teacher caught my glance. I got a zero on the quiz and a note home.', kind: 'bad' }, { grade: -5 }, { stat: 'happiness', delta: -3 }],
           },
         ],
       },
@@ -756,7 +757,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 8 },
           {
             chance: 0.5,
-            then: [{ log: 'I pushed between them and shouted something incoherent. The circle laughed, the bullies left, {{person}} hugged me.', kind: 'good' }, { stat: 'happiness', delta: 5 }],
+            then: [{ log: 'I pushed between them and shouted something incoherent. The bullies left. {{person}} hugged me.', kind: 'good' }, { stat: 'happiness', delta: 5 }],
             else: [{ log: 'I stepped in and caught an elbow to the face. Heroism has a bruise-shaped cost.', kind: 'bad' }, { injury: 4 }, { stat: 'happiness', delta: -2 }],
           },
         ],
@@ -764,7 +765,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
       {
         id: 'teacher',
         label: 'Get a teacher',
-        effects: [{ log: 'I ran for a teacher. By the time we got back the crowd had scattered. {{person}} was shaken but okay.' }, { karma: 2 }, { relationship: 'person', delta: 3 }, { stat: 'happiness', delta: 1 }],
+        effects: [{ log: 'I ran for a teacher. By the time we got back, the crowd was gone. {{person}} was shaken but okay.' }, { karma: 2 }, { relationship: 'person', delta: 3 }, { stat: 'happiness', delta: 1 }],
       },
       {
         id: 'film',
@@ -805,7 +806,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
       },
       {
         id: 'showoff',
-        label: 'Show off your speed',
+        label: 'Show off my speed',
         conditions: [{ trait: 'athletic' }],
         effects: [
           {
@@ -818,7 +819,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
       {
         id: 'mascot',
         label: 'Try out as mascot',
-        effects: [{ log: 'I did not run a single drill. I became the mascot. The costume smelled of history, but the crowd loved me.', kind: 'good' }, { stat: 'happiness', delta: 4 }, { fame: 1 }, { karma: 1 }],
+        effects: [{ log: 'I skipped the drills and became the mascot. The costume smelled of history, but the crowd loved me.', kind: 'good' }, { stat: 'happiness', delta: 4 }, { fame: 1 }, { karma: 1 }],
       },
       {
         id: 'skip',
@@ -888,14 +889,14 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.7,
-            then: [{ log: "I improvised in the audition and the director rewrote a part for me. Reviews: 'strange, but memorable'.", kind: 'good' }, { stat: 'happiness', delta: 7 }, { fame: 2 }],
+            then: [{ log: "I improvised at the audition. The director wrote me a part. Reviews: 'strange, but memorable'.", kind: 'good' }, { stat: 'happiness', delta: 7 }, { fame: 2 }],
             else: [{ log: "My improvisation ran long. The director said 'thank you' before I had finished." }, { stat: 'happiness', delta: -2 }],
           },
         ],
       },
       {
         id: 'backstage',
-        label: 'Go for backstage',
+        label: 'Work backstage instead',
         effects: [{ log: 'I ran the lights and never missed a cue. The applause was for the cast, but I knew.', kind: 'good' }, { stat: 'happiness', delta: 3 }, { stat: 'smarts', delta: 2 }, { karma: 1 }],
       },
       {
@@ -925,7 +926,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
           {
             random: [
               { weight: 40, effects: [{ log: 'We won the finals on a question about volcanoes. I knew it because of a rock I once owned.', kind: 'good' }, { stat: 'happiness', delta: 6 }, { fame: 1 }, { grade: 3 }] },
-              { weight: 60, effects: [{ log: 'We lost in the semi-finals. I did learn the capital of every country, which has to count for something.' }, { stat: 'happiness', delta: 1 }, { grade: 1 }] },
+              { weight: 60, effects: [{ log: 'We lost in the semifinals. I did learn every capital city, which has to count for something.' }, { stat: 'happiness', delta: 1 }, { grade: 1 }] },
             ],
           },
         ],
@@ -945,7 +946,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
       {
         id: 'decline',
         label: 'Decline politely',
-        effects: [{ log: 'I said I was busy. I was not busy. I watched the finals from the back, relieved and sorry in equal parts.' }, { stat: 'happiness', delta: -1 }],
+        effects: [{ log: 'I said I was busy. I was not. I watched the finals from the back, relieved and sorry in equal parts.' }, { stat: 'happiness', delta: 1 }],
       },
     ],
   },
@@ -985,7 +986,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.3,
             then: [
-              { log: "My joke campaign, 'a hamster in every classroom', won by a landslide. I now have to deliver hamsters.", kind: 'milestone' },
+              { log: "My joke campaign, 'a hamster in every classroom', won by a landslide. Now I owe everyone hamsters.", kind: 'milestone' },
               { stat: 'happiness', delta: 6 },
               { fame: 3 },
               { flag: 'sl_class_president', set: true },
@@ -1011,7 +1012,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
     id: 'sl_president_term',
     category: 'school',
     title: 'First term',
-    text: 'First term as class president. The student council has a budget of {{$200}}, two broken chairs and a list of demands as long as the corridor.',
+    text: 'First semester as class president. The student council has a budget of {{$200}}, two broken chairs and a list of demands as long as the hallway.',
     minAge: 14,
     maxAge: 18,
     weight: 1,
@@ -1069,7 +1070,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
           {
             random: [
               { weight: 50, effects: [{ log: 'The questions were real. I aced the exam and felt sick about it for a week.' }, { grade: 8 }, { stat: 'happiness', delta: -1 }, { flag: 'sl_cheated_exam', set: true }] },
-              { weight: 25, effects: [{ log: "The questions were from last year's paper. I had memorised the wrong answers to the wrong exam.", kind: 'bad' }, { grade: -6 }, { stat: 'happiness', delta: -3 }] },
+              { weight: 25, effects: [{ log: "The questions were from last year's exam. I had memorized the wrong answers to the wrong test.", kind: 'bad' }, { grade: -6 }, { stat: 'happiness', delta: -3 }] },
               { weight: 25, effects: [{ log: 'The leak was traced. {{person}} and I were both caught. Zero on the exam and a note on my record.', kind: 'bad' }, { grade: -15 }, { stat: 'happiness', delta: -6 }, { relationship: 'person', delta: -5 }] },
             ],
           },
@@ -1083,7 +1084,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 2 },
           {
             chance: 0.6,
-            then: [{ log: 'I studied properly and did fine on my own. Clean conscience, clean mark.', kind: 'good' }, { grade: 4 }, { stat: 'happiness', delta: 2 }],
+            then: [{ log: 'I studied properly and did fine on my own. Clean conscience, honest grade.', kind: 'good' }, { grade: 4 }, { stat: 'happiness', delta: 2 }],
             else: [{ log: 'I studied until two and still did badly. Honesty is its own reward, which is frustrating.' }, { grade: -2 }, { stat: 'happiness', delta: -2 }],
           },
         ],
@@ -1096,7 +1097,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
           { relationship: 'person', delta: -15 },
           {
             chance: 0.7,
-            then: [{ log: 'The school cancelled the exam and reset it. {{person}} knew who told. We are no longer friends.' }, { stat: 'happiness', delta: -3 }, { grade: 1 }],
+            then: [{ log: 'The school canceled and rewrote the exam. {{person}} knew who talked. We are no longer friends.' }, { stat: 'happiness', delta: -3 }, { grade: 1 }],
             else: [{ log: 'The school did nothing, {{person}} found out, and I got nothing but a reputation.', kind: 'bad' }, { stat: 'happiness', delta: -5 }],
           },
         ],
@@ -1117,7 +1118,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
       {
         id: 'procedure',
         label: 'Follow the procedure',
-        effects: [{ log: 'I added slowly, like the sheet said. The reaction fizzed politely and we got full marks.', kind: 'good' }, { grade: 3 }, { stat: 'smarts', delta: 1 }],
+        effects: [{ log: 'I added slowly, like the sheet said. The reaction fizzed politely and we got full credit.', kind: 'good' }, { grade: 3 }, { stat: 'smarts', delta: 1 }],
       },
       {
         id: 'fast',
@@ -1125,15 +1126,15 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.6,
-            then: [{ log: 'I dumped it in. Dramatic, foamy, over in seconds. The teacher was impressed and alarmed.' }, { stat: 'happiness', delta: 4 }, { stat: 'smarts', delta: 1 }],
-            else: [{ log: 'The beaker overflowed onto my hand. A trip to the nurse and a scar-shaped lesson about patience.', kind: 'bad' }, { injury: 4 }, { grade: -2 }],
+            then: [{ log: 'I dumped it in. Dramatic, foamy, over in seconds. The whole lab was impressed and alarmed.' }, { stat: 'happiness', delta: 4 }, { stat: 'smarts', delta: 1 }],
+            else: [{ log: 'The beaker overflowed onto my hand. A trip to first aid and a scar-shaped lesson about patience.', kind: 'bad' }, { injury: 4 }, { grade: -2 }],
           },
         ],
       },
       {
         id: 'partner',
-        label: 'Wake your partner up',
-        effects: [{ log: 'I nudged my partner off their phone. We finished together, slowly and correctly. Teamwork, under duress.' }, { karma: 1 }, { grade: 2 }, { stat: 'happiness', delta: 1 }],
+        label: 'Wake my partner up',
+        effects: [{ log: 'I nudged my partner off their phone. We finished slowly and correctly. Teamwork, under duress.' }, { karma: 1 }, { grade: 2 }, { stat: 'happiness', delta: 1 }],
       },
     ],
   },
@@ -1155,8 +1156,8 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 2 },
           {
             chance: 0.35,
-            then: [{ log: 'My essay about the broken crossing by the school won. {{$2500}}, a handshake and a photo for the local paper.', kind: 'milestone' }, { money: 2500 }, { stat: 'happiness', delta: 8 }, { fame: 2 }],
-            else: [{ log: 'I did not win, but the judges sent a kind note. Honourable mention. Dishonourable bank balance.' }, { stat: 'happiness', delta: 1 }],
+            then: [{ log: 'My essay on the broken crosswalk by school won. {{$2500}}, a handshake and a photo in the paper.', kind: 'milestone' }, { money: 2500 }, { stat: 'happiness', delta: 8 }, { fame: 2 }],
+            else: [{ log: 'I did not win, but the judges sent a kind note. Honorable mention. Dishonorable bank balance.' }, { stat: 'happiness', delta: 1 }],
           },
         ],
       },
@@ -1180,7 +1181,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 1 },
           {
             chance: 0.3,
-            then: [{ log: "{{mother}}'s edits made it sharper. The essay won. {{$2500}}, and a mother who will never let me forget it.", kind: 'milestone' }, { money: 2500 }, { stat: 'happiness', delta: 7 }, { fame: 1 }],
+            then: [{ log: "{{mother}}'s edits made it sharper. It won {{$2500}}, and a mother who will never let me forget it.", kind: 'milestone' }, { money: 2500 }, { stat: 'happiness', delta: 7 }, { fame: 1 }],
             else: [{ log: "Even with {{mother}}'s edits, it did not win. We had a nice evening arguing about commas." }, { stat: 'happiness', delta: 2 }],
           },
         ],
@@ -1191,7 +1192,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
     id: 'sl_graduation_jitters',
     category: 'school',
     title: 'Graduation day',
-    text: 'Graduation is next week. Cap, gown, folding chairs. My name will be read aloud in front of everyone, and I have just realised I do not know how to walk normally.',
+    text: 'Graduation is next week. Cap, gown, folding chairs. My name will be read aloud in front of everyone, and I have just realized I do not know how to walk normally.',
     minAge: 17,
     maxAge: 18,
     weight: 2,
@@ -1205,8 +1206,8 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.75,
-            then: [{ log: 'I walked, took the diploma, shook the hand. Nobody noticed anything, which is all I wanted. {{person}} cried.', kind: 'good' }, { stat: 'happiness', delta: 5 }, { relationship: 'person', delta: 3 }],
-            else: [{ log: 'I tripped on the stage step. The applause got louder, which was somehow worse. {{person}} cried anyway.' }, { stat: 'happiness', delta: -1 }, { relationship: 'person', delta: 3 }],
+            then: [{ log: 'I walked, took the diploma, shook the hand. Nobody noticed a thing, as planned. {{person}} cried.', kind: 'good' }, { stat: 'happiness', delta: 5 }, { relationship: 'person', delta: 3 }],
+            else: [{ log: 'I tripped on the steps. The applause got louder, which was somehow worse. {{person}} cried anyway.' }, { stat: 'happiness', delta: -1 }, { relationship: 'person', delta: 3 }],
           },
         ],
       },
@@ -1224,14 +1225,14 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
       },
       {
         id: 'hug',
-        label: 'Hug {{person}} on stage',
+        label: 'Stop to hug {{person}}',
         effects: [
           { karma: 1 },
           { relationship: 'person', delta: 6 },
           {
             chance: 0.7,
-            then: [{ log: 'I walked straight past the handshake and hugged {{person}} in the front row. The photo is on the fridge now.', kind: 'good' }, { stat: 'happiness', delta: 5 }],
-            else: [{ log: 'I hugged {{person}} and missed my cue. The principal read the next name. My diploma arrived by post.' }, { stat: 'happiness', delta: 1 }],
+            then: [{ log: 'I skipped the handshake and hugged {{person}} in the front row. The photo is on the fridge now.', kind: 'good' }, { stat: 'happiness', delta: 5 }],
+            else: [{ log: 'I hugged {{person}} and missed my cue. The principal read the next name. My diploma came by mail.' }, { stat: 'happiness', delta: 1 }],
           },
         ],
       },
@@ -1249,7 +1250,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
     weight: 2,
     cooldown: 2,
     conditions: [{ enrolled: true }, { stage: ['university', 'graduate'] }],
-    person: { kind: ['friend', 'bestFriend', 'classmate'] },
+    person: { kind: ['friend', 'bestFriend', 'classmate'], minAge: 17 },
     choices: [
       {
         id: 'notes',
@@ -1258,7 +1259,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 2 },
           {
             chance: 0.7,
-            then: [{ log: '{{person}} lent me {{their}} notes. They were colour-coded. I owe {{them}} a coffee for life.', kind: 'good' }, { grade: 2 }, { stat: 'happiness', delta: 1 }],
+            then: [{ log: '{{person}} lent me {{their}} notes. They were color-coded. I owe {{them}} a coffee for life.', kind: 'good' }, { grade: 2 }, { stat: 'happiness', delta: 1 }],
             else: [{ log: "{{person}}'s notes were two words and a doodle. We were, it turns out, equally lost." }, { stat: 'happiness', delta: -1 }],
           },
         ],
@@ -1270,14 +1271,14 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ log: "The professor sent me the slides with a one-line reply: 'Sleep at night.' Fair.", kind: 'good' }, { grade: 2 }, { stat: 'smarts', delta: 1 }],
-            else: [{ log: "The professor replied that the material 'was covered in lecture'. Technically correct, and no help to me." }, { grade: -1 }, { stat: 'happiness', delta: -2 }],
+            else: [{ log: "The professor replied that it 'was covered in lecture'. Technically correct, and no help at all." }, { grade: -1 }, { stat: 'happiness', delta: -2 }],
           },
         ],
       },
       {
         id: 'wing',
         label: 'Wing it',
-        effects: [{ log: 'I skipped the catch-up and had a free afternoon. The symbols came back on the exam. We were not happily reunited.', kind: 'bad' }, { grade: -4 }, { stat: 'happiness', delta: 2 }],
+        effects: [{ log: 'I took the afternoon off instead. The symbols showed up on the exam. It was not a happy reunion.', kind: 'bad' }, { grade: -4 }, { stat: 'happiness', delta: 2 }],
       },
     ],
   },
@@ -1285,7 +1286,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
     id: 'sl_office_hours',
     category: 'school',
     title: 'Research assistant',
-    text: "After office hours, my professor asked if I wanted to work as a research assistant this term. It pays {{$800}} and involves a lot of spreadsheets and 'some' weekends.",
+    text: "After office hours, my professor asked if I wanted to work as a research assistant this semester. It pays {{$800}} and involves a lot of spreadsheets and 'some' weekends.",
     minAge: 18,
     maxAge: 22,
     weight: 0.8,
@@ -1296,7 +1297,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
         id: 'accept',
         label: 'Accept',
         effects: [
-          { log: "I spent my weekends cleaning data for science. Exhausting, but my name went in a paper's acknowledgements.", kind: 'money' },
+          { log: "I spent my weekends cleaning data. Exhausting, but my name made it into a paper's acknowledgments.", kind: 'money' },
           { money: 800 },
           { stat: 'smarts', delta: 4 },
           { grade: 2 },
@@ -1310,7 +1311,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.4,
-            then: [{ log: 'I asked for {{$1200}} and a weekday schedule. The professor blinked and agreed. Spreadsheets with dignity.', kind: 'money' }, { money: 1200 }, { stat: 'smarts', delta: 3 }, { grade: 2 }],
+            then: [{ log: 'I asked for {{$1200}} and no weekends. The professor blinked and agreed. Spreadsheets with dignity.', kind: 'money' }, { money: 1200 }, { stat: 'smarts', delta: 3 }, { grade: 2 }],
             else: [{ log: 'I asked for more. The professor politely gave the job to the student who did not.', kind: 'bad' }, { stat: 'happiness', delta: -2 }],
           },
         ],
@@ -1359,7 +1360,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.6,
             then: [{ log: 'One hour of party, then back to the notes. The best of both, and I was asleep by midnight.', kind: 'good' }, { stat: 'happiness', delta: 3 }, { grade: 2 }],
-            else: [{ log: 'One hour became four. I studied in a blur. Average mark, excellent memories.' }, { stat: 'happiness', delta: 3 }, { grade: -2 }],
+            else: [{ log: 'One hour became four. I studied in a blur. Average grade, excellent memories.' }, { stat: 'happiness', delta: 3 }, { grade: -2 }],
           },
         ],
       },
@@ -1396,14 +1397,15 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.4,
-            then: [{ log: 'The grant came through and covered everything. A free semester abroad. I nearly hugged the office clerk.', kind: 'milestone' }, { stat: 'happiness', delta: 10 }, { stat: 'smarts', delta: 6 }, { counter: 'vacations' }],
-            else: [{ log: 'The grant fell through and the deposit deadline passed. I watched the departures from my dorm window.', kind: 'bad' }, { stat: 'happiness', delta: -4 }],
+            then: [{ log: 'The grant covered everything. A free semester abroad. I nearly hugged the office clerk.', kind: 'milestone' }, { stat: 'happiness', delta: 10 }, { stat: 'smarts', delta: 6 }, { counter: 'vacations' }],
+            else: [{ log: 'The grant fell through and the deadline passed. I watched everyone else leave from my dorm window.', kind: 'bad' }, { stat: 'happiness', delta: -4 }],
           },
         ],
       },
       {
         id: 'parents',
-        label: 'Ask {{mother}} and {{father}}',
+        label: 'Ask my parents for help',
+        conditions: [{ hasPerson: ['mother', 'father'] }],
         effects: [
           {
             chance: 0.5,
@@ -1430,7 +1432,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
     id: 'sl_thesis_crisis',
     category: 'school',
     title: 'Thesis crisis',
-    text: "Three weeks before my thesis is due, my main argument fell apart during a routine meeting. My supervisor said 'interesting' in a tone that meant the opposite.",
+    text: "Three weeks before my thesis is due, my main argument fell apart during a routine meeting. My advisor said 'interesting' in a tone that meant the opposite.",
     minAge: 21,
     maxAge: 23,
     weight: 1.5,
@@ -1446,7 +1448,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 5 },
           {
             chance: 0.7,
-            then: [{ log: "Three weeks of caffeine and panic. The new argument was better. My supervisor said 'interesting', and meant it.", kind: 'good' }, { grade: 8 }],
+            then: [{ log: "Three weeks of caffeine and panic. A better argument. My advisor said 'interesting' and meant it.", kind: 'good' }, { grade: 8 }],
             else: [{ log: 'I rebuilt it and ran out of time anyway. Submitted something half-finished and fully exhausted.', kind: 'bad' }, { grade: -3 }],
           },
         ],
@@ -1458,14 +1460,14 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ log: 'Extension granted. One extra month turned the wreck into something I was proud of.', kind: 'good' }, { grade: 6 }, { stat: 'happiness', delta: 2 }],
-            else: [{ log: 'Extension denied. I patched the holes with footnotes and hoped the examiners were tired.' }, { grade: -1 }, { stat: 'happiness', delta: -3 }],
+            else: [{ log: 'Extension denied. I patched the holes with footnotes and hoped my committee was tired.' }, { grade: -1 }, { stat: 'happiness', delta: -3 }],
           },
         ],
       },
       {
         id: 'submit',
-        label: 'Submit what you have',
-        effects: [{ log: 'I submitted it, broken argument and all. The examiners noticed. I passed narrowly and slept for two days.' }, { grade: -5 }, { stat: 'happiness', delta: 2 }],
+        label: 'Submit what I have',
+        effects: [{ log: 'I handed it in, holes and all. My committee noticed. I barely passed and slept for two days.' }, { grade: -5 }, { stat: 'happiness', delta: 2 }],
       },
     ],
   },
@@ -1473,7 +1475,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
     id: 'sl_dorm_fridge',
     category: 'school',
     title: 'Fridge thief',
-    text: 'Someone on my floor has been eating my labelled food from the shared fridge. Today my leftover noodles vanished, and the only evidence is a suspiciously full flatmate.',
+    text: 'Someone on my floor has been eating my labeled food from the shared fridge. Today my leftover noodles vanished, and the only evidence is a suspiciously well-fed roommate.',
     minAge: 18,
     maxAge: 22,
     weight: 1.2,
@@ -1487,7 +1489,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.6,
             then: [
-              { log: 'I confronted them. They confessed, apologised, and bought me a week of noodles. Justice.', kind: 'good' },
+              { log: 'I confronted them. They confessed, apologized, and bought me a week of noodles. Justice.', kind: 'good' },
               { stat: 'happiness', delta: 3 },
               { chance: 0.3, then: [{ newPerson: { kind: 'friend', relationship: 55, log: 'Oddly, the noodle thief and I became friends. {{person}} still owes me noodles.' } }] },
             ],
@@ -1502,8 +1504,8 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
           { karma: -2 },
           {
             chance: 0.5,
-            then: [{ log: 'I filled a container with extremely spicy noodles. The thief was identified by screaming. Nobody has touched my food since.', kind: 'good' }, { stat: 'happiness', delta: 5 }],
-            else: [{ log: 'I ate the spicy trap noodles myself at 2am, forgetting. Nobody won.', kind: 'bad' }, { stat: 'happiness', delta: -3 }, { stat: 'health', delta: -1 }],
+            then: [{ log: 'I left out a container of extremely spicy noodles. The thief identified themselves by screaming.', kind: 'good' }, { stat: 'happiness', delta: 5 }],
+            else: [{ log: 'I forgot about the trap and ate the spicy noodles myself at 2 a.m. Nobody won.', kind: 'bad' }, { stat: 'happiness', delta: -3 }, { stat: 'health', delta: -1 }],
           },
         ],
       },

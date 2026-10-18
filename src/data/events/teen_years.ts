@@ -115,7 +115,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
       {
         id: 'cram',
         label: 'Cram all night',
-        effects: [{ grade: 8 }, { stat: 'smarts', delta: 2 }, { stat: 'health', delta: -3 }, { stat: 'happiness', delta: -2 }, { log: 'I studied until the birds started. The exams went well. My face did not.', kind: 'good' }],
+        effects: [{ grade: 8 }, { stat: 'smarts', delta: 2 }, { stat: 'health', delta: -3 }, { stat: 'happiness', delta: -2 }, { log: 'I studied until the birds started singing. The exams went well. My face did not.', kind: 'good' }],
       },
       {
         id: 'group',
@@ -141,7 +141,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     id: 'tn_teacher_believes',
     category: 'school',
     title: 'Someone believes',
-    text: 'After class, my teacher held me back. Not for trouble. "You have a real knack for this," she said, and offered to coach me for a regional competition on Tuesdays.',
+    text: 'After class, my teacher asked me to stay behind. Not for trouble. "You have a real knack for this," she said, and offered to coach me on Tuesdays for a regional competition.',
     minAge: 14,
     maxAge: 17,
     weight: 1.5,
@@ -170,8 +170,8 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.5,
-            then: [{ stat: 'smarts', delta: 3 }, { grade: 3 }, { flag: 'tn_mentor', set: true }, { log: 'It meant giving up some Saturdays. I gave them up. She was the best teacher I ever had.', kind: 'good' }],
-            else: [{ stat: 'happiness', delta: 1 }, { log: 'It involved giving up Saturdays. I said I would think about it. I did not think about it.' }],
+            then: [{ stat: 'smarts', delta: 3 }, { grade: 3 }, { flag: 'tn_mentor', set: true }, { log: 'It meant Tuesdays and some Saturdays too. I gave them up. She is the best teacher I have ever had.', kind: 'good' }],
+            else: [{ stat: 'happiness', delta: 1 }, { log: 'It meant giving up Saturdays too. I said I would think about it. I did not think about it.' }],
           },
         ],
       },
@@ -187,6 +187,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     maxAge: 15,
     weight: 2,
     once: true,
+    conditions: [{ enrolled: true }],
     person: { kind: ['friend', 'bestFriend'] },
     choices: [
       {
@@ -266,7 +267,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
           {
             random: [
               { weight: 55, effects: [{ stat: 'happiness', delta: 5 }, { stat: 'health', delta: -2 }, { log: 'I drank, danced badly, and told everyone they were my best friend. My head disagreed in the morning.' }] },
-              { weight: 25, effects: [{ stat: 'health', delta: -4 }, { stat: 'happiness', delta: -3 }, { stat: 'looks', delta: -1 }, { log: 'Two cups in, I was sick in a stranger\'s flowerbed. Somebody filmed it. Of course they did.', kind: 'bad' }] },
+              { weight: 25, effects: [{ stat: 'health', delta: -4 }, { stat: 'happiness', delta: -3 }, { stat: 'looks', delta: -1 }, { log: 'Two cups in, I threw up in a stranger\'s flower bed. Somebody filmed it. Of course they did.', kind: 'bad' }] },
               { weight: 20, effects: [{ stat: 'happiness', delta: 3 }, { log: 'The party was great right up until it was not.' }, { queue: 'tn_party_police' }] },
             ],
           },
@@ -296,7 +297,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     id: 'tn_party_police',
     category: 'school',
     title: 'Flashing lights',
-    text: 'Blue lights swept across the curtains. Someone shouted "Police!" and forty teenagers, me included, tried to use one back door at the same time.',
+    text: 'Red and blue lights swept across the curtains. Someone shouted "Police!" and forty teenagers, me included, tried to use one back door at the same time.',
     minAge: 15,
     maxAge: 17,
     weight: 1,
@@ -320,12 +321,12 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
       },
       {
         id: 'hide',
-        label: 'Hide in a wardrobe',
+        label: 'Hide in a closet',
         effects: [
           {
             chance: 0.5,
-            then: [{ stat: 'happiness', delta: 2 }, { log: 'I spent forty minutes in a wardrobe with a stranger\'s coats. Nobody checked. I emerged a hero.' }],
-            else: [{ relationship: 'mother', delta: -6 }, { relationship: 'father', delta: -6 }, { stat: 'happiness', delta: -4 }, { log: 'The wardrobe was the first place they checked. My name went on a list.', kind: 'bad' }],
+            then: [{ stat: 'happiness', delta: 2 }, { log: 'I spent forty minutes in a closet with a stranger\'s coats. Nobody checked. I emerged a hero.' }],
+            else: [{ relationship: 'mother', delta: -6 }, { relationship: 'father', delta: -6 }, { stat: 'happiness', delta: -4 }, { log: 'The closet was the first place they checked. My name went on a list.', kind: 'bad' }],
           },
         ],
       },
@@ -335,7 +336,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     id: 'tn_shoplift_dare',
     category: 'school',
     title: 'The dare',
-    text: 'In the corner shop, {{person}} nudged me toward the sweets aisle and whispered, "Nobody is watching. Just pocket one. Everyone does it."',
+    text: 'At the corner store, {{person}} nudged me toward the candy aisle and whispered, "Nobody is watching. Just pocket one. Everyone does it."',
     minAge: 13,
     maxAge: 17,
     weight: 1.5,
@@ -356,8 +357,8 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
               { relationship: 'father', delta: -6 },
               {
                 chance: 0.3,
-                then: [{ arrest: true }, { log: 'The owner called the police. A caution, a record, and a very quiet car ride home.', kind: 'bad' }],
-                else: [{ log: 'The owner caught my wrist at the door. Banned from the shop, and he phoned my parents.', kind: 'bad' }],
+                then: [{ arrest: true }, { log: 'The owner called the police. A warning, a record, and a very quiet car ride home.', kind: 'bad' }],
+                else: [{ log: 'The owner caught my wrist at the door. Banned from the store, and he called my parents.', kind: 'bad' }],
               },
             ],
             else: [{ stat: 'happiness', delta: 3 }, { relationship: 'person', delta: 3 }, { log: 'A stolen chocolate bar tastes exactly like a chocolate bar. {{person}} was impressed. I was not.' }],
@@ -367,12 +368,12 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
       {
         id: 'refuse',
         label: 'Refuse',
-        effects: [{ karma: 2 }, { relationship: 'person', delta: -4 }, { stat: 'happiness', delta: -1 }, { log: '{{person}} called me a coward. I paid for my sweets like a coward and slept fine like a coward.' }],
+        effects: [{ karma: 2 }, { relationship: 'person', delta: -4 }, { stat: 'happiness', delta: -1 }, { log: '{{person}} called me a coward. I paid for my candy like a coward and slept fine like a coward.' }],
       },
       {
         id: 'distract',
         label: 'Suggest something else',
-        effects: [{ relationship: 'person', delta: 2 }, { stat: 'happiness', delta: 2 }, { stat: 'smarts', delta: 1 }, { log: 'I suggested we go skim rocks at the river instead. {{person}} shrugged. The rocks were great.', kind: 'good' }],
+        effects: [{ relationship: 'person', delta: 2 }, { stat: 'happiness', delta: 2 }, { stat: 'smarts', delta: 1 }, { log: 'I suggested we go skip rocks at the river instead. {{person}} shrugged. The rocks were great.', kind: 'good' }],
       },
     ],
   },
@@ -380,7 +381,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     id: 'tn_vape_offer',
     category: 'school',
     title: 'Behind the gym',
-    text: 'Behind the gym, a group from the year above passed a vape around. It reached me. A small cloud of fake mango hung in the air, waiting for my decision.',
+    text: 'Behind the gym, some older kids were passing a vape around. It reached me. A small cloud of fake mango hung in the air, waiting for my decision.',
     minAge: 14,
     maxAge: 17,
     weight: 2,
@@ -416,7 +417,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
       {
         id: 'report',
         label: 'Tell a teacher',
-        effects: [{ karma: 2 }, { stat: 'happiness', delta: -4 }, { relationship: 'friend', delta: -3 }, { log: 'I told a teacher. The year above found out who. The corridors got colder for a while.', kind: 'bad' }],
+        effects: [{ karma: 2 }, { stat: 'happiness', delta: -4 }, { relationship: 'friend', delta: -3 }, { log: 'I told a teacher. The older kids found out who. The hallways got colder for a while.', kind: 'bad' }],
       },
     ],
   },
@@ -425,7 +426,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     id: 'tn_shift_vs_test',
     category: 'school',
     title: 'Shift or study',
-    text: 'My manager at {{company}} put me on a closing shift the night before a big test. "Everyone else is busy," she said, which is what she says every time.',
+    text: 'My manager at {{company}} scheduled me for a late shift the night before a big test. "Everyone else is busy," she said, which is what she says every time.',
     minAge: 15,
     maxAge: 17,
     weight: 2,
@@ -436,7 +437,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
       {
         id: 'work',
         label: 'Work the shift',
-        effects: [{ money: 120 }, { jobPerformance: 5 }, { grade: -4 }, { stat: 'health', delta: -1 }, { log: 'I closed at midnight and took the test on four hours of sleep. The {{$120}} helped. The grade did not.', kind: 'money' }],
+        effects: [{ money: 120 }, { jobPerformance: 5 }, { grade: -4 }, { stat: 'health', delta: -1 }, { log: 'I worked until midnight and took the test on four hours of sleep. The {{$120}} helped. My grade did not.', kind: 'money' }],
       },
       {
         id: 'sick',
@@ -445,7 +446,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
           { grade: 3 },
           {
             chance: 0.4,
-            then: [{ jobPerformance: -12 }, { stat: 'happiness', delta: -3 }, { log: 'My manager saw me at the library. "Feeling better?" she asked. I am now on thin ice at {{company}}.', kind: 'bad' }],
+            then: [{ jobPerformance: -12 }, { stat: 'happiness', delta: -3 }, { log: 'My manager saw me at the library. "Feeling better?" she asked. I am now on very thin ice at work.', kind: 'bad' }],
             else: [{ log: 'I "recovered" just in time for the test and nobody asked any questions.' }],
           },
         ],
@@ -467,7 +468,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     id: 'tn_odd_job',
     category: 'school',
     title: 'Odd job offer',
-    text: 'A neighbor knocked and asked whether I would clear her garden of leaves, weeds and one very angry bush. She mentioned cash. I mentioned I was free on Saturday.',
+    text: 'A neighbor knocked and asked whether I would clear her yard of leaves, weeds and one very angry bush. She mentioned cash. I mentioned I was free on Saturday.',
     minAge: 13,
     maxAge: 17,
     weight: 2,
@@ -508,7 +509,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     id: 'tn_learning_to_drive',
     category: 'school',
     title: 'Learning to drive',
-    text: '{{person}} tossed me the car keys in an empty parking lot. "Mirror, signal, breathe," {{they}} said, gripping the door handle in a way that did not inspire confidence.',
+    text: '{{person}} tossed me the car keys in an empty parking lot. "Ten and two. Eyes up. Breathe," {{they}} said, gripping the door handle in a way that did not inspire confidence.',
     minAge: 16,
     maxAge: 17,
     weight: 2,
@@ -522,7 +523,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 2 },
           { relationship: 'person', delta: 4 },
           { stat: 'happiness', delta: 2 },
-          { log: 'I stalled four times and never left second gear. {{person}} said I was a natural. A kind lie.' },
+          { log: 'I crawled around the lot at ten miles an hour. {{person}} said I was a natural. A kind lie.' },
           { queue: 'tn_driving_test' },
         ],
       },
@@ -532,8 +533,8 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
         effects: [
           {
             random: [
-              { weight: 65, effects: [{ stat: 'happiness', delta: 6 }, { relationship: 'person', delta: -2 }, { log: 'I pulled off a handbrake turn. {{person}} screamed, then laughed, then made me promise never again.', kind: 'good' }, { queue: 'tn_driving_test' }] },
-              { weight: 35, effects: [{ injury: 3 }, { relationship: 'person', delta: -8 }, { stat: 'happiness', delta: -4 }, { log: 'I clipped a bollard. Only the bumper and {{their}} faith in me got hurt. Lessons are off, indefinitely.', kind: 'bad' }] },
+              { weight: 65, effects: [{ stat: 'happiness', delta: 6 }, { relationship: 'person', delta: -2 }, { log: 'I spun a perfect donut. {{person}} screamed, then laughed, then made me promise never again.', kind: 'good' }, { queue: 'tn_driving_test' }] },
+              { weight: 35, effects: [{ injury: 3 }, { relationship: 'person', delta: -8 }, { stat: 'happiness', delta: -4 }, { log: 'I clipped a light pole. Casualties: one knee, one bumper and {{their}} faith in me. Lessons are off.', kind: 'bad' }] },
             ],
           },
         ],
@@ -563,7 +564,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
           {
             chance: 0.6,
             then: [{ flag: 'tn_license', set: true }, { stat: 'happiness', delta: 8 }, { relationship: 'person', delta: 3 }, { log: 'I passed! The examiner said "adequate," which from him was a standing ovation.', kind: 'milestone' }],
-            else: [{ stat: 'happiness', delta: -5 }, { log: 'Failed on a roundabout. The examiner wrote something long and underlined it twice.', kind: 'bad' }],
+            else: [{ stat: 'happiness', delta: -5 }, { log: 'Failed on parallel parking. The examiner wrote something long and underlined it twice.', kind: 'bad' }],
           },
         ],
       },
@@ -573,15 +574,15 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.45,
-            then: [{ flag: 'tn_license', set: true }, { stat: 'happiness', delta: 10 }, { stat: 'looks', delta: 1 }, { log: 'I passed first time, with flair. The examiner did not appreciate the flair. The license is mine.', kind: 'milestone' }],
-            else: [{ stat: 'happiness', delta: -6 }, { relationship: 'person', delta: -2 }, { log: 'Confidence is not the same as mirrors. Failed. {{person}} said nothing in the car, which was worse.', kind: 'bad' }],
+            then: [{ flag: 'tn_license', set: true }, { stat: 'happiness', delta: 10 }, { stat: 'looks', delta: 1 }, { log: 'I passed on the first try, with flair. The examiner did not enjoy the flair. The license is mine.', kind: 'milestone' }],
+            else: [{ stat: 'happiness', delta: -6 }, { relationship: 'person', delta: -2 }, { log: 'I checked my hair more than my mirrors. Failed. {{person}} said nothing in the car, which was worse.', kind: 'bad' }],
           },
         ],
       },
       {
         id: 'postpone',
         label: 'Ask to postpone',
-        effects: [{ stat: 'happiness', delta: -1 }, { stat: 'smarts', delta: 1 }, { log: 'I lost my nerve and rebooked for next year. {{person}} bought me a milkshake anyway.' }],
+        effects: [{ stat: 'happiness', delta: -1 }, { stat: 'smarts', delta: 1 }, { log: 'I lost my nerve and rescheduled. {{person}} bought me a milkshake anyway.' }],
       },
     ],
   },
@@ -652,7 +653,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
       {
         id: 'own',
         label: 'Say I meant it',
-        effects: [{ relationship: 'person', delta: -12 }, { stat: 'happiness', delta: 2 }, { karma: -2 }, { log: 'I doubled down. {{person}} stopped sitting with me. Honest is not the same as cruel, it turns out.', kind: 'bad' }],
+        effects: [{ relationship: 'person', delta: -12 }, { stat: 'happiness', delta: 2 }, { karma: -2 }, { log: 'I doubled down. {{person}} stopped sitting with me. Honest, it turns out, is not the same as kind.', kind: 'bad' }],
       },
     ],
   },
@@ -691,7 +692,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
       {
         id: 'skip',
         label: 'Skip it',
-        effects: [{ stat: 'happiness', delta: -3 }, { stat: 'smarts', delta: 2 }, { log: 'I skipped prom and watched films at home. I regret it exactly as much as I expected: a little.' }],
+        effects: [{ stat: 'happiness', delta: -3 }, { stat: 'smarts', delta: 2 }, { log: 'I skipped prom and watched movies at home. I regret it exactly as much as I expected: a little.' }],
       },
     ],
   },
@@ -764,7 +765,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
           {
             chance: 0.3,
             then: [{ flag: 'tn_college_reach', set: true }, { stat: 'happiness', delta: 10 }, { relationship: 'mother', delta: 4 }, { relationship: 'father', delta: 4 }, { log: 'I got in! A thick envelope, a scream from the kitchen, and my parents dancing. It cannot be unseen.', kind: 'milestone' }],
-            else: [{ stat: 'happiness', delta: -5 }, { log: 'A thin envelope. "We regret to inform you." I regretted too, for about a week.', kind: 'bad' }],
+            else: [{ stat: 'happiness', delta: -5 }, { log: 'A thin envelope. "We regret to inform you." The regret was mutual, for about a week.', kind: 'bad' }],
           },
         ],
       },
@@ -781,7 +782,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.6,
-            then: [{ flag: 'tn_college_reach', set: true }, { stat: 'happiness', delta: 10 }, { log: 'The letter my teacher wrote made me cry. So, apparently, did the admissions office. I got in.', kind: 'milestone' }],
+            then: [{ flag: 'tn_college_reach', set: true }, { stat: 'happiness', delta: 10 }, { log: "My teacher's letter made me cry. Apparently it worked on the admissions office too. I got in.", kind: 'milestone' }],
             else: [{ flag: 'tn_college_match', set: true }, { stat: 'happiness', delta: -3 }, { log: 'Even with a glowing letter, the top school said no. The second choice said yes, warmly.' }],
           },
         ],
@@ -817,7 +818,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
           { relationship: 'person', delta: -8 },
           {
             chance: 0.5,
-            then: [{ stat: 'happiness', delta: 3 }, { log: 'We argued for an hour and {{they}} finally moved curfew back by thirty minutes. A costly victory.' }],
+            then: [{ stat: 'happiness', delta: 3 }, { log: 'We argued for an hour and {{they}} finally pushed curfew thirty minutes later. A costly victory.' }],
             else: [{ stat: 'happiness', delta: -5 }, { log: 'The argument ended with my phone confiscated for two weeks.', kind: 'bad' }],
           },
         ],
@@ -840,22 +841,23 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     id: 'tn_friend_moving',
     category: 'school',
     title: 'Moving away',
-    text: '{{person}} told me at lunch, staring at {{their}} tray: {{their}} family is moving to another city at the end of term. We have sat together since forever.',
+    text: '{{person}} told me at lunch, staring at {{their}} tray: {{their}} family is moving to another city at the end of the school year. We have sat together since forever.',
     minAge: 13,
     maxAge: 17,
     weight: 1.5,
     once: true,
+    conditions: [{ enrolled: true }],
     person: { kind: ['friend', 'bestFriend'], minRelationship: 40 },
     choices: [
       {
         id: 'online',
         label: 'Promise to stay in touch',
-        effects: [{ relationship: 'person', delta: -5 }, { stat: 'happiness', delta: -4 }, { log: 'We call every week, then every month. The distance is real, but so are we.' }],
+        effects: [{ relationship: 'person', delta: -5 }, { stat: 'happiness', delta: -4 }, { log: 'We called every week, then every month. The distance is real, but so are we.' }],
       },
       {
         id: 'party',
         label: 'Throw a goodbye party',
-        effects: [{ relationship: 'person', delta: 8 }, { karma: 2 }, { stat: 'happiness', delta: -2 }, { stat: 'health', delta: -1 }, { log: 'The whole class came. {{person}} cried, I cried, then someone put on the song and everyone cried.', kind: 'good' }],
+        effects: [{ relationship: 'person', delta: 8 }, { karma: 2 }, { stat: 'happiness', delta: -2 }, { stat: 'health', delta: -1 }, { log: 'The whole class came. {{person}} cried, I cried, then someone played a slow song and everyone cried.', kind: 'good' }],
       },
       {
         id: 'drift',
@@ -878,7 +880,8 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     maxAge: 17,
     weight: 2,
     cooldown: 2,
-    person: { kind: ['sibling'] },
+    // A sibling young enough to still bring home report cards.
+    person: { kind: ['sibling'], minAge: 6, maxAge: 18 },
     choices: [
       {
         id: 'congrats',
@@ -887,7 +890,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
       },
       {
         id: 'compete',
-        label: 'Beat {{them}} next term',
+        label: 'Beat {{them}} next semester',
         effects: [{ grade: 5 }, { stat: 'smarts', delta: 2 }, { stat: 'happiness', delta: -1 }, { relationship: 'person', delta: -2 }, { log: 'I studied out of pure spite. Spite, it turns out, is an excellent tutor.', kind: 'good' }],
       },
       {
@@ -913,7 +916,8 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     maxAge: 17,
     weight: 2,
     cooldown: 2,
-    person: { kind: ['sibling'] },
+    // A sibling who plausibly still lives at home.
+    person: { kind: ['sibling'], minAge: 8, maxAge: 19 },
     choices: [
       {
         id: 'demand',
@@ -951,7 +955,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     id: 'tn_detention',
     category: 'school',
     title: 'After-school detention',
-    text: 'My phone buzzed in class for the third time and the teacher finally snapped. Detention, after school, with the kids who set fire to the bins.',
+    text: 'My phone buzzed in class for the third time and the teacher finally snapped. Detention, after school, with the kids who set the trash cans on fire.',
     minAge: 13,
     maxAge: 17,
     weight: 2,
@@ -961,7 +965,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
       {
         id: 'serve',
         label: 'Serve it quietly',
-        effects: [{ stat: 'happiness', delta: -2 }, { grade: 1 }, { stat: 'smarts', delta: 1 }, { log: 'I did my homework in detention. Weirdly productive. The bin kids were nice.' }],
+        effects: [{ stat: 'happiness', delta: -2 }, { grade: 1 }, { stat: 'smarts', delta: 1 }, { log: 'I did my homework in detention. Weirdly productive. The trash-can arsonists were nice.' }],
       },
       {
         id: 'argue',
@@ -969,7 +973,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.3,
-            then: [{ stat: 'happiness', delta: 3 }, { log: 'I argued it was an emergency. It was not, but I argued well. Detention cancelled.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 3 }, { log: 'I argued it was an emergency. It was not, but I argued well. Detention canceled.', kind: 'good' }],
             else: [{ grade: -3 }, { stat: 'happiness', delta: -3 }, { log: 'Arguing earned me a second detention and a reputation.', kind: 'bad' }],
           },
         ],
@@ -1205,7 +1209,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     id: 'tn_meet_parents',
     category: 'school',
     title: 'Dinner with parents',
-    text: 'I invited {{person}} over for dinner with my parents. {{They}} arrived early, with flowers, and sat on the one chair that wobbles. My mother opened with "So."',
+    text: 'I invited {{person}} over for dinner with my parents. {{They}} arrived early, with flowers, and sat on the one chair that wobbles. My mom opened with "So."',
     minAge: 16,
     maxAge: 17,
     weight: 2,
@@ -1219,8 +1223,8 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
         effects: [
           {
             random: [
-              { weight: 60, effects: [{ relationship: 'person', delta: 6 }, { love: 5 }, { relationship: 'mother', delta: 3 }, { stat: 'happiness', delta: 5 }, { log: 'By dessert, {{person}} was doing dishes and my mother had the baby photos out. Mortifying. Wonderful.', kind: 'good' }] },
-              { weight: 40, effects: [{ stat: 'happiness', delta: -3 }, { relationship: 'person', delta: -3 }, { love: -3 }, { log: 'My mother asked about {{their}} "prospects." {{person}} laughed at the wrong moment. We left early.', kind: 'bad' }] },
+              { weight: 60, effects: [{ relationship: 'person', delta: 6 }, { love: 5 }, { relationship: 'mother', delta: 3 }, { stat: 'happiness', delta: 5 }, { log: 'By dessert, {{person}} was doing dishes and my mom had the baby photos out. Mortifying. Wonderful.', kind: 'good' }] },
+              { weight: 40, effects: [{ stat: 'happiness', delta: -3 }, { relationship: 'person', delta: -3 }, { love: -3 }, { log: 'My mom asked about {{their}} "prospects." {{person}} laughed at the wrong moment. We left early.', kind: 'bad' }] },
             ],
           },
         ],
@@ -1233,7 +1237,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
       {
         id: 'short',
         label: 'Keep it short',
-        effects: [{ relationship: 'person', delta: -3 }, { love: -2 }, { stat: 'happiness', delta: 1 }, { log: 'We ate fast and left for the cinema. My parents said {{person}} seemed "nice, in a hurry."' }],
+        effects: [{ relationship: 'person', delta: -3 }, { love: -2 }, { stat: 'happiness', delta: 1 }, { log: 'We ate fast and left for the movies. My parents said {{person}} seemed "nice, in a hurry."' }],
       },
     ],
   },
@@ -1337,7 +1341,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
       {
         id: 'charge',
         label: 'Charge {{$15}} an hour',
-        effects: [{ money: 90 }, { relationship: 'person', delta: -3 }, { log: 'Six hours of tutoring, {{$90}}, and a friend who now calls me "the bank."', kind: 'money' }],
+        effects: [{ money: 90 }, { relationship: 'person', delta: -3 }, { log: 'A week of tutoring, {{$90}}, and a friend who now calls me "the bank."', kind: 'money' }],
       },
       {
         id: 'no',
@@ -1351,7 +1355,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     id: 'tn_senior_prank',
     category: 'school',
     title: 'Senior prank',
-    text: "Last week of school. The senior prank is being planned in whispers: three hundred paper cups of water across the principal's office floor. They asked me to hold the door.",
+    text: "Last week of school. The senior prank is being planned in whispers: three hundred paper cups of water across the principal's office floor. The organizers asked me to hold the door.",
     minAge: 17,
     maxAge: 17,
     weight: 2,

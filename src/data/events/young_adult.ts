@@ -12,7 +12,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     id: 'ya_dorm_roommate',
     category: 'random',
     title: 'Three a.m. drums',
-    text: 'My dorm roommate practises drums at three in the morning and insists it helps them think. The walls are thin and so is my patience.',
+    text: 'My dorm roommate practices the drums at three in the morning and insists it helps them think. The walls are thin and so is my patience.',
     minAge: 18,
     maxAge: 23,
     weight: 2,
@@ -21,11 +21,11 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     choices: [
       {
         id: 'confront',
-        label: 'Have a word',
+        label: 'Talk it out',
         effects: [
           {
             chance: 0.6,
-            then: [{ log: 'We agreed on a schedule: no drums after midnight. Civilisation prevailed.', kind: 'good' }, { stat: 'happiness', delta: 4 }],
+            then: [{ log: 'We agreed on a schedule: no drums after midnight. Civilization prevailed.', kind: 'good' }, { stat: 'happiness', delta: 4 }],
             else: [{ log: 'They said I was stifling their art. The drums got louder.', kind: 'bad' }, { stat: 'happiness', delta: -4 }],
           },
         ],
@@ -77,7 +77,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
           { stat: 'health', delta: -3 },
           {
             chance: 0.65,
-            then: [{ grade: 6 }, { log: 'I crammed a semester into nine hours and somehow it stuck. I slept for a day afterwards.', kind: 'good' }],
+            then: [{ grade: 6 }, { log: 'I crammed a semester into nine hours and somehow it stuck. I slept for a day afterward.', kind: 'good' }],
             else: [{ grade: 1 }, { stat: 'happiness', delta: -3 }, { log: 'I crammed until dawn and then wrote nonsense. The exam and I were both tired.', kind: 'bad' }],
           },
         ],
@@ -167,7 +167,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     id: 'ya_professor_notice',
     category: 'random',
     title: 'Unexpectedly good',
-    text: "A professor kept me back after the lecture. Apparently my last paper was 'unexpectedly good', which I chose to hear as a compliment. There's an opening on a research project.",
+    text: 'A professor asked me to stay after class. Apparently my last paper was "unexpectedly good," which I chose to hear as a compliment. There is an opening on a research project.',
     minAge: 19,
     maxAge: 24,
     weight: 1.5,
@@ -216,7 +216,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     choices: [
       {
         id: 'carry',
-        label: 'Do it all yourself',
+        label: 'Do it all myself',
         effects: [
           { grade: 5 },
           { stat: 'happiness', delta: -4 },
@@ -231,7 +231,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.5,
-            then: [{ relationship: 'person', delta: 2 }, { grade: 3 }, { log: '{{person}} apologised and pulled an all-nighter. The project was fine and so were we.', kind: 'good' }],
+            then: [{ relationship: 'person', delta: 2 }, { grade: 3 }, { log: '{{person}} apologized and pulled an all-nighter. The project was fine and so were we.', kind: 'good' }],
             else: [{ relationship: 'person', delta: -8 }, { grade: 1 }, { stat: 'happiness', delta: -3 }, { log: "{{person}} said I was being intense. I did the work anyway and we don't talk much now.", kind: 'bad' }],
           },
         ],
@@ -248,7 +248,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
       },
       {
         id: 'match',
-        label: 'Match their effort',
+        label: 'Match {{their}} effort',
         effects: [{ grade: -6 }, { stat: 'happiness', delta: 2 }, { relationship: 'person', delta: 1 }, { log: 'I contributed a thumbs-up emoji of my own. Our grade reflected it.' }],
       },
     ],
@@ -280,7 +280,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
           {
             chance: 0.7,
             then: [{ stat: 'happiness', delta: 4 }, { log: 'After forty minutes of hold music I got onto an income-based plan. Manageable. Almost.', kind: 'good' }],
-            else: [{ stat: 'happiness', delta: -3 }, { log: "The call dropped twice. The third agent said I'd dialled the wrong department.", kind: 'bad' }],
+            else: [{ stat: 'happiness', delta: -3 }, { log: "The call dropped twice. The third agent said I'd dialed the wrong department.", kind: 'bad' }],
           },
         ],
       },
@@ -295,7 +295,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     id: 'ya_debt_collector',
     category: 'random',
     title: 'The calls start',
-    text: "The calls started. A collections agency now has my number, my mother's number, and a disturbingly accurate idea of my daily schedule.",
+    text: "The calls started. A collections agency now has my number, my mom's number, and a disturbingly accurate idea of my daily schedule.",
     minAge: 20,
     maxAge: 29,
     weight: 1,
@@ -303,7 +303,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     choices: [
       {
         id: 'pay',
-        label: 'Pay what you can',
+        label: 'Pay what I can',
         effects: [{ money: -800 }, { stat: 'happiness', delta: -2 }, { log: 'I paid what I could. The calls stopped. My bank balance sulked.', kind: 'money' }],
       },
       {
@@ -352,8 +352,8 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
         effects: [
           { money: -250 },
           { stat: 'happiness', delta: 7 },
-          { log: 'I threw a housewarming. The neighbours came, then complained, then came back for the dip.', kind: 'good' },
-          { chance: 0.6, then: [{ newPerson: { kind: 'friend', relationship: 50, log: 'A neighbour called {{person}} came to the housewarming and stayed a friend.' } }] },
+          { log: 'I threw a housewarming. The neighbors came, then complained, then came back for the dip.', kind: 'good' },
+          { chance: 0.6, then: [{ newPerson: { kind: 'friend', relationship: 50, log: 'A neighbor named {{person}} came to the housewarming and stayed a friend.' } }] },
         ],
       },
       {
@@ -374,7 +374,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     id: 'ya_terrible_landlord',
     category: 'random',
     title: 'The boat photo',
-    text: 'The heating died in January. My landlord responded to three messages with a thumbs-up and then, for some reason, a photo of his boat.',
+    text: 'The heat went out in the dead of winter. My landlord answered three messages with a thumbs-up and then, for some reason, a photo of his boat.',
     minAge: 19,
     maxAge: 29,
     weight: 2,
@@ -383,23 +383,23 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     choices: [
       {
         id: 'fix',
-        label: 'Fix it yourself',
+        label: 'Fix it myself',
         hint: '{{$200}}',
         effects: [
           { money: -200 },
           { stat: 'smarts', delta: 2 },
-          { log: 'I watched four videos and fixed the boiler. I am now a plumber in my own mind.' },
+          { log: 'I watched four videos and fixed the furnace. I am now a plumber in my own mind.' },
           { chance: 0.2, then: [{ injury: 2 }, { log: 'I also burned my hand on it.', kind: 'bad' }] },
         ],
       },
       {
         id: 'report',
-        label: 'Report him to the authority',
+        label: 'Report him to the city',
         effects: [
           { karma: 1 },
           {
             chance: 0.6,
-            then: [{ stat: 'happiness', delta: 5 }, { log: 'An inspector came. The landlord fixed the heating in two days and sent no more boat photos.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 5 }, { log: 'An inspector came. The landlord fixed the heat in two days and sent no more boat photos.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -6 }, { money: -600 }, { log: 'The landlord fixed it, then declined to renew my lease. Moving costs money. I moved.', kind: 'bad' }],
           },
         ],
@@ -426,7 +426,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     id: 'ya_roommate_rent',
     category: 'random',
     title: 'About to clear',
-    text: "{{person}} hasn't paid {{their}} half of the rent in three months. {{They}} keeps saying a payment is 'about to clear'. The landlord only knows my name.",
+    text: '{{person}} has not paid {{their}} half of the rent in three months. {{They}} keeps saying a payment is "about to clear." The landlord only knows my name.',
     minAge: 19,
     maxAge: 29,
     weight: 2,
@@ -459,7 +459,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
       },
       {
         id: 'evict',
-        label: 'Ask them to move out',
+        label: 'Ask {{them}} to move out',
         effects: [
           { relationship: 'person', delta: -15 },
           { stat: 'happiness', delta: -3 },
@@ -474,7 +474,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     id: 'ya_roommate_food',
     category: 'random',
     title: 'Mice with forks',
-    text: 'Someone keeps eating my clearly labelled leftovers. The only other person with a key is {{person}}, who swears blind it must be mice. Mice with forks.',
+    text: 'Someone keeps eating my clearly labeled leftovers. The only other person with a key is {{person}}, who swears up and down it must be mice. Mice with forks.',
     minAge: 18,
     maxAge: 29,
     weight: 2,
@@ -512,7 +512,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     id: 'ya_backpacking',
     category: 'random',
     title: 'The circled map',
-    text: '{{person}} wants to go backpacking for a month: cheap hostels, overnight trains, no plan whatsoever. {{They}} already bought a paper map and circled things.',
+    text: '{{person}} wants to go backpacking for a month: cheap hostels, overnight trains, no plan whatsoever. {{They}} has already bought a paper map and circled things.',
     minAge: 18,
     maxAge: 27,
     weight: 1.5,
@@ -556,7 +556,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: -3 },
           { relationship: 'person', delta: -3 },
           { log: 'I stayed. {{person}} sent photos every day. I liked each one through gritted teeth.' },
-          { chance: 0.5, then: [{ money: 300 }, { log: 'I picked up extra shifts instead and felt briefly responsible.', kind: 'money' }] },
+          { chance: 0.5, then: [{ money: 300 }, { log: 'I picked up odd jobs instead and felt briefly responsible.', kind: 'money' }] },
         ],
       },
     ],
@@ -579,7 +579,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
           { money: -300 },
           { stat: 'happiness', delta: -4 },
           { stat: 'smarts', delta: 2 },
-          { log: 'Two days of queues and forms. The emergency passport photo is the worst picture of me ever taken.' },
+          { log: 'Two days of lines and forms. The emergency passport photo is the worst picture of me ever taken.' },
         ],
       },
       {
@@ -589,7 +589,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
           { money: -150 },
           { stat: 'happiness', delta: -2 },
           { relationship: 'person', delta: -2 },
-          { log: '{{person}} sorted the whole thing while I sat on a kerb. I owe {{them}} forever.' },
+          { log: '{{person}} handled the whole thing while I sat on a curb. I owe {{them}} forever.' },
         ],
       },
       {
@@ -642,14 +642,14 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
           {
             chance: 0.6,
             then: [{ relationship: 'person', delta: 12 }, { stat: 'happiness', delta: 6 }, { log: 'My speech killed. Laughter, tears, applause. {{person}} hugged me for a full minute.', kind: 'good' }],
-            else: [{ relationship: 'person', delta: -5 }, { stat: 'happiness', delta: -6 }, { log: 'My speech died. I mentioned an ex at a wedding. The silence had texture.', kind: 'bad' }],
+            else: [{ relationship: 'person', delta: -5 }, { stat: 'happiness', delta: -6 }, { log: 'My speech died. I mentioned an ex at a wedding. You could hear a fork drop.', kind: 'bad' }],
           },
         ],
       },
       {
         id: 'skip',
         label: 'Send regrets',
-        effects: [{ relationship: 'person', delta: -8 }, { stat: 'happiness', delta: -1 }, { log: "I said I couldn't make it. {{person}} said 'no worries' in the way that means worries." }],
+        effects: [{ relationship: 'person', delta: -8 }, { stat: 'happiness', delta: -1 }, { log: 'I said I could not make it. {{person}} said "no worries" in the way that means worries.' }],
       },
     ],
   },
@@ -657,7 +657,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     id: 'ya_friend_startup',
     category: 'random',
     title: 'Early believers',
-    text: "{{person}} quit {{their}} job to start a company. The pitch involves a lot of hand gestures. {{They}} needs {{$2000}} from 'early believers', and {{they}} is looking at me.",
+    text: '{{person}} quit {{their}} job to start a company. The pitch involves a lot of hand gestures. {{They}} needs {{$2000}} from "early believers," and {{they}} is looking at me.',
     minAge: 20,
     maxAge: 29,
     weight: 1.5,
@@ -685,7 +685,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 5 },
           { stat: 'smarts', delta: 3 },
           { energy: -1 },
-          { log: 'I built their spreadsheet and their website. No equity, but I learned a lot and ate their pizza.', kind: 'good' },
+          { log: 'I built {{their}} spreadsheet and {{their}} website. No equity, but I learned a lot and ate {{their}} pizza.', kind: 'good' },
         ],
       },
       {
@@ -710,7 +710,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     id: 'ya_startup_update',
     category: 'random',
     title: 'Investor update',
-    text: "The first investor update from {{person}} arrived: lots of exclamation marks, one graph, and a line about 'runway' that I had to look up.",
+    text: 'The first investor update from {{person}} arrived: lots of exclamation points, one graph, and a line about "runway" that I had to look up.',
     minAge: 20,
     maxAge: 29,
     weight: 1,
@@ -719,7 +719,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     choices: [
       {
         id: 'hold',
-        label: 'Hold your stake',
+        label: 'Hold my stake',
         effects: [
           {
             random: [
@@ -740,7 +740,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
       },
       {
         id: 'sell',
-        label: 'Sell your stake back',
+        label: 'Sell my stake back',
         effects: [
           {
             chance: 0.6,
@@ -765,7 +765,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
                   { money: 30000 },
                   { stat: 'happiness', delta: 12 },
                   { relationship: 'person', delta: 12 },
-                  { log: 'Doubling down paid off. The acquisition cheque had a comma in a very pleasing place.', kind: 'milestone' },
+                  { log: 'Doubling down paid off. The acquisition check had a comma in a very pleasing place.', kind: 'milestone' },
                 ],
               },
             ],
@@ -839,7 +839,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
       },
       {
         id: 'hide',
-        label: 'Pretend not to see them',
+        label: 'Pretend not to see {{them}}',
         effects: [
           { stat: 'happiness', delta: -2 },
           { relationship: 'person', delta: -4 },
@@ -850,7 +850,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
       {
         id: 'numbers',
         label: 'Swap numbers, never call',
-        effects: [{ relationship: 'person', delta: 2 }, { stat: 'happiness', delta: 1 }, { log: "We swapped numbers and promised to 'do something'. We will not. It was still nice." }],
+        effects: [{ relationship: 'person', delta: 2 }, { stat: 'happiness', delta: 1 }, { log: 'We swapped numbers and promised to "do something." We will not. It was still nice.' }],
       },
     ],
   },
@@ -858,7 +858,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     id: 'ya_old_friend_online',
     category: 'random',
     title: 'Is this you?',
-    text: "A message request from a name I hadn't thought about since primary school. 'Is this you?? I live in {{city}} now!' A photo of someone I almost recognise.",
+    text: 'A message request from a name I had not thought about since elementary school: "Is this you?? I live in {{city}} now!" Plus a photo of someone I almost recognize.',
     minAge: 18,
     maxAge: 29,
     weight: 1.5,
@@ -867,7 +867,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     choices: [
       {
         id: 'meet',
-        label: 'Meet for a coffee',
+        label: 'Meet for coffee',
         effects: [
           { money: -25 },
           {
@@ -877,7 +877,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
               { log: 'We met. Half the stories matched, the other half were better in their version.', kind: 'good' },
               { newPerson: { kind: 'friend', relationship: 55, log: 'My old school friend {{person}} and I picked up right where we left off.' } },
             ],
-            else: [{ stat: 'happiness', delta: -2 }, { log: "We met. They mostly wanted to talk about a 'business opportunity'. I left early.", kind: 'bad' }],
+            else: [{ stat: 'happiness', delta: -2 }, { log: 'We met. They mostly wanted to talk about a "business opportunity." I left early.', kind: 'bad' }],
           },
         ],
       },
@@ -899,7 +899,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     id: 'ya_networking_mixer',
     category: 'random',
     title: 'Industry mixer',
-    text: "Someone from {{company}} forwarded an invite to an 'industry mixer'. Name badges, lukewarm sparkling water, and a room full of people pretending not to read each other's badges.",
+    text: 'Someone at {{company}} forwarded an invite to an "industry mixer." Name badges, lukewarm sparkling water, and a room full of people pretending not to read each other\'s badges.',
     minAge: 21,
     maxAge: 29,
     weight: 2,
@@ -976,7 +976,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
           { karma: -3 },
           { relationship: 'person', delta: -10 },
           { stat: 'happiness', delta: 1 },
-          { log: "I went to one coffee and then kept 'being busy'. {{person}} stopped asking. I felt it." },
+          { log: 'I went to one coffee and then kept "being busy." {{person}} stopped asking. I felt it.' },
         ],
       },
       {
@@ -1003,13 +1003,13 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     choices: [
       {
         id: 'diy',
-        label: 'Do it yourself',
+        label: 'Do it myself',
         effects: [
           { stat: 'smarts', delta: 2 },
           {
             chance: 0.6,
-            then: [{ money: 400 }, { stat: 'happiness', delta: 3 }, { log: 'I did it myself and got a refund. Like finding money in a coat, except the coat was maths.', kind: 'money' }],
-            else: [{ money: -300 }, { stat: 'happiness', delta: -3 }, { log: 'I did it myself and owed money plus a small penalty for a box I ticked with confidence.', kind: 'bad' }],
+            then: [{ money: 400 }, { stat: 'happiness', delta: 3 }, { log: 'I did it myself and got a refund. Like finding money in a coat, except the coat was math.', kind: 'money' }],
+            else: [{ money: -300 }, { stat: 'happiness', delta: -3 }, { log: 'I did it myself and owed money plus a small penalty for a box I checked with confidence.', kind: 'bad' }],
           },
         ],
       },
@@ -1071,7 +1071,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.5,
-            then: [{ money: -50 }, { stat: 'happiness', delta: 3 }, { log: 'Four phone calls, one letter, and a man named Kevin. Cancelled. Victory.', kind: 'good' }],
+            then: [{ money: -50 }, { stat: 'happiness', delta: 3 }, { log: 'Four phone calls, one letter, and a man named Kevin. Canceled. Victory.', kind: 'good' }],
             else: [{ money: -400 }, { stat: 'happiness', delta: -4 }, { log: "They would not let me cancel. I now pay for a building I've seen twice.", kind: 'bad' }],
           },
         ],
@@ -1112,7 +1112,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
           { money: 400 },
           { stat: 'health', delta: -2 },
           { stat: 'happiness', delta: 1 },
-          { log: 'I moved furniture, walked dogs, assembled flat-pack for strangers. Tired, and paid.', kind: 'money' },
+          { log: 'I moved couches, walked dogs and built bookshelves for strangers. Tired, and paid.', kind: 'money' },
         ],
       },
       {
@@ -1144,7 +1144,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ stat: 'happiness', delta: 10 }, { stat: 'smarts', delta: 3 }, { log: 'I quit. Scary, then thrilling. I finally had time to figure out what I actually wanted.', kind: 'milestone' }],
-            else: [{ stat: 'happiness', delta: -8 }, { money: -1500 }, { log: "I quit with no plan. Three months of noodles and regret later, the plan was 'find a job'.", kind: 'bad' }],
+            else: [{ stat: 'happiness', delta: -8 }, { money: -1500 }, { log: 'I quit with no plan. Three months of noodles and regret later, the plan was "find a job."', kind: 'bad' }],
           },
         ],
       },
@@ -1184,7 +1184,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     id: 'ya_move_back_home',
     category: 'random',
     title: 'The old room',
-    text: "Rent went up, income didn't. {{person}} said my old room is 'exactly how I left it', which is both an offer and a threat.",
+    text: 'Rent went up; my income did not. {{person}} said my old room is "exactly how you left it," which is both an offer and a threat.',
     minAge: 19,
     maxAge: 29,
     weight: 1.5,
@@ -1237,7 +1237,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     id: 'ya_house_rules',
     category: 'random',
     title: 'House rules',
-    text: "{{person}} has rules. Dishes immediately. Lights out by eleven. A text if I'm 'going to be late', and 'late' means after dinner.",
+    text: '{{person}} has rules. Dishes immediately. Lights out by eleven. A text if I am "going to be late," and "late" means after dinner.',
     minAge: 19,
     maxAge: 29,
     weight: 1,
@@ -1256,13 +1256,13 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
           {
             chance: 0.6,
             then: [{ relationship: 'person', delta: 3 }, { stat: 'happiness', delta: 3 }, { log: "We agreed I'd cook twice a week in exchange for no curfew. Diplomacy.", kind: 'good' }],
-            else: [{ relationship: 'person', delta: -5 }, { stat: 'happiness', delta: -2 }, { log: 'Negotiation failed. {{person}} reminded me whose name is on the house.', kind: 'bad' }],
+            else: [{ relationship: 'person', delta: -5 }, { stat: 'happiness', delta: -2 }, { log: 'Negotiation failed. {{person}} reminded me whose name is on the deed.', kind: 'bad' }],
           },
         ],
       },
       {
         id: 'rebel',
-        label: 'Ignore them',
+        label: 'Ignore the rules',
         effects: [
           { relationship: 'person', delta: -12 },
           { stat: 'happiness', delta: 2 },
@@ -1292,12 +1292,12 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
       },
       {
         id: 'diy',
-        label: 'Fix it yourself',
+        label: 'Fix it myself',
         effects: [
           {
             chance: 0.5,
             then: [{ money: -150 }, { stat: 'smarts', delta: 3 }, { stat: 'happiness', delta: 4 }, { log: 'A weekend, a video tutorial and a borrowed wrench. It started. I may have cheered.', kind: 'good' }],
-            else: [{ money: -1400 }, { stat: 'happiness', delta: -5 }, { asset: 'damage', kind: 'car', amount: 20 }, { log: "I made it worse. The mechanic now charges me a 'you tried' fee.", kind: 'bad' }],
+            else: [{ money: -1400 }, { stat: 'happiness', delta: -5 }, { asset: 'damage', kind: 'car', amount: 20 }, { log: 'I made it worse. The mechanic now charges me a "you tried" fee.', kind: 'bad' }],
           },
           { chance: 0.15, then: [{ injury: 2 }, { log: 'I also dropped the jack on my foot.', kind: 'bad' }] },
         ],
@@ -1322,7 +1322,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     id: 'ya_scam_call',
     category: 'random',
     title: 'Very calm caller',
-    text: "A caller with an urgent voice said my bank account had been 'compromised' and they needed my details to 'secure' it. They knew my name. They were very calm.",
+    text: 'A caller with an urgent message said my bank account had been "compromised" and they needed my details to "secure" it. They knew my name. They were very calm.',
     minAge: 18,
     maxAge: 29,
     weight: 2,
@@ -1354,7 +1354,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
         effects: [
           { stat: 'happiness', delta: 5 },
           { karma: 1 },
-          { log: "I kept them on the line for forty minutes, 'looking for my card' in the garden. Public service.", kind: 'good' },
+          { log: 'I kept them on the line for forty minutes, "looking for my card" in the backyard. Public service.', kind: 'good' },
         ],
       },
     ],
@@ -1363,7 +1363,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     id: 'ya_rental_scam',
     category: 'random',
     title: 'Huge windows, low rent',
-    text: "An apartment listing: huge windows, low rent, great area. The 'owner' is abroad and just needs a deposit wired before showing it to 'serious people'.",
+    text: 'An apartment listing: huge windows, low rent, great area. The "owner" is overseas and just needs a deposit wired before showing it to "serious people."',
     minAge: 18,
     maxAge: 29,
     weight: 1.5,
@@ -1379,7 +1379,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
           { money: -1500 },
           {
             random: [
-              { weight: 4, effects: [{ stat: 'happiness', delta: -8 }, { log: "The listing vanished along with the 'owner' and my deposit. The photos were from a hotel website.", kind: 'bad' }] },
+              { weight: 4, effects: [{ stat: 'happiness', delta: -8 }, { log: 'The listing vanished along with the "owner" and my deposit. The photos were from a hotel website.', kind: 'bad' }] },
               { weight: 1, effects: [{ stat: 'happiness', delta: 8 }, { log: 'Against all odds it was real. Huge windows, low rent. I will never risk this again, probably.', kind: 'good' }] },
             ],
           },
@@ -1392,7 +1392,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 1 },
           {
             chance: 0.8,
-            then: [{ stat: 'happiness', delta: 1 }, { log: 'They stopped replying the moment I asked to see it. The photos were from a hotel website.' }],
+            then: [{ stat: 'happiness', delta: 1 }, { log: 'They stopped replying the moment I asked to see it. What a coincidence.' }],
             else: [{ stat: 'happiness', delta: -1 }, { log: 'They agreed to a viewing, but someone else got there first. At least it was real.' }],
           },
         ],
@@ -1408,7 +1408,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     id: 'ya_hot_tip',
     category: 'random',
     title: 'Rocket emojis',
-    text: "Someone I barely knew at school messaged out of nowhere about a 'guaranteed' investment scheme. Screenshots of profits, a countdown timer and a great many rocket emojis.",
+    text: 'Someone I barely knew at school messaged out of nowhere about a "guaranteed" investment scheme. Screenshots of profits, a countdown timer and a great many rocket emojis.',
     minAge: 18,
     maxAge: 29,
     weight: 2,
@@ -1422,7 +1422,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
           { money: -1000 },
           {
             random: [
-              { weight: 4, effects: [{ stat: 'happiness', delta: -6 }, { log: "The 'platform' stopped letting me withdraw after a week. The rockets were pointing down.", kind: 'bad' }] },
+              { weight: 4, effects: [{ stat: 'happiness', delta: -6 }, { log: 'The "platform" stopped letting me withdraw after a week. The rockets were pointing down.', kind: 'bad' }] },
               { weight: 1, effects: [{ money: 3000 }, { stat: 'happiness', delta: 6 }, { log: 'Somehow I got out before it collapsed, with triple my money. Do not try this.', kind: 'money' }] },
             ],
           },
@@ -1442,7 +1442,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
       },
       {
         id: 'explain',
-        label: 'Explain why it is a pyramid',
+        label: 'Explain the pyramid scheme',
         conditions: [{ stat: 'smarts', gte: 65 }],
         effects: [{ karma: 2 }, { stat: 'happiness', delta: 2 }, { log: 'I drew a diagram of where the money really comes from. They blocked me. Two friends thanked me.', kind: 'good' }],
       },
@@ -1459,7 +1459,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     id: 'ya_first_i_love_you',
     category: 'random',
     title: 'Three words',
-    text: "Walking home in the rain, {{person}} stopped, turned, and said 'I love you' for the first time. {{They}} looked terrified. I understood why.",
+    text: 'Walking home in the rain, {{person}} stopped, turned, and said "I love you" for the first time. {{They}} looked terrified. I understood why.',
     minAge: 18,
     maxAge: 29,
     weight: 2,
@@ -1480,16 +1480,16 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
       {
         id: 'freeze',
         label: 'Freeze',
-        effects: [{ love: -6 }, { stat: 'happiness', delta: -3 }, { log: "I said 'oh'. Then 'wow'. Then nothing. The walk home was very quiet." }],
+        effects: [{ love: -6 }, { stat: 'happiness', delta: -3 }, { log: 'I said "oh." Then "wow." Then nothing. The walk home was very quiet.' }],
       },
       {
         id: 'thanks',
-        label: "Say 'thank you'",
+        label: 'Say "thank you"',
         effects: [
           { love: -12 },
           { relationship: 'person', delta: -5 },
           { stat: 'happiness', delta: -5 },
-          { log: "I said 'thank you'. {{person}} laughed, then didn't. I'll be hearing about this for years.", kind: 'bad' },
+          { log: 'I said "thank you." {{person}} laughed, then did not. I will be hearing about this for years.', kind: 'bad' },
         ],
       },
       {
@@ -1508,7 +1508,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     id: 'ya_meet_the_parents',
     category: 'random',
     title: 'Dinner with the parents',
-    text: "{{person}} wants me to meet {{their}} parents this weekend. Dinner at the family house. Apparently {{their}} father 'has questions' and {{their}} mother 'just wants to see me eat'.",
+    text: '{{person}} wants me to meet {{their}} parents this weekend. Dinner at the family house. Apparently {{their}} dad "has questions" and {{their}} mom "just wants to see me eat."',
     minAge: 18,
     maxAge: 29,
     weight: 1.5,
@@ -1537,17 +1537,17 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
           { love: 10 },
           { relationship: 'person', delta: 5 },
           { stat: 'happiness', delta: 6 },
-          { log: 'The mother sent me home with leftovers; the father shook my hand twice. {{person}} glowed.', kind: 'good' },
+          { log: "{{person}}'s mom sent me home with leftovers, and {{their}} dad shook my hand twice. {{person}} glowed.", kind: 'good' },
         ],
       },
       {
         id: 'self',
-        label: 'Just be yourself',
+        label: 'Just be myself',
         effects: [
           {
             chance: 0.5,
-            then: [{ love: 6 }, { stat: 'happiness', delta: 4 }, { log: "I was myself. The mother called me 'a character'. {{person}} says that's a compliment there.", kind: 'good' }],
-            else: [{ love: -2 }, { stat: 'happiness', delta: -2 }, { log: "I was myself. It was a lot. The father asked about my 'prospects' twice." }],
+            then: [{ love: 6 }, { stat: 'happiness', delta: 4 }, { log: 'I was myself. {{person}}\'s mom called me "a character," which {{they}} swears is a compliment.', kind: 'good' }],
+            else: [{ love: -2 }, { stat: 'happiness', delta: -2 }, { log: 'I was myself. It was a lot. {{person}}\'s dad asked about my "prospects." Twice.' }],
           },
         ],
       },
@@ -1567,7 +1567,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     id: 'ya_move_in_together',
     category: 'random',
     title: 'The imaginary plant',
-    text: "{{person}} slid a listing across the table: a one-bedroom, split rent, 'closer to both our jobs'. {{They}} has already named the imaginary plant we'd buy.",
+    text: '{{person}} slid a listing across the table: a one-bedroom, split rent, "closer to everything." {{They}} has already named the imaginary plant we would buy.',
     minAge: 20,
     maxAge: 29,
     weight: 1.5,
@@ -1583,7 +1583,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 5 },
           { stat: 'happiness', delta: 6 },
           { money: 600 },
-          { log: 'We moved in. Two toothbrushes, one wardrobe, endless negotiations about the thermostat. Happy.', kind: 'milestone' },
+          { log: 'We moved in. Two toothbrushes, one closet, endless negotiations about the thermostat. Happy.', kind: 'milestone' },
           { chance: 0.2, then: [{ stat: 'happiness', delta: -2 }, { log: 'Turns out {{they}} snores. Loudly. I now own earplugs.' }] },
         ],
       },
@@ -1594,12 +1594,12 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
       },
       {
         id: 'notyet',
-        label: "Say you're not ready",
+        label: "Say I'm not ready",
         effects: [
           { love: -8 },
           { relationship: 'person', delta: -3 },
           { stat: 'happiness', delta: -2 },
-          { log: "I said I liked my own space. {{person}} said 'okay' and went quiet for the rest of dinner." },
+          { log: 'I said I liked my own space. {{person}} said "okay" and went quiet for the rest of dinner.' },
         ],
       },
     ],
@@ -1618,7 +1618,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     choices: [
       {
         id: 'support',
-        label: 'Tell them to take it',
+        label: 'Tell {{them}} to take it',
         effects: [
           { karma: 3 },
           { stat: 'happiness', delta: -4 },
@@ -1631,12 +1631,12 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
       },
       {
         id: 'stay',
-        label: 'Ask them to stay',
+        label: 'Ask {{them}} to stay',
         effects: [
           {
             chance: 0.5,
             then: [{ love: 6 }, { stat: 'happiness', delta: 5 }, { log: "{{person}} stayed. {{They}} said the job wasn't worth it without me. Loved, and slightly guilty.", kind: 'good' }],
-            else: [{ love: -12 }, { relationship: 'person', delta: -6 }, { stat: 'happiness', delta: -6 }, { log: '{{person}} took the job anyway and now resents the asking. The calls got shorter.', kind: 'bad' }],
+            else: [{ love: -12 }, { relationship: 'person', delta: -6 }, { stat: 'happiness', delta: -6 }, { log: '{{person}} took the job anyway and resented me for asking. The calls got shorter.', kind: 'bad' }],
           },
         ],
       },
@@ -1653,7 +1653,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
               { stat: 'happiness', delta: 4 },
               { log: 'I packed my life into boxes and followed. New city, new job hunt, same person. No regrets, yet.', kind: 'milestone' },
             ],
-            else: [{ love: -4 }, { stat: 'happiness', delta: -3 }, { log: "I offered. {{person}} said {{they}} needed to do this alone. We are 'figuring it out'." }],
+            else: [{ love: -4 }, { stat: 'happiness', delta: -3 }, { log: 'I offered. {{person}} said {{they}} needed to do this alone. We are "figuring it out."' }],
           },
         ],
       },
@@ -1684,14 +1684,14 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
           { money: -150 },
           {
             chance: 0.7,
-            then: [{ love: 3 }, { log: "I 'went to get coffee' and came back with flowers and chocolate. Transparent. Appreciated.", kind: 'good' }],
-            else: [{ love: -3 }, { stat: 'happiness', delta: -2 }, { log: "The only open shop sold petrol station flowers. {{person}} said they were 'nice'. They were not." }],
+            then: [{ love: 3 }, { log: 'I "went to get coffee" and came back with flowers and chocolate. Transparent. Appreciated.', kind: 'good' }],
+            else: [{ love: -3 }, { stat: 'happiness', delta: -2 }, { log: 'The only place open was a gas station. {{person}} called the flowers "nice." They were not.' }],
           },
         ],
       },
       {
         id: 'confess',
-        label: 'Confess and apologise',
+        label: 'Confess and apologize',
         effects: [
           { karma: 2 },
           { love: -4 },
@@ -1707,7 +1707,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ money: -400 }, { love: 6 }, { log: 'I booked a last-minute dinner so good it looked planned. The lie became true. Expensive, though.', kind: 'good' }],
-            else: [{ love: -10 }, { relationship: 'person', delta: -4 }, { stat: 'happiness', delta: -4 }, { log: "The 'surprise' never materialised because I forgot that too. {{person}} did not forget.", kind: 'bad' }],
+            else: [{ love: -10 }, { relationship: 'person', delta: -4 }, { stat: 'happiness', delta: -4 }, { log: 'The "surprise" never materialized because I forgot that too. {{person}} did not forget.', kind: 'bad' }],
           },
         ],
       },
@@ -1717,7 +1717,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     id: 'ya_blind_date',
     category: 'random',
     title: 'Blind date',
-    text: "{{person}} set me up on a blind date. 'You'll love them,' {{they}} said, in the voice of someone who has never once been right about this.",
+    text: '{{person}} set me up on a blind date. "You\'ll love them," {{they}} said, in the voice of someone who has never once been right about this.',
     minAge: 18,
     maxAge: 29,
     weight: 2,
@@ -1758,7 +1758,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
       {
         id: 'cancel',
         label: 'Cancel last minute',
-        effects: [{ relationship: 'person', delta: -4 }, { karma: -1 }, { stat: 'happiness', delta: 1 }, { log: 'I cancelled an hour before. {{person}} called me a coward in a loving tone.' }],
+        effects: [{ relationship: 'person', delta: -4 }, { karma: -1 }, { stat: 'happiness', delta: 1 }, { log: 'I canceled an hour before. {{person}} called me a coward in a loving tone.' }],
       },
       {
         id: 'double',
@@ -1780,7 +1780,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     id: 'ya_club_temptation',
     category: 'random',
     title: 'The tiny bag',
-    text: "Late night, loud club. In the bathroom queue, a stranger with very friendly pupils offered me something from a tiny bag and said it would 'fix everything'.",
+    text: 'Late night, loud club. In the bathroom line, a stranger with very friendly pupils offered me something from a tiny bag and said it would "fix everything."',
     minAge: 18,
     maxAge: 29,
     weight: 1.5,
@@ -1805,7 +1805,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
               { weight: 3, effects: [{ log: 'A wild night, a terrible morning, and a creeping urge to do it again. That urge is the problem.', kind: 'bad' }] },
               {
                 weight: 1,
-                effects: [{ injury: 5 }, { stat: 'happiness', delta: -8 }, { money: -800 }, { log: "I ended up in hospital with a racing heart and a bill. The 'fix everything' guy was long gone.", kind: 'bad' }],
+                effects: [{ injury: 5 }, { stat: 'happiness', delta: -8 }, { money: -800 }, { log: 'I ended up in the hospital with a racing heart and a bill. The "fix everything" guy was long gone.', kind: 'bad' }],
               },
             ],
           },
@@ -1814,7 +1814,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
       {
         id: 'leave',
         label: 'Leave the club',
-        effects: [{ stat: 'happiness', delta: -1 }, { stat: 'health', delta: 1 }, { log: 'I left, bought chips, walked home. Sometimes the best night out ends at eleven.' }],
+        effects: [{ stat: 'happiness', delta: -1 }, { stat: 'health', delta: 1 }, { log: 'I left, bought fries, walked home. Sometimes the best night out ends at eleven.' }],
       },
     ],
   },
