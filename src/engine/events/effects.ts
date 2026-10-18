@@ -116,7 +116,7 @@ export function applyEffect(state: GameState, rng: Rng, e: Effect, ctx: EffectCo
   if ('newPerson' in e) {
     const np = e.newPerson;
     const age = np.kind === 'child' ? 0 : np.kind === 'pet' ? rng.int(0, 3) : rng.int(np.minAge ?? Math.max(1, s.character.age - 4), np.maxAge ?? s.character.age + 4);
-    const p = makePerson(rng, { kind: np.kind, age, countryCode: s.character.countryCode, playerAge: s.character.age, relationship: np.relationship ?? rng.int(45, 80), gender: np.gender, species: np.species, lastName: np.kind === 'child' ? s.character.lastName : undefined });
+    const p = makePerson(rng, { kind: np.kind, age, countryCode: s.character.countryCode, playerAge: s.character.age, relationship: np.relationship ?? rng.int(45, 80), gender: np.gender, species: np.species, lastName: np.kind === 'child' || np.kind === 'sibling' ? s.character.lastName : undefined });
     if (np.kind === 'lover' || np.kind === 'spouse') p.love = rng.int(50, 85);
     s = { ...s, people: { ...s.people, [p.id]: p } };
     if (np.kind === 'friend') s = bump(s, 'friendsMade');

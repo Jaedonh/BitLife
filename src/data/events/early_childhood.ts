@@ -533,7 +533,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     category: 'childhood',
     title: 'New baby',
     text: "{{person}}'s tummy got bigger and bigger, and then one day she came home from the hospital carrying a tiny, red, shouting person. Apparently it lives here now.",
-    minAge: 1,
+    minAge: 3,
     maxAge: 5,
     weight: 1.2,
     once: true,
@@ -543,7 +543,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
         id: 'hug',
         label: 'Hug the baby',
         effects: [
-          { newPerson: { kind: 'sibling', minAge: 0, maxAge: 0, relationship: 65, log: 'My baby sibling {{person}} came home from the hospital today.' } },
+          { newPerson: { kind: 'sibling', minAge: 0, maxAge: 0, relationship: 65, log: '{{mother}} came home from the hospital with a new baby: my little sibling, {{person}}.' } },
           { relationship: 'person', delta: 3 },
           { stat: 'happiness', delta: 3 },
           { karma: 1 },
@@ -555,7 +555,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
         id: 'return',
         label: 'Ask to send it back',
         effects: [
-          { newPerson: { kind: 'sibling', minAge: 0, maxAge: 0, relationship: 45, log: 'My baby sibling {{person}} came home from the hospital today.' } },
+          { newPerson: { kind: 'sibling', minAge: 0, maxAge: 0, relationship: 45, log: '{{mother}} came home from the hospital with a new baby: my little sibling, {{person}}.' } },
           { stat: 'happiness', delta: 2 },
           { stat: 'smarts', delta: 2 },
           { karma: -1 },
@@ -568,7 +568,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
         id: 'poke',
         label: 'Poke it',
         effects: [
-          { newPerson: { kind: 'sibling', minAge: 0, maxAge: 0, relationship: 50, log: 'My baby sibling {{person}} came home from the hospital today.' } },
+          { newPerson: { kind: 'sibling', minAge: 0, maxAge: 0, relationship: 50, log: '{{mother}} came home from the hospital with a new baby: my little sibling, {{person}}.' } },
           {
             chance: 0.5,
             then: [{ stat: 'happiness', delta: 4 }, { relationship: 'sibling', delta: 3 }, { log: 'The baby grabbed my finger and would not let go. Fine. It can stay.', kind: 'good' }],
@@ -584,7 +584,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     category: 'childhood',
     title: 'The baby cries',
     text: 'The baby cries all night, every night. {{person}} walks the hallway with it for hours, and the walls in this house are thin.',
-    minAge: 1,
+    minAge: 3,
     maxAge: 6,
     weight: 1,
     followUpOnly: true,
@@ -950,7 +950,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
         id: 'silly',
         label: 'Call it Spaghetti',
         effects: [
-          { newPerson: { kind: 'pet', species: 'dog', relationship: 75, log: 'We got a puppy. Officially {{they}} are called {{person}}. Unofficially, Spaghetti.' } },
+          { newPerson: { kind: 'pet', species: 'dog', relationship: 75, log: 'We got a puppy. Officially {{they}} is called {{person}}. Unofficially, Spaghetti.' } },
           { stat: 'happiness', delta: 7 },
           { relationship: 'mother', delta: -1 },
           { log: 'I shouted "Spaghetti!" and the puppy came running. {{mother}} refuses to shout it in the park.', kind: 'good' },

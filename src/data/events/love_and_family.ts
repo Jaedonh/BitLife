@@ -86,7 +86,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 3 },
           {
             chance: 0.6,
-            then: [{ stat: 'happiness', delta: 4 }, { log: '{{They}} fit right in, apart from the opinions about my furniture.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 4 }, { log: '{{They}} fitted right in, apart from the opinions about my furniture.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -3 }, { love: -3 }, { log: "My place became 'our place' in name only. We argued about shelves for a year.", kind: 'bad' }],
           },
         ],

@@ -1584,7 +1584,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 6 },
           { money: 600 },
           { log: 'We moved in. Two toothbrushes, one wardrobe, endless negotiations about the thermostat. Happy.', kind: 'milestone' },
-          { chance: 0.2, then: [{ stat: 'happiness', delta: -2 }, { log: 'Turns out {{they}} snore. Loudly. I now own earplugs.' }] },
+          { chance: 0.2, then: [{ stat: 'happiness', delta: -2 }, { log: 'Turns out {{they}} snores. Loudly. I now own earplugs.' }] },
         ],
       },
       {

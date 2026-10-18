@@ -407,7 +407,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
       {
         id: 'support',
         label: 'Check on {{person}}',
-        effects: [{ karma: 2 }, { relationship: 'person', delta: 6 }, { stat: 'happiness', delta: 1 }, { log: '{{person}} said {{they}} were fine, then said {{they}} were not. We talked for an hour.', kind: 'good' }],
+        effects: [{ karma: 2 }, { relationship: 'person', delta: 6 }, { stat: 'happiness', delta: 1 }, { log: '{{person}} said {{they}} was fine, then said {{they}} was not. We talked for an hour.', kind: 'good' }],
       },
       {
         id: 'nothing',
@@ -535,7 +535,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
       {
         id: 'take',
         label: 'Take the blame',
-        effects: [{ jobPerformance: -6 }, { karma: 3 }, { relationship: 'person', delta: 10 }, { stat: 'happiness', delta: -3 }, { log: 'I took it. {{person}} owes me a very large favour and {{they}} know it.', kind: 'info' }],
+        effects: [{ jobPerformance: -6 }, { karma: 3 }, { relationship: 'person', delta: 10 }, { stat: 'happiness', delta: -3 }, { log: 'I took it. {{person}} owes me a very large favour and {{they}} knows it.', kind: 'info' }],
       },
       {
         id: 'call_out',
@@ -577,7 +577,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
       {
         id: 'lunch',
         label: 'Just do the occasional lunch',
-        effects: [{ relationship: 'person', delta: 4 }, { stat: 'smarts', delta: 1 }, { jobPerformance: 2 }, { log: 'We do lunch once a month. {{They}} tell stories; I take notes.', kind: 'info' }],
+        effects: [{ relationship: 'person', delta: 4 }, { stat: 'smarts', delta: 1 }, { jobPerformance: 2 }, { log: 'We do lunch once a month. {{They}} tells stories; I take notes.', kind: 'info' }],
       },
     ],
   },

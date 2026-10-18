@@ -286,7 +286,7 @@ function writeBirthLog(state: GameState): GameState {
   const father = Object.values(state.people).find((p) => p.kind === 'father');
   const sibs = Object.values(state.people).filter((p) => p.kind === 'sibling');
   let s = log(state, `${c.birthYear}: Age 0`, 'year');
-  s = log(s, `I was born ${c.gender === 'male' ? 'a boy' : 'a girl'} named ${fullName(c)} in ${c.city}, ${country.name}. I'm a ${c.zodiac}.`, 'milestone');
+  s = log(s, `I was born ${c.gender === 'male' ? 'a boy' : 'a girl'} named ${fullName(c)} in ${c.city}, ${country.name}. I'm ${/^[AEIOU]/.test(c.zodiac) ? 'an' : 'a'} ${c.zodiac}.`, 'milestone');
   if (mother && father) s = log(s, `My parents are ${fullName(mother)} (${mother.age}), ${mother.occupation.toLowerCase()}, and ${fullName(father)} (${father.age}), ${father.occupation.toLowerCase()}.`);
   else if (mother) s = log(s, `My mother is ${fullName(mother)} (${mother.age}), ${mother.occupation.toLowerCase()}. I never knew my father.`);
   if (sibs.length === 1) s = log(s, `I have an older ${sibs[0]!.gender === 'male' ? 'brother' : 'sister'}, ${sibs[0]!.firstName}.`);

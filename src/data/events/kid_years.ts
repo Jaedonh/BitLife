@@ -543,7 +543,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ log: '{{person}} climbed it, whooped, and came down grinning. We both felt brave for free.', kind: 'good' }, { stat: 'happiness', delta: 3 }, { relationship: 'person', delta: 2 }],
-            else: [{ log: '{{person}} slipped and sprained a wrist. {{They}} blamed me. {{They}} were not entirely wrong.', kind: 'bad' }, { karma: -2 }, { relationship: 'person', delta: -4 }],
+            else: [{ log: '{{person}} slipped and sprained a wrist. {{They}} blamed me. {{They}} was not entirely wrong.', kind: 'bad' }, { karma: -2 }, { relationship: 'person', delta: -4 }],
           },
         ],
       },
@@ -1180,7 +1180,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
     id: 'kd_piggy_bank',
     category: 'childhood',
     title: 'The piggy bank',
-    text: '{{person}} left {{their}} piggy bank on the kitchen table, lid off, coins glinting. {{They}} were outside. The house was quiet. The bank was very full. I was alone with it.',
+    text: '{{person}} left {{their}} piggy bank on the kitchen table, lid off, coins glinting. {{They}} was outside. The house was quiet. The bank was very full. I was alone with it.',
     minAge: 6,
     maxAge: 11,
     weight: 1.2,

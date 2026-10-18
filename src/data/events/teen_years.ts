@@ -1293,7 +1293,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
           {
             chance: 0.3,
             then: [{ injury: 3 }, { stat: 'happiness', delta: -1 }, { log: 'I got between them and caught an elbow. Black eye, but {{person}} walked away with me.', kind: 'bad' }],
-            else: [{ stat: 'happiness', delta: 3 }, { log: 'I dragged {{person}} out before the teachers came. {{They}} were shaking. We cut the next class together.', kind: 'good' }],
+            else: [{ stat: 'happiness', delta: 3 }, { log: 'I dragged {{person}} out before the teachers came. {{They}} was shaking. We cut the next class together.', kind: 'good' }],
           },
         ],
       },

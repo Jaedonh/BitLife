@@ -530,7 +530,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           { stat: 'happiness', delta: 1 },
           { relationship: 'person', delta: -4 },
-          { log: 'I spent most of the day on the sofa scrolling. {{person}} noticed. {{They}} always notice.' },
+          { log: 'I spent most of the day on the sofa scrolling. {{person}} noticed. {{They}} always notices.' },
         ],
       },
       {
@@ -563,7 +563,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 5 },
           { karma: 1 },
           { stat: 'happiness', delta: -1 },
-          { log: 'I said I loved it. Now I must display it whenever {{they}} visit, forever. The price of kindness.' },
+          { log: 'I said I loved it. Now I must display it whenever {{they}} visits, forever. The price of kindness.' },
         ],
       },
       {
@@ -586,7 +586,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 2 },
           {
             chance: 0.3,
-            then: [{ relationship: 'person', delta: -12 }, { log: 'The re-gift made its way back to {{person}} within a year. {{They}} do not forget things like this.', kind: 'bad' }],
+            then: [{ relationship: 'person', delta: -12 }, { log: 'The re-gift made its way back to {{person}} within a year. {{They}} does not forget things like this.', kind: 'bad' }],
             else: [{ log: 'The thing has moved on to a new home. I feel lighter. Mostly.' }],
           },
         ],

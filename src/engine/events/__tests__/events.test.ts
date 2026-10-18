@@ -3,7 +3,7 @@ import { createLife, makePerson } from '../../systems/character';
 import { Rng } from '../../rng';
 import { applyEffects } from '../effects';
 import { makeRegistry, openNextEvent, resolveChoice, scheduleYearEvents } from '../select';
-import { validateEvent, type EventDef } from '../schema';
+import { textIssues, validateEvent, type EventDef } from '../schema';
 import { renderText } from '../text';
 
 const registry = makeRegistry(EVENTS);
@@ -161,3 +161,44 @@ describe('effects', () => {
     expect(a.finances.cash).toBe(b.finances.cash);
   });
 });
+
+describe('wording', () => {
+  it('flags plural verbs after {{they}}, which renders as he/she', () => {
+    expect(textIssues('{{They}} are snoring.')).not.toHaveLength(0);
+    expect(textIssues('{{person}} said {{they}} were fine.')).not.toHaveLength(0);
+    expect(textIssues("{{They}}'re late.")).not.toHaveLength(0);
+    expect(textIssues('{{They}} always notice.')).not.toHaveLength(0);
+    expect(textIssues('{{They}} is snoring. {{They}} said {{they}} was fine.')).toHaveLength(0);
+    expect(textIssues('I waved at {{person}}. Then I left.')).toHaveLength(0);
+  });
+
+  it('the journal shows the choice label as the player saw it, with placeholders rendered', () => {
+    const def: EventDef = {
+      id: 'wording_label_probe',
+      category: 'random',
+      title: 'Probe',
+      text: '{{person}} waved.',
+      minAge: 0,
+      maxAge: 120,
+      weight: 1,
+      person: { kind: ['mother'] },
+      choices: [{ id: 'hug', label: 'Hug {{them}}', effects: [{ log: 'I hugged {{them}}.' }] }],
+    };
+    const registry = makeRegistry([def]);
+    const s = createLife({ countryCode: 'US' }, 31);
+    const mother = Object.values(s.people).find((p) => p.kind === 'mother')!;
+    const opened = openNextEvent({ ...s, eventQueue: [{ eventId: def.id, context: {}, personId: mother.id }] }, registry);
+    const done = resolveChoice(opened, 'hug', registry);
+    const line = done.log.find((l) => l.kind === 'event')!.text;
+    expect(line).toContain('→ Hug her');
+    expect(line).not.toContain('{{');
+  });
+
+  it('zodiac signs starting with a vowel take "an"', () => {
+    for (let seed = 1; seed <= 60; seed++) {
+      const birth = createLife({}, seed).log[0]!.text;
+      expect(birth).not.toMatch(/\ba (Aries|Aquarius)\b/);
+    }
+  });
+});
+

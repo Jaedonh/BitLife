@@ -162,6 +162,25 @@ const KNOWN_PLACEHOLDERS = new Set([
 ]);
 
 /** Returns a list of human-readable problems; empty means valid. */
+/**
+ * {{they}}/{{They}} render as "he"/"she" (every NPC has a gender), so the verb after them must be singular:
+ * "{{They}} is", "{{they}} was", "{{they}} has", "{{they}} knows". Flags the plural forms writers reach for.
+ */
+const PLURAL_AFTER_THEY = new RegExp(
+  "\\{\\{[Tt]hey\\}\\}(?:'re|'ve|\\s+(?:(?:also|always|still|just|really|even|never|now|actually|all|both|only)\\s+)?" +
+    "(are|were|have|do|don't|aren't|weren't|haven't|know|notice|visit|need|tell|snore|want|say|think|like|love|hate|look|seem|keep|make|take|come|go|get|live|work|call|ask|try|sound|feel|mean|insist|refuse|agree|promise|sell|buy|own|play|walk|talk|sit|stand|laugh|cry|write|eat|drink|sleep|hold|give|show|turn|start|stop|help|move|pay|send|bring|leave|hope|wish|plan|wear|carry|watch|follow|mind|care|swear|claim|demand|expect|deserve|remember|forget|understand|explain|offer|deny|admit|blame|owe|wait|worry|wonder)\\b)",
+);
+
+/** Wording problems the renderer cannot fix (see CONTENT_STYLE.md). */
+export function textIssues(text: string): string[] {
+  const issues: string[] = [];
+  const m = text.match(PLURAL_AFTER_THEY);
+  if (m) issues.push(`"${m[0]}" renders as "he/she ${m[1] ?? m[0].slice(-3)}"; use the singular verb`);
+  if (/ {2,}/.test(text)) issues.push('double space');
+  if (/\s[,.!?;:]/.test(text.replace(/ \{\{/g, ' x'))) issues.push('space before punctuation');
+  return issues;
+}
+
 export function validateEvent(def: EventDef, knownIds: Set<string>): string[] {
   const errors: string[] = [];
   const where = `event ${def.id}`;
@@ -180,7 +199,8 @@ export function validateEvent(def: EventDef, knownIds: Set<string>): string[] {
   }
   const usesPerson = /\{\{(person|personFull|they|them|their|They)\}\}/.test(def.text + def.choices.map((c) => c.label + (c.hint ?? '')).join(' '));
   if (usesPerson && !def.person) errors.push(`${where}: uses person placeholders but has no person selector`);
-  for (const text of [def.text, ...def.choices.map((c) => c.label), ...def.choices.map((c) => c.hint ?? '')]) {
+  for (const text of [def.title, def.text, ...def.choices.map((c) => c.label), ...def.choices.map((c) => c.hint ?? '')]) {
+    for (const issue of textIssues(text)) errors.push(`${where}: ${issue}`);
     for (const m of text.matchAll(PLACEHOLDER_RE)) {
       const key = m[1]!.trim();
       if (key.startsWith('$')) {
@@ -203,6 +223,7 @@ function checkEffect(e: Effect, where: string, knownIds: Set<string>, errors: st
     for (const x of e.else ?? []) checkEffect(x, where, knownIds, errors);
   }
   if ('log' in e) {
+    for (const issue of textIssues(e.log)) errors.push(`${where}: ${issue}`);
     for (const m of e.log.matchAll(PLACEHOLDER_RE)) {
       const key = m[1]!.trim();
       if (key.startsWith('$')) {

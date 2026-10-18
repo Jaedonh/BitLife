@@ -91,10 +91,12 @@ export function resolveChoice(state: GameState, choiceId: string, registry: Even
   const def = registry.byId[pending.eventId];
   if (!def) return openNextEvent({ ...state, pendingEvent: null }, registry);
   const choice = def.choices.find((c) => c.id === choiceId) ?? def.choices[0]!;
+  // The journal shows the label exactly as the player saw it (placeholders already rendered).
+  const shownLabel = pending.choices.find((c) => c.id === choice.id)?.label ?? choice.label;
   const rng = new Rng(state.rng);
   let s: GameState = { ...state, pendingEvent: null, firedEvents: { ...state.firedEvents, [def.id]: state.character.age } };
   s = bump(s, 'eventsFaced');
-  s = log(s, `${pending.text} → ${choice.label}`, 'event');
+  s = log(s, `${pending.text} → ${shownLabel}`, 'event');
   s = applyEffects(s, rng, choice.effects, { personId: pending.personId, person: pending.personId ? s.people[pending.personId] : undefined });
   s = { ...s, rng: rng.snapshot() };
   return openNextEvent(s, registry);
