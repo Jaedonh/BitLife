@@ -442,14 +442,14 @@ export const PET_EVENTS: EventDef[] = [
       },
       {
         id: 'parents',
-        label: 'Ask my parents to pay',
+        label: 'Ask {{parents}} to pay',
         conditions: [{ hasPerson: ['mother', 'father'] }],
         effects: [
           { relationship: 'mother', delta: -2 },
           { relationship: 'father', delta: -2 },
           {
             chance: 0.6,
-            then: [{ relationship: 'person', delta: 5 }, { stat: 'happiness', delta: 3 }, { log: 'My parents paid, with a lecture attached. {{person}} recovered. So did I, eventually.', kind: 'good' }],
+            then: [{ relationship: 'person', delta: 5 }, { stat: 'happiness', delta: 3 }, { log: '{{parents}} paid, with a lecture attached. {{person}} recovered. So did I, eventually.', kind: 'good' }],
             else: [
               { log: 'They said no, kindly. I paid for the cheap treatment myself.' },
               { money: -180, payer: 'self' },

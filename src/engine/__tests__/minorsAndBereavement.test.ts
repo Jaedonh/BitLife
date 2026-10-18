@@ -90,7 +90,7 @@ describe('minors never pay for events or carry debt costs', () => {
     let caught: GameState | undefined;
     for (let seed = 1; seed < 400 && !caught; seed++) {
       const t = applyAction({ ...lifeAt(15), rng: { s: seed } }, { type: 'crime', id: 'shoplift' });
-      if (t.log.some((l) => l.text.includes('My parents had to pay'))) caught = t;
+      if (t.log.some((l) => l.text.includes('had to pay'))) caught = t;
     }
     expect(caught).toBeDefined();
     expect(caught!.finances.debt).toBe(0);

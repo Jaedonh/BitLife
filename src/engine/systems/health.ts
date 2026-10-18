@@ -1,11 +1,11 @@
 import { getCountry } from '@/data/countries';
 import { ILLNESSES, ILLNESS_BY_ID, shortIllnessName } from '@/data/illnesses';
 import { giveIllness } from '../events/effects';
-import { scaleMoney } from '../events/text';
+import { parentsRef, scaleMoney } from '../events/text';
 import type { Rng } from '../rng';
 import { spend } from './guardians';
 import type { AddictionKind, GameState } from '../types';
-import { addMoney, addStats, joinList, log, setResult } from '../util';
+import { addMoney, addStats, capitalize, joinList, log, setResult } from '../util';
 
 function ageBand(age: number): 0 | 1 | 2 {
   return age < 18 ? 0 : age < 65 ? 1 : 2;
@@ -15,15 +15,15 @@ function ageBand(age: number): 0 | 1 | 2 {
 const HABIT_NAMES: Record<AddictionKind, string> = { alcohol: 'drinking', drugs: 'drug', gambling: 'gambling' };
 
 /** The journal line when a parent's doctor visit clears a child's illness. */
-function parentCureLine(defId: string, name: string, chronic: boolean): string {
+function parentCureLine(defId: string, name: string, chronic: boolean, who: string): string {
   switch (defId) {
-    case 'appendicitis': return 'My parents rushed me to the hospital. The doctors took my appendix out, and I bounced back.';
-    case 'cancer': return 'My parents found me the best care they could. After a hard year of treatment, the cancer went into remission.';
-    case 'depression': return 'My parents got me help. With time and support, my depression lifted.';
-    case 'anxiety': return 'My parents got me help. With time and practice, my anxiety eased.';
-    case 'diabetes': return 'My parents took me to the doctor. A new diet and a lot of walking brought my blood sugar back under control.';
+    case 'appendicitis': return `${who} rushed me to the hospital. The doctors took my appendix out, and I bounced back.`;
+    case 'cancer': return `${who} found me the best care there was. After a hard year of treatment, the cancer went into remission.`;
+    case 'depression': return `${who} got me help. With time and support, my depression lifted.`;
+    case 'anxiety': return `${who} got me help. With time and practice, my anxiety eased.`;
+    case 'diabetes': return `${who} took me to the doctor. A new diet and a lot of walking brought my blood sugar back under control.`;
     default:
-      return chronic ? `My parents took me to the doctor, and over time my ${shortIllnessName(defId, name)} went away.` : `My parents took me to the doctor, and I got over my ${shortIllnessName(defId, name)}.`;
+      return chronic ? `${who} took me to the doctor, and over time my ${shortIllnessName(defId, name)} went away.` : `${who} took me to the doctor, and I got over my ${shortIllnessName(defId, name)}.`;
   }
 }
 
@@ -50,7 +50,7 @@ export function yearlyHealth(state: GameState, rng: Rng): GameState {
     const kept = [];
     for (const ill of s.health.illnesses) {
       const def = ILLNESS_BY_ID[ill.defId];
-      if (rng.chance(def?.cureChance ?? 0.7)) s = log(s, parentCureLine(ill.defId, ill.name, ill.chronic), 'good');
+      if (rng.chance(def?.cureChance ?? 0.7)) s = log(s, parentCureLine(ill.defId, ill.name, ill.chronic, capitalize(parentsRef(s))), 'good');
       else kept.push({ ...ill, treated: true });
     }
     s = { ...s, health: { ...s.health, illnesses: kept } };

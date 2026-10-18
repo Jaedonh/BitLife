@@ -130,7 +130,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
           { grade: -7 },
           {
             chance: 0.25,
-            then: [{ relationship: 'mother', delta: -4 }, { relationship: 'father', delta: -4 }, { log: 'My grades slipped and my parents noticed. The weekend was worth it. Probably.', kind: 'bad' }],
+            then: [{ relationship: 'mother', delta: -4 }, { relationship: 'father', delta: -4 }, { log: 'My grades slipped and {{parents}} noticed. The weekend was worth it. Probably.', kind: 'bad' }],
             else: [{ log: 'I had a great weekend and scraped through the exams. Living on the edge.' }],
           },
         ],
@@ -289,7 +289,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
       {
         id: 'leave',
         label: 'Leave early',
-        effects: [{ stat: 'happiness', delta: -2 }, { stat: 'health', delta: 1 }, { relationship: 'mother', delta: 2 }, { relationship: 'father', delta: 2 }, { log: 'I left before it got messy. My parents were weirdly proud. My friends sent photos.' }],
+        effects: [{ stat: 'happiness', delta: -2 }, { stat: 'health', delta: 1 }, { relationship: 'mother', delta: 2 }, { relationship: 'father', delta: 2 }, { log: 'I left before it got messy. {{parents}} seemed weirdly proud. My friends sent photos.' }],
       },
     ],
   },
@@ -311,7 +311,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
           {
             chance: 0.6,
             then: [{ stat: 'happiness', delta: 4 }, { log: 'I hopped two fences and walked home whistling. Nobody will ever know.', kind: 'good' }],
-            else: [{ relationship: 'mother', delta: -8 }, { relationship: 'father', delta: -8 }, { stat: 'happiness', delta: -5 }, { log: 'A very tired officer drove me home. My parents were waiting in the doorway. In bathrobes.', kind: 'bad' }],
+            else: [{ relationship: 'mother', delta: -8 }, { relationship: 'father', delta: -8 }, { stat: 'happiness', delta: -5 }, { log: 'A very tired officer drove me home. {{parents}} met me in the doorway. In a bathrobe.', kind: 'bad' }],
           },
         ],
       },
@@ -360,7 +360,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
               {
                 chance: 0.3,
                 then: [{ arrest: true }, { log: 'The owner called the police. A warning, a record, and a very quiet car ride home.', kind: 'bad' }],
-                else: [{ log: 'The owner caught my wrist at the door. Banned from the store, and he called my parents.', kind: 'bad' }],
+                else: [{ log: 'The owner caught my wrist at the door. Banned from the store, and he phoned {{parents}}.', kind: 'bad' }],
               },
             ],
             else: [{ stat: 'happiness', delta: 3 }, { relationship: 'person', delta: 3 }, { log: 'A stolen chocolate bar tastes exactly like a chocolate bar. {{person}} was impressed. I was not.' }],
@@ -742,7 +742,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
       {
         id: 'home',
         label: 'Go home',
-        effects: [{ stat: 'happiness', delta: -1 }, { stat: 'health', delta: 1 }, { relationship: 'mother', delta: 2 }, { relationship: 'father', delta: 2 }, { log: 'I went home. My parents were up, pretending not to wait. They made toast.' }],
+        effects: [{ stat: 'happiness', delta: -1 }, { stat: 'health', delta: 1 }, { relationship: 'mother', delta: 2 }, { relationship: 'father', delta: 2 }, { log: 'I went home. {{parents}} stayed up, pretending not to wait, and made toast.' }],
       },
     ],
   },
@@ -751,7 +751,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     id: 'tn_college_apps',
     category: 'school',
     title: 'College applications',
-    text: 'Senior year, and the college application portal is open. The counselor keeps saying "reach, match, safety" like it is a spell. My parents keep saying "Well?"',
+    text: 'Senior year, and the college application portal is open. The counselor keeps saying "reach, match, safety" like it is a spell. At home, every dinner ends with "Well?"',
     minAge: 17,
     maxAge: 17,
     weight: 3,
@@ -766,7 +766,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: -2 },
           {
             chance: 0.3,
-            then: [{ flag: 'tn_college_reach', set: true }, { stat: 'happiness', delta: 10 }, { relationship: 'mother', delta: 4 }, { relationship: 'father', delta: 4 }, { log: 'I got in! A thick envelope, a scream from the kitchen, and my parents dancing. It cannot be unseen.', kind: 'milestone' }],
+            then: [{ flag: 'tn_college_reach', set: true }, { stat: 'happiness', delta: 10 }, { relationship: 'mother', delta: 4 }, { relationship: 'father', delta: 4 }, { log: 'I got in! A thick envelope, a scream from the kitchen, and {{parents}} dancing. It cannot be unseen.', kind: 'milestone' }],
             else: [{ stat: 'happiness', delta: -5 }, { log: 'A thin envelope. "We regret to inform you." The regret was mutual, for about a week.', kind: 'bad' }],
           },
         ],
@@ -792,7 +792,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
       {
         id: 'none',
         label: 'Skip college',
-        effects: [{ flag: 'tn_no_college', set: true }, { stat: 'happiness', delta: 3 }, { relationship: 'mother', delta: -3 }, { relationship: 'father', delta: -3 }, { log: 'I told my parents college was not for me. Dinner was quiet. I meant it, though. Mostly.' }],
+        effects: [{ flag: 'tn_no_college', set: true }, { stat: 'happiness', delta: 3 }, { relationship: 'mother', delta: -3 }, { relationship: 'father', delta: -3 }, { log: 'I told {{parents}} college was not for me. Dinner was quiet. I meant it, though. Mostly.' }],
       },
     ],
   },
@@ -1190,11 +1190,11 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
       },
       {
         id: 'reward',
-        label: 'Ask my parents for a reward',
+        label: 'Ask {{parents}} for a reward',
         effects: [
           {
             chance: 0.6,
-            then: [{ money: 100 }, { stat: 'happiness', delta: 3 }, { log: 'My parents came through with {{$100}} and a dinner out. Academic capitalism works.', kind: 'money' }],
+            then: [{ money: 100 }, { stat: 'happiness', delta: 3 }, { log: '{{parents}} came through with {{$100}} and a dinner out. Academic capitalism works.', kind: 'money' }],
             else: [{ stat: 'happiness', delta: -1 }, { relationship: 'mother', delta: -1 }, { relationship: 'father', delta: -1 }, { log: '"Your reward is your education," they said, and went back to the crossword.' }],
           },
         ],
@@ -1211,7 +1211,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     id: 'tn_meet_parents',
     category: 'school',
     title: 'Dinner with parents',
-    text: 'I invited {{person}} over for dinner with my parents. {{They}} arrived early, with flowers, and sat on the one chair that wobbles. My mom opened with "So."',
+    text: 'I invited {{person}} over for dinner with {{parents}}. {{They}} arrived early, with flowers, and sat on the one chair that wobbles. Mom opened with "So."',
     minAge: 16,
     maxAge: 17,
     weight: 2,
@@ -1239,7 +1239,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
       {
         id: 'short',
         label: 'Keep it short',
-        effects: [{ relationship: 'person', delta: -3 }, { love: -2 }, { stat: 'happiness', delta: 1 }, { log: 'We ate fast and left for the movies. My parents said {{person}} seemed "nice, in a hurry."' }],
+        effects: [{ relationship: 'person', delta: -3 }, { love: -2 }, { stat: 'happiness', delta: 1 }, { log: 'We ate fast and left for the movies. {{parents}} said {{person}} seemed "nice, in a hurry."' }],
       },
     ],
   },

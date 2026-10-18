@@ -12,7 +12,7 @@ Events are the game. This is the house style every content drop must follow. The
 - First person, past or present tense, the character narrating: "My boss pulled me aside after the meeting."
 - 15-45 words of setup. Choice labels are imperative and ≤ 6 words. Every choice writes a first-person `log` line (≤ 100 characters) so the journal reads as a story.
 - Deadpan, absurdist, warm. Plain and respectful for serious moments (death, illness, abuse). Never explain the joke.
-- Placeholders: `{{name}} {{fullName}} {{city}} {{country}} {{demonym}} {{age}} {{year}} {{person}} {{personFull}} {{they}} {{They}} {{them}} {{their}} {{job}} {{company}} {{spouse}} {{mother}} {{father}} {{$1000}}`. Money is authored in USD and scaled per country.
+- Placeholders: `{{name}} {{fullName}} {{city}} {{country}} {{demonym}} {{age}} {{year}} {{person}} {{personFull}} {{they}} {{They}} {{them}} {{their}} {{job}} {{company}} {{spouse}} {{mother}} {{father}} {{parents}} {{$1000}}`. Money is authored in USD and scaled per country. A child's parents are `{{mother}}`/`{{father}}` ("Mom"/"Dad", needs `hasPerson`) or `{{parents}}` ("Mom and Dad", "Mom", "Dad and Maria", or "my family"); never write "my parents" for a child, and keep verbs after `{{parents}}` agreeing with one or two people ("{{parents}} paid", not "{{parents}} were").
 
 ## Design rules
 

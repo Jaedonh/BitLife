@@ -199,7 +199,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.6,
             then: [{ log: 'I returned it and apologized. The librarian waived the fine and recommended a book about squid.', kind: 'good' }, { karma: 2 }, { stat: 'smarts', delta: 2 }, { stat: 'happiness', delta: 2 }],
-            else: [{ log: 'The fine went home in a letter. My parents paid it, and I did the dishes for a month.', kind: 'bad' }, { relationship: 'mother', delta: -3 }, { stat: 'happiness', delta: -2 }],
+            else: [{ log: 'The fine went home in a letter. {{parents}} paid it, and I did the dishes for a month.', kind: 'bad' }, { relationship: 'mother', delta: -3 }, { stat: 'happiness', delta: -2 }],
           },
         ],
       },
@@ -405,7 +405,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.6,
-            then: [{ log: 'The photo came out great. Even I had to admit it. My parents ordered the large print.', kind: 'good' }, { stat: 'looks', delta: 2 }, { stat: 'happiness', delta: 3 }],
+            then: [{ log: 'The photo came out great. Even I had to admit it. {{parents}} ordered the large print.', kind: 'good' }, { stat: 'looks', delta: 2 }, { stat: 'happiness', delta: 3 }],
             else: [{ log: 'My outfit looked loud in print. I am immortalized, unfortunately, in the yearbook.' }, { stat: 'happiness', delta: -2 }],
           },
         ],
@@ -1404,20 +1404,20 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
       },
       {
         id: 'parents',
-        label: 'Ask my parents for help',
+        label: 'Ask {{parents}} for help',
         conditions: [{ hasPerson: ['mother', 'father'] }],
         effects: [
           {
             chance: 0.5,
             then: [
-              { log: 'My parents scraped the money together. I sent a postcard from every city. They kept all of them.', kind: 'milestone' },
+              { log: '{{parents}} scraped the money together. I sent a postcard from every city. They kept all of them.', kind: 'milestone' },
               { stat: 'happiness', delta: 10 },
               { stat: 'smarts', delta: 6 },
               { relationship: 'mother', delta: 4 },
               { relationship: 'father', delta: 4 },
               { counter: 'vacations' },
             ],
-            else: [{ log: 'My parents could not manage it. We had a long, kind conversation instead. I stayed.' }, { stat: 'happiness', delta: -3 }, { relationship: 'mother', delta: 2 }, { relationship: 'father', delta: 2 }],
+            else: [{ log: '{{parents}} could not manage it. We had a long, kind conversation instead. I stayed.' }, { stat: 'happiness', delta: -3 }, { relationship: 'mother', delta: 2 }, { relationship: 'father', delta: 2 }],
           },
         ],
       },

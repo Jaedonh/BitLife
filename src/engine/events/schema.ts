@@ -173,7 +173,7 @@ export interface EventDef {
 
 const PLACEHOLDER_RE = /\{\{([^}]+)\}\}/g;
 const KNOWN_PLACEHOLDERS = new Set([
-  'name', 'fullName', 'city', 'country', 'age', 'person', 'personFull', 'they', 'them', 'their', 'They', 'job', 'company', 'spouse', 'mother', 'father', 'he', 'she', 'his', 'him', 'demonym', 'year',
+  'name', 'fullName', 'city', 'country', 'age', 'person', 'personFull', 'they', 'them', 'their', 'They', 'job', 'company', 'spouse', 'mother', 'father', 'parents', 'he', 'she', 'his', 'him', 'demonym', 'year',
 ]);
 
 /** Returns a list of human-readable problems; empty means valid. */
@@ -239,6 +239,11 @@ export function validateEvent(def: EventDef, knownIds: Set<string>): string[] {
       if (JSON.stringify(c).includes(ph) && !requiresPerson(c.conditions, k)) errors.push(`${where}: choice ${c.id} uses ${ph} but neither it nor the event requires a living ${k} ({ hasPerson: ['${k}'] })`);
     }
   }
+  // A child does not say "my parents" (one may be dead, or a step-parent at home): {{parents}} renders whoever is there.
+  const orphanOnly = requiresNo(def.conditions, 'mother') && requiresNo(def.conditions, 'father');
+  if (def.minAge < 18 && !orphanOnly && /\b[Mm]y parents\b/.test(JSON.stringify(def.choices) + def.title + def.text)) {
+    errors.push(`${where}: says "my parents" in an event open to children; use {{parents}} (renders "Mom and Dad", "Mom", "Dad and Maria" or "my family")`);
+  }
   const usesPerson = /\{\{(person|personFull|they|them|their|They)\}\}/.test(def.text + def.choices.map((c) => c.label + (c.hint ?? '')).join(' '));
   if (usesPerson && !def.person) errors.push(`${where}: uses person placeholders but has no person selector`);
   for (const text of [def.title, def.text, ...def.choices.map((c) => c.label), ...def.choices.map((c) => c.hint ?? '')]) {
@@ -251,6 +256,10 @@ export function validateEvent(def: EventDef, knownIds: Set<string>): string[] {
     }
   }
   return errors;
+}
+
+function requiresNo(conditions: readonly Condition[] | undefined, kind: 'mother' | 'father'): boolean {
+  return (conditions ?? []).some((c) => ('noPerson' in c && c.noPerson.includes(kind)) || ('all' in c && requiresNo(c.all, kind)));
 }
 
 function requiresPerson(conditions: readonly Condition[] | undefined, kind: 'mother' | 'father'): boolean {

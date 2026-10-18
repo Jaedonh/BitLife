@@ -1,9 +1,9 @@
 import { getCountry } from '@/data/countries';
 import { GRAD_BY_ID, GRADUATE_PROGRAMS, MAJOR_BY_ID, majorProse, MAJORS } from '@/data/majors';
-import { scaleMoney } from '../events/text';
+import { parentsRef, scaleMoney } from '../events/text';
 import type { Rng } from '../rng';
 import type { GameState } from '../types';
-import { actionCount, addMoney, addStats, clampStat, countAction, log, money, setResult, withArticle } from '../util';
+import { actionCount, addMoney, addStats, capitalize, clampStat, countAction, log, money, setResult, withArticle } from '../util';
 
 export const STAGE_LABELS: Record<string, string> = {
   none: 'Not in school',
@@ -148,10 +148,11 @@ export function skipClass(state: GameState, rng: Rng): GameState {
       s = addStats(log(s, college ? 'I skipped class and got caught. The professor noticed, and so did my grade.' : 'I skipped class and got caught. Detention, and a note in my file.', 'bad'), { happiness: -3 });
       return setResult(s, college ? 'Caught skipping. My grade took the hit.' : 'Caught skipping. Detention.', 'bad');
     }
-    s = log(s, college ? 'I skipped class and got caught. Word got back to my parents, who were furious.' : 'I skipped class and got caught. My parents were furious.', 'bad');
+    const who = parentsRef(s);
+    s = log(s, college ? `I skipped class and got caught. Word got back to ${who}.` : `I skipped class and got caught. ${capitalize(who)} found out, and I was grounded.`, 'bad');
     for (const p of Object.values(s.people)) if ((p.kind === 'mother' || p.kind === 'father') && p.alive) s = { ...s, people: { ...s.people, [p.id]: { ...p, relationship: clampStat(p.relationship - 6) } } };
     s = addStats(s, { happiness: -3 });
-    return setResult(s, college ? 'Caught skipping. My parents heard about it.' : 'Caught skipping. Grounded.', 'bad');
+    return setResult(s, college ? `Caught skipping. ${capitalize(who)} heard about it.` : 'Caught skipping. Grounded.', 'bad');
   }
   s = addStats(s, { happiness: 4 });
   s = log(s, 'I skipped class and spent the day doing nothing in particular.');
@@ -217,7 +218,8 @@ export function enroll(state: GameState, rng: Rng, id: string): GameState {
   const university = opt.kind === 'university';
   // "computer science" for a major, "medical school" for a graduate program.
   const prose = university ? majorProse(id) : (GRAD_BY_ID[id]?.prose ?? opt.name);
-  if (wealthy && !scholarship) s = log(s, university ? `My parents are paying for my ${prose} degree. I know how lucky I am.` : `My parents are paying for ${prose}. I know how lucky I am.`, 'good');
+  const payers = capitalize(parentsRef(s));
+  if (wealthy && !scholarship) s = log(s, university ? `${payers} will pay for my ${prose} degree. I know how lucky I am.` : `${payers} will pay for ${prose}. I know how lucky I am.`, 'good');
   if (scholarship) s = log(s, university ? `I won a full scholarship to study ${prose}!` : `I won a full scholarship to ${prose}!`, 'good');
   s = log(s, university ? `I started university as ${withArticle(prose)} major.` : `I started ${prose}.`, 'milestone');
   s = addStats(s, { happiness: 4 });

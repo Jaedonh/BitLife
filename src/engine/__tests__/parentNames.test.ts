@@ -89,4 +89,17 @@ describe('parents in first-person narration', () => {
     }
     expect(problems).toEqual([]);
   });
+
+  it('{{parents}} names whoever is at home, and still reads when nobody is', () => {
+    const { s, mother, father, stepmother } = family();
+    const dead = (st: GameState, p: Person) => ({ ...st, people: { ...st.people, [p.id]: { ...p, alive: false } } });
+    const without = (st: GameState, p: Person) => Object.fromEntries(Object.entries(st.people).filter(([id]) => id !== p.id));
+    const line = '{{parents}} paid. Ask {{parents}} first.';
+    const noStep = { ...s, people: without(s, stepmother) };
+    expect(renderText(line, noStep)).toBe('Mom and Dad paid. Ask Mom and Dad first.');
+    expect(renderText(line, dead(noStep, father))).toBe('Mom paid. Ask Mom first.');
+    expect(renderText(line, dead(s, mother))).toBe('Dad and Gwen paid. Ask Dad and Gwen first.');
+    expect(renderText(line, dead(dead(noStep, mother), father))).toBe('My family paid. Ask my family first.');
+  });
 });
+

@@ -26,6 +26,20 @@ export function personRef(p: Pick<Person, 'kind' | 'firstName'>): string {
   return p.firstName;
 }
 
+/**
+ * The grown-ups at home, as a child says it: "Mom and Dad", "Mom", "Dad and Maria" (a step-parent by name),
+ * or "my family" when no parent is alive. Content using {{parents}} keeps verbs that agree with one or two
+ * people (past tense: "{{parents}} paid", not "{{parents}} were").
+ */
+export function parentsRef(state: GameState): string {
+  const mom = findKind(state, 'mother');
+  const dad = findKind(state, 'father');
+  const step = [findKind(state, 'stepmother'), findKind(state, 'stepfather')].filter((x): x is Person => !!x);
+  const names = [...(mom ? ['Mom'] : []), ...(dad ? ['Dad'] : []), ...(mom && dad ? [] : step.map((x) => x.firstName))];
+  if (!names.length) return 'my family';
+  return names.length === 1 ? names[0]! : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+}
+
 /** True when a placeholder at `offset` opens a sentence (or a quote), so its value needs a capital letter. */
 function startsSentence(whole: string, offset: number): boolean {
   return /(^\s*["'“‘(]?|[.!?…]["'”’)]?\s+["'“‘(]?|\n\s*["'“‘(]?)$/.test(whole.slice(0, offset));
@@ -80,6 +94,7 @@ export function renderText(template: string, state: GameState, ctx: TextContext 
       // A living parent is "Mom"/"Dad"; with none alive the line still reads ("my mother").
       case 'mother': return findKind(state, 'mother') ? 'Mom' : 'my mother';
       case 'father': return findKind(state, 'father') ? 'Dad' : 'my father';
+      case 'parents': return parentsRef(state);
       default: return `{{${key}}}`;
     }
   }

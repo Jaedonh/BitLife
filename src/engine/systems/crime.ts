@@ -1,10 +1,10 @@
 import { CRIME_BY_ID, type CrimeDef } from '@/data/crimes';
 import { sendToPrison } from '../events/effects';
-import { scaleMoney } from '../events/text';
+import { parentsRef, scaleMoney } from '../events/text';
 import { guardianFunds, payForMinor } from './guardians';
 import type { Rng } from '../rng';
 import type { ActionAvailability, GameState } from '../types';
-import { addKarma, addMoney, addStats, bump, clampStat, log, money, plural, setResult, actionCount, countAction } from '../util';
+import { addKarma, addMoney, addStats, bump, capitalize, clampStat, log, money, plural, setResult, actionCount, countAction } from '../util';
 
 export function crimeAvailability(state: GameState, def: CrimeDef): ActionAvailability {
   if (state.character.age < def.minAge) return { available: false, reason: `Age ${def.minAge}+` };
@@ -55,7 +55,7 @@ export function commitCrime(state: GameState, rng: Rng, id: string): GameState {
       const text = !minor
         ? `I was caught ${def.gerund} and fined ${money(s, fine)}. It's on my record now.`
         : parentsPay
-          ? `I was caught ${def.gerund}. My parents had to pay a ${money(s, fine)} fine, and it's on my record now.`
+          ? `I was caught ${def.gerund}. ${capitalize(parentsRef(s))} had to pay a ${money(s, fine)} fine, and it's on my record now.`
           : `I was caught ${def.gerund}. I was too young to be fined, but it's on my record now.`;
       s = log(s, text, 'bad');
       return setResult(s, text, 'bad', { moneyDelta: minor ? 0 : -fine });

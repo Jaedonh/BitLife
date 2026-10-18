@@ -107,7 +107,9 @@ export function onNpcDeath(state: GameState, p: Person, rng: Rng, opts: { announ
   const name = p.kind === 'pet' ? p.firstName : fullName(p);
   if (announce) {
     // An event that kills someone writes its own line and grief instead.
-    s = log(s, `My ${label} ${name} ${deathPhrase(p.deathCause)} at ${p.age}.`, 'bad');
+    // A parent is Mom or Dad here too, as everywhere else in the journal.
+    const who = p.kind === 'mother' || p.kind === 'father' ? personRef(p) : `My ${label} ${name}`;
+    s = log(s, `${who} ${deathPhrase(p.deathCause)} at ${p.age}.`, 'bad');
     const grief = p.kind === 'spouse' || p.kind === 'child' ? -25 : p.kind === 'mother' || p.kind === 'father' ? -15 : p.kind === 'pet' ? -8 : close ? -10 : -3;
     s = addStats(s, { happiness: Math.round(grief * (close ? 1 : 0.5)) });
   }
