@@ -75,6 +75,11 @@ function sampleStates(n: number, recklessLives = 20, registry = makeRegistry([])
         s = applyEffects(s, petRng, [{ newPerson: { kind: 'pet', species: seed % 4 === 0 ? 'dog' : 'cat' } }]);
       }
       for (const a of policy(s, rng)) s = applyAction(s, a);
+      // An arrest opens a court card; answer it before the next year, as the app does.
+      while (s.pendingEvent && guard++ < 40) {
+        const choice = seedOffset ? choiceRng.pick(s.pendingEvent.choices) : s.pendingEvent.choices[0]!;
+        s = resolveChoice(s, choice.id, registry);
+      }
       s = buyHomeAndCar(s, seed);
       states.push(s);
     }

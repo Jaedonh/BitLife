@@ -98,10 +98,14 @@ export function buildObituary(state: GameState, cause: string, worth: number, ri
   const country = getCountry(c.countryCode);
   const ageText = c.age === 0 ? 'just months old' : String(c.age);
   const opening = `${fullName(c)}, ${ageText}, of ${c.city}, ${country.name}, ${deathPhrase(cause)}.`;
+  // Convictions sealed with a juvenile record at 18 are not on the record any more.
+  const onRecord = state.crime.convictions - (state.crime.sealedConvictions ?? 0);
   const crimeText = state.crime.inPrison
-    ? ` ${p.Subject} died while serving a prison sentence.`
-    : state.crime.convictions > 0
-      ? ` ${p.Subject} had ${numberWord(state.crime.convictions)} ${state.crime.convictions === 1 ? 'conviction' : 'convictions'} on record.`
+    ? state.crime.juvenile
+      ? ` ${p.Subject} died while in juvenile detention.`
+      : ` ${p.Subject} died while serving a prison sentence.`
+    : onRecord > 0
+      ? ` ${p.Subject} had ${numberWord(onRecord)} ${onRecord === 1 ? 'conviction' : 'convictions'} on record.`
       : '';
   const lastJob = state.career.job ?? null;
 

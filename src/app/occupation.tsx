@@ -81,7 +81,7 @@ export default function OccupationScreen() {
   const openHustles = hustles.filter((h) => h.eligible).length;
 
   const subtitle = (() => {
-    if (inPrison) return 'In prison';
+    if (inPrison) return game.crime.juvenile ? 'Juvenile detention' : 'In prison';
     if (job) return `${job.title} · ${employerLabel(job.company)}`;
     if (edu.enrolled) return STAGE_LABELS[edu.stage];
     if (early) return early.title;
@@ -118,10 +118,20 @@ export default function OccupationScreen() {
       <ScreenHeader title="Work & School" subtitle={subtitle} />
       <ScrollView contentContainerStyle={styles.content}>
         {inPrison ? (
-          <Card style={styles.card}>
-            <T kind="subheading">🔒 In prison</T>
+          <Card style={styles.card} testID="prison-card">
+            <T kind="subheading">{game.crime.juvenile ? '🔒 Juvenile detention' : '🔒 In prison'}</T>
             <T kind="small">
-              {game.crime.sentenceYearsLeft} {game.crime.sentenceYearsLeft === 1 ? 'year' : 'years'} left on your sentence. No work or school until you are released.
+              {game.crime.sentenceYearsLeft} {game.crime.sentenceYearsLeft === 1 ? 'year' : 'years'} left
+              {game.crime.juvenile ? '. School carries on inside; no work until you are released.' : ' on your sentence. No work or school until you are released.'}
+            </T>
+          </Card>
+        ) : null}
+
+        {!inPrison && (game.crime.paroleYearsLeft ?? 0) > 0 ? (
+          <Card style={styles.card} testID="parole-card">
+            <T kind="subheading">🪪 On parole</T>
+            <T kind="small">
+              {game.crime.paroleYearsLeft} {game.crime.paroleYearsLeft === 1 ? 'year' : 'years'} left. Another conviction would count double.
             </T>
           </Card>
         ) : null}

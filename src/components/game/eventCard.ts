@@ -90,6 +90,9 @@ export function eventCardModel(game: GameState, pending: PendingEvent): EventCar
   const person = p ? { emoji: kindEmoji(p), name: personName(p), relation: kindLabel(p) } : null;
   const choices = pending.choices.map((c): EventChoiceModel => {
     if (!c.hint) return { id: c.id, label: c.label, tone: 'neutral', accessibilityLabel: c.label };
+    // A code-defined card (the court's lawyer fee) sets its chip's tone itself; its hint already says it all.
+    const forced = pending.context?.[`tone:${c.id}`];
+    if (forced === 'cost' || forced === 'credit' || forced === 'gain' || forced === 'neutral') return { id: c.id, label: c.label, chip: c.hint, tone: forced, accessibilityLabel: `${c.label}, ${c.hint}` };
     const tone = hintTone(game, certainMoney(def?.choices.find((d) => d.id === c.id)));
     const chip = tone === 'credit' ? `${c.hint} · on credit` : c.hint;
     const spoken = tone === 'credit' ? `${c.hint}, more than your cash, the rest becomes debt` : c.hint;

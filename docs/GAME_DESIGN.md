@@ -21,7 +21,7 @@ Working title "LifeLoop"; Teen / 13+ content rating target.
 1. Advance age and year; reset per-year counters and energy.
 2. Milestone line (13, 18, 21, 30, 40, 50, 65, 80, 90, 100).
 3. Stat drift (§3).
-4. Prison year (if imprisoned).
+4. Prison year (if imprisoned): release, or a parole hearing card once half is served; outside, parole counts down, and at 18 a juvenile record is sealed (§14).
 5. Education (§6).
 6. Career and side hustle (§7, §8).
 7. Assets: value drift, wear, mortgage amortisation (§11).
@@ -122,7 +122,22 @@ Yearly: neglected people (no interaction during the year just played) lose relat
 
 ## 14. Crime and prison
 
-Seven crimes (shoplift, pickpocket, vandalism, burglary, car theft, online fraud, bank robbery) with success chance (25-75%, +Smarts, +8% rebellious, +5% lucky, −notoriety), payouts, arrest chance on failure, sentences (0-20 years), karma hits and injury chances. Caught without a sentence → fine and a criminal record; convicted → prison: job lost, school ended, no expenses but no income, 15%/yr yard fights, release logged. A new sentence while inside is added to the years left; arrest and court events written for the outside do not open in prison. From prison only calls and visits work (conversation, compliment, insult, break up); dates, gifts, money, proposals and babies wait for release, and no event brings a new partner. Records block many jobs and reduce interview odds.
+Seven crimes (shoplift, pickpocket, vandalism, burglary, car theft, online fraud, bank robbery) with success chance (25-75%, +Smarts, +8% rebellious, +5% lucky, −notoriety), payouts, arrest chance on failure, sentences (0-20 years), karma hits and injury chances. Caught without a sentence → fine and a criminal record; caught with one → a court card (below); convicted → prison: job lost, school ended, no expenses but no income, 15%/yr yard fights, release logged. A new sentence while inside is added to the years left; arrest and court events written for the outside do not open in prison. From prison only calls and visits work (conversation, compliment, insult, break up); dates, gifts, money, proposals and babies wait for release, and no event brings a new partner. Records block many jobs and reduce interview odds.
+
+**Court, juvenile court, parole** (`src/engine/systems/justice.ts`). An arrest that carries a sentence opens the court card `sys_trial` (a code-defined event in every registry, category crime), which names the charge and the possible sentence; the case lives in the card's context and the `trial` effect settles it:
+
+| Choice | Acquittal chance | If convicted |
+| --- | --- | --- |
+| Plead guilty | none (karma +1) | sentence × 0.6, rounded, min 1 |
+| Public defender (free) | 20% + max(0, Smarts − 50)/250 − notoriety/300 (3-60%) | full sentence |
+| Hire a lawyer ($4k for a 1-year charge → $60k for 15+, country-scaled, paid up front; a minor's parents pay first) | 60% → 45% as the charge grows, + (Smarts − 50)/500 − notoriety/400 (20-85%) | sentence × 0.8 |
+| Represent myself | 10% + (Smarts − 50)/150 (2-60%) | sentence × 1.3 |
+
+The chips show the fee and the odds in words ("a long shot", "probably lose", "could go either way", "probably win", "almost sure to win"), never percentages. A lawyer the player cannot pay refuses, and the card comes back without that choice. An acquittal counts the arrest (notoriety +2) but leaves no record. Notoriety grows by 3 per year of the sentence passed (rounded, at least 1), never by the unrounded figure. Event `prison` effects narrate their own verdict and skip the court; after the event's lines the journal says when parole doubled that sentence or a minor serves it in juvenile detention (and for how long, if the cap cut it).
+
+Under 18 the case goes to juvenile court, which asks for at most 2 years (the plea deal and a lawyer work down from that), and any sentence (from the court or an event) means **juvenile detention**: at most 2 years in all, out by 18, and school carries on inside ("I did my schoolwork in detention."; a diploma can be earned there). Only events with `{ inPrison: true }` and `{ juvenile: true }` open in detention, and those never open in adult prison. On release before 18 (or before the country's high school end age) without a diploma, a student goes back to school (a dropout does not). At 18 a juvenile record is sealed: `record` is cleared and the sealed convictions leave the obituary; an adult conviction stays.
+
+**Parole.** Once an adult has served half of the current stay (sentences added inside lengthen it), each year has a 30% chance of a parole hearing card `sys_parole`, +5% per good-conduct write-up (`cp_prison_good_conduct`), −5% per infraction (`cp_prison_infraction`), +20% after a board recommendation (`cp_parole_recommended`), 10-80%. At the hearing, showing remorse or talking about plans is granted at 40% +7%/good conduct −8%/infraction +15% recommended (+10% remorse, or ± Smarts), or the player can waive it and serve the full time (no more hearings that stay). The content parole board (`cp_parole_hearing`) does not sit in a year the hearing does. Parole releases the player with the `parole` flag for 2 years; a conviction while on parole counts double (the court card says so) and ends it. Every release writes a release-day line and sets the `released` flag for re-entry events.
 
 No casino, lottery or drug menus in the MVP: any simulated-gambling feature makes the iOS app R18+ in Australia and 18+ everywhere if "frequent"; alcohol and drugs appear only as event temptations with consequences (see roadmap).
 
@@ -135,7 +150,7 @@ Events are data (`src/data/events/*.ts`) validated by `src/engine/events/schema.
   choices: [{ id, label, hint?, conditions?, effects: Effect[] }] }
 ```
 
-Conditions cover stats, money, net worth, income, flags, job/category/level, school stage/grade, marital status, children, people of a kind, country, prison, record, traits, gender, karma, fame, addictions, assets, hustles, retirement, illness count, and whether another event fired. Effects cover stat/money/karma/fame/energy deltas, journal lines, flags, relationship and love deltas, removing or killing the bound person, creating people (friend, lover, child, pet…), death, prison, arrest, illness, cure, addiction, injury, job loss, performance, grade, expulsion, queued follow-ups, counters, weighted `random` outcomes, `chance` branches, asset damage/loss and achievements. Text supports `{{name}} {{person}} {{they}} {{$1000}}`-style placeholders.
+Conditions cover stats, money, net worth, income, flags, job/category/level, school stage/grade, marital status, children, people of a kind, country, prison, juvenile detention, record, traits, gender, karma, fame, addictions, assets, hustles, retirement, illness count, and whether another event fired. Effects cover stat/money/karma/fame/energy deltas, journal lines, flags, relationship and love deltas, removing or killing the bound person, creating people (friend, lover, child, pet…), death, prison, arrest, illness, cure, addiction, injury, job loss, performance, grade, expulsion, queued follow-ups, counters, weighted `random` outcomes, `chance` branches, asset damage/loss and achievements. Text supports `{{name}} {{person}} {{they}} {{$1000}}`-style placeholders.
 
 Selection per year: ages 0-2: 45% one event; 3-5: 75%; 6-17: 1 + 35% second; 18-69: 92% one, +40% second, +8% third; 70+: 1 + 30% second. Eligible = age range, conditions, `once`/`cooldown` (default 2 years), and a bindable person. Weighted pick without replacement, same-category repeats weighted ×0.25. Dead or departed bound people invalidate a queued event.
 

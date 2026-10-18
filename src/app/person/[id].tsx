@@ -140,7 +140,7 @@ export default function PersonScreen() {
               </View>
             }
           >
-            {game.crime.inPrison ? <T kind="small">🔒 You are in prison: only phone calls and visits until you are released.</T> : null}
+            {game.crime.inPrison ? <T kind="small">🔒 You are in {game.crime.juvenile ? 'juvenile detention' : 'prison'}: only phone calls and visits until you are released.</T> : null}
             {notice ? <Notice result={notice} countryCode={cc} /> : null}
             {friendly.length ? <PeopleInteractionGrid tiles={friendly} countryCode={cc} onPress={run} /> : null}
             {risky.length ? (

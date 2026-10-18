@@ -5,7 +5,7 @@ Events are the game. This is the house style every content drop must follow. The
 ## Files and ids
 
 - One file per theme in `src/data/events/`, exporting `export const <THEME>_EVENTS: EventDef[]`. Run `node scripts/register-events.mjs` to wire it into the registry, then `npm test`.
-- Ids are `snake_case` with a two-letter file prefix (`ec_`, `kd_`, `tn_`, `ya_`, `ad_`, `ll_`, `wk_`, `lf_`, `hl_`, `mn_`, `cp_`, `fs_`, `sl_`, `nc_`, `tr_`, `pt_`, `tm_`, `hd_`). Ids never change once shipped (saves reference them).
+- Ids are `snake_case` with a two-letter file prefix (`ec_`, `kd_`, `tn_`, `ya_`, `ad_`, `ll_`, `wk_`, `lf_`, `hl_`, `mn_`, `cp_`, `fs_`, `sl_`, `nc_`, `tr_`, `pt_`, `tm_`, `hd_`, `jd_`). `sys_` is reserved for the engine's own cards. Ids never change once shipped (saves reference them).
 
 ## Voice
 
@@ -22,6 +22,7 @@ Events are the game. This is the house style every content drop must follow. The
 - Death only when the situation is genuinely lethal and always behind `chance ≤ 0.15`. Prison 1-8 years; a sentence passed while already inside is added to the time left.
 - An event with an `arrest` or `prison` effect says where it happens: `inPrison: false` in its conditions (or `inPrison: true` if it is written for prison, or on the jailing choice itself). The validator rejects one that does not, so a raid, a court date or a dare never reaches a player who is already serving time.
 - Prison is its own world: while the player is in prison, only events whose conditions include `{ inPrison: true }` can open (random or queued). Everything else waits until release, so ordinary events do not need an `inPrison: false` guard just to stay out of prison.
+- Juvenile detention is its own world inside that one: a player sentenced before 18 serves in detention, where only events with both `{ inPrison: true }` and `{ juvenile: true }` open (`juvenile_detention.ts`), and those never open in adult prison. School carries on inside, so a classroom card also needs `{ enrolled: true }`. Re-entry cards can use the `released` flag (set at every release) and the `parole` flag (two years after an early release).
 - A `personDies` effect is announced and grieved by the content, not the engine: the same effects list (or every branch of a `chance`/`random` in it) needs a `log` line and a happiness loss, and `personDies` goes after the log so the story line comes before any inheritance line. The engine still handles inheritance and orphan care.
 - Costs for a player under 18 fall on their parents. A choice that has the child spend their own money (offered only with a `money` condition) marks its costs `payer: 'self'`; the validator enforces this.
 - Weights: 0.3 rare, 1 normal, 3 common. Use `once` for life milestones and `cooldown` (years) for things that should not repeat soon; the engine's default minimum gap is 2 years.

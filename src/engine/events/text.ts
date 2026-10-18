@@ -4,6 +4,8 @@ import { article, capitalize, formatMoney, lowerTitle, pronouns } from '../util'
 
 export interface TextContext {
   person?: Person;
+  /** Values for a code-defined card's own placeholders (EventDef.vars), from its queued context. */
+  vars?: Readonly<Record<string, string>>;
 }
 
 /** Money values in content are authored in USD; scale to the character's economy. */
@@ -55,6 +57,7 @@ export function renderText(template: string, state: GameState, ctx: TextContext 
   });
 
   function placeholder(key: string): string {
+    if (ctx.vars && Object.prototype.hasOwnProperty.call(ctx.vars, key)) return ctx.vars[key]!;
     if (key.startsWith('$')) return formatMoney(scaleMoney(state, Number(key.slice(1))), c.countryCode);
     switch (key) {
       case 'name': return c.firstName;

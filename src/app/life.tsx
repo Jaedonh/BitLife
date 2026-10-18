@@ -1,4 +1,4 @@
-import { Redirect, router } from 'expo-router';
+import { Redirect, router, useIsFocused } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -23,6 +23,8 @@ export default function LifeScreen() {
   const tutorialDone = useSettingsStore((s) => s.settings.tutorialDone);
   const setSetting = useSettingsStore((s) => s.setSetting);
   const alive = game?.alive;
+  // Event cards show on the screen on top: a court card opened from Activities appears there instead.
+  const focused = useIsFocused();
 
   useEffect(() => {
     if (game && !alive) router.replace('/death');
@@ -55,7 +57,7 @@ export default function LifeScreen() {
         <BannerSlot clearance={AGE_BUTTON_OVERHANG + spacing.xs} />
         <AgeUpBar />
       </View>
-      <EventModal />
+      {focused ? <EventModal /> : null}
       <LifeProfileSheet game={game} visible={profileOpen} onClose={() => setProfileOpen(false)} />
     </Screen>
   );

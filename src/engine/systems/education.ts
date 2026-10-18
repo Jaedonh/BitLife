@@ -41,7 +41,8 @@ export function yearlyEducation(state: GameState, rng: Rng): GameState {
   const c = s.character;
   const country = getCountry(c.countryCode);
   const edu = s.education;
-  if (s.crime.inPrison) return edu.enrolled ? { ...s, education: { ...edu, enrolled: false } } : s;
+  // School carries on in juvenile detention; adult prison ends it.
+  if (s.crime.inPrison && !s.crime.juvenile) return edu.enrolled ? { ...s, education: { ...edu, enrolled: false } } : s;
 
   // Auto-enroll in compulsory school
   if (!edu.enrolled && !edu.droppedOut && !edu.expelled) {
@@ -50,6 +51,7 @@ export function yearlyEducation(state: GameState, rng: Rng): GameState {
     if (c.age === 14 && (edu.stage === 'middle' || edu.stage === 'primary')) return startStage(s, 'high');
   }
   if (!edu.enrolled) return s;
+  if (s.crime.inPrison) s = log(s, 'I did my schoolwork in detention.');
 
   // Grade movement
   let delta = (c.stats.smarts - 50) / 10 + rng.int(-5, 5);
@@ -123,6 +125,7 @@ export const SKIP_CLASS_ENERGY = 1;
 /** Why skipping class is not possible right now (null when it is). */
 export function skipClassBlocker(state: GameState): string | null {
   if (!state.education.enrolled) return "I'm not in school right now.";
+  if (state.crime.inPrison) return 'There is no skipping class in detention.';
   if (actionCount(state, 'skipClass') >= SKIP_CLASS_PER_YEAR) return "I've skipped enough this year.";
   if (state.character.energy < SKIP_CLASS_ENERGY) return "I'm out of energy this year. Age up to recharge.";
   return null;
@@ -133,7 +136,31 @@ export function dropOutBlocker(state: GameState): string | null {
   const edu = state.education;
   if (!edu.enrolled) return "I'm not in school right now.";
   if (state.character.age < 16 || edu.stage === 'primary' || edu.stage === 'middle') return "I'm too young to drop out.";
+  if (state.crime.inPrison) return 'Not from detention.';
   return null;
+}
+
+/**
+ * After a release: a young person without a diploma goes back to school (a new one, if they were expelled),
+ * unless they had chosen to drop out. Adults past school age have no way back yet.
+ */
+export function returnToSchool(state: GameState): GameState {
+  const edu = state.education;
+  const age = state.character.age;
+  const country = getCountry(state.character.countryCode);
+  if (edu.enrolled || edu.droppedOut || hasHighSchool(state)) return state;
+  if (age < country.schoolStartAge || age >= Math.max(18, country.highSchoolEndAge)) return state;
+  if (edu.stage === 'university' || edu.stage === 'graduate') return state;
+  const stage = age >= 14 ? 'high' : age >= 11 ? 'middle' : 'primary';
+  // A student picks up where they left off; anyone else starts the stage for their age.
+  const same = edu.stage === stage;
+  const smarts = state.character.stats.smarts;
+  let s: GameState = {
+    ...state,
+    education: { ...edu, stage, enrolled: true, expelled: false, yearsInStage: same ? edu.yearsInStage : 0, grade: same ? edu.grade : clampStat(50 + (smarts - 50) / 2) },
+  };
+  s = log(s, `I went back to ${STAGE_LABELS[stage]!.toLowerCase()}. A few people stared. Most had their own problems.`, 'milestone');
+  return s;
 }
 
 export function skipClass(state: GameState, rng: Rng): GameState {

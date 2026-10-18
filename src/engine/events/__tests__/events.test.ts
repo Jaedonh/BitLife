@@ -147,6 +147,8 @@ describe('effects', () => {
 
   it('prison removes the job and marks a record', () => {
     let s = createLife({}, 12);
+    // An adult: under 18 a sentence means juvenile detention, capped at two years (justice.test.ts).
+    s = { ...s, character: { ...s.character, age: 30 } };
     s = { ...s, career: { ...s.career, job: { defId: 'x', title: 'Clerk', company: 'Acme', salary: 1, level: 0, performance: 50, yearsHeld: 2, yearsAtLevel: 2, category: 'office', partTime: false, askedThisYear: false, workedHarderThisYear: false } } };
     s = applyEffects(s, new Rng(2), [{ prison: 3 }]);
     expect(s.crime.inPrison).toBe(true);
