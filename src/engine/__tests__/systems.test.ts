@@ -360,6 +360,15 @@ describe('asset conditions', () => {
     expect(evaluateCondition(withAsset('condo', 'house'), { noAsset: 'house' })).toBe(false);
   });
 
+  it('jobId matches a specific job and sinceEvent measures years since an event fired', () => {
+    const s = createLife({}, 13);
+    const at30 = { ...s, character: { ...s.character, age: 30 }, firedEvents: { ad_burnout: 27 } };
+    expect(evaluateCondition(at30, { sinceEvent: 'ad_burnout', gte: 3, lte: 3 })).toBe(true);
+    expect(evaluateCondition(at30, { sinceEvent: 'ad_burnout', lte: 2 })).toBe(false);
+    expect(evaluateCondition(at30, { sinceEvent: 'never_fired', gte: 0 })).toBe(false);
+    expect(evaluateCondition(s, { jobId: ['pilot'] })).toBe(false);
+  });
+
   it('count compares a lifetime counter', () => {
     const s = createLife({}, 12);
     expect(evaluateCondition(s, { count: 'divorces', gte: 1 })).toBe(false);

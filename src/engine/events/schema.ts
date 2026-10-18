@@ -62,6 +62,10 @@ export type Condition =
   | { noAsset: AssetKind }
   /** Owns at least one asset with one of these definition ids (src/data/assets.ts), e.g. a real car rather than a bicycle. */
   | { ownsAssetId: string[] }
+  /** The current job is one of these job definitions (src/data/jobs.ts), e.g. to leave out a single job from a category. */
+  | { jobId: string[] }
+  /** Years since an event last fired (false if it never did), e.g. { sinceEvent: 'ad_burnout', gte: 1, lte: 5 }. */
+  | ({ sinceEvent: string } & Comparator)
   /** A lifetime counter, e.g. { count: 'divorces', gte: 1 } or { count: 'firings', gte: 2 }. */
   | ({ count: keyof LifetimeCounters } & Comparator)
   | { hustle: boolean }
