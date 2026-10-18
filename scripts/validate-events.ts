@@ -42,13 +42,19 @@ function buyHomeAndCar(s: GameState, seed: number): GameState {
   return s;
 }
 
-function sampleStates(n: number, recklessLives = 20): GameState[] {
+/**
+ * Plays seeded lives and keeps every year's state. With the default empty registry no events
+ * fire (so eligibility isn't skewed by what happened to fire); with a full registry events fire
+ * and random choices are taken, so flags and follow-up chains set by other events are represented.
+ */
+function sampleStates(n: number, recklessLives = 20, registry = makeRegistry([]), seedOffset = 0): GameState[] {
   const states: GameState[] = [];
-  const emptyRegistry = makeRegistry([]);
+  const choiceRng = new Rng(seedOffset + 99);
   // Seeds 1..n play a sensible life; the extra seeds play recklessly so that
   // states with a criminal record or in prison are represented.
-  for (let seed = 1; seed <= n + recklessLives; seed++) {
-    const policy = seed > n ? recklessPolicy : balancedPolicy;
+  for (let i = 1; i <= n + recklessLives; i++) {
+    const seed = i + seedOffset;
+    const policy = i > n ? recklessPolicy : balancedPolicy;
     let s = createLife({}, seed * 7919);
     const rng = new Rng(seed);
     const petRng = new Rng(seed * 31 + 7);
@@ -56,8 +62,12 @@ function sampleStates(n: number, recklessLives = 20): GameState[] {
     // every third life is cut short so early states keep their weight too.
     const years = seed % 3 === 0 ? 5 + (seed % 90) : 100;
     for (let y = 0; y < years && s.alive; y++) {
-      s = ageUp(s, emptyRegistry);
-      while (s.pendingEvent) s = resolveChoice(s, s.pendingEvent.choices[0]!.id, emptyRegistry);
+      s = ageUp(s, registry);
+      let guard = 0;
+      while (s.pendingEvent && guard++ < 20) {
+        const choice = seedOffset ? choiceRng.pick(s.pendingEvent.choices) : s.pendingEvent.choices[0]!;
+        s = resolveChoice(s, choice.id, registry);
+      }
       if (!s.alive) break;
       // Pets only enter a life through events, which the sampler does not fire;
       // give every other life a pet at a few ages so pet events are reachable.
@@ -96,7 +106,9 @@ async function main() {
     for (const e of defs) for (const err of validateEvent(e, ids)) errors.push(`${file}: ${err}`);
   }
   // Reachability
-  const states = sampleStates(60);
+  // Lives without events, plus lives where every event (registry + these files) can fire, so
+  // events gated on flags or eventFired from other events are reachable when their setup is.
+  const states = [...sampleStates(60), ...sampleStates(60, 20, makeRegistry(all), 50_000)];
   for (const { file, defs } of fileDefs) {
     for (const e of defs) {
       if (e.followUpOnly) continue;
