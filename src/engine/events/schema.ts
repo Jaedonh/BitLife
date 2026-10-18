@@ -196,6 +196,11 @@ export function validateEvent(def: EventDef, knownIds: Set<string>): string[] {
     seen.add(c.id);
     if (!c.label) errors.push(`${where}: choice ${c.id} missing label`);
     for (const e of c.effects ?? []) checkEffect(e, where, knownIds, errors);
+    // An arrest or a sentence written for the outside must not reach a player already in prison (and one
+    // written for the inside must not reach a free one), so the event or the choice says which it is.
+    if (canJail(c.effects ?? []) && !mentionsInPrison(def.conditions) && !mentionsInPrison(c.conditions)) {
+      errors.push(`${where}: choice ${c.id} can arrest or jail the player; add { inPrison: false } to the event's conditions (or { inPrison: true } if it is written for prison)`);
+    }
   }
   const usesPerson = /\{\{(person|personFull|they|them|their|They)\}\}/.test(def.text + def.choices.map((c) => c.label + (c.hint ?? '')).join(' '));
   if (usesPerson && !def.person) errors.push(`${where}: uses person placeholders but has no person selector`);
@@ -209,6 +214,14 @@ export function validateEvent(def: EventDef, knownIds: Set<string>): string[] {
     }
   }
   return errors;
+}
+
+function canJail(effects: readonly Effect[]): boolean {
+  return effects.some((e) => 'prison' in e || 'arrest' in e || ('random' in e && e.random.some((o) => canJail(o.effects))) || ('chance' in e && (canJail(e.then) || canJail(e.else ?? []))));
+}
+
+function mentionsInPrison(conditions: readonly Condition[] | undefined): boolean {
+  return (conditions ?? []).some((c) => 'inPrison' in c || ('any' in c && mentionsInPrison(c.any)) || ('all' in c && mentionsInPrison(c.all)) || ('not' in c && mentionsInPrison([c.not])));
 }
 
 function checkEffect(e: Effect, where: string, knownIds: Set<string>, errors: string[]): void {

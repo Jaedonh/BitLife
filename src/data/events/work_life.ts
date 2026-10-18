@@ -124,7 +124,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1,
     cooldown: 4,
-    conditions: [{ hasJob: true }, { partTime: false }],
+    conditions: [{ hasJob: true }, { partTime: false }, { inPrison: false }],
     choices: [
       {
         id: 'pad',
@@ -182,7 +182,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 0.8,
     cooldown: 6,
-    conditions: [{ hasJob: true }, { jobCategory: ['law', 'finance', 'office'] }],
+    conditions: [{ hasJob: true }, { jobCategory: ['law', 'finance', 'office'] }, { inPrison: false }],
     choices: [
       {
         id: 'shred',

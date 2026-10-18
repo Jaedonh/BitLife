@@ -302,6 +302,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     maxAge: 17,
     weight: 1,
     followUpOnly: true,
+    conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'back',
@@ -341,6 +342,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     maxAge: 17,
     weight: 1.5,
     cooldown: 3,
+    conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend'] },
     choices: [
       {

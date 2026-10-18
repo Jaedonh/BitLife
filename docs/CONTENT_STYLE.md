@@ -19,7 +19,8 @@ Events are the game. This is the house style every content drop must follow. The
 - No strictly dominant choice. Each option trades something: money vs happiness, karma vs gain, safety vs upside.
 - Uncertainty lives in effects (`chance`, `random`), not in the player's head: a choice is a gamble with readable odds in the text ("probably", "might").
 - Magnitudes: minor ±2-4, notable ±6-10, major ±15-25 (rare), life-changing ±30-50 (very rare). Money: small 20-300, medium 500-5k, big 10k-100k (rare, weight ≤ 1), huge 250k+ (once, weight ≤ 0.3).
-- Death only when the situation is genuinely lethal and always behind `chance ≤ 0.15`. Prison 1-8 years.
+- Death only when the situation is genuinely lethal and always behind `chance ≤ 0.15`. Prison 1-8 years; a sentence passed while already inside is added to the time left.
+- An event with an `arrest` or `prison` effect says where it happens: `inPrison: false` in its conditions (or `inPrison: true` if it is written for prison, or on the jailing choice itself). The validator rejects one that does not, so a raid, a court date or a dare never reaches a player who is already serving time.
 - Weights: 0.3 rare, 1 normal, 3 common. Use `once` for life milestones and `cooldown` (years) for things that should not repeat soon; the engine's default minimum gap is 2 years.
 - Conditions must match the text: an event about a spouse needs `person: { kind: ['spouse'] }` or `married: true`; a work event needs `hasJob: true`.
 - Prefer binding a person (`person` selector) so names and pronouns make the event personal; move the bond with `relationship: 'person'`.

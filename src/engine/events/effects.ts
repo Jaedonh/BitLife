@@ -50,7 +50,9 @@ export function removeJob(state: GameState, reason: 'quit' | 'fired' | 'promoted
   return s;
 }
 
+/** Convicts the player. A sentence handed down while already inside is served after the time left, never instead of it. */
 export function sendToPrison(state: GameState, years: number): GameState {
+  const sentence = Math.max(1, Math.round(years));
   let s = removeJob(state, 'left');
   s = {
     ...s,
@@ -60,7 +62,7 @@ export function sendToPrison(state: GameState, years: number): GameState {
       arrests: s.crime.arrests + 1,
       convictions: s.crime.convictions + 1,
       inPrison: true,
-      sentenceYearsLeft: Math.max(1, Math.round(years)),
+      sentenceYearsLeft: (s.crime.inPrison ? s.crime.sentenceYearsLeft : 0) + sentence,
       notoriety: clampStat(s.crime.notoriety + years * 3),
     },
     education: { ...s.education, enrolled: false },
