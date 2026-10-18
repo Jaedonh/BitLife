@@ -348,6 +348,16 @@ describe('relationships', () => {
   });
 });
 
+describe('hiring age', () => {
+  it('closes job listings after 75 and enlistment after 35', () => {
+    const at = (age: number) => { const s = createLife({ countryCode: 'US' }, 21); return { ...s, character: { ...s.character, age } }; };
+    const clerk = JOB_BY_ID.janitor!;
+    expect(meetsRequirements(at(70), clerk).ok).toBe(true);
+    expect(meetsRequirements(at(76), clerk)).toEqual({ ok: false, reason: 'Nobody is hiring at my age' });
+    if (JOB_BY_ID.military) expect(meetsRequirements(at(36), JOB_BY_ID.military).ok).toBe(false);
+  });
+});
+
 describe('asset conditions', () => {
   const withAsset = (defId: string, kind: 'car' | 'house'): GameState => {
     const s = createLife({}, 11);

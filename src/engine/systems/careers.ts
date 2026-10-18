@@ -10,11 +10,16 @@ import type { GameState, Job, JobListing } from '../types';
 import { addStats, bump, capitalize, clampStat, formatMoney, log, lowerTitle, plural, roleWithArticle, sentence, setResult, withArticle, withFame } from '../util';
 import { bachelorMajor, hasDegree, hasHighSchool } from './education';
 
+/** Past this age job listings stay closed; from 60 interviews get harder every year (applyForJob). */
+export const MAX_HIRING_AGE = 75;
+
 export function meetsRequirements(state: GameState, def: JobDef): { ok: boolean; reason?: string } {
   const r = def.requirements;
   const c = state.character;
   if (c.age < (r.minAge ?? (def.partTime ? 14 : 18))) return { ok: false, reason: `Age ${r.minAge ?? (def.partTime ? 14 : 18)}+` };
   if (def.partTime && c.age > 24) return { ok: false, reason: 'Part-time roles are for under-25s' };
+  if (c.age > MAX_HIRING_AGE) return { ok: false, reason: 'Nobody is hiring at my age' };
+  if (def.id === 'military' && c.age > 35) return { ok: false, reason: 'Too old to enlist' };
   if (state.crime.inPrison) return { ok: false, reason: 'In prison' };
   if (r.noRecord && state.crime.record) return { ok: false, reason: 'Criminal record' };
   switch (r.education) {
@@ -186,7 +191,9 @@ export function applyForJob(state: GameState, rng: Rng, listingId: string): Game
   let chance = 0.65 + (c.stats.smarts - 50) / 200 + (c.stats.looks - 50) / 400;
   if (c.traits.includes('charming')) chance += 0.1;
   if (state.crime.record) chance -= 0.1;
-  if (!rng.chance(Math.max(0.15, Math.min(0.95, chance)))) {
+  // Employers favor younger candidates for new hires: from 60 the odds drop about 3 points a year.
+  if (c.age > 60) chance -= (c.age - 60) * 0.03;
+  if (!rng.chance(Math.max(c.age > 60 ? 0.05 : 0.15, Math.min(0.95, chance)))) {
     const military = def.id === 'military';
     let s = log(state, military ? 'I tried to enlist in the Army and was turned down.' : `I interviewed for ${withArticle(`${lowerTitle(listing.title)} position`)} at ${listing.company} and didn't get it.`, 'bad');
     s = addStats(s, { happiness: -2 });
