@@ -1,5 +1,5 @@
 export { ageUp } from './ageUp';
-export { applyAction, secondChance } from './actions';
+export { applyAction, secondChance, statBoostBlocker, statBoostGain, STAT_BOOST } from './actions';
 export { createLife, TRAIT_LABELS } from './systems/character';
 export { resolveChoice, openNextEvent, EVENT_REGISTRY } from './events';
 export * from './types';

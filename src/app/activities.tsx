@@ -5,7 +5,7 @@ import { ScreenHeader } from '@/components/game/ScreenHeader';
 import { Button, ListRow, Screen, Section, T } from '@/components/ui';
 import { ACTIVITIES, type ActivityGroup } from '@/data/activities';
 import { CRIMES } from '@/data/crimes';
-import { activityAvailability, crimeAvailability } from '@/engine';
+import { activityAvailability, crimeAvailability, statBoostGain } from '@/engine';
 import { formatMoney } from '@/engine/util';
 import { useRewarded } from '@/hooks/useRewarded';
 import { useGameStore } from '@/store/gameStore';
@@ -35,9 +35,12 @@ export default function ActivitiesScreen() {
         {boost ? (
           <Section title={premium ? 'Premium boost' : 'Watch an ad for a boost'}>
             <View style={styles.boostRow}>
-              {(['happiness', 'health', 'smarts', 'looks'] as const).map((stat) => (
-                <Button key={stat} testID={`boost-${stat}`} size="sm" variant="accent" style={styles.boostBtn} title={`${premium ? '✨' : '📺'} ${stat === 'happiness' ? 'Happiness +30' : stat === 'health' ? 'Health +30' : stat === 'smarts' ? 'Smarts +16' : 'Looks +16'}`} onPress={() => void runRewarded('statBoost', stat)} />
-              ))}
+              {(['happiness', 'health', 'smarts', 'looks'] as const).map((stat) => {
+                // Show what the boost would really add; a stat already at its limit is not offered.
+                const gain = statBoostGain(game, stat);
+                const label = `${stat[0]!.toUpperCase()}${stat.slice(1)}`;
+                return <Button key={stat} testID={`boost-${stat}`} size="sm" variant="accent" style={styles.boostBtn} disabled={gain <= 0} title={gain > 0 ? `${premium ? '✨' : '📺'} ${label} +${gain}` : `${label} maxed`} onPress={() => void runRewarded('statBoost', stat)} />;
+              })}
             </View>
             {rewardedNotice ? (
               <T kind="small" testID="rewarded-notice">

@@ -74,20 +74,22 @@ function relationLabel(p: Person): string {
   }
 }
 
-/** Who a child leaves behind: "her parents, Ana and Marco, and two siblings". */
+/** Who a child leaves behind: "her parents, Ana and Marco, two siblings, and her dog, Biscuit". */
 function childSurvivors(state: GameState, possessive: string): string {
-  const parents = Object.values(state.people).filter((x) => x.alive && (x.kind === 'mother' || x.kind === 'father' || x.kind === 'stepmother' || x.kind === 'stepfather'));
-  const siblings = Object.values(state.people).filter((x) => x.alive && x.kind === 'sibling').length;
+  const alive = Object.values(state.people).filter((x) => x.alive);
+  const parents = alive.filter((x) => x.kind === 'mother' || x.kind === 'father' || x.kind === 'stepmother' || x.kind === 'stepfather');
+  const siblings = alive.filter((x) => x.kind === 'sibling').length;
+  const pets = alive.filter((x) => x.kind === 'pet');
   const mother = parents.find((x) => x.kind === 'mother');
   const father = parents.find((x) => x.kind === 'father');
-  const parentText = parents.length === 2 && mother && father
-    ? `${possessive} parents, ${mother.firstName} and ${father.firstName}`
-    : parents.length
-      ? joinList(parents.map((x) => `${possessive} ${relationLabel(x)} ${x.firstName}`))
-      : '';
-  const siblingText = siblings ? `${numberWord(siblings)} ${siblings === 1 ? 'sibling' : 'siblings'}` : '';
-  if (parentText && siblingText) return `${parentText}, and ${siblingText}`;
-  return parentText || siblingText;
+  const pair = parents.length === 2 && mother && father;
+  const items = pair ? [`${possessive} parents, ${mother.firstName} and ${father.firstName}`] : parents.map((x) => `${possessive} ${relationLabel(x)} ${x.firstName}`);
+  if (siblings) items.push(`${numberWord(siblings)} ${siblings === 1 ? 'sibling' : 'siblings'}`);
+  if (pets.length === 1) items.push(`${possessive} ${pets[0]!.species ?? 'pet'}, ${pets[0]!.firstName}`);
+  else if (pets.length > 1) items.push(`${numberWord(pets.length)} pets`);
+  // "her parents, Ana and Marco, and one sibling": the names are set off by commas, so the list keeps its comma.
+  if (pair && items.length === 2) return `${items[0]}, and ${items[1]}`;
+  return joinList(items);
 }
 
 export function buildObituary(state: GameState, cause: string, worth: number, ribbonName: string): string {
@@ -158,13 +160,15 @@ export function buildObituary(state: GameState, cause: string, worth: number, ri
       ? `${p.Subject} is survived by ${childText}.`
       : state.counters.marriages > 0
         ? `${p.Subject} was married ${state.counters.marriages === 1 ? 'once' : state.counters.marriages === 2 ? 'twice' : `${state.counters.marriages} times`}.`
-        : `${p.Subject} never married.`;
+        : c.age < 25
+          ? '' // "never married" is a punchline at 60, not at 19
+          : `${p.Subject} never married.`;
   const moneyText = worth >= 1_000_000
     ? `${p.Subject} left behind a fortune of ${formatMoneyFull(worth, c.countryCode)}.`
     : worth < 0
-      ? `${p.Subject} left behind debts of ${formatMoneyFull(-worth, c.countryCode)}, which surprised no one.`
+      ? `${p.Subject} left behind debts of ${formatMoneyFull(-worth, c.countryCode)}${c.age < 25 ? '' : ', which surprised no one'}.`
       : worth < 1_000
         ? `${p.Subject} left behind next to nothing.`
         : `${p.Subject} left behind ${formatMoneyFull(worth, c.countryCode)}.`;
-  return `${opening} ${careerText}${eduText}. ${familyText} ${moneyText}${crimeText} Remembered as: ${ribbonName}.`;
+  return `${opening} ${careerText}${eduText}.${familyText ? ` ${familyText}` : ''} ${moneyText}${crimeText} Remembered as: ${ribbonName}.`;
 }

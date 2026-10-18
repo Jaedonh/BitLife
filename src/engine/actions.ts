@@ -7,8 +7,8 @@ import { dropOut, enroll, skipClass, studyHarder } from './systems/education';
 import { invest, payDebt, withdraw } from './systems/finance';
 import { doActivity } from './systems/activities';
 import { interact } from './systems/relationships';
-import type { GameState, PlayerAction } from './types';
-import { addMoney, addStats, bump, log, money, setResult } from './util';
+import type { GameState, LastResult, PlayerAction, Stats } from './types';
+import { addMoney, addStats, bump, capitalize, log, money, setResult } from './util';
 
 /** Applies a between-age-ups player action. Pure; RNG state is persisted. */
 export function applyAction(state: GameState, action: PlayerAction): GameState {
@@ -46,24 +46,66 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
     case 'rewarded': s = rewardedBoost(s, rng, action.placement, action.option); break;
     default: break;
   }
+  // The toast reports what actually changed: caps and hidden potential can swallow some or all of a nominal gain.
+  if (s.lastResult) s = { ...s, lastResult: withAppliedStatDeltas(s.lastResult, state.character.stats, s.character.stats) };
   return { ...s, rng: rng.snapshot() };
 }
 
+function withAppliedStatDeltas(result: LastResult, before: Stats, after: Stats): LastResult {
+  const applied: Partial<Stats> = {};
+  for (const k of STAT_KEYS) if (after[k] !== before[k]) applied[k] = after[k] - before[k];
+  const out: LastResult = { ...result, statDeltas: applied };
+  if (!Object.keys(applied).length) delete out.statDeltas;
+  return out;
+}
+
+const STAT_KEYS = ['happiness', 'health', 'smarts', 'looks'] as const;
+
+/** Nominal size of the rewarded stat boost for each stat. */
+export const STAT_BOOST: Readonly<Record<keyof Stats, number>> = { happiness: 30, health: 30, smarts: 16, looks: 16 };
+
+function boostStat(option: string | undefined): keyof Stats {
+  return option === 'health' || option === 'smarts' || option === 'looks' ? option : 'happiness';
+}
+
+/** How much the rewarded stat boost would really add to this stat now: 0 when it is already at its cap or natural limit. */
+export function statBoostGain(state: GameState, stat: keyof Stats): number {
+  return addStats(state, { [stat]: STAT_BOOST[stat] }).character.stats[stat] - state.character.stats[stat];
+}
+
+const BOOST_MAXED: Record<keyof Stats, string> = {
+  happiness: "I'm already as happy as I can be.",
+  health: 'My health is already as good as it gets.',
+  smarts: "I'm already as smart as I can get.",
+  looks: 'My looks are already as good as they get.',
+};
+
+/**
+ * Why the rewarded stat boost cannot pay out (null when it can). With a stat, that stat must still be able
+ * to grow; without one, at least one stat must.
+ */
+export function statBoostBlocker(state: GameState, option?: string): string | null {
+  if (option === undefined) return STAT_KEYS.some((k) => statBoostGain(state, k) > 0) ? null : 'All my stats are already as high as they can go.';
+  const stat = boostStat(option);
+  return statBoostGain(state, stat) > 0 ? null : BOOST_MAXED[stat];
+}
+
 function rewardedBoost(state: GameState, rng: Rng, placement: 'cashBoost' | 'statBoost' | 'secondChance' | 'reroll', option?: string): GameState {
-  // A refused reward is not spent: the reroll is checked before the ad counts.
-  const blocked = placement === 'reroll' ? listingsBlocker(state) : null;
+  // A refused reward is not spent: the reroll and the stat boost are checked before the ad counts.
+  const blocked = placement === 'reroll' ? listingsBlocker(state) : placement === 'statBoost' ? statBoostBlocker(state, option) : null;
   if (blocked) return setResult(state, blocked, 'info');
   let s = bump(state, 'rewardedAdsUsed');
   if (placement === 'statBoost') {
-    const stat = option === 'health' || option === 'smarts' || option === 'looks' ? option : 'happiness';
-    const delta = stat === 'happiness' || stat === 'health' ? 30 : 16;
-    s = addStats(s, { [stat]: delta });
+    const stat = boostStat(option);
+    const gain = statBoostGain(s, stat);
+    s = addStats(s, { [stat]: STAT_BOOST[stat] });
     const kid = s.character.age < 13;
     const labels: Record<typeof stat, string> = kid
       ? { happiness: 'the best week of my whole childhood', health: 'a summer of running around outside until dark', smarts: 'a sudden obsession with library books', looks: 'a haircut that finally suited me' }
       : { happiness: 'a weekend that fixed everything', health: 'a health kick that actually stuck', smarts: 'a documentary binge that rewired my brain', looks: 'a glow-up' };
     s = log(s, `I had ${labels[stat]}.`, 'good');
-    return setResult(s, `${stat[0]!.toUpperCase()}${stat.slice(1)} +${delta}.`, 'good', { statDeltas: { [stat]: delta } });
+    const capped = gain < STAT_BOOST[stat] ? " That's as high as it goes." : '';
+    return setResult(s, `${capitalize(stat)} +${gain}.${capped}`, 'good', { statDeltas: { [stat]: gain } });
   }
   if (placement === 'cashBoost') {
     const salary = s.career.job?.salary ?? 0;
