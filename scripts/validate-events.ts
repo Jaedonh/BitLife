@@ -30,6 +30,18 @@ async function loadFile(file: string): Promise<EventDef[]> {
   return defs;
 }
 
+/**
+ * The policies never buy assets, so ownsAsset/ownsAssetId conditions would be unreachable:
+ * most lives buy a used car from 22 and a mortgaged condo from 32 when they can afford it.
+ */
+function buyHomeAndCar(s: GameState, seed: number): GameState {
+  if (seed % 4 === 3 || s.crime.inPrison) return s;
+  const age = s.character.age;
+  if (age >= 22 && !s.assets.some((a) => a.kind === 'car')) s = applyAction(s, { type: 'buyAsset', defId: seed % 2 ? 'old_hatchback' : 'sedan', financing: 'cash' });
+  if (age >= 32 && !s.assets.some((a) => a.kind === 'house')) s = applyAction(s, { type: 'buyAsset', defId: seed % 2 ? 'condo' : 'suburban', financing: 'mortgage' });
+  return s;
+}
+
 function sampleStates(n: number, recklessLives = 20): GameState[] {
   const states: GameState[] = [];
   const emptyRegistry = makeRegistry([]);
@@ -53,6 +65,7 @@ function sampleStates(n: number, recklessLives = 20): GameState[] {
         s = applyEffects(s, petRng, [{ newPerson: { kind: 'pet', species: seed % 4 === 0 ? 'dog' : 'cat' } }]);
       }
       for (const a of policy(s, rng)) s = applyAction(s, a);
+      s = buyHomeAndCar(s, seed);
       states.push(s);
     }
   }

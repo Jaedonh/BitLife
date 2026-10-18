@@ -1,6 +1,7 @@
 import { getCountry } from '@/data/countries';
 import { ageUp } from '../ageUp';
 import { applyAction } from '../actions';
+import { evaluateCondition } from '../events/conditions';
 import { makeRegistry } from '../events/select';
 import { createLife, emptyMemory } from '../systems/character';
 import { canBuy, yearlyMortgagePayment } from '../systems/assets';
@@ -343,5 +344,19 @@ describe('relationships', () => {
     expect(s.people[spouse.id]!.memory.yearsNeglected).toBe(1);
     expect(s.people[spouse.id]!.relationship).toBe(rel - 4);
     expect(s.people[spouse.id]!.love).toBe(love - 5);
+  });
+});
+
+describe('asset conditions', () => {
+  const withAsset = (defId: string, kind: 'car' | 'house'): GameState => {
+    const s = createLife({}, 11);
+    return { ...s, assets: [{ id: 'a1', defId, kind, name: defId, value: 1, purchasePrice: 1, condition: 100, yearlyUpkeep: 0, mortgage: null, boughtAtAge: 0 }] };
+  };
+
+  it('ownsAssetId tells a real car from a bicycle, which is also of kind car', () => {
+    expect(evaluateCondition(withAsset('bike', 'car'), { ownsAsset: 'car' })).toBe(true);
+    expect(evaluateCondition(withAsset('bike', 'car'), { ownsAssetId: ['sedan', 'old_hatchback'] })).toBe(false);
+    expect(evaluateCondition(withAsset('sedan', 'car'), { ownsAssetId: ['sedan', 'old_hatchback'] })).toBe(true);
+    expect(evaluateCondition(withAsset('condo', 'house'), { noAsset: 'house' })).toBe(false);
   });
 });

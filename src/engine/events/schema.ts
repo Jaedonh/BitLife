@@ -60,6 +60,8 @@ export type Condition =
   | { noAddiction: AddictionKind }
   | { ownsAsset: AssetKind }
   | { noAsset: AssetKind }
+  /** Owns at least one asset with one of these definition ids (src/data/assets.ts), e.g. a real car rather than a bicycle. */
+  | { ownsAssetId: string[] }
   | { hustle: boolean }
   | { retired: boolean }
   | { illnessCount: Comparator }
