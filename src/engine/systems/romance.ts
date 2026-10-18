@@ -2,9 +2,9 @@
  * Legal-age rules for the player's romantic partners (lovers and spouses).
  *
  * Nobody dates under 16. Adults only ever pair with adults, and a 16- or
- * 17-year-old with someone within two years of their own age. A minor only
- * meets partners their own age or a little older (never above 17), so a couple
- * who stay together never end up as an adult and a minor as they age.
+ * 17-year-old only with another minor within two years of their age. A minor
+ * only meets partners of exactly their own age, so a couple who stay together
+ * turn 18 in the same year and never end up as an adult and a minor.
  */
 
 export const MIN_ROMANCE_AGE = 16;
@@ -13,7 +13,7 @@ export const ADULT_AGE = 18;
 /** The ages a new partner can have for a player of `age`, or null when the player is too young for romance. */
 export function partnerAgeRange(age: number): [number, number] | null {
   if (age < MIN_ROMANCE_AGE) return null;
-  if (age < ADULT_AGE) return [age, ADULT_AGE - 1];
+  if (age < ADULT_AGE) return [age, age];
   return [Math.max(ADULT_AGE, age - 4), age + 4];
 }
 
@@ -21,7 +21,7 @@ export function partnerAgeRange(age: number): [number, number] | null {
 export function romanceAllowed(playerAge: number, partnerAge: number): boolean {
   if (playerAge < MIN_ROMANCE_AGE || partnerAge < MIN_ROMANCE_AGE) return false;
   if (playerAge >= ADULT_AGE) return partnerAge >= ADULT_AGE;
-  return Math.abs(playerAge - partnerAge) <= 2;
+  return partnerAge < ADULT_AGE && Math.abs(playerAge - partnerAge) <= 2;
 }
 
 /** Clamps a content-given age range to `band`; when they do not overlap, the band wins. */

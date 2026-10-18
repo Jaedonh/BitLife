@@ -8,11 +8,11 @@ import { markDeath } from '../systems/death';
 import { availableInteractions, yearlyRelationships } from '../systems/relationships';
 import type { GameState, Gender, Person } from '../types';
 
-/** The legal-age rule, written out independently of the engine: no romance under 16, adults only with adults, minors within two years. */
+/** The legal-age rule, written out independently of the engine: no romance under 16, adults only with adults, minors only with minors within two years. */
 function legal(playerAge: number, partnerAge: number): boolean {
   if (playerAge < 16 || partnerAge < 16) return false;
   if (playerAge >= 18) return partnerAge >= 18;
-  return Math.abs(playerAge - partnerAge) <= 2;
+  return partnerAge < 18 && Math.abs(playerAge - partnerAge) <= 2;
 }
 
 /** A player of `age` with no partners, plenty of cash and energy. */
@@ -58,16 +58,16 @@ describe('legal ages for romance', () => {
         for (const p of newPeople(base, s).filter((x) => x.kind === 'lover')) {
           expect(age).toBeGreaterThanOrEqual(16);
           expect({ age, partner: p.age, legal: legal(age, p.age) }).toEqual({ age, partner: p.age, legal: true });
-          // A minor's partner is never younger, so the pair never ends up with an adult and a minor.
-          if (age < 18) expect(p.age).toBeGreaterThanOrEqual(age);
+          // A minor's partner is their own age, so the pair turns 18 together and never ends up as an adult and a minor.
+          if (age < 18) expect(p.age).toBe(age);
         }
       }
     }
   });
 
-  it('an event lover (the school dance) is 16-17 for a 16-year-old and an adult for an adult', () => {
+  it('an event lover (the school dance) is the same age for a 16-year-old and an adult for an adult', () => {
     const effect: Effect[] = [{ newPerson: { kind: 'lover', relationship: 60 } }];
-    for (const [age, lo, hi] of [[16, 16, 17], [17, 17, 17], [18, 18, 22], [40, 36, 44]] as const) {
+    for (const [age, lo, hi] of [[16, 16, 16], [17, 17, 17], [18, 18, 22], [40, 36, 44]] as const) {
       const base = player(age);
       for (let r = 1; r <= 200; r++) {
         const lover = newPeople(base, applyEffects(base, new Rng(r), effect))[0]!;
@@ -105,6 +105,14 @@ describe('legal ages for romance', () => {
     // A year later both are adults and the same couple can marry.
     const older = { ...state, character: { ...state.character, age: 19 }, people: { ...state.people, [id]: { ...state.people[id]!, age: 18 } } };
     expect(interactFresh(older, id, 'propose').people[id]!.kind).toBe('spouse');
+  });
+
+  it('a 17-year-old cannot date an 18-year-old partner either', () => {
+    const { state, id } = withPartner(player(17), { kind: 'lover', age: 18 });
+    expect(availableInteractions(state, state.people[id]!).map((i) => i.id)).not.toContain('date');
+    const s = interactFresh(state, id, 'date');
+    expect(s.finances.cash).toBe(state.finances.cash);
+    expect(s.lastResult?.text).toMatch(/I'm only 17/);
   });
 
   it('step-parents are aged from the parent they marry and are always a generation older than the player', () => {
