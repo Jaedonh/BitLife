@@ -18,7 +18,8 @@
     "check:privacy": "tsx scripts/check-privacy-url.ts",
     "eas-build-post-install": "if [ \"$APP_VARIANT\" = \"production\" ]; then npm run check:privacy; fi",
     "balance": "tsx scripts/balance-report.ts",
-    "build:pages": "expo export --platform web && node scripts/prepare-pages.mjs"
+    "build:pages": "expo export --platform web && node scripts/prepare-pages.mjs",
+    "audit:text": "tsx scripts/text-audit.ts"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",

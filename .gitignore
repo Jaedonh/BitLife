@@ -61,3 +61,6 @@ e2e/screenshots/
 
 # Agent tooling (temporary git worktrees)
 .claude/worktrees/
+
+# Generated text-audit reports (npm run audit:text)
+audit/
