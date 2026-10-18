@@ -285,7 +285,7 @@ export const HEALTH_EVENTS: EventDef[] = [
     maxAge: 45,
     weight: 0.5,
     once: true,
-    conditions: [{ inPrison: false }],
+    conditions: [{ hasPerson: ['mother'] }, { inPrison: false }],
     choices: [
       {
         id: 'er',
@@ -1136,7 +1136,7 @@ export const HEALTH_EVENTS: EventDef[] = [
     maxAge: 60,
     weight: 1.2,
     cooldown: 3,
-    conditions: [{ inPrison: false }],
+    conditions: [{ hasPerson: ['mother'] }, { inPrison: false }],
     person: { kind: ['child'], maxAge: 10 },
     choices: [
       {

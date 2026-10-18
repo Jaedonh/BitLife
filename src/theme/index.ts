@@ -49,3 +49,23 @@ export const typography = {
   small: { fontSize: 13, fontWeight: '400' as const, color: colors.textMuted },
   label: { fontSize: 12, fontWeight: '600' as const, color: colors.textMuted, letterSpacing: 0.4 },
 } as const;
+
+// --- u2-people: People list and person screen tokens ---
+export const peopleColors = {
+  /** Romantic bond (Love bar); distinct from Looks pink. */
+  love: '#F43F5E',
+  /** Love percentage text (lighter than the bar for AA contrast on cards). */
+  loveText: '#FB7185',
+  /** Relation chip on the person header. */
+  chipBg: 'rgba(124, 58, 237, 0.22)',
+  chipText: '#DDD6FE',
+  /** Cost / energy / uses badges on interaction tiles. */
+  moneyBg: 'rgba(163, 230, 53, 0.14)',
+  energyBg: 'rgba(251, 191, 36, 0.16)',
+  usesBg: 'rgba(165, 161, 194, 0.16)',
+  /** Risky interactions (insult, break up, divorce). */
+  riskyBg: 'rgba(127, 29, 29, 0.32)',
+  riskyBorder: '#9F2D2D',
+  /** Inline outcome banner after an interaction. */
+  noticeBg: '#1E1B38',
+} as const;

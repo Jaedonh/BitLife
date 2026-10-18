@@ -1,5 +1,5 @@
 import { adjustRelationship, updatePerson } from '../events/effects';
-import { scaleMoney } from '../events/text';
+import { personRef, scaleMoney } from '../events/text';
 import type { Rng } from '../rng';
 import type { GameState, Person, RelationshipKind } from '../types';
 import { addKarma, addMoney, addStats, bump, clampStat, countAction, actionCount, fullName, log, lowerTitle, money, setResult, withArticle } from '../util';
@@ -125,8 +125,9 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
   let s = countAction(state, key);
   s = { ...s, character: { ...s.character, energy: s.character.energy - def.energy } };
   if (cost) s = addMoney(s, -cost);
-  const who = `${person.firstName}`;
-  const label = relLabel(person);
+  // Parents are Mom and Dad in narration, as in event text; everyone else goes by their first name.
+  const who = personRef(person);
+  const withWho = who === person.firstName ? `${relLabel(person)}, ${who}` : who;
   const charming = s.character.traits.includes('charming') ? 3 : 0;
 
   switch (def.id) {
@@ -138,8 +139,8 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
       s = touch(s, s.people[personId]!);
       const young = s.character.age < 6;
       const text = rng.pick(young
-        ? [`I spent a lovely afternoon with ${label}, ${who}.`, `${who} and I played together until it got dark.`, `I followed ${who} around all day, talking nonstop.`]
-        : [`I spent a lovely afternoon with ${label}, ${who}.`, `${who} and I hung out and lost track of time.`, `I spent quality time with ${who}.`]);
+        ? [`I spent a lovely afternoon with ${withWho}.`, `${who} and I played together until it got dark.`, `I followed ${who} around all day, talking nonstop.`]
+        : [`I spent a lovely afternoon with ${withWho}.`, `${who} and I hung out and lost track of time.`, `I spent quality time with ${who}.`]);
       s = log(s, text, 'good');
       return setResult(s, text, 'good', { statDeltas: { happiness: 3 } });
     }

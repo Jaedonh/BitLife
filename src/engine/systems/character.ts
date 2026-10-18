@@ -323,7 +323,7 @@ function writeHeirLog(state: GameState, prev: GameState, inheritance: number): G
   if (living.length) s = log(s, `My ${joinList(living.map((p) => `${p.kind} ${fullName(p)} (${p.age})`))} ${living.length === 1 ? 'is' : 'are'} still with us.`);
   if (sibs.length === 1) s = log(s, `I have ${sibs[0]!.gender === 'male' ? 'a brother' : 'a sister'}, ${sibs[0]!.firstName} (${sibs[0]!.age}).`);
   else if (sibs.length > 1) s = log(s, `I have ${numberWord(sibs.length)} siblings: ${joinList(sibs.map((x) => `${x.firstName} (${x.age})`))}.`);
-  if (inheritance > 0) s = log(s, `I inherited ${money(s, inheritance)} from ${prev.character.firstName}'s estate.`, 'money');
+  if (inheritance > 0) s = log(s, `I inherited ${money(s, inheritance)} from ${prev.character.gender === 'female' ? 'Mom' : 'Dad'}'s estate.`, 'money');
   if (c.traits.length) s = log(s, traitLine(c.traits));
   return s;
 }

@@ -15,6 +15,17 @@ function findKind(state: GameState, kind: Person['kind']): Person | undefined {
   return Object.values(state.people).find((p) => p.kind === kind && p.alive);
 }
 
+/**
+ * How the player names someone in first-person narration. A parent is "Mom" or "Dad" at any age (a toddler's
+ * parents must not read as strangers); step-parents and everyone else go by their first name. Always capitalized,
+ * so it works mid-sentence and at the start of one. {{personFull}} keeps the full name for formal lines.
+ */
+export function personRef(p: Pick<Person, 'kind' | 'firstName'>): string {
+  if (p.kind === 'mother') return 'Mom';
+  if (p.kind === 'father') return 'Dad';
+  return p.firstName;
+}
+
 /** True when a placeholder at `offset` opens a sentence (or a quote), so its value needs a capital letter. */
 function startsSentence(whole: string, offset: number): boolean {
   return /(^\s*["'“‘(]?|[.!?…]["'”’)]?\s+["'“‘(]?|\n\s*["'“‘(]?)$/.test(whole.slice(0, offset));
@@ -53,7 +64,7 @@ export function renderText(template: string, state: GameState, ctx: TextContext 
       case 'demonym': return country.demonym;
       case 'age': return String(c.age);
       case 'year': return String(state.year);
-      case 'person': return p ? p.firstName : 'someone';
+      case 'person': return p ? personRef(p) : 'someone';
       case 'personFull': return p ? `${p.firstName} ${p.lastName}` : 'someone';
       case 'they': return pp ? pp.subject : 'they';
       case 'They': return pp ? pp.Subject : 'They';
@@ -66,8 +77,9 @@ export function renderText(template: string, state: GameState, ctx: TextContext 
       case 'job': return job ?? 'my job';
       case 'company': return company;
       case 'spouse': return findKind(state, 'spouse')?.firstName ?? 'my spouse';
-      case 'mother': return findKind(state, 'mother')?.firstName ?? 'my mother';
-      case 'father': return findKind(state, 'father')?.firstName ?? 'my father';
+      // A living parent is "Mom"/"Dad"; with none alive the line still reads ("my mother").
+      case 'mother': return findKind(state, 'mother') ? 'Mom' : 'my mother';
+      case 'father': return findKind(state, 'father') ? 'Dad' : 'my father';
       default: return `{{${key}}}`;
     }
   }

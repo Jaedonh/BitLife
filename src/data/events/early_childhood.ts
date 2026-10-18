@@ -16,7 +16,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 2,
     weight: 3,
     once: true,
-    conditions: [{ hasPerson: ['mother'] }],
+    conditions: [{ hasPerson: ['father'] }, { hasPerson: ['mother'] }],
     choices: [
       {
         id: 'mama',
@@ -596,7 +596,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
       {
         id: 'cry',
         label: 'Cry along with it',
-        effects: [{ stat: 'happiness', delta: -2 }, { stat: 'health', delta: -1 }, { relationship: 'person', delta: 3 }, { log: 'Two crying children and one exhausted {{person}}. We all ended up in the big bed. Nobody slept.', kind: 'bad' }],
+        effects: [{ stat: 'happiness', delta: -2 }, { stat: 'health', delta: -1 }, { relationship: 'person', delta: 3 }, { log: 'Two of us crying and {{person}} close to it. We all ended up in the big bed. Nobody slept.', kind: 'bad' }],
       },
       {
         id: 'sleep',
@@ -627,6 +627,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     weight: 2,
     cooldown: 2,
     person: { kind: ['sibling'], minAge: 2, maxAge: 12 },
+    conditions: [{ hasPerson: ['mother'] }],
     choices: [
       {
         id: 'bite',
@@ -675,6 +676,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     weight: 1.5,
     cooldown: 3,
     person: { kind: ['sibling'], minAge: 5, maxAge: 13 },
+    conditions: [{ hasPerson: ['mother'] }],
     choices: [
       {
         id: 'sneak',
@@ -709,7 +711,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 5,
     weight: 1,
     once: true,
-    conditions: [{ noPerson: ['sibling'] }],
+    conditions: [{ hasPerson: ['mother'] }, { noPerson: ['sibling'] }],
     choices: [
       {
         id: 'teddy',
@@ -906,7 +908,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 5,
     weight: 1.5,
     once: true,
-    conditions: [{ flag: 'poorFamily' }],
+    conditions: [{ hasPerson: ['mother'] }, { flag: 'poorFamily' }],
     choices: [
       {
         id: 'proud',
@@ -1018,7 +1020,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 5,
     weight: 2,
     once: true,
-    conditions: [{ noPerson: ['friend', 'bestFriend'] }],
+    conditions: [{ hasPerson: ['mother'] }, { noPerson: ['friend', 'bestFriend'] }],
     choices: [
       {
         id: 'accept',

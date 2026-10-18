@@ -132,7 +132,7 @@ describe('an event death runs the same handling as a natural death', () => {
     expect(after.finances.cash).toBe(share);
     expect(after.character.stats.happiness).toBe(48);
     const lines = after.log.slice(logStart).map((l) => l.text);
-    expect(lines).toEqual(['She fell again. I should have fussed.', `I inherited $${share.toLocaleString('en-US')} from ${mother.firstName}'s estate.`]);
+    expect(lines).toEqual(['She fell again. I should have fussed.', `I inherited $${share.toLocaleString('en-US')} from Mom's estate.`]);
   });
 
   it('takes an orphaned child in to relatives and leaves a minor no inheritance', () => {

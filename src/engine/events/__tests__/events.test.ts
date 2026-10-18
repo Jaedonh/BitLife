@@ -39,7 +39,8 @@ describe('event flow', () => {
     const mother = Object.values(s.people).find((p) => p.kind === 'mother')!;
     s = { ...s, eventQueue: [{ eventId: 'test_gift', context: {}, personId: mother.id }] };
     s = openNextEvent(s, reg);
-    expect(s.pendingEvent?.text).toBe(`${mother.firstName} gave me $100.`);
+    // The player calls a parent "Mom"/"Dad" in first-person narration, never by first name.
+    expect(s.pendingEvent?.text).toBe('Mom gave me $100.');
     // hidden choice filtered out
     expect(s.pendingEvent?.choices.map((c) => c.id)).toEqual(['thank']);
     const before = s.people[mother.id]!.relationship;

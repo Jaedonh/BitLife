@@ -219,6 +219,12 @@ export function validateEvent(def: EventDef, knownIds: Set<string>): string[] {
       errors.push(`${where}: a personDies effect needs a log line and a happiness loss in the same effects list`);
     }
   }
+  // {{mother}}/{{father}} name a living parent ("Mom"/"Dad"), so the event must require one.
+  const blob = JSON.stringify(def.choices) + def.title + def.text;
+  for (const k of ['mother', 'father'] as const) {
+    const bound = def.person?.kind.length === 1 && def.person.kind[0] === k;
+    if (blob.includes(`{{${k}}}`) && !bound && !requiresPerson(def.conditions, k)) errors.push(`${where}: uses {{${k}}} but does not require a living ${k} ({ hasPerson: ['${k}'] })`);
+  }
   const usesPerson = /\{\{(person|personFull|they|them|their|They)\}\}/.test(def.text + def.choices.map((c) => c.label + (c.hint ?? '')).join(' '));
   if (usesPerson && !def.person) errors.push(`${where}: uses person placeholders but has no person selector`);
   for (const text of [def.title, def.text, ...def.choices.map((c) => c.label), ...def.choices.map((c) => c.hint ?? '')]) {
@@ -231,6 +237,10 @@ export function validateEvent(def: EventDef, knownIds: Set<string>): string[] {
     }
   }
   return errors;
+}
+
+function requiresPerson(conditions: readonly Condition[] | undefined, kind: 'mother' | 'father'): boolean {
+  return (conditions ?? []).some((c) => ('hasPerson' in c && c.hasPerson.length === 1 && c.hasPerson[0] === kind) || ('all' in c && requiresPerson(c.all, kind)));
 }
 
 /** Every effects list in these lists, including the branches of chance and random effects. */

@@ -1,5 +1,6 @@
 import { Rng } from '../rng';
 import type { GameState, Person } from '../types';
+import { personRef } from '../events/text';
 import { addMoney, addStats, bump, clampStat, deathPhrase, fullName, log, money } from '../util';
 
 /** Yearly stat drift. Numbers are tuned so a passive life slowly declines. */
@@ -115,7 +116,7 @@ export function onNpcDeath(state: GameState, p: Person, rng: Rng, opts: { announ
     const share = Math.round((p.money * (p.kind === 'spouse' ? 1 : 0.8)) / (p.kind === 'spouse' ? 1 : siblings + 1));
     if (share > 0 && (p.kind === 'spouse' || p.relationship >= 25 || rng.chance(0.3))) {
       s = addMoney(s, share);
-      s = log(s, `I inherited ${money(s, share)} from ${p.firstName}'s estate.`, 'money');
+      s = log(s, `I inherited ${money(s, share)} from ${personRef(p)}'s estate.`, 'money');
     }
   }
   if ((p.kind === 'mother' || p.kind === 'father') && s.character.age < 18) {

@@ -1,47 +1,46 @@
 import { Redirect, router } from 'expo-router';
-import { ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { PeopleRow } from '@/components/game/PeopleRow';
+import { groupPeople } from '@/components/game/people';
 import { ScreenHeader } from '@/components/game/ScreenHeader';
-import { ListRow, Screen, Section, T } from '@/components/ui';
-import { deathLine, kindEmoji, kindLabel, personName, personSubtitle } from '@/components/game/people';
-import type { RelationshipKind } from '@/engine/types';
+import { Section, Screen, T } from '@/components/ui';
 import { useGameStore } from '@/store/gameStore';
-import { colors, spacing } from '@/theme';
-
-const GROUPS: { title: string; kinds: RelationshipKind[] }[] = [
-  { title: 'Partner', kinds: ['spouse', 'lover'] },
-  { title: 'Family', kinds: ['mother', 'father', 'stepmother', 'stepfather', 'sibling', 'child'] },
-  { title: 'Friends', kinds: ['bestFriend', 'friend'] },
-  { title: 'Pets', kinds: ['pet'] },
-  { title: 'Others', kinds: ['coworker', 'classmate', 'ex', 'enemy'] },
-];
+import { colors, radius, spacing } from '@/theme';
 
 export default function RelationshipsScreen() {
   const game = useGameStore((s) => s.game);
   if (!game) return <Redirect href="/" />;
   const people = Object.values(game.people);
+  const groups = groupPeople(people);
   const alive = people.filter((p) => p.alive);
-  const dead = people.filter((p) => !p.alive);
+  // Most recent losses first.
+  const dead = people.filter((p) => !p.alive).sort((a, b) => (b.deathAge ?? b.age) - (a.deathAge ?? a.age));
+  const open = (id: string) => router.push({ pathname: '/person/[id]', params: { id } });
   return (
     <Screen>
       <ScreenHeader title="People" subtitle={`${alive.length} in your life · Energy ${game.character.energy}/${game.character.energyMax}`} />
       <ScrollView contentContainerStyle={styles.content}>
-        {GROUPS.map((g) => {
-          const members = alive.filter((p) => g.kinds.includes(p.kind)).sort((a, b) => g.kinds.indexOf(a.kind) - g.kinds.indexOf(b.kind));
-          if (!members.length) return null;
-          return (
-            <Section key={g.title} title={g.title}>
-              {members.map((p) => (
-                <ListRow key={p.id} emoji={kindEmoji(p)} title={personName(p)} subtitle={personSubtitle(p, kindLabel(p))} right={`${p.relationship}%`} rightColor={p.relationship >= 60 ? colors.success : p.relationship >= 30 ? colors.warning : colors.danger} onPress={() => router.push({ pathname: '/person/[id]', params: { id: p.id } })} testID={`person-${p.kind}`} />
-              ))}
-            </Section>
-          );
-        })}
+        {groups.map((g) => (
+          <Section
+            key={g.key}
+            title={g.title}
+            right={
+              <View style={styles.count}>
+                <Text style={styles.countText}>{g.people.length}</Text>
+              </View>
+            }
+          >
+            {g.people.map((p) => (
+              <PeopleRow key={p.id} person={p} onPress={() => open(p.id)} testID={`person-${p.kind}`} />
+            ))}
+          </Section>
+        ))}
         {alive.length === 0 ? <T kind="small">Nobody yet. Age up and life will introduce you to people.</T> : null}
         {dead.length ? (
           <Section title="In memoriam">
             {dead.map((p) => (
-              <ListRow key={p.id} emoji="🕯️" title={personName(p)} subtitle={`${kindLabel(p)} · ${deathLine(p)}`} />
+              <PeopleRow key={p.id} person={p} onPress={() => open(p.id)} testID={`memoriam-${p.kind}`} />
             ))}
           </Section>
         ) : null}
@@ -50,4 +49,8 @@ export default function RelationshipsScreen() {
   );
 }
 
-const styles = StyleSheet.create({ content: { padding: spacing.lg, paddingBottom: spacing.xxl } });
+const styles = StyleSheet.create({
+  content: { padding: spacing.lg, paddingBottom: spacing.xxl },
+  count: { minWidth: 24, alignItems: 'center', borderRadius: radius.pill, backgroundColor: colors.bgElevated, paddingHorizontal: 8, paddingVertical: 1 },
+  countText: { fontSize: 12, fontWeight: '700', color: colors.textMuted, fontVariant: ['tabular-nums'] },
+});

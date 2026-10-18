@@ -17,7 +17,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
     maxAge: 9,
     weight: 1.5,
     cooldown: 3,
-    conditions: [{ enrolled: true }, { stage: ['primary'] }, { hasPerson: ['father'] }],
+    conditions: [{ hasPerson: ['mother'] }, { enrolled: true }, { stage: ['primary'] }, { hasPerson: ['father'] }],
     choices: [
       {
         id: 'watch',
@@ -640,7 +640,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
     maxAge: 17,
     weight: 1.5,
     cooldown: 3,
-    conditions: [{ enrolled: true }, { stage: ['middle', 'high'] }],
+    conditions: [{ hasPerson: ['mother'] }, { enrolled: true }, { stage: ['middle', 'high'] }],
     choices: [
       {
         id: 'principal',
@@ -1147,7 +1147,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
     maxAge: 18,
     weight: 0.8,
     once: true,
-    conditions: [{ enrolled: true }, { stage: ['high'] }],
+    conditions: [{ hasPerson: ['mother'] }, { enrolled: true }, { stage: ['high'] }],
     choices: [
       {
         id: 'heart',
