@@ -103,6 +103,100 @@ export function fullName(p: { firstName: string; lastName: string }): string {
   return `${p.firstName} ${p.lastName}`;
 }
 
+// ---- Prose helpers: one place for articles, lists and phrasing the engine reuses. ----
+
+/** Upper-cases the first letter. */
+export function capitalize(text: string): string {
+  return text ? text[0]!.toUpperCase() + text.slice(1) : text;
+}
+
+/** Letters whose spoken name starts with a vowel sound ("an EMT", "an HR assistant", but "a UX lead"). */
+const VOWEL_SOUND_LETTERS = 'AEFHILMNORSX';
+
+/** "a" or "an" for a noun phrase, by sound rather than spelling. */
+export function article(phrase: string): 'a' | 'an' {
+  const word = phrase.trim().split(/[\s-]/)[0] ?? '';
+  if (!word) return 'a';
+  if (word.length > 1 && word === word.toUpperCase() && /^[A-Z]+$/.test(word)) return VOWEL_SOUND_LETTERS.includes(word[0]!) ? 'an' : 'a';
+  const w = word.toLowerCase();
+  if (/^(hour|honest|honor|heir)/.test(w)) return 'an';
+  if (/^(uni|use|usu|ute|uti|uro|one|once|eu|ewe)/.test(w)) return 'a';
+  return /^[aeiou]/.test(w) ? 'an' : 'a';
+}
+
+/** "an engineer", "a nurse", "an EMT". */
+export function withArticle(phrase: string): string {
+  return `${article(phrase)} ${phrase}`;
+}
+
+/** A job title as it reads mid-sentence: lower case, but acronyms stay ("EMT", "HR assistant", "VP of sales"). */
+export function lowerTitle(title: string): string {
+  return title
+    .split(' ')
+    .map((w) => (w.length > 1 && w === w.toUpperCase() && /[A-Z]/.test(w) ? w : w.toLowerCase()))
+    .join(' ');
+}
+
+/**
+ * A job title with its article, mid-sentence: "a nurse", "an EMT". Offices held by one person read
+ * without one ("mayor"), and proper nouns keep their capitals ("a member of Parliament").
+ */
+export function roleWithArticle(title: string): string {
+  switch (title) {
+    case 'Mayor': return 'mayor';
+    case 'Member of Parliament': return 'a member of Parliament';
+    case 'Supreme Court Justice': return 'a Supreme Court justice';
+    case 'Hall of Famer': return 'a Hall of Famer';
+    default: return withArticle(lowerTitle(title));
+  }
+}
+
+/** "a", "a and b", "a, b, and c". */
+export function joinList(items: readonly string[]): string {
+  if (items.length <= 1) return items[0] ?? '';
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`;
+}
+
+const NUMBER_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+
+/** Small counts spelled out ("two siblings"), larger ones as digits. */
+export function numberWord(n: number): string {
+  return NUMBER_WORDS[n] ?? String(n);
+}
+
+/** "1 year", "3 years". */
+export function plural(n: number, singular: string, pluralForm = `${singular}s`): string {
+  return `${n} ${n === 1 ? singular : pluralForm}`;
+}
+
+/** Ends a sentence without doubling a period that is already there ("at Crescent Ltd."). */
+export function sentence(text: string): string {
+  return /[.!?]$/.test(text) ? text : `${text}.`;
+}
+
+/**
+ * How a death reads in a sentence, from its cause: "died of cancer", "died in a car crash".
+ * Causes written as a full verb phrase ("drowned in a rip current") are used as they are.
+ */
+export function deathPhrase(cause: string | undefined): string {
+  const c = (cause ?? 'natural causes').trim();
+  if (/^(died|drowned|was |passed away|perished|froze|fell|burned)\b/i.test(c)) return c;
+  if (/^(a|an) (long|short|brief) illness\b/i.test(c)) return `died after ${c}`;
+  if (/^(a|an|the) ([\w-]+ ){0,2}(accident|crash|fire|wildfire|flood|riot|storm|explosion|avalanche|earthquake|shipwreck|collision)\b/i.test(c)) return `died in ${c}`;
+  return `died of ${c}`;
+}
+
+/** An employer as it reads in a list or header, without a leading "the". */
+export function employerLabel(company: string): string {
+  return company.replace(/^the /, '');
+}
+
+/** Money for prose and toasts, with the local currency symbol and full digits. */
+export function money(state: GameState, amount: number): string {
+  return formatMoneyFull(amount, state.character.countryCode);
+}
+
 export function pronouns(gender: 'male' | 'female') {
   return gender === 'male'
     ? { subject: 'he', object: 'him', possessive: 'his', Subject: 'He', title: 'Mr.' }

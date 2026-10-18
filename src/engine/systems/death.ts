@@ -1,6 +1,7 @@
 import { getCountry } from '@/data/countries';
-import type { GameState } from '../types';
-import { formatMoneyFull, fullName, log, netWorth, pronouns } from '../util';
+import { GRAD_BY_ID, majorProse } from '@/data/majors';
+import type { GameState, Person } from '../types';
+import { deathPhrase, formatMoneyFull, fullName, joinList, log, netWorth, numberWord, pronouns, roleWithArticle } from '../util';
 import { awardRibbon } from './ribbons';
 
 const EPITAPHS = [
@@ -14,6 +15,14 @@ const EPITAPHS = [
   'A life well simulated.',
 ];
 
+/** A child's grave reads gentler than the jokes above. */
+const CHILD_EPITAPHS = [
+  'Small, and loved enormously.',
+  'Gone too soon, never forgotten.',
+  'A short life, and a bright one.',
+  'Forever young.',
+];
+
 /** Ends the life: computes ribbon, obituary, and writes the final log lines. Idempotent. */
 export function markDeath(state: GameState, cause: string): GameState {
   if (!state.alive) return state;
@@ -21,7 +30,8 @@ export function markDeath(state: GameState, cause: string): GameState {
   const worth = netWorth(state);
   const ribbon = awardRibbon({ ...state, alive: false });
   const hash = (c.id + cause).split('').reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7);
-  const epitaph = EPITAPHS[hash % EPITAPHS.length] as string;
+  const epitaphs = c.age < 13 ? CHILD_EPITAPHS : EPITAPHS;
+  const epitaph = epitaphs[hash % epitaphs.length] as string;
   const obituary = buildObituary(state, cause, worth, ribbon.name);
   let s: GameState = {
     ...state,
@@ -31,41 +41,130 @@ export function markDeath(state: GameState, cause: string): GameState {
     death: { age: c.age, year: state.year, cause, netWorth: worth, ribbonId: ribbon.id, obituary, epitaph },
     counters: { ...state.counters, peakNetWorth: Math.max(state.counters.peakNetWorth, worth) },
   };
-  s = log(s, `I died of ${cause} at the age of ${c.age}.`, 'death');
+  s = log(s, c.age === 0 ? `I ${deathPhrase(cause)} before my first birthday.` : `I ${deathPhrase(cause)} at the age of ${c.age}.`, 'death');
   s = log(s, `${fullName(c)} · ${c.birthYear} – ${state.year} · ${ribbon.emoji} ${ribbon.name}`, 'death');
   return s;
+}
+
+/** A degree as an obituary would name it: "a degree in nursing", "an MBA", "a PhD". */
+function degreePhrase(degree: string): string | null {
+  const [level, field] = degree.split(':');
+  if (!field) return null;
+  if (level === 'bachelor') return `a degree in ${majorProse(field)}`;
+  switch (degree) {
+    case 'master:business': return 'an MBA';
+    case 'master:general': return "a master's degree";
+    case 'doctor:medicine': return 'a medical degree';
+    case 'doctor:law': return 'a law degree';
+    case 'doctor:dentistry': return 'a dental degree';
+    case 'doctor:philosophy': return 'a PhD';
+    default: return `a degree in ${field.replace(/_/g, ' ')}`;
+  }
+}
+
+const SCHOOL_STAGE: Record<string, string> = { primary: 'elementary school', middle: 'middle school', high: 'high school' };
+
+function relationLabel(p: Person): string {
+  switch (p.kind) {
+    case 'mother': return 'mother';
+    case 'father': return 'father';
+    case 'stepmother': return 'stepmother';
+    case 'stepfather': return 'stepfather';
+    default: return p.kind;
+  }
+}
+
+/** Who a child leaves behind: "her parents, Ana and Marco, and two siblings". */
+function childSurvivors(state: GameState, possessive: string): string {
+  const parents = Object.values(state.people).filter((x) => x.alive && (x.kind === 'mother' || x.kind === 'father' || x.kind === 'stepmother' || x.kind === 'stepfather'));
+  const siblings = Object.values(state.people).filter((x) => x.alive && x.kind === 'sibling').length;
+  const mother = parents.find((x) => x.kind === 'mother');
+  const father = parents.find((x) => x.kind === 'father');
+  const parentText = parents.length === 2 && mother && father
+    ? `${possessive} parents, ${mother.firstName} and ${father.firstName}`
+    : parents.length
+      ? joinList(parents.map((x) => `${possessive} ${relationLabel(x)} ${x.firstName}`))
+      : '';
+  const siblingText = siblings ? `${numberWord(siblings)} ${siblings === 1 ? 'sibling' : 'siblings'}` : '';
+  if (parentText && siblingText) return `${parentText}, and ${siblingText}`;
+  return parentText || siblingText;
 }
 
 export function buildObituary(state: GameState, cause: string, worth: number, ribbonName: string): string {
   const c = state.character;
   const p = pronouns(c.gender);
   const country = getCountry(c.countryCode);
+  const ageText = c.age === 0 ? 'just months old' : String(c.age);
+  const opening = `${fullName(c)}, ${ageText}, of ${c.city}, ${country.name}, ${deathPhrase(cause)}.`;
+  const crimeText = state.crime.inPrison
+    ? ` ${p.Subject} died while serving a prison sentence.`
+    : state.crime.convictions > 0
+      ? ` ${p.Subject} had ${numberWord(state.crime.convictions)} ${state.crime.convictions === 1 ? 'conviction' : 'convictions'} on record.`
+      : '';
+  const lastJob = state.career.job ?? null;
+
+  // A child's obituary is about school and family, not careers, marriages and money.
+  if (c.age < 18) {
+    const stage = state.education.enrolled ? SCHOOL_STAGE[state.education.stage] : undefined;
+    const schoolText = stage
+      ? `${p.Subject} was in ${stage}${lastJob ? ` and worked part-time as ${roleWithArticle(lastJob.title)} at ${lastJob.company}` : ''}.`
+      : c.age < 1
+        ? `${p.Subject} was only a baby.`
+        : c.age < 4
+          ? `${p.Subject} was only a toddler.`
+          : c.age < country.schoolStartAge
+            ? `${p.Subject} had not started school yet.`
+            : `${p.Subject} had already left school.`;
+    const survivors = childSurvivors(state, p.possessive);
+    const familyText = survivors ? ` ${p.Subject} is survived by ${survivors}.` : '';
+    return `${opening} ${schoolText}${familyText}${crimeText} Remembered as: ${ribbonName}.`;
+  }
+
   const spouse = Object.values(state.people).find((x) => x.kind === 'spouse' && x.alive);
   const children = Object.values(state.people).filter((x) => x.kind === 'child');
   const aliveChildren = children.filter((x) => x.alive).length;
-  const lastJob = state.career.job ?? null;
   const bestJob = [...state.career.history].sort((a, b) => b.salary - a.salary)[0];
+  const edu = state.education;
+  const studying = edu.enrolled && edu.major
+    ? edu.stage === 'university'
+      ? `was studying ${majorProse(edu.major)} at university`
+      : `was enrolled in ${GRAD_BY_ID[edu.major]?.prose ?? 'graduate school'}`
+    : null;
+  // Elected office and the armed forces are served in, not worked at.
+  const serving = lastJob && (lastJob.defId === 'military' || (lastJob.defId === 'politician' && lastJob.level > 0));
   const careerText = lastJob
-    ? `${p.Subject} worked as a ${lastJob.title.toLowerCase()} at ${lastJob.company}`
-    : bestJob
-      ? `${p.Subject} was best known for ${p.possessive} years as a ${bestJob.title.toLowerCase()}`
-      : state.counters.yearsEmployed === 0
-        ? `${p.Subject} never held a steady job, which ${p.subject} insisted was a lifestyle choice`
-        : `${p.Subject} worked a string of jobs`;
-  const degree = state.education.degrees.filter((d) => d.includes(':')).map((d) => d.split(':')[1]!.replace(/_/g, ' ')).pop();
-  const eduText = degree ? ` and held a degree in ${degree}` : state.education.droppedOut ? ' and never finished school' : '';
+    ? serving
+      ? `${p.Subject} served ${lastJob.defId === 'military' ? 'in the Army ' : ''}as ${roleWithArticle(lastJob.title)}`
+      : lastJob.defId === 'athlete' || lastJob.defId === 'musician'
+        ? `${p.Subject} was ${roleWithArticle(lastJob.title)} with ${lastJob.company}`
+        : `${p.Subject} worked as ${roleWithArticle(lastJob.title)} at ${lastJob.company}`
+    : studying
+      ? `${p.Subject} ${studying}`
+      : bestJob
+        ? state.career.retired
+          ? `${p.Subject} retired after working as ${roleWithArticle(bestJob.title)}`
+          : `${p.Subject} was best known for ${p.possessive} years as ${roleWithArticle(bestJob.title)}`
+        : state.counters.yearsEmployed === 0
+          ? c.age < 23
+            ? `${p.Subject} was just getting started in life`
+            : `${p.Subject} never held a steady job, which ${p.subject} insisted was a lifestyle choice`
+          : `${p.Subject} worked a string of jobs`;
+  const degree = edu.degrees.filter((d) => d.includes(':')).map(degreePhrase).filter((d): d is string => !!d).pop();
+  const eduText = degree ? ` and held ${degree}` : edu.droppedOut ? (edu.degrees.includes('high_school') ? ' and dropped out of college' : ' and never finished school') : '';
+  const childText = aliveChildren ? `${numberWord(aliveChildren)} ${aliveChildren === 1 ? 'child' : 'children'}` : '';
   const familyText = spouse
-    ? `${p.Subject} is survived by ${p.possessive} spouse ${spouse.firstName}${aliveChildren ? ` and ${aliveChildren} ${aliveChildren === 1 ? 'child' : 'children'}` : ''}.`
-    : aliveChildren
-      ? `${p.Subject} is survived by ${aliveChildren} ${aliveChildren === 1 ? 'child' : 'children'}.`
+    ? `${p.Subject} is survived by ${p.possessive} ${spouse.gender === 'male' ? 'husband' : 'wife'}, ${spouse.firstName}${childText ? `, and ${childText}` : ''}.`
+    : childText
+      ? `${p.Subject} is survived by ${childText}.`
       : state.counters.marriages > 0
-        ? `${p.Subject} was married ${state.counters.marriages === 1 ? 'once' : `${state.counters.marriages} times`}.`
+        ? `${p.Subject} was married ${state.counters.marriages === 1 ? 'once' : state.counters.marriages === 2 ? 'twice' : `${state.counters.marriages} times`}.`
         : `${p.Subject} never married.`;
   const moneyText = worth >= 1_000_000
     ? `${p.Subject} left behind a fortune of ${formatMoneyFull(worth, c.countryCode)}.`
     : worth < 0
       ? `${p.Subject} left behind debts of ${formatMoneyFull(-worth, c.countryCode)}, which surprised no one.`
-      : `${p.Subject} left behind ${formatMoneyFull(worth, c.countryCode)}.`;
-  const crimeText = state.crime.convictions > 0 ? ` ${p.Subject} had ${state.crime.convictions} ${state.crime.convictions === 1 ? 'conviction' : 'convictions'} on record.` : '';
-  return `${fullName(c)}, ${c.age}, of ${c.city}, ${country.name}, died of ${cause}. ${careerText}${eduText}. ${familyText} ${moneyText}${crimeText} Remembered as: ${ribbonName}.`;
+      : worth < 1_000
+        ? `${p.Subject} left behind next to nothing.`
+        : `${p.Subject} left behind ${formatMoneyFull(worth, c.countryCode)}.`;
+  return `${opening} ${careerText}${eduText}. ${familyText} ${moneyText}${crimeText} Remembered as: ${ribbonName}.`;
 }

@@ -1,13 +1,13 @@
 import { getCountry } from '@/data/countries';
-import { GRAD_BY_ID, GRADUATE_PROGRAMS, MAJOR_BY_ID, MAJORS } from '@/data/majors';
+import { GRAD_BY_ID, GRADUATE_PROGRAMS, MAJOR_BY_ID, majorProse, MAJORS } from '@/data/majors';
 import { scaleMoney } from '../events/text';
 import type { Rng } from '../rng';
 import type { GameState } from '../types';
-import { addMoney, addStats, clampStat, log, setResult } from '../util';
+import { addMoney, addStats, clampStat, log, money, setResult, withArticle } from '../util';
 
 export const STAGE_LABELS: Record<string, string> = {
   none: 'Not in school',
-  primary: 'Primary school',
+  primary: 'Elementary school',
   middle: 'Middle school',
   high: 'High school',
   university: 'University',
@@ -31,11 +31,11 @@ export function hasDegree(state: GameState, prefix: string): boolean {
 function startStage(state: GameState, stage: 'primary' | 'middle' | 'high'): GameState {
   const smarts = state.character.stats.smarts;
   let s: GameState = { ...state, education: { ...state.education, stage, enrolled: true, yearsInStage: 0, grade: clampStat(50 + (smarts - 50) / 2) } };
-  s = log(s, stage === 'primary' ? 'I started primary school.' : stage === 'middle' ? 'I started middle school.' : 'I started high school.', 'milestone');
+  s = log(s, stage === 'primary' ? 'I started elementary school.' : stage === 'middle' ? 'I started middle school.' : 'I started high school.', 'milestone');
   return s;
 }
 
-/** Yearly schooling: auto-enrolment, grade changes, graduation. */
+/** Yearly schooling: auto-enrollment, grade changes, graduation. */
 export function yearlyEducation(state: GameState, rng: Rng): GameState {
   let s = state;
   const c = s.character;
@@ -43,7 +43,7 @@ export function yearlyEducation(state: GameState, rng: Rng): GameState {
   const edu = s.education;
   if (s.crime.inPrison) return edu.enrolled ? { ...s, education: { ...edu, enrolled: false } } : s;
 
-  // Auto-enrol in compulsory school
+  // Auto-enroll in compulsory school
   if (!edu.enrolled && !edu.droppedOut && !edu.expelled) {
     if (c.age === country.schoolStartAge) return startStage(s, 'primary');
     if (c.age === 11 && edu.stage === 'primary') return startStage(s, 'middle');
@@ -68,11 +68,11 @@ export function yearlyEducation(state: GameState, rng: Rng): GameState {
   if (e.stage === 'high' && c.age >= country.highSchoolEndAge) {
     if (e.grade >= 30) {
       s = { ...s, education: { ...e, stage: 'done', enrolled: false, degrees: [...e.degrees, 'high_school'] } };
-      s = log(s, e.grade >= 85 ? 'I graduated high school with honours!' : 'I graduated from high school.', 'milestone');
+      s = log(s, e.grade >= 85 ? 'I graduated from high school with honors!' : 'I graduated from high school.', 'milestone');
       s = addStats(s, { happiness: 5 });
     } else {
       s = { ...s, education: { ...e, stage: 'done', enrolled: false } };
-      s = log(s, 'I failed to graduate from high school.', 'bad');
+      s = log(s, "My grades weren't good enough. I didn't graduate from high school.", 'bad');
       s = addStats(s, { happiness: -6 });
     }
     return s;
@@ -84,7 +84,7 @@ export function yearlyEducation(state: GameState, rng: Rng): GameState {
     if (s.education.yearsInStage >= years) {
       if (s.education.grade >= 25) {
         s = { ...s, education: { ...s.education, stage: 'done', enrolled: false, degrees: [...s.education.degrees, `bachelor:${e.major}`] } };
-        s = log(s, `I graduated with a bachelor's degree in ${major?.name ?? e.major}.`, 'milestone');
+        s = log(s, `I graduated with a bachelor's degree in ${majorProse(e.major)}.`, 'milestone');
         s = addStats(s, { happiness: 8, smarts: 3 });
       } else {
         s = { ...s, education: { ...s.education, stage: 'done', enrolled: false } };
@@ -99,7 +99,7 @@ export function yearlyEducation(state: GameState, rng: Rng): GameState {
     if (!e.scholarship) s = { ...s, education: { ...s.education, studentDebt: s.education.studentDebt + scaleMoney(s, prog?.tuition ?? 20000) } };
     if (s.education.yearsInStage >= (prog?.years ?? 2)) {
       s = { ...s, education: { ...s.education, stage: 'done', enrolled: false, degrees: [...s.education.degrees, prog?.grants ?? `master:${e.major}`] } };
-      s = log(s, `I completed ${prog?.name ?? 'graduate school'}.`, 'milestone');
+      s = log(s, prog?.earned ?? `I completed ${prog?.prose ?? 'graduate school'}.`, 'milestone');
       s = addStats(s, { happiness: 10, smarts: 4 });
     }
     return s;
@@ -119,11 +119,12 @@ export function studyHarder(state: GameState): GameState {
 export function skipClass(state: GameState, rng: Rng): GameState {
   if (!state.education.enrolled) return state;
   let s: GameState = { ...state, education: { ...state.education, grade: clampStat(state.education.grade - 8) } };
+  const college = state.education.stage === 'university' || state.education.stage === 'graduate';
   if (rng.chance(0.25)) {
-    s = log(s, 'I skipped class and got caught. My parents were furious.', 'bad');
+    s = log(s, college ? 'I skipped class and got caught. Word got back to my parents, who were furious.' : 'I skipped class and got caught. My parents were furious.', 'bad');
     for (const p of Object.values(s.people)) if ((p.kind === 'mother' || p.kind === 'father') && p.alive) s = { ...s, people: { ...s.people, [p.id]: { ...p, relationship: clampStat(p.relationship - 6) } } };
     s = addStats(s, { happiness: -3 });
-    return setResult(s, 'Caught skipping. Grounded.', 'bad');
+    return setResult(s, college ? 'Caught skipping. My parents heard about it.' : 'Caught skipping. Grounded.', 'bad');
   }
   s = addStats(s, { happiness: 4 });
   s = log(s, 'I skipped class and spent the day doing nothing in particular.');
@@ -134,7 +135,7 @@ export function dropOut(state: GameState): GameState {
   if (!state.education.enrolled) return state;
   const stage = state.education.stage;
   let s: GameState = { ...state, education: { ...state.education, enrolled: false, stage: 'done', droppedOut: true, major: null } };
-  s = log(s, stage === 'university' || stage === 'graduate' ? 'I dropped out of university.' : 'I dropped out of school.', 'bad');
+  s = log(s, stage === 'university' ? 'I dropped out of university.' : stage === 'graduate' ? 'I dropped out of graduate school.' : stage === 'high' ? 'I dropped out of high school.' : 'I dropped out of school.', 'bad');
   return setResult(s, 'I dropped out.', 'info');
 }
 
@@ -176,9 +177,12 @@ export function enroll(state: GameState, rng: Rng, id: string): GameState {
     ...state,
     education: { ...state.education, enrolled: true, stage: opt.kind, major: id, yearsInStage: 0, grade: clampStat(45 + (state.character.stats.smarts - 50) / 2), scholarship: scholarship || wealthy, droppedOut: false },
   };
-  if (wealthy && !scholarship) s = log(s, `My parents are paying for ${opt.name}. Must be nice.`, 'good');
-  if (scholarship) s = log(s, `I won a full scholarship to study ${opt.name}!`, 'good');
-  s = log(s, opt.kind === 'university' ? `I enrolled at university to study ${opt.name}.` : `I started ${opt.name}.`, 'milestone');
+  const university = opt.kind === 'university';
+  // "computer science" for a major, "medical school" for a graduate program.
+  const prose = university ? majorProse(id) : (GRAD_BY_ID[id]?.prose ?? opt.name);
+  if (wealthy && !scholarship) s = log(s, university ? `My parents are paying for my ${prose} degree. I know how lucky I am.` : `My parents are paying for ${prose}. I know how lucky I am.`, 'good');
+  if (scholarship) s = log(s, university ? `I won a full scholarship to study ${prose}!` : `I won a full scholarship to ${prose}!`, 'good');
+  s = log(s, university ? `I started university as ${withArticle(prose)} major.` : `I started ${prose}.`, 'milestone');
   s = addStats(s, { happiness: 4 });
   return setResult(s, `Enrolled: ${opt.name}.`, 'good');
 }
@@ -188,5 +192,5 @@ export function payOffStudentDebt(state: GameState, amount: number): GameState {
   if (amount <= 0) return state;
   let s = addMoney(state, -amount);
   s = { ...s, education: { ...s.education, studentDebt: s.education.studentDebt - amount } };
-  return setResult(s, `Paid ${amount.toLocaleString('en-US')} toward student loans.`, 'good', { moneyDelta: -amount });
+  return setResult(s, `I paid ${money(s, amount)} toward my student loans.`, 'good', { moneyDelta: -amount });
 }

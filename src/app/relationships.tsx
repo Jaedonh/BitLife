@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet } from 'react-native';
 
 import { ScreenHeader } from '@/components/game/ScreenHeader';
 import { ListRow, Screen, Section, T } from '@/components/ui';
-import { kindEmoji, kindLabel } from '@/components/game/people';
+import { deathLine, kindEmoji, kindLabel, personName, personSubtitle } from '@/components/game/people';
 import type { RelationshipKind } from '@/engine/types';
 import { useGameStore } from '@/store/gameStore';
 import { colors, spacing } from '@/theme';
@@ -24,7 +24,7 @@ export default function RelationshipsScreen() {
   const dead = people.filter((p) => !p.alive);
   return (
     <Screen>
-      <ScreenHeader title="People" subtitle={`${alive.length} in your life · energy ${game.character.energy}/${game.character.energyMax}`} />
+      <ScreenHeader title="People" subtitle={`${alive.length} in your life · Energy ${game.character.energy}/${game.character.energyMax}`} />
       <ScrollView contentContainerStyle={styles.content}>
         {GROUPS.map((g) => {
           const members = alive.filter((p) => g.kinds.includes(p.kind)).sort((a, b) => g.kinds.indexOf(a.kind) - g.kinds.indexOf(b.kind));
@@ -32,7 +32,7 @@ export default function RelationshipsScreen() {
           return (
             <Section key={g.title} title={g.title}>
               {members.map((p) => (
-                <ListRow key={p.id} emoji={kindEmoji(p)} title={`${p.firstName} ${p.lastName}`} subtitle={`${kindLabel(p)} · ${p.age} · ${p.occupation}`} right={`${p.relationship}%`} rightColor={p.relationship >= 60 ? colors.success : p.relationship >= 30 ? colors.warning : colors.danger} onPress={() => router.push({ pathname: '/person/[id]', params: { id: p.id } })} testID={`person-${p.kind}`} />
+                <ListRow key={p.id} emoji={kindEmoji(p)} title={personName(p)} subtitle={personSubtitle(p, kindLabel(p))} right={`${p.relationship}%`} rightColor={p.relationship >= 60 ? colors.success : p.relationship >= 30 ? colors.warning : colors.danger} onPress={() => router.push({ pathname: '/person/[id]', params: { id: p.id } })} testID={`person-${p.kind}`} />
               ))}
             </Section>
           );
@@ -41,7 +41,7 @@ export default function RelationshipsScreen() {
         {dead.length ? (
           <Section title="In memoriam">
             {dead.map((p) => (
-              <ListRow key={p.id} emoji="🕯️" title={`${p.firstName} ${p.lastName}`} subtitle={`${kindLabel(p)} · died at ${p.deathAge} of ${p.deathCause}`} />
+              <ListRow key={p.id} emoji="🕯️" title={personName(p)} subtitle={`${kindLabel(p)} · ${deathLine(p)}`} />
             ))}
           </Section>
         ) : null}

@@ -2,21 +2,23 @@ import { useEffect, useState } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 
 import type { LastResult } from '@/engine/types';
+import { formatMoneyFull } from '@/engine/util';
 import { useGameStore } from '@/store/gameStore';
 import { colors, radius, spacing, typography } from '@/theme';
 
-function deltaLine(r: LastResult): string {
+function deltaLine(r: LastResult, countryCode: string): string {
   const parts: string[] = [];
   const d = r.statDeltas ?? {};
   const label: Record<string, string> = { happiness: 'Happiness', health: 'Health', smarts: 'Smarts', looks: 'Looks' };
   for (const [k, v] of Object.entries(d)) if (v) parts.push(`${label[k] ?? k} ${v > 0 ? '+' : ''}${v}`);
-  if (r.moneyDelta) parts.push(`${r.moneyDelta > 0 ? '+' : '-'}${Math.abs(Math.round(r.moneyDelta)).toLocaleString('en-US')}`);
+  if (r.moneyDelta) parts.push(`${r.moneyDelta > 0 ? '+' : '-'}${formatMoneyFull(Math.abs(r.moneyDelta), countryCode)}`);
   return parts.join(' · ');
 }
 
 export function ResultToast() {
   const result = useGameStore((s) => s.game?.lastResult ?? null);
   const clear = useGameStore((s) => s.clearResult);
+  const countryCode = useGameStore((s) => s.game?.character.countryCode ?? 'US');
   const [opacity] = useState(() => new Animated.Value(0));
   useEffect(() => {
     if (!result) return;
@@ -29,7 +31,7 @@ export function ResultToast() {
   }, [result, opacity, clear]);
   if (!result) return null;
   const border = result.kind === 'good' ? colors.success : result.kind === 'bad' ? colors.danger : colors.info;
-  const deltas = deltaLine(result);
+  const deltas = deltaLine(result, countryCode);
   return (
     <Animated.View style={[styles.wrap, { opacity }]} pointerEvents="none">
       <View style={[styles.toast, { borderColor: border }]} testID="result-toast">

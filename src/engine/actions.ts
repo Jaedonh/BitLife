@@ -8,7 +8,7 @@ import { invest, payDebt, withdraw } from './systems/finance';
 import { doActivity } from './systems/activities';
 import { interact } from './systems/relationships';
 import type { GameState, PlayerAction } from './types';
-import { addMoney, addStats, bump, log, setResult } from './util';
+import { addMoney, addStats, bump, log, money, setResult } from './util';
 
 /** Applies a between-age-ups player action. Pure; RNG state is persisted. */
 export function applyAction(state: GameState, action: PlayerAction): GameState {
@@ -51,16 +51,19 @@ function rewardedBoost(state: GameState, rng: Rng, placement: 'cashBoost' | 'sta
     const stat = option === 'health' || option === 'smarts' || option === 'looks' ? option : 'happiness';
     const delta = stat === 'happiness' || stat === 'health' ? 30 : 16;
     s = addStats(s, { [stat]: delta });
-    const label = stat === 'happiness' ? 'a weekend that fixed everything' : stat === 'health' ? 'a health kick that actually stuck' : stat === 'smarts' ? 'a documentary binge that rewired my brain' : 'a glow-up';
-    s = log(s, `I had ${label}.`, 'good');
+    const kid = s.character.age < 13;
+    const labels: Record<typeof stat, string> = kid
+      ? { happiness: 'the best week of my whole childhood', health: 'a summer of running around outside until dark', smarts: 'a sudden obsession with library books', looks: 'a haircut that finally suited me' }
+      : { happiness: 'a weekend that fixed everything', health: 'a health kick that actually stuck', smarts: 'a documentary binge that rewired my brain', looks: 'a glow-up' };
+    s = log(s, `I had ${labels[stat]}.`, 'good');
     return setResult(s, `${stat[0]!.toUpperCase()}${stat.slice(1)} +${delta}.`, 'good', { statDeltas: { [stat]: delta } });
   }
   if (placement === 'cashBoost') {
     const salary = s.career.job?.salary ?? 0;
     const amount = Math.max(scaleMoney(s, s.character.age < 18 ? 150 : 800), Math.round(salary * 0.25), Math.round(Math.abs(s.finances.cash) * 0.05));
     s = addMoney(s, amount);
-    s = log(s, `A windfall! I found ${amount.toLocaleString('en-US')} I'd forgotten about.`, 'money');
-    return setResult(s, `+${amount.toLocaleString('en-US')} windfall.`, 'good', { moneyDelta: amount });
+    s = log(s, s.character.age < 13 ? `A windfall! A relative slipped me ${money(s, amount)} for my piggy bank.` : `A windfall! I found ${money(s, amount)} I'd forgotten about.`, 'money');
+    return setResult(s, `Windfall: +${money(s, amount)}.`, 'good', { moneyDelta: amount });
   }
   if (placement === 'reroll') {
     s = rollListings(s, rng);

@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { Alert, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { lifeStatus } from '@/components/game/StatsHeader';
 import { Button, Card, Screen, T } from '@/components/ui';
 import { RIBBON_BY_ID } from '@/engine';
 import { useGameStore } from '@/store/gameStore';
@@ -50,7 +51,7 @@ export default function MenuScreen() {
             <T kind="heading">
               {game.character.firstName} {game.character.lastName}, {game.character.age}
             </T>
-            <T kind="small">{game.career.job ? game.career.job.title : game.education.enrolled ? 'Student' : 'Living life'}</T>
+            <T kind="small">{lifeStatus(game)}</T>
           </Card>
         ) : game && !game.alive ? (
           <Card onPress={() => router.replace('/death')} testID="view-death">

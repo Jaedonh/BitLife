@@ -1,7 +1,7 @@
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
-import { kindEmoji, kindLabel } from '@/components/game/people';
+import { deathLine, kindEmoji, kindLabel, personName, personSubtitle, sinceLine } from '@/components/game/people';
 import { ScreenHeader } from '@/components/game/ScreenHeader';
 import { Button, Card, Screen, Section, StatBar, T } from '@/components/ui';
 import { availableInteractions } from '@/engine';
@@ -19,7 +19,7 @@ export default function PersonScreen() {
   const energy = game.character.energy;
   return (
     <Screen>
-      <ScreenHeader title={`${kindEmoji(p)} ${p.firstName} ${p.lastName}`} subtitle={`${kindLabel(p)} · ${p.age} · ${p.occupation}`} onBack={() => router.back()} />
+      <ScreenHeader title={`${kindEmoji(p)} ${personName(p)}`} subtitle={personSubtitle(p, kindLabel(p))} onBack={() => router.back()} />
       <ScrollView contentContainerStyle={styles.content}>
         <Card style={styles.card}>
           <StatBar label="Relationship" value={p.relationship} color={p.relationship >= 60 ? colors.success : p.relationship >= 30 ? colors.warning : colors.danger} testID="person-relationship" />
@@ -28,13 +28,13 @@ export default function PersonScreen() {
           <StatBar label="Smarts" value={p.smarts} color={colors.smarts} />
           <StatBar label="Health" value={p.health} color={colors.health} />
           <T kind="small">
-            {p.alive ? `Known since you were ${p.metAtAge}.` : `Died at ${p.deathAge} of ${p.deathCause}.`}
-            {p.alive && game.character.age - p.memory.lastInteractionAge >= 2 ? ` You haven't spoken in ${game.character.age - p.memory.lastInteractionAge} years.` : ''}
+            {p.alive ? sinceLine(p) : `${deathLine(p)}.`}
+            {p.alive && game.character.age - p.memory.lastInteractionAge >= 2 ? ` You haven't ${p.kind === 'pet' ? 'spent time together' : 'spoken'} in ${game.character.age - p.memory.lastInteractionAge} years.` : ''}
             {p.marriedAtAge !== undefined ? ` Married when you were ${p.marriedAtAge}.` : ''}
           </T>
         </Card>
         {p.alive ? (
-          <Section title={`Interact · energy ${energy}/${game.character.energyMax}`}>
+          <Section title={`Interact · Energy ${energy}/${game.character.energyMax}`}>
             <View style={styles.grid}>
               {interactions.map((i) => (
                 <Button

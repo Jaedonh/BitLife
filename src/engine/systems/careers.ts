@@ -1,29 +1,30 @@
 import { getCountry } from '@/data/countries';
 import { HUSTLE_BY_ID, HUSTLES } from '@/data/hustles';
 import { JOB_BY_ID, JOBS, type JobDef } from '@/data/jobs';
+import { majorProse } from '@/data/majors';
+import { COMPANY_NAMES, COMPANY_SUFFIXES } from '@/data/names';
 import { removeJob } from '../events/effects';
 import { scaleMoney } from '../events/text';
 import { Rng } from '../rng';
 import type { GameState, Job, JobListing } from '../types';
-import { addStats, bump, clampStat, formatMoney, log, setResult, withFame } from '../util';
-import { randomCompany } from './character';
+import { addStats, bump, capitalize, clampStat, formatMoney, log, lowerTitle, plural, roleWithArticle, sentence, setResult, withArticle, withFame } from '../util';
 import { bachelorMajor, hasDegree, hasHighSchool } from './education';
 
 export function meetsRequirements(state: GameState, def: JobDef): { ok: boolean; reason?: string } {
   const r = def.requirements;
   const c = state.character;
-  if (c.age < (r.minAge ?? (def.partTime ? 14 : 18))) return { ok: false, reason: `Must be ${r.minAge ?? (def.partTime ? 14 : 18)}+` };
-  if (def.partTime && c.age > 24) return { ok: false, reason: 'Part-time roles are for students' };
+  if (c.age < (r.minAge ?? (def.partTime ? 14 : 18))) return { ok: false, reason: `Age ${r.minAge ?? (def.partTime ? 14 : 18)}+` };
+  if (def.partTime && c.age > 24) return { ok: false, reason: 'Part-time roles are for under-25s' };
   if (state.crime.inPrison) return { ok: false, reason: 'In prison' };
   if (r.noRecord && state.crime.record) return { ok: false, reason: 'Criminal record' };
   switch (r.education) {
     case 'high_school':
-      if (!hasHighSchool(state)) return { ok: false, reason: 'Needs high school diploma' };
+      if (!hasHighSchool(state)) return { ok: false, reason: 'Needs a high school diploma' };
       break;
     case 'bachelor': {
       const major = bachelorMajor(state);
       if (!major) return { ok: false, reason: "Needs a bachelor's degree" };
-      if (r.majors && r.majors.length && !r.majors.includes(major) && !hasDegree(state, 'master') && !hasDegree(state, 'doctor')) return { ok: false, reason: `Needs a degree in ${r.majors.slice(0, 2).join(' or ')}` };
+      if (r.majors && r.majors.length && !r.majors.includes(major) && !hasDegree(state, 'master') && !hasDegree(state, 'doctor')) return { ok: false, reason: `Needs a degree in ${r.majors.slice(0, 2).map(majorProse).join(' or ')}` };
       break;
     }
     case 'master':
@@ -43,7 +44,7 @@ export function meetsRequirements(state: GameState, def: JobDef): { ok: boolean;
   if (r.minSmarts !== undefined && c.stats.smarts < r.minSmarts) return { ok: false, reason: `Needs ${r.minSmarts} Smarts` };
   if (r.minLooks !== undefined && r.minLooks > 0 && c.stats.looks < r.minLooks) return { ok: false, reason: `Needs ${r.minLooks} Looks` };
   if (r.minHealth !== undefined && c.stats.health < r.minHealth) return { ok: false, reason: `Needs ${r.minHealth} Health` };
-  if (r.experience !== undefined && (state.career.experience[def.category] ?? 0) + Math.floor(state.career.totalYearsWorked / 2) < r.experience) return { ok: false, reason: `Needs ${r.experience} years experience` };
+  if (r.experience !== undefined && (state.career.experience[def.category] ?? 0) + Math.floor(state.career.totalYearsWorked / 2) < r.experience) return { ok: false, reason: `Needs ${plural(r.experience, 'year')} of experience` };
   return { ok: true };
 }
 
@@ -66,6 +67,85 @@ export function listingSalary(state: GameState, def: JobDef, level: number, rng:
   return Math.round(scaleMoney(state, base) * rng.float(0.92, 1.12));
 }
 
+/**
+ * Who a job is with. Most jobs are at a generic company ("Granite & Sons"); jobs that only exist at a
+ * hospital, a school, a police force and so on get an employer that sounds like one. The name and
+ * suffix are drawn exactly as before, so the RNG sequence is unchanged.
+ */
+const EMPLOYERS: Record<string, (base: string, city: string) => string> = {
+  pt_cashier: (b) => `${b} Market`,
+  pt_babysitter: (b) => `${b} Daycare`,
+  pt_lifeguard: (_b, c) => `the ${c} Aquatic Center`,
+  pt_barista: (b) => `${b} Coffee`,
+  pt_tutor: (b) => `${b} Tutoring`,
+  pt_delivery: (b) => `${b} Eats`,
+  fast_food: (b) => `${b} Burger`,
+  waiter: (b) => `${b} Bistro`,
+  bartender: (b) => `the ${b} Tavern`,
+  hairdresser: (b) => `${b} Salon`,
+  fitness_trainer: (b) => `${b} Fitness`,
+  chef: (b) => `${b} Kitchen`,
+  mechanic: (b) => `${b} Auto`,
+  police: (_b, c) => `the ${c} Police Department`,
+  firefighter: (_b, c) => `the ${c} Fire Department`,
+  military: () => 'the Army',
+  mail_carrier: () => 'the Postal Service',
+  civil_servant: (_b, c) => (c.endsWith(' City') ? `${c} Hall` : `${c} City Hall`),
+  politician: (_b, c) => (c.endsWith(' City') ? `${c} Hall` : `${c} City Hall`),
+  bank_teller: (b) => `${b} Bank`,
+  insurance_agent: (b) => `${b} Insurance`,
+  caregiver: (b) => `${b} Senior Living`,
+  paramedic: (_b, c) => `${c} EMS`,
+  nurse: (b) => `${b} General Hospital`,
+  doctor: (b) => `${b} General Hospital`,
+  surgeon: (b) => `${b} General Hospital`,
+  pharmacist: (b) => `${b} Pharmacy`,
+  dentist: (b) => `${b} Dental`,
+  therapist: (b) => `${b} Counseling`,
+  vet: (b) => `${b} Animal Hospital`,
+  paralegal: (b) => `${b} Law`,
+  lawyer: (b) => `${b} Law`,
+  judge: (_b, c) => `the ${c} District Court`,
+  teacher: (b) => `${b} High School`,
+  professor: (_b, c) => `the University of ${c}`,
+  librarian: (_b, c) => `the ${c} Public Library`,
+  scientist: (b) => `the ${b} Institute`,
+  pilot: (b) => `${b} Airlines`,
+  journalist: (b) => `the ${b} Herald`,
+  actor: (b) => `${b} Pictures`,
+  musician: (b) => `${b} Records`,
+  athlete: (_b, c) => `${c} Athletic`,
+  coach: (_b, c) => `${c} Athletic`,
+};
+
+function employerFor(def: JobDef, rng: Rng, city: string): string {
+  const base = rng.pick(COMPANY_NAMES);
+  const suffix = rng.pick(COMPANY_SUFFIXES);
+  const named = EMPLOYERS[def.id];
+  return named ? named(base, city) : `${base} ${suffix}`;
+}
+
+/**
+ * The journal line for a step up the ladder: "I was promoted to senior teller." Elected and appointed
+ * offices, owners and stars get a line that fits how anyone reaches them.
+ */
+function promotionLine(def: JobDef, title: string): string {
+  switch (title) {
+    case 'City Councilor': return 'I was elected to the city council.';
+    case 'Mayor': return 'I was elected mayor.';
+    case 'Member of Parliament': return 'I won a seat in Parliament.';
+    case 'Minister': return 'I was appointed a government minister.';
+    case 'District Judge': return 'I was appointed a district judge.';
+    case 'Appeals Judge': return 'I was appointed to the court of appeals.';
+    case 'Supreme Court Justice': return 'I was appointed to the Supreme Court.';
+    case 'Hall of Famer': return 'I was voted into the Hall of Fame.';
+    case 'Partner': return 'I was made a partner.';
+    default:
+      if (['actor', 'musician', 'chef_tv', 'athlete'].includes(def.id) || /(Owner|Contractor|Author)$/.test(title)) return `I became ${roleWithArticle(title)}.`;
+      return `I was promoted to ${lowerTitle(title)}.`;
+  }
+}
+
 /** Rolls a fresh set of job listings for this year. */
 export function rollListings(state: GameState, rng: Rng): GameState {
   const age = state.character.age;
@@ -76,7 +156,7 @@ export function rollListings(state: GameState, rng: Rng): GameState {
     id: rng.id('l_'),
     defId: def.id,
     title: def.ladder[0]!.title,
-    company: randomCompany(rng),
+    company: employerFor(def, rng, state.character.city),
     salary: listingSalary(state, def, 0, rng),
     category: def.category,
     partTime: !!def.partTime,
@@ -90,17 +170,21 @@ export function applyForJob(state: GameState, rng: Rng, listingId: string): Game
   const def = JOB_BY_ID[listing.defId];
   if (!def) return state;
   const req = meetsRequirements(state, def);
-  if (!req.ok) return setResult(state, `Rejected: ${req.reason}.`, 'bad');
-  if (state.career.job && !state.career.job.partTime && listing.partTime) return setResult(state, 'Quit your full-time job first.', 'bad');
+  if (!req.ok) {
+    const reason = req.reason ?? 'not eligible';
+    return setResult(state, `Rejected: ${/^[A-Z][a-z]/.test(reason) ? reason[0]!.toLowerCase() + reason.slice(1) : reason}.`, 'bad');
+  }
+  if (state.career.job && !state.career.job.partTime && listing.partTime) return setResult(state, "I'd have to quit my full-time job first.", 'bad');
   const c = state.character;
   let chance = 0.65 + (c.stats.smarts - 50) / 200 + (c.stats.looks - 50) / 400;
   if (c.traits.includes('charming')) chance += 0.1;
   if (state.crime.record) chance -= 0.1;
   if (!rng.chance(Math.max(0.15, Math.min(0.95, chance)))) {
-    let s = log(state, `I interviewed for a ${listing.title.toLowerCase()} position at ${listing.company} and didn't get it.`, 'bad');
+    const military = def.id === 'military';
+    let s = log(state, military ? 'I tried to enlist in the Army and was turned down.' : `I interviewed for ${withArticle(`${lowerTitle(listing.title)} position`)} at ${listing.company} and didn't get it.`, 'bad');
     s = addStats(s, { happiness: -2 });
     s = { ...s, career: { ...s.career, listings: s.career.listings.filter((l) => l.id !== listingId) } };
-    return setResult(s, `${listing.company} went with another candidate.`, 'bad');
+    return setResult(s, military ? 'The Army turned me down.' : `${capitalize(listing.company)} went with another candidate.`, 'bad');
   }
   let s = state.career.job ? removeJob(state, 'left') : state;
   const job: Job = {
@@ -120,15 +204,15 @@ export function applyForJob(state: GameState, rng: Rng, listingId: string): Game
   s = { ...s, career: { ...s.career, job, listings: s.career.listings.filter((l) => l.id !== listingId) } };
   s = bump(s, 'jobsHeld');
   s = addStats(s, { happiness: 5 });
-  s = log(s, `I was hired as a ${job.title.toLowerCase()} at ${job.company}.`, 'milestone');
-  return setResult(s, `Hired! ${job.title} at ${job.company}.`, 'good');
+  s = log(s, def.id === 'military' ? `I enlisted in the Army as ${roleWithArticle(job.title)}.` : sentence(`I was hired as ${roleWithArticle(job.title)} at ${job.company}`), 'milestone');
+  return setResult(s, def.id === 'military' ? `Enlisted! ${job.title} in the Army.` : sentence(`Hired! ${job.title} at ${job.company}`), 'good');
 }
 
 export function quitJob(state: GameState): GameState {
   if (!state.career.job) return state;
-  const title = state.career.job.title;
+  const { title, defId } = state.career.job;
   let s = removeJob(state, 'quit');
-  s = log(s, `I quit my job as a ${title.toLowerCase()}.`);
+  s = log(s, defId === 'military' ? `I left the Army as ${roleWithArticle(title)}.` : `I quit my job as ${roleWithArticle(title)}.`);
   return setResult(s, 'I handed in my notice.', 'info');
 }
 
@@ -168,7 +252,7 @@ function promote(state: GameState, rng: Rng, job: Job, def: JobDef): GameState {
   let s: GameState = { ...state, career: { ...state.career, job: { ...job, level: nextLevel, title, salary, yearsAtLevel: 0, performance: clampStat(job.performance - 10) } } };
   s = bump(s, 'promotions');
   s = addStats(s, { happiness: 6 });
-  s = log(s, `I was promoted to ${title}.`, 'milestone');
+  s = log(s, promotionLine(def, title), 'milestone');
   return s;
 }
 
@@ -183,7 +267,7 @@ export function askForPromotion(state: GameState, rng: Rng): GameState {
   const chance = job.performance >= 85 && job.yearsAtLevel >= 1 ? 0.55 : job.performance >= 70 && job.yearsAtLevel >= 2 ? 0.4 : 0.08;
   if (rng.chance(chance)) {
     s = promote(s, rng, s.career.job!, def);
-    return setResult(s, `Promoted to ${s.career.job!.title}!`, 'good');
+    return setResult(s, promotionLine(def, s.career.job!.title), 'good');
   }
   s = log(s, 'I asked for a promotion and was told to keep proving myself.', 'bad');
   return setResult(s, 'Not yet. "Keep it up."', 'bad');
@@ -217,7 +301,7 @@ export function yearlyCareer(state: GameState, rng: Rng): GameState {
     if (job.partTime && c.age > 24 && updated.salary < floor) {
       // A student job kept past 24 goes full hours, so it pays enough to live on.
       updated = { ...updated, salary: floor };
-      s = log(s, `${job.company} moved me to full hours. My pay rose to ${formatMoney(floor, c.countryCode)} a year.`, 'money');
+      s = log(s, `${capitalize(job.company)} moved me to full hours. My pay rose to ${formatMoney(floor, c.countryCode)} a year.`, 'money');
     }
     s = { ...s, career: { ...s.career, job: updated, totalYearsWorked: s.career.totalYearsWorked + 1, experience: { ...s.career.experience, [def.category]: (s.career.experience[def.category] ?? 0) + 1 } } };
     s = bump(s, 'yearsEmployed');
@@ -233,13 +317,13 @@ export function yearlyCareer(state: GameState, rng: Rng): GameState {
     if (perf < 18 && rng.chance(0.5)) {
       s = removeJob(s, 'fired');
       s = addStats(s, { happiness: -10 });
-      s = log(s, `I was fired from ${job.company} for poor performance.`, 'bad');
+      s = log(s, def.id === 'military' ? 'I was discharged from the Army for poor performance.' : `I was fired from ${job.company} for poor performance.`, 'bad');
       return yearlyHustle(s, rng);
     }
     if (rng.chance(0.02)) {
       s = removeJob(s, 'fired');
       s = addStats(s, { happiness: -8 });
-      s = log(s, `${job.company} made cutbacks and I was laid off.`, 'bad');
+      s = log(s, def.id === 'military' ? 'The Army cut its numbers and I was discharged.' : `${capitalize(job.company)} made cutbacks and I was laid off.`, 'bad');
       return yearlyHustle(s, rng);
     }
     if (perf >= 65 && updated.yearsAtLevel >= 1) {
@@ -260,18 +344,19 @@ export function yearlyCareer(state: GameState, rng: Rng): GameState {
 export function startHustle(state: GameState, defId: string): GameState {
   const def = HUSTLE_BY_ID[defId];
   if (!def) return state;
-  if (state.career.hustle) return setResult(state, 'Finish your current hustle first.', 'info');
-  if (state.character.age < def.minAge) return setResult(state, `You must be ${def.minAge}+.`, 'bad');
-  if (def.id === 'rideshare' && !state.assets.some((a) => a.kind === 'car' && !['bike', 'scooter'].includes(a.defId))) return setResult(state, 'You need a car for that.', 'bad');
+  if (state.career.hustle) return setResult(state, 'I already have a side hustle going.', 'info');
+  if (state.character.age < def.minAge) return setResult(state, `I have to be ${def.minAge} or older for that.`, 'bad');
+  if (def.id === 'rideshare' && !state.assets.some((a) => a.kind === 'car' && !['bike', 'scooter'].includes(a.defId))) return setResult(state, 'I need a car for that.', 'bad');
   let s: GameState = { ...state, career: { ...state.career, hustle: { defId, name: def.name, level: 0, followers: 0, yearsActive: 0, lastIncome: 0 } } };
-  s = log(s, `I started a side hustle: ${def.name.toLowerCase()}.`);
+  s = log(s, `I started ${withArticle(def.noun)} on the side.`);
   return setResult(s, `Started: ${def.name}.`, 'good');
 }
 
 export function stopHustle(state: GameState): GameState {
   if (!state.career.hustle) return state;
+  const noun = HUSTLE_BY_ID[state.career.hustle.defId]?.noun ?? state.career.hustle.name.toLowerCase();
   let s: GameState = { ...state, career: { ...state.career, hustle: null } };
-  s = log(s, `I shut down my ${state.career.hustle.name.toLowerCase()}.`);
+  s = log(s, `I shut down my ${noun}.`);
   return setResult(s, 'Hustle closed.', 'info');
 }
 
@@ -290,10 +375,10 @@ function yearlyHustle(state: GameState, rng: Rng): GameState {
   let s = state;
   if (def.viralChance > 0 && level >= 2 && rng.chance(def.viralChance)) {
     income += scaleMoney(s, def.viralBonus);
-    s = log(s, `My ${def.name.toLowerCase()} went viral this year!`, 'good');
+    s = log(s, def.id === 'app_dev' ? 'One of my apps went viral this year!' : `My ${def.noun} went viral this year!`, 'good');
     s = addStats(s, { happiness: 8 });
   }
-  if (level > h.level) s = log(s, `My ${def.name.toLowerCase()} is growing (level ${level}).`, 'good');
+  if (level > h.level) s = log(s, `My ${def.noun} is growing. It reached level ${level}.`, 'good');
   if (level >= 3 && def.fame) s = withFame(s, s.character.fame + def.fame);
   if (level >= 5) s = { ...s, flags: { ...s.flags, hustleMaxed: true } };
   s = { ...s, career: { ...s.career, hustle: { ...h, level, yearsActive: h.yearsActive + 1, lastIncome: income, followers: Math.round(h.followers * 1.1 + level * level * 1000) } } };

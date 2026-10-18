@@ -77,7 +77,7 @@ export const JOBS: readonly JobDef[] = [
   j('military', 'public', '🎖️', [['Private', 25000], ['Corporal', 32000], ['Sergeant', 44000], ['Lieutenant', 62000], ['Major', 90000], ['Colonel', 130000]], { education: 'high_school', minHealth: 55, noRecord: true, minAge: 18 }, { stress: 50, danger: 40 }),
   j('mail_carrier', 'public', '📬', [['Mail Clerk', 34000], ['Mail Carrier', 46000], ['Postmaster', 68000]], { education: 'high_school', noRecord: true }, { stress: 20, danger: 5 }),
   j('civil_servant', 'public', '🏛️', [['Clerk', 36000], ['Administrative Officer', 48000], ['Senior Officer', 65000], ['Department Director', 110000]], { education: 'bachelor' }, { stress: 25 }),
-  j('politician', 'public', '🗳️', [['Campaign Aide', 32000], ['City Councillor', 60000], ['Mayor', 110000], ['Member of Parliament', 175000], ['Minister', 250000]], { education: 'bachelor', majors: ['political_science', 'law', 'economics', 'history', 'communications', 'business'], noRecord: true, minSmarts: 55 }, { stress: 50, fame: 3 }),
+  j('politician', 'public', '🗳️', [['Campaign Aide', 32000], ['City Councilor', 60000], ['Mayor', 110000], ['Member of Parliament', 175000], ['Minister', 250000]], { education: 'bachelor', majors: ['political_science', 'law', 'economics', 'history', 'communications', 'business'], noRecord: true, minSmarts: 55 }, { stress: 50, fame: 3 }),
   // Office
   j('receptionist', 'office', '📞', [['Receptionist', 29000], ['Office Coordinator', 38000], ['Office Manager', 55000]], { education: 'high_school' }, { stress: 20 }),
   j('admin', 'office', '🗂️', [['Administrative Assistant', 33000], ['Executive Assistant', 48000], ['Operations Manager', 72000], ['Director of Operations', 115000]], { education: 'high_school', minSmarts: 35 }, { stress: 30 }),
@@ -97,7 +97,7 @@ export const JOBS: readonly JobDef[] = [
   j('data_scientist', 'tech', '🧮', [['Data Analyst', 65000], ['Data Scientist', 110000], ['Lead Data Scientist', 160000], ['Head of Data', 230000]], { education: 'bachelor', majors: ['computer_science', 'mathematics', 'physics', 'economics', 'engineering'], minSmarts: 70 }, { stress: 40 }),
   j('web_designer', 'tech', '🎨', [['Junior Web Designer', 42000], ['Web Designer', 60000], ['UX Lead', 95000], ['Design Director', 140000]], { education: 'high_school', majors: [], minSmarts: 40, minLooks: 0 }, { stress: 30 }),
   // Health
-  j('caregiver', 'health', '🩺', [['Care Assistant', 27000], ['Senior Carer', 34000], ['Care Home Manager', 55000]], { education: 'high_school' }, { stress: 40 }),
+  j('caregiver', 'health', '🩺', [['Caregiver', 27000], ['Senior Caregiver', 34000], ['Nursing Home Manager', 55000]], { education: 'high_school' }, { stress: 40 }),
   j('paramedic', 'health', '🚑', [['EMT', 36000], ['Paramedic', 52000], ['Senior Paramedic', 66000], ['EMS Supervisor', 85000]], { education: 'high_school', minHealth: 55, minSmarts: 45 }, { stress: 55, danger: 15 }),
   j('nurse', 'health', '💉', [['Registered Nurse', 62000], ['Charge Nurse', 78000], ['Nurse Practitioner', 110000], ['Director of Nursing', 145000]], { education: 'bachelor', majors: ['nursing', 'biology'], minSmarts: 50 }, { stress: 50 }),
   j('pharmacist', 'health', '💊', [['Pharmacy Intern', 50000], ['Pharmacist', 115000], ['Senior Pharmacist', 135000], ['Pharmacy Owner', 180000]], { education: 'bachelor', majors: ['chemistry', 'biology'], minSmarts: 65 }, { stress: 35 }),
@@ -111,7 +111,7 @@ export const JOBS: readonly JobDef[] = [
   j('lawyer', 'law', '⚖️', [['Junior Associate', 85000], ['Associate', 130000], ['Senior Associate', 180000], ['Partner', 320000], ['Managing Partner', 500000]], { education: 'doctor:law', noRecord: true, minSmarts: 65 }, { stress: 65 }),
   j('judge', 'law', '👩‍⚖️', [['Magistrate', 120000], ['District Judge', 170000], ['Appeals Judge', 220000], ['Supreme Court Justice', 290000]], { education: 'doctor:law', noRecord: true, minSmarts: 75, experience: 10, minAge: 40 }, { stress: 50, fame: 2 }),
   // Education
-  j('teacher', 'education', '🍎', [['Teaching Assistant', 30000], ['Teacher', 48000], ['Senior Teacher', 60000], ['Head of Department', 75000], ['Principal', 105000]], { education: 'bachelor', noRecord: true }, { stress: 40 }),
+  j('teacher', 'education', '🍎', [['Teaching Assistant', 30000], ['Teacher', 48000], ['Senior Teacher', 60000], ['Department Head', 75000], ['Principal', 105000]], { education: 'bachelor', noRecord: true }, { stress: 40 }),
   j('professor', 'education', '🎓', [['Lecturer', 58000], ['Assistant Professor', 80000], ['Associate Professor', 105000], ['Professor', 145000], ['Dean', 200000]], { education: 'doctor', minSmarts: 75 }, { stress: 35, fame: 1 }),
   j('librarian', 'education', '📚', [['Library Assistant', 30000], ['Librarian', 48000], ['Head Librarian', 65000]], { education: 'bachelor', minSmarts: 50 }, { stress: 15 }),
   // Science
@@ -128,7 +128,7 @@ export const JOBS: readonly JobDef[] = [
   j('musician', 'creative', '🎸', [['Session Musician', 22000], ['Touring Musician', 48000], ['Recording Artist', 160000], ['Headliner', 900000]], { education: 'none', minSmarts: 25 }, { stress: 40, fame: 8 }),
   j('chef_tv', 'creative', '📺', [['Food Blogger', 24000], ['TV Cook', 70000], ['Celebrity Chef', 300000]], { education: 'none', experience: 3, minLooks: 40 }, { stress: 45, fame: 6 }),
   // Sports
-  j('athlete', 'sports', '🏅', [['Semi-pro Athlete', 28000], ['Professional Athlete', 120000], ['Star Athlete', 800000], ['Legend', 3000000]], { education: 'none', minHealth: 85, minAge: 18 }, { stress: 50, danger: 30, fame: 10 }),
+  j('athlete', 'sports', '🏅', [['Semi-pro Athlete', 28000], ['Professional Athlete', 120000], ['Star Athlete', 800000], ['Hall of Famer', 3000000]], { education: 'none', minHealth: 85, minAge: 18 }, { stress: 50, danger: 30, fame: 10 }),
   j('coach', 'sports', '📣', [['Assistant Coach', 34000], ['Coach', 55000], ['Head Coach', 110000], ['Director of Athletics', 180000]], { education: 'high_school', minHealth: 50, experience: 2 }, { stress: 40, fame: 2 }),
 ];
 

@@ -33,11 +33,11 @@ export const RIBBONS: readonly RibbonDef[] = [
   { id: 'centenarian', name: 'Centenarian', emoji: '🎂', description: 'Lived to 100.', priority: 43, test: (s) => s.character.age >= 100 },
   { id: 'survivor', name: 'Survivor', emoji: '🩹', description: 'Faced 15+ diagnoses and kept going.', priority: 42, test: (s) => s.counters.illnesses >= 15 },
   { id: 'addict', name: 'Addict', emoji: '🍾', description: 'Died with an addiction.', priority: 40, test: (s) => Object.values(s.health.addictions).some((v) => (v ?? 0) >= 40) },
-  { id: 'lazy', name: 'Lazy', emoji: '🛋️', description: 'Never held a job past 30.', priority: 38, test: (s) => s.character.age >= 40 && s.counters.yearsEmployed <= 2 },
+  { id: 'lazy', name: 'Lazy', emoji: '🛋️', description: 'Reached 40 with two years of work or less.', priority: 38, test: (s) => s.character.age >= 40 && s.counters.yearsEmployed <= 2 },
   { id: 'wasted', name: 'Wasted', emoji: '🕯️', description: 'Died before 25.', priority: 34, test: (s) => s.character.age < 25 },
-  { id: 'successful', name: 'Successful', emoji: '🏆', description: 'Good job, family and money.', priority: 30, test: (s) => netWorth(s) >= scaleMoney(s, 250_000) && s.counters.marriages >= 1 && s.counters.children >= 1 },
-  { id: 'happy', name: 'Happy', emoji: '😊', description: 'Spent most of life happy.', priority: 25, test: (s) => s.counters.yearsHappy >= Math.max(10, s.character.age * 0.5) },
-  { id: 'miserable', name: 'Miserable', emoji: '🌧️', description: 'Spent most of life unhappy.', priority: 24, test: (s) => s.counters.yearsMiserable >= Math.max(10, s.character.age * 0.4) },
+  { id: 'successful', name: 'Successful', emoji: '🏆', description: 'Married, raised a family and built real savings.', priority: 30, test: (s) => netWorth(s) >= scaleMoney(s, 250_000) && s.counters.marriages >= 1 && s.counters.children >= 1 },
+  { id: 'happy', name: 'Happy', emoji: '😊', description: 'Spent most of their life happy.', priority: 25, test: (s) => s.counters.yearsHappy >= Math.max(10, s.character.age * 0.5) },
+  { id: 'miserable', name: 'Miserable', emoji: '🌧️', description: 'Spent most of their life unhappy.', priority: 24, test: (s) => s.counters.yearsMiserable >= Math.max(10, s.character.age * 0.4) },
   { id: 'mediocre', name: 'Mediocre', emoji: '😐', description: 'Lived an ordinary life.', priority: 0, test: () => true },
 ];
 

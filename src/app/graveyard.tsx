@@ -4,7 +4,7 @@ import { ScreenHeader } from '@/components/game/ScreenHeader';
 import { Button, Card, Screen, T } from '@/components/ui';
 import { getCountry } from '@/data/countries';
 import { RIBBON_BY_ID, RIBBONS } from '@/engine';
-import { formatMoney } from '@/engine/util';
+import { deathPhrase, formatMoney } from '@/engine/util';
 import { useSettingsStore } from '@/store/settingsStore';
 import { colors, spacing, typography } from '@/theme';
 
@@ -29,7 +29,7 @@ export default function GraveyardScreen() {
 
   return (
     <Screen>
-      <ScreenHeader title="Graveyard" subtitle={`${graveyard.length} lives · ${earned.size}/${RIBBONS.length} ribbons`} />
+      <ScreenHeader title="Graveyard" subtitle={`${graveyard.length} ${graveyard.length === 1 ? 'life' : 'lives'} · ${earned.size}/${RIBBONS.length} ribbons`} />
       <ScrollView contentContainerStyle={styles.content}>
         <Card style={styles.ribbons}>
           {RIBBONS.map((r) => (
@@ -50,7 +50,7 @@ export default function GraveyardScreen() {
                 {ribbon?.emoji ?? '🪦'} {g.name}
               </Text>
               <Text style={typography.small}>
-                {getCountry(g.countryCode).flag} {g.birthYear}–{g.deathYear} · aged {g.age} · {g.cause}
+                {getCountry(g.countryCode).flag} {g.birthYear}–{g.deathYear} · {g.age === 0 ? 'under a year old' : `aged ${g.age}`} · {deathPhrase(g.cause)}
               </Text>
               <Text style={typography.small}>
                 {ribbon?.name ?? g.ribbonId} · {formatMoney(g.netWorth, g.countryCode)} · generation {g.generation}

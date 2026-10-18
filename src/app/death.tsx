@@ -4,7 +4,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button, Card, ListRow, Screen, Section, T } from '@/components/ui';
 import { getCountry } from '@/data/countries';
 import { RIBBON_BY_ID } from '@/engine';
-import { formatMoneyFull } from '@/engine/util';
+import { capitalize, deathPhrase, formatMoneyFull } from '@/engine/util';
 import { useRewarded } from '@/hooks/useRewarded';
 import { useGameStore } from '@/store/gameStore';
 import { useSettingsStore } from '@/store/settingsStore';
@@ -37,9 +37,9 @@ export default function DeathScreen() {
             {c.firstName} {c.lastName}
           </Text>
           <Text style={styles.years}>
-            {c.birthYear} – {game.year} · aged {c.age}
+            {c.birthYear} – {game.year} · {c.age === 0 ? 'under a year old' : `aged ${c.age}`}
           </Text>
-          <Text style={styles.cause}>Died of {d.cause}</Text>
+          <Text style={styles.cause}>{capitalize(deathPhrase(d.cause))}</Text>
           <View style={styles.ribbon}>
             <Text style={styles.ribbonEmoji}>{ribbon?.emoji ?? '🎗️'}</Text>
             <Text style={styles.ribbonName}>{ribbon?.name ?? 'Ribbon'}</Text>
@@ -79,7 +79,7 @@ export default function DeathScreen() {
           <Section title="Continue as your child">
             {!canContinue ? <T kind="small">Free play includes {FREE_GENERATIONS} generations. Premium unlocks unlimited generations.</T> : null}
             {heirs.map((h) => (
-              <ListRow key={h.id} emoji={h.gender === 'male' ? '👦' : '👧'} title={`${h.firstName} ${h.lastName}`} subtitle={`${h.age} years old`} onPress={canContinue ? () => { continueAsHeir(h.id); router.replace('/life'); } : () => router.push('/premium')} testID="continue-heir" />
+              <ListRow key={h.id} emoji={h.gender === 'male' ? '👦' : '👧'} title={`${h.firstName} ${h.lastName}`} subtitle={h.age === 0 ? 'Under a year old' : `${h.age} ${h.age === 1 ? 'year' : 'years'} old`} onPress={canContinue ? () => { continueAsHeir(h.id); router.replace('/life'); } : () => router.push('/premium')} testID="continue-heir" />
             ))}
           </Section>
         ) : null}

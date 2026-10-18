@@ -3,26 +3,37 @@ import { StyleSheet, Text, View } from 'react-native';
 import { getCountry } from '@/data/countries';
 import { STAGE_LABELS } from '@/engine';
 import type { GameState } from '@/engine/types';
-import { formatMoney } from '@/engine/util';
+import { employerLabel, formatMoney } from '@/engine/util';
 import { StatBar } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/theme';
 
-export function StatsHeader({ game }: { game: GameState }) {
+/** One line for where a life stands right now: "Barista · Zenith Coffee", "High school", "Toddler". */
+export function lifeStatus(game: GameState): string {
   const c = game.character;
-  const country = getCountry(c.countryCode);
-  const subtitle = game.crime.inPrison
-    ? `In prison · ${game.crime.sentenceYearsLeft} yr left`
+  const left = game.crime.sentenceYearsLeft;
+  return game.crime.inPrison
+    ? `In prison · ${left} ${left === 1 ? 'year' : 'years'} left`
     : game.career.job
-      ? `${game.career.job.title} · ${game.career.job.company}`
+      ? `${game.career.job.title} · ${employerLabel(game.career.job.company)}`
       : game.education.enrolled
         ? STAGE_LABELS[game.education.stage] ?? 'Student'
         : game.career.retired
           ? 'Retired'
-          : c.age < 6
-            ? 'Child'
-            : c.age < 18
-              ? 'Teenager'
-              : 'Unemployed';
+          : c.age < 2
+            ? 'Baby'
+            : c.age < 5
+              ? 'Toddler'
+              : c.age < 13
+                ? 'Child'
+                : c.age < 18
+                  ? 'Teenager'
+                  : 'Unemployed';
+}
+
+export function StatsHeader({ game }: { game: GameState }) {
+  const c = game.character;
+  const country = getCountry(c.countryCode);
+  const subtitle = lifeStatus(game);
   return (
     <View style={styles.card} testID="stats-header">
       <View style={styles.top}>

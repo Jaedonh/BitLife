@@ -16,7 +16,7 @@ const REWARDED_OUTCOME_MESSAGES: Record<RewardedOutcome, string | null> = {
   granted: null,
   unavailable: 'No ad is ready right now. Try again in a moment.',
   dismissed: 'Watch the whole ad to earn the reward.',
-  capped: 'You have used this reward up for today. Come back tomorrow.',
+  capped: "You've used up this reward for today. Come back tomorrow.",
 };
 
 /** What to tell the player when a rewarded placement did not pay out (null when it did). */

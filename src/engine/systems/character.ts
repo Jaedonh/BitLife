@@ -14,7 +14,7 @@ import type {
   TraitId,
 } from '../types';
 import { SCHEMA_VERSION } from '../types';
-import { clampStat, daysInMonth, fullName, log, zodiacFor } from '../util';
+import { article, clampStat, daysInMonth, deathPhrase, fullName, joinList, log, lowerTitle, numberWord, withArticle, zodiacFor } from '../util';
 import { energyMaxFor } from './aging';
 
 const ALL_TRAITS: readonly TraitId[] = [
@@ -62,6 +62,14 @@ const OCCUPATIONS_ADULT = [
   'Social Worker', 'Carpenter', 'Real Estate Agent', 'Librarian', 'Firefighter', 'Waiter', 'Architect', 'Photographer', 'Unemployed',
 ];
 
+/** Jobs that take a degree (or years on the ladder) first: nobody is a 19-year-old dentist. */
+const OCCUPATIONS_NEED_YEARS = new Set(['Teacher', 'Nurse', 'Accountant', 'Shop Manager', 'Software Developer', 'Pharmacist', 'Lawyer', 'Journalist', 'Dentist', 'Engineer', 'Social Worker', 'Librarian', 'Architect']);
+
+/** An adult's job for their age: someone under 23 drawn into a graduate's job is still a student. */
+function occupationFor(drawn: string, age: number): string {
+  return age < 23 && OCCUPATIONS_NEED_YEARS.has(drawn) ? 'Student' : drawn;
+}
+
 export function makePerson(
   rng: Rng,
   opts: {
@@ -94,7 +102,7 @@ export function makePerson(
     smarts: rng.int(10, 95),
     health: rng.int(adult ? 50 : 80, 100),
     craziness: rng.int(0, 100),
-    occupation: opts.occupation ?? (adult ? rng.pick(OCCUPATIONS_ADULT) : 'Student'),
+    occupation: opts.occupation ?? (adult ? occupationFor(rng.pick(OCCUPATIONS_ADULT), opts.age) : 'Student'),
     money: opts.money ?? (adult ? Math.round(rng.int(2_000, 120_000) * getCountry(opts.countryCode).salaryMultiplier) : 0),
     memory: emptyMemory(opts.playerAge),
     metAtAge: opts.playerAge,
@@ -279,6 +287,16 @@ function startingEducation(age: number, country: ReturnType<typeof getCountry>, 
   return { ...base, stage, enrolled: true, grade: clampStat(50 + (smarts - 50) / 2), yearsInStage: Math.max(0, age - stageStart) };
 }
 
+/** "Traits: Lucky, Charming." A trait listed twice (a lucky roll plus a wealthy birth) shows once. */
+function traitLine(traits: readonly TraitId[]): string {
+  return `Traits: ${[...new Set(traits)].map((t) => TRAIT_LABELS[t].label).join(', ')}.`;
+}
+
+/** A parent's job as it reads after their name: "a nurse", "an engineer", "unemployed". */
+function parentJob(occupation: string): string {
+  return occupation === 'Unemployed' ? 'unemployed' : withArticle(lowerTitle(occupation));
+}
+
 function writeBirthLog(state: GameState): GameState {
   const c = state.character;
   const country = getCountry(c.countryCode);
@@ -286,14 +304,14 @@ function writeBirthLog(state: GameState): GameState {
   const father = Object.values(state.people).find((p) => p.kind === 'father');
   const sibs = Object.values(state.people).filter((p) => p.kind === 'sibling');
   let s = log(state, `${c.birthYear}: Age 0`, 'year');
-  s = log(s, `I was born ${c.gender === 'male' ? 'a boy' : 'a girl'} named ${fullName(c)} in ${c.city}, ${country.name}. I'm ${/^[AEIOU]/.test(c.zodiac) ? 'an' : 'a'} ${c.zodiac}.`, 'milestone');
-  if (mother && father) s = log(s, `My parents are ${fullName(mother)} (${mother.age}), ${mother.occupation.toLowerCase()}, and ${fullName(father)} (${father.age}), ${father.occupation.toLowerCase()}.`);
-  else if (mother) s = log(s, `My mother is ${fullName(mother)} (${mother.age}), ${mother.occupation.toLowerCase()}. I never knew my father.`);
+  s = log(s, `I was born ${c.gender === 'male' ? 'a boy' : 'a girl'} named ${fullName(c)} in ${c.city}, ${country.name}. I'm ${article(c.zodiac)} ${c.zodiac}.`, 'milestone');
+  if (mother && father) s = log(s, `My parents are ${fullName(mother)} (${mother.age}), ${parentJob(mother.occupation)}, and ${fullName(father)} (${father.age}), ${parentJob(father.occupation)}.`);
+  else if (mother) s = log(s, `My mother is ${fullName(mother)} (${mother.age}), ${parentJob(mother.occupation)}. I never knew my father.`);
   if (sibs.length === 1) s = log(s, `I have an older ${sibs[0]!.gender === 'male' ? 'brother' : 'sister'}, ${sibs[0]!.firstName}.`);
-  else if (sibs.length > 1) s = log(s, `I have ${sibs.length} older siblings: ${sibs.map((x) => x.firstName).join(', ')}.`);
+  else if (sibs.length > 1) s = log(s, `I have ${numberWord(sibs.length)} older siblings: ${joinList(sibs.map((x) => x.firstName))}.`);
   if (state.flags.wealthyFamily) s = log(s, `My family is wealthy. I was born with a silver spoon in my mouth.`, 'good');
   if (state.flags.poorFamily) s = log(s, `My family doesn't have much. Money is always tight at home.`, 'bad');
-  if (c.traits.length) s = log(s, `Traits: ${c.traits.map((t) => TRAIT_LABELS[t].label).join(', ')}.`);
+  if (c.traits.length) s = log(s, traitLine(c.traits));
   return s;
 }
 
@@ -305,11 +323,11 @@ function writeHeirLog(state: GameState, prev: GameState, inheritance: number): G
   const sibs = Object.values(state.people).filter((p) => p.kind === 'sibling');
   const parentLabel = prev.character.gender === 'female' ? 'mother' : 'father';
   let s = log(state, `${state.year}: Age ${c.age}`, 'year');
-  s = log(s, `I'm ${fullName(c)}, ${c.age}, of ${c.city}, ${country.name}. My ${parentLabel} ${fullName(prev.character)} died${prev.death ? ` of ${prev.death.cause}` : ''} at ${prev.character.age}, and the family story continues with me.`, 'milestone');
-  if (living.length) s = log(s, `My ${living.map((p) => `${p.kind} ${fullName(p)} (${p.age})`).join(' and ')} ${living.length === 1 ? 'is' : 'are'} still with us.`);
-  if (sibs.length === 1) s = log(s, `I have a ${sibs[0]!.gender === 'male' ? 'brother' : 'sister'}, ${sibs[0]!.firstName} (${sibs[0]!.age}).`);
-  else if (sibs.length > 1) s = log(s, `I have ${sibs.length} siblings: ${sibs.map((x) => `${x.firstName} (${x.age})`).join(', ')}.`);
+  s = log(s, `I'm ${fullName(c)}, ${c.age}, of ${c.city}, ${country.name}. My ${parentLabel} ${fullName(prev.character)} ${prev.death ? deathPhrase(prev.death.cause) : 'died'} at ${prev.character.age}, and the family story continues with me.`, 'milestone');
+  if (living.length) s = log(s, `My ${joinList(living.map((p) => `${p.kind} ${fullName(p)} (${p.age})`))} ${living.length === 1 ? 'is' : 'are'} still with us.`);
+  if (sibs.length === 1) s = log(s, `I have ${sibs[0]!.gender === 'male' ? 'a brother' : 'a sister'}, ${sibs[0]!.firstName} (${sibs[0]!.age}).`);
+  else if (sibs.length > 1) s = log(s, `I have ${numberWord(sibs.length)} siblings: ${joinList(sibs.map((x) => `${x.firstName} (${x.age})`))}.`);
   if (inheritance > 0) s = log(s, `I inherited ${country.currencySymbol}${inheritance.toLocaleString('en-US')} from ${prev.character.firstName}'s estate.`, 'money');
-  if (c.traits.length) s = log(s, `Traits: ${c.traits.map((t) => TRAIT_LABELS[t].label).join(', ')}.`);
+  if (c.traits.length) s = log(s, traitLine(c.traits));
   return s;
 }

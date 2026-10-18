@@ -37,7 +37,7 @@ export default function NewLifeScreen() {
 
   return (
     <Screen>
-      <ScreenHeader title="Custom life" subtitle="Leave anything blank to randomise it" />
+      <ScreenHeader title="Custom life" subtitle="Leave anything blank to randomize it" />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Card style={styles.card}>
           <T kind="label">NAME</T>
@@ -71,7 +71,7 @@ export default function NewLifeScreen() {
             <T kind="label">STARTING STATS {premium ? '' : '· PREMIUM'}</T>
             {premium ? (
               <Pressable onPress={() => setCustom(!custom)} testID="toggle-custom-stats">
-                <Text style={styles.link}>{custom ? 'Randomise' : 'Customise'}</Text>
+                <Text style={styles.link}>{custom ? 'Randomize' : 'Customize'}</Text>
               </Pressable>
             ) : (
               <Text style={styles.link}>Unlock</Text>
@@ -94,7 +94,7 @@ export default function NewLifeScreen() {
               </Pressable>
             </View>
           ) : (
-            <T kind="small">{premium ? 'Stats will be randomised at birth.' : 'Choose your starting Happiness, Health, Smarts and Looks, or be born rich.'}</T>
+            <T kind="small">{premium ? 'Stats will be randomized at birth.' : 'Choose your starting Happiness, Health, Smarts and Looks, or be born rich.'}</T>
           )}
         </Card>
         <Button testID="start-life" title="Start this life" size="lg" variant="accent" onPress={start} />

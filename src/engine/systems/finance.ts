@@ -3,13 +3,16 @@ import { getCountry } from '@/data/countries';
 import { scaleMoney } from '../events/text';
 import type { Rng } from '../rng';
 import type { Career, GameState, InvestmentKind } from '../types';
-import { addMoney, addStats, log, netWorth, setResult } from '../util';
+import { addMoney, addStats, log, money, netWorth, setResult } from '../util';
 
-export const INVESTMENT_LABELS: Record<InvestmentKind, { name: string; description: string }> = {
-  savings: { name: 'Savings account', description: 'Safe. ~2% a year.' },
-  index: { name: 'Index fund', description: 'Steady growth with some bumps. ~7% a year on average.' },
-  crypto: { name: 'Crypto', description: 'Wild swings. Could double, could halve.' },
+export const INVESTMENT_LABELS: Record<InvestmentKind, { name: string; description: string; prose: string }> = {
+  savings: { name: 'Savings account', description: 'Safe. ~2% a year.', prose: 'my savings account' },
+  index: { name: 'Index fund', description: 'Steady growth with some bumps. ~7% a year on average.', prose: 'an index fund' },
+  crypto: { name: 'Crypto', description: 'Wild swings. Could double, could halve.', prose: 'crypto' },
 };
+
+/** Where withdrawn money comes from: "my index fund". */
+const WITHDRAW_FROM: Record<InvestmentKind, string> = { savings: 'my savings account', index: 'my index fund', crypto: 'my crypto' };
 
 /** 35% of the salary the character retired from (the best one, if they retired more than once). */
 export function pensionSalary(career: Career): number {
@@ -66,7 +69,7 @@ export function yearlyFinance(state: GameState, rng: Rng): GameState {
   if (s.finances.incomeBoostYears > 0 && job) salary *= 2;
   const hustleIncome = s.career.hustle?.lastIncome ?? 0;
 
-  // Investment returns stay in the investment balance (unrealised until withdrawn);
+  // Investment returns stay in the investment balance (unrealized until withdrawn);
   // only rent is paid out as passive cash income.
   let passive = 0;
   const investments = s.finances.investments.map((inv) => {
@@ -162,7 +165,7 @@ export function invest(state: GameState, kind: InvestmentKind, amount: number): 
     : [...state.finances.investments, { kind, amount, costBasis: amount }];
   let s = addMoney(state, -amount);
   s = { ...s, finances: { ...s.finances, investments } };
-  const text = `I put ${amount.toLocaleString('en-US')} into ${INVESTMENT_LABELS[kind].name.toLowerCase()}.`;
+  const text = `I put ${money(state, amount)} into ${INVESTMENT_LABELS[kind].prose}.`;
   s = log(s, text, 'money');
   return setResult(s, text, 'info', { moneyDelta: -amount });
 }
@@ -178,7 +181,7 @@ export function withdraw(state: GameState, kind: InvestmentKind, amount: number)
     : state.finances.investments.filter((i) => i.kind !== kind);
   let s = addMoney(state, amount);
   s = { ...s, finances: { ...s.finances, investments } };
-  return setResult(s, `I withdrew ${amount.toLocaleString('en-US')}.`, 'info', { moneyDelta: amount });
+  return setResult(s, `I withdrew ${money(s, amount)} from ${WITHDRAW_FROM[kind]}.`, 'info', { moneyDelta: amount });
 }
 
 export function payDebt(state: GameState, amount: number): GameState {
@@ -186,5 +189,5 @@ export function payDebt(state: GameState, amount: number): GameState {
   if (amount <= 0) return state;
   let s = addMoney(state, -amount);
   s = { ...s, finances: { ...s.finances, debt: s.finances.debt - amount } };
-  return setResult(s, `I paid off ${amount.toLocaleString('en-US')} of debt.`, 'good', { moneyDelta: -amount });
+  return setResult(s, `I paid off ${money(s, amount)} of debt.`, 'good', { moneyDelta: -amount });
 }

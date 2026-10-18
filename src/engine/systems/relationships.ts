@@ -2,7 +2,7 @@ import { adjustRelationship, updatePerson } from '../events/effects';
 import { scaleMoney } from '../events/text';
 import type { Rng } from '../rng';
 import type { GameState, Person, RelationshipKind } from '../types';
-import { addKarma, addMoney, addStats, bump, clampStat, countAction, actionCount, fullName, log, setResult } from '../util';
+import { addKarma, addMoney, addStats, bump, clampStat, countAction, actionCount, fullName, log, lowerTitle, money, setResult, withArticle } from '../util';
 import { makePerson } from './character';
 
 export type InteractionId =
@@ -104,7 +104,10 @@ export function interact(state: GameState, rng: Rng, personId: string, interacti
       s = addStats(s, { happiness: person.relationship >= 40 ? 3 : 1 });
       if (person.love !== undefined) s = updatePerson(s, personId, { love: clampStat((s.people[personId]!.love ?? 0) + 4) });
       s = touch(s, s.people[personId]!);
-      const text = rng.pick([`I spent a lovely afternoon with ${label}, ${who}.`, `${who} and I hung out and lost track of time.`, `I spent quality time with ${who}.`]);
+      const young = s.character.age < 6;
+      const text = rng.pick(young
+        ? [`I spent a lovely afternoon with ${label}, ${who}.`, `${who} and I played together until it got dark.`, `I followed ${who} around all day, talking nonstop.`]
+        : [`I spent a lovely afternoon with ${label}, ${who}.`, `${who} and I hung out and lost track of time.`, `I spent quality time with ${who}.`]);
       s = log(s, text, 'good');
       return setResult(s, text, 'good', { statDeltas: { happiness: 3 } });
     }
@@ -120,7 +123,9 @@ export function interact(state: GameState, rng: Rng, personId: string, interacti
       }
       s = adjustRelationship(s, personId, rng.int(2, 5) + charming);
       s = touch(s, s.people[personId]!);
-      const text = rng.pick([`${who} and I had a good talk.`, `I caught up with ${who}. We talked for hours.`]);
+      const text = rng.pick(s.character.age < 8
+        ? [`${who} and I had a good talk.`, `I told ${who} all about my day, and ${person.gender === 'male' ? 'he' : 'she'} listened to every word.`]
+        : [`${who} and I had a good talk.`, `I caught up with ${who}. We talked for hours.`]);
       s = log(s, text);
       return setResult(s, text, 'good');
     }
@@ -169,7 +174,7 @@ export function interact(state: GameState, rng: Rng, personId: string, interacti
       s = addMoney(s, amount);
       s = updatePerson(s, personId, { money: person.money - amount });
       s = adjustRelationship(s, personId, -1);
-      const text = `${who} slipped me ${amount.toLocaleString('en-US')}.`;
+      const text = `${who} slipped me ${money(s, amount)}.`;
       s = log(s, text, 'money');
       return setResult(s, text, 'good', { moneyDelta: amount });
     }
@@ -222,7 +227,7 @@ export function interact(state: GameState, rng: Rng, personId: string, interacti
       s = updatePerson(s, personId, { kind: 'ex', love: 0, relationship: clampStat(person.relationship - 40), money: person.money + settlement });
       s = bump(s, 'divorces');
       s = addStats(s, { happiness: -15 });
-      const text = `I divorced ${who}. The settlement cost me ${settlement.toLocaleString('en-US')}.`;
+      const text = settlement > 0 ? `I divorced ${who}. The settlement cost me ${money(s, settlement)}.` : `I divorced ${who}. There was nothing to split but the furniture.`;
       s = log(s, text, 'bad');
       return setResult(s, text, 'bad', { moneyDelta: -settlement });
     }
@@ -296,7 +301,7 @@ export function yearlyRelationships(state: GameState, rng: Rng): GameState {
     s = { ...s, people: { ...s.people, [lover.id]: lover } };
     s = bump(s, 'lovers');
     s = addStats(s, { happiness: 6 });
-    s = log(s, `I started dating ${fullName(lover)}, a ${lover.occupation.toLowerCase()}.`, 'good');
+    s = log(s, lover.occupation === 'Unemployed' ? `I started dating ${fullName(lover)}, who was between jobs.` : `I started dating ${fullName(lover)}, ${withArticle(lowerTitle(lover.occupation))}.`, 'good');
   }
   // Children grow up and move out of the household economically at 18 (handled in finance); nothing to do here.
   return s;

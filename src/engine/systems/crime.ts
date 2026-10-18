@@ -3,7 +3,7 @@ import { sendToPrison } from '../events/effects';
 import { scaleMoney } from '../events/text';
 import type { Rng } from '../rng';
 import type { ActionAvailability, GameState } from '../types';
-import { addKarma, addMoney, addStats, bump, clampStat, log, setResult, actionCount, countAction } from '../util';
+import { addKarma, addMoney, addStats, bump, clampStat, log, money, plural, setResult, actionCount, countAction } from '../util';
 
 export function crimeAvailability(state: GameState, def: CrimeDef): ActionAvailability {
   if (state.character.age < def.minAge) return { available: false, reason: `Age ${def.minAge}+` };
@@ -35,7 +35,7 @@ export function commitCrime(state: GameState, rng: Rng, id: string): GameState {
     s = addMoney(s, payout);
     s = { ...s, crime: { ...s.crime, crimesCommitted: s.crime.crimesCommitted + 1, notoriety: clampStat(s.crime.notoriety + 2) } };
     s = addStats(s, { happiness: c.traits.includes('rebellious') ? 3 : 1 });
-    const text = payout > 0 ? `I got away with ${def.name.toLowerCase()} and made ${payout.toLocaleString('en-US')}.${injured ? ' I got hurt in the process.' : ''}` : `I got away with ${def.name.toLowerCase()}.${injured ? ' Not without a few bruises.' : ''}`;
+    const text = payout > 0 ? `I got away with ${def.noun} and made ${money(s, payout)}.${injured ? ' I got hurt in the process.' : ''}` : `I got away with ${def.noun}.${injured ? ' Not without a few bruises.' : ''}`;
     s = log(s, text, 'bad');
     return setResult(s, text, 'info', { moneyDelta: payout });
   }
@@ -48,18 +48,18 @@ export function commitCrime(state: GameState, rng: Rng, id: string): GameState {
       s = addStats(s, { happiness: -6 });
       const fine = scaleMoney(s, rng.int(100, 1500));
       s = addMoney(s, -fine);
-      const text = `I was caught ${def.name.toLowerCase() === 'shoplift' ? 'shoplifting' : `attempting ${def.name.toLowerCase()}`} and fined ${fine.toLocaleString('en-US')}. It's on my record now.`;
+      const text = `I was caught ${def.gerund} and fined ${money(s, fine)}. It's on my record now.`;
       s = log(s, text, 'bad');
       return setResult(s, text, 'bad', { moneyDelta: -fine });
     }
     s = sendToPrison(s, years);
     s = addStats(s, { happiness: -15 });
-    const text = `I was arrested for ${def.name.toLowerCase()} and sentenced to ${years} year${years === 1 ? '' : 's'} in prison.`;
+    const text = `I was arrested for ${def.noun} and sentenced to ${plural(years, 'year')} in prison.`;
     s = log(s, text, 'bad');
     return setResult(s, text, 'bad');
   }
   s = addStats(s, { happiness: -3 });
-  const text = `The ${def.name.toLowerCase()} went wrong and I ran. Nobody followed.${injured ? ' I limped home.' : ''}`;
+  const text = `I tried ${def.gerund}, but it went wrong and I ran. Nobody followed.${injured ? ' I limped home.' : ''}`;
   s = log(s, text, 'bad');
   return setResult(s, text, 'info');
 }
@@ -80,7 +80,7 @@ export function yearlyPrison(state: GameState, rng: Rng): GameState {
     s = log(s, 'I was released from prison.', 'milestone');
   } else {
     s = { ...s, crime: { ...s.crime, sentenceYearsLeft: left } };
-    s = log(s, `Another year behind bars. ${left} to go.`, 'bad');
+    s = log(s, `Another year behind bars. ${plural(left, 'year')} to go.`, 'bad');
   }
   return s;
 }

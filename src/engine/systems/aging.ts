@@ -1,7 +1,7 @@
 import { getCountry } from '@/data/countries';
 import { Rng } from '../rng';
 import type { GameState, Person } from '../types';
-import { addMoney, addStats, bump, clampStat, fullName, log } from '../util';
+import { addMoney, addStats, bump, clampStat, deathPhrase, fullName, log } from '../util';
 
 /** Yearly stat drift. Numbers are tuned so a passive life slowly declines. */
 export function driftStats(state: GameState, rng: Rng): GameState {
@@ -11,7 +11,7 @@ export function driftStats(state: GameState, rng: Rng): GameState {
   const married = Object.values(state.people).some((p) => p.kind === 'spouse' && p.alive && p.relationship >= 50);
   const unemployedAdult = age >= 22 && age < 65 && !state.career.job && !state.education.enrolled && !state.career.retired && !state.crime.inPrison;
 
-  // Mean reversion toward a set-point keeps passive lives from spiralling.
+  // Mean reversion toward a set-point keeps passive lives from spiraling.
   let happiness = Math.round((55 - c.stats.happiness) * 0.15) + rng.int(-3, 3);
   if (married) happiness += 1;
   if (unemployedAdult) happiness -= 2;
@@ -42,6 +42,11 @@ export function driftStats(state: GameState, rng: Rng): GameState {
 }
 
 const NPC_DEATH_CAUSES = ['a heart attack', 'cancer', 'a stroke', 'natural causes', 'pneumonia', 'a car accident', 'kidney failure', 'a long illness'];
+
+/** "Natural causes" only reads right for the old; a younger death gets a sudden illness instead. */
+function npcCause(cause: string, age: number): string {
+  return cause === 'natural causes' && age < 60 ? 'a sudden illness' : cause;
+}
 
 function npcDeathChance(age: number, health: number): number {
   let p = age < 40 ? 0.001 : age < 55 ? 0.004 : age < 65 ? 0.009 : age < 75 ? 0.02 : age < 85 ? 0.05 : age < 95 ? 0.12 : 0.3;
@@ -76,7 +81,7 @@ export function ageNpcs(state: GameState, rng: Rng): GameState {
     if (rng.chance(next.kind === 'pet' ? (petOld ? 0.3 : 0.03) : npcDeathChance(next.age, next.health))) {
       next.alive = false;
       next.deathAge = next.age;
-      next.deathCause = next.kind === 'pet' ? 'old age' : rng.pick(NPC_DEATH_CAUSES);
+      next.deathCause = next.kind === 'pet' ? (petOld ? 'old age' : 'a sudden illness') : npcCause(rng.pick(NPC_DEATH_CAUSES), next.age);
       deaths.push(next);
     }
     people[p.id] = next;
@@ -89,8 +94,11 @@ export function ageNpcs(state: GameState, rng: Rng): GameState {
 function onNpcDeath(state: GameState, p: Person, rng: Rng): GameState {
   let s = state;
   const close = p.relationship >= 50;
-  const label = p.kind === 'mother' ? 'mother' : p.kind === 'father' ? 'father' : p.kind === 'spouse' ? 'spouse' : p.kind === 'child' ? (p.gender === 'male' ? 'son' : 'daughter') : p.kind === 'sibling' ? (p.gender === 'male' ? 'brother' : 'sister') : p.kind === 'pet' ? (p.species ?? 'pet') : p.kind === 'bestFriend' ? 'best friend' : p.kind === 'friend' ? 'friend' : p.kind === 'lover' ? 'partner' : p.kind;
-  s = log(s, `My ${label} ${fullName(p)} died of ${p.deathCause} at age ${p.age}.`, 'bad');
+  const male = p.gender === 'male';
+  const label = p.kind === 'spouse' ? (male ? 'husband' : 'wife') : p.kind === 'child' ? (male ? 'son' : 'daughter') : p.kind === 'sibling' ? (male ? 'brother' : 'sister') : p.kind === 'pet' ? (p.species ?? 'pet') : p.kind === 'bestFriend' ? 'best friend' : p.kind === 'lover' ? (male ? 'boyfriend' : 'girlfriend') : p.kind;
+  // Pets go by their first name only; people by their full name.
+  const name = p.kind === 'pet' ? p.firstName : fullName(p);
+  s = log(s, `My ${label} ${name} ${deathPhrase(p.deathCause)} at ${p.age}.`, 'bad');
   const grief = p.kind === 'spouse' || p.kind === 'child' ? -25 : p.kind === 'mother' || p.kind === 'father' ? -15 : p.kind === 'pet' ? -8 : close ? -10 : -3;
   s = addStats(s, { happiness: Math.round(grief * (close ? 1 : 0.5)) });
   if ((p.kind === 'mother' || p.kind === 'father' || p.kind === 'spouse') && p.money > 0 && s.character.age >= 18) {

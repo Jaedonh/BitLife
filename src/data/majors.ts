@@ -40,6 +40,12 @@ export const MAJORS: readonly MajorDef[] = [
 
 export const MAJOR_BY_ID: Record<string, MajorDef> = Object.fromEntries(MAJORS.map((m) => [m.id, m]));
 
+/** A major as it reads mid-sentence: "nursing", "computer science", but "English". */
+export function majorProse(id: string): string {
+  const name = MAJOR_BY_ID[id]?.name ?? id.replace(/_/g, ' ');
+  return name === 'English' ? name : name.toLowerCase();
+}
+
 export interface GraduateProgramDef {
   id: string;
   name: string;
@@ -50,15 +56,19 @@ export interface GraduateProgramDef {
   /** Bachelor majors accepted (empty = any). */
   requiresMajors: string[];
   grants: string;
+  /** How the program reads mid-sentence: "I started medical school." */
+  prose: string;
+  /** Journal line on finishing (default "I completed {prose}."). */
+  earned?: string;
 }
 
 export const GRADUATE_PROGRAMS: readonly GraduateProgramDef[] = [
-  { id: 'medical_school', name: 'Medical School', degree: 'doctor', minSmarts: 75, tuition: 45000, years: 4, requiresMajors: ['biology', 'chemistry', 'nursing', 'psychology'], grants: 'doctor:medicine' },
-  { id: 'law_school', name: 'Law School', degree: 'doctor', minSmarts: 65, tuition: 40000, years: 3, requiresMajors: ['political_science', 'history', 'english', 'criminal_justice', 'business', 'economics', 'communications', 'psychology'], grants: 'doctor:law' },
-  { id: 'mba', name: 'Business School (MBA)', degree: 'master', minSmarts: 50, tuition: 35000, years: 2, requiresMajors: [], grants: 'master:business' },
-  { id: 'masters', name: "Master's Degree", degree: 'master', minSmarts: 55, tuition: 20000, years: 2, requiresMajors: [], grants: 'master:general' },
-  { id: 'phd', name: 'PhD', degree: 'doctor', minSmarts: 75, tuition: 8000, years: 5, requiresMajors: [], grants: 'doctor:philosophy' },
-  { id: 'dental_school', name: 'Dental School', degree: 'doctor', minSmarts: 70, tuition: 42000, years: 4, requiresMajors: ['biology', 'chemistry', 'nursing'], grants: 'doctor:dentistry' },
+  { id: 'medical_school', name: 'Medical School', degree: 'doctor', minSmarts: 75, tuition: 45000, years: 4, requiresMajors: ['biology', 'chemistry', 'nursing', 'psychology'], grants: 'doctor:medicine', prose: 'medical school', earned: 'I finished medical school. I can finally call myself a doctor.' },
+  { id: 'law_school', name: 'Law School', degree: 'doctor', minSmarts: 65, tuition: 40000, years: 3, requiresMajors: ['political_science', 'history', 'english', 'criminal_justice', 'business', 'economics', 'communications', 'psychology'], grants: 'doctor:law', prose: 'law school', earned: 'I finished law school with a law degree.' },
+  { id: 'mba', name: 'Business School (MBA)', degree: 'master', minSmarts: 50, tuition: 35000, years: 2, requiresMajors: [], grants: 'master:business', prose: 'business school', earned: 'I finished business school with an MBA.' },
+  { id: 'masters', name: "Master's Degree", degree: 'master', minSmarts: 55, tuition: 20000, years: 2, requiresMajors: [], grants: 'master:general', prose: "a master's program", earned: "I earned my master's degree." },
+  { id: 'phd', name: 'PhD', degree: 'doctor', minSmarts: 75, tuition: 8000, years: 5, requiresMajors: [], grants: 'doctor:philosophy', prose: 'a PhD program', earned: 'I earned my PhD. Everyone has to call me Doctor now, in theory.' },
+  { id: 'dental_school', name: 'Dental School', degree: 'doctor', minSmarts: 70, tuition: 42000, years: 4, requiresMajors: ['biology', 'chemistry', 'nursing'], grants: 'doctor:dentistry', prose: 'dental school', earned: 'I finished dental school with a dental degree.' },
 ];
 
 export const GRAD_BY_ID: Record<string, GraduateProgramDef> = Object.fromEntries(GRADUATE_PROGRAMS.map((g) => [g.id, g]));
