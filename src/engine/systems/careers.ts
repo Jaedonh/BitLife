@@ -1,5 +1,5 @@
 import { getCountry } from '@/data/countries';
-import { HUSTLE_BY_ID, HUSTLES } from '@/data/hustles';
+import { HUSTLE_BY_ID, HUSTLES, type HustleDef } from '@/data/hustles';
 import { JOB_BY_ID, JOBS, type JobDef } from '@/data/jobs';
 import { majorProse } from '@/data/majors';
 import { COMPANY_NAMES, COMPANY_SUFFIXES } from '@/data/names';
@@ -144,6 +144,13 @@ function promotionLine(def: JobDef, title: string): string {
       if (['actor', 'musician', 'chef_tv', 'athlete'].includes(def.id) || /(Owner|Contractor|Author)$/.test(title)) return `I became ${roleWithArticle(title)}.`;
       return `I was promoted to ${lowerTitle(title)}.`;
   }
+}
+
+/** Why a fresh set of job listings would be useless right now (null when it would not). */
+export function listingsBlocker(state: GameState): string | null {
+  if (state.character.age < 14) return "I'm too young for job listings. They open up at 14.";
+  if (state.crime.inPrison) return "I can't job-hunt from a prison cell.";
+  return null;
 }
 
 /** Rolls a fresh set of job listings for this year. */
@@ -341,13 +348,39 @@ export function yearlyCareer(state: GameState, rng: Rng): GameState {
   return yearlyHustle(s, rng);
 }
 
+/** Owns a car that can carry passengers (a bike or scooter does not count). */
+export function ownsCar(state: GameState): boolean {
+  return state.assets.some((a) => a.kind === 'car' && !['bike', 'scooter'].includes(a.defId));
+}
+
+/** Why this hustle cannot be started right now (null when it can). */
+export function hustleBlocker(state: GameState, def: HustleDef): string | null {
+  if (state.crime.inPrison) return "I can't run a side hustle from a prison cell.";
+  if (state.career.hustle) return 'I already have a side hustle going.';
+  if (state.character.age < def.minAge) return `I have to be ${def.minAge} or older for that.`;
+  if (def.needsCar && !ownsCar(state)) return 'I need a car for that.';
+  if (state.character.energy < def.energy) return "I'm out of energy this year. Age up to recharge.";
+  return null;
+}
+
+/** A hustle that needs a car ends once no car is owned (sold, wrecked or repossessed). */
+export function dropCarlessHustle(state: GameState): GameState {
+  const h = state.career.hustle;
+  const def = h ? HUSTLE_BY_ID[h.defId] : undefined;
+  if (!def?.needsCar || ownsCar(state)) return state;
+  const text = `Without a car, my ${def.noun} was over.`;
+  let s: GameState = { ...state, career: { ...state.career, hustle: null } };
+  s = log(s, text);
+  return s.lastResult ? { ...s, lastResult: { ...s.lastResult, text: `${s.lastResult.text} ${text}` } } : s;
+}
+
+/** Starts a side hustle. It takes its energy now and again every year it keeps running. */
 export function startHustle(state: GameState, defId: string): GameState {
   const def = HUSTLE_BY_ID[defId];
   if (!def) return state;
-  if (state.career.hustle) return setResult(state, 'I already have a side hustle going.', 'info');
-  if (state.character.age < def.minAge) return setResult(state, `I have to be ${def.minAge} or older for that.`, 'bad');
-  if (def.id === 'rideshare' && !state.assets.some((a) => a.kind === 'car' && !['bike', 'scooter'].includes(a.defId))) return setResult(state, 'I need a car for that.', 'bad');
-  let s: GameState = { ...state, career: { ...state.career, hustle: { defId, name: def.name, level: 0, followers: 0, yearsActive: 0, lastIncome: 0 } } };
+  const blocked = hustleBlocker(state, def);
+  if (blocked) return setResult(state, blocked, state.career.hustle ? 'info' : 'bad');
+  let s: GameState = { ...state, character: { ...state.character, energy: state.character.energy - def.energy }, career: { ...state.career, hustle: { defId, name: def.name, level: 0, followers: 0, yearsActive: 0, lastIncome: 0 } } };
   s = log(s, `I started ${withArticle(def.noun)} on the side.`);
   return setResult(s, `Started: ${def.name}.`, 'good');
 }
@@ -360,7 +393,8 @@ export function stopHustle(state: GameState): GameState {
   return setResult(s, 'Hustle closed.', 'info');
 }
 
-function yearlyHustle(state: GameState, rng: Rng): GameState {
+function yearlyHustle(before: GameState, rng: Rng): GameState {
+  const state = dropCarlessHustle(before);
   const h = state.career.hustle;
   if (!h || state.crime.inPrison) return h ? { ...state, career: { ...state.career, hustle: { ...h, lastIncome: 0 } } } : state;
   const def = HUSTLE_BY_ID[h.defId];
@@ -382,11 +416,15 @@ function yearlyHustle(state: GameState, rng: Rng): GameState {
   if (level >= 3 && def.fame) s = withFame(s, s.character.fame + def.fame);
   if (level >= 5) s = { ...s, flags: { ...s.flags, hustleMaxed: true } };
   s = { ...s, career: { ...s.career, hustle: { ...h, level, yearsActive: h.yearsActive + 1, lastIncome: income, followers: Math.round(h.followers * 1.1 + level * level * 1000) } } };
-  return s;
+  // Keeping it running takes energy out of the new year's budget.
+  return { ...s, character: { ...s.character, energy: Math.max(0, s.character.energy - def.energy) } };
 }
 
-export function hustleOptions(state: GameState) {
-  return HUSTLES.map((h) => ({ def: h, eligible: state.character.age >= h.minAge }));
+export function hustleOptions(state: GameState): { def: HustleDef; eligible: boolean; reason?: string }[] {
+  return HUSTLES.map((h) => {
+    const reason = state.character.age < h.minAge ? `Age ${h.minAge}+` : hustleBlocker(state, h);
+    return reason ? { def: h, eligible: false, reason } : { def: h, eligible: true };
+  });
 }
 
 export function countryCurrency(state: GameState): string {

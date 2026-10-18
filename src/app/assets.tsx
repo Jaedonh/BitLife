@@ -5,7 +5,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ScreenHeader } from '@/components/game/ScreenHeader';
 import { Button, Card, ListRow, Screen, Section, T } from '@/components/ui';
 import { ASSETS } from '@/data/assets';
-import { assetPrice, canBuy, INVESTMENT_LABELS, netWorth, yearlyMortgagePayment } from '@/engine';
+import { assetPrice, canBuy, INVEST_MIN_AGE, INVESTMENT_LABELS, netWorth, yearlyMortgagePayment } from '@/engine';
 import type { AssetKind, InvestmentKind } from '@/engine/types';
 import { formatMoney, formatMoneyFull } from '@/engine/util';
 import { useRewarded } from '@/hooks/useRewarded';
@@ -42,7 +42,7 @@ export default function AssetsScreen() {
             <Row label="Last year's expenses" value={formatMoneyFull(fin.lastYear.expenses, cc)} />
             {fin.lastYear.taxes > 0 ? <Row label="Taxes paid" value={formatMoneyFull(fin.lastYear.taxes, cc)} /> : null}
             <View style={styles.row}>
-              {fin.debt > 0 ? <Button title="Pay debt" size="sm" onPress={() => act({ type: 'payDebt', amount: fin.cash })} style={styles.flex} testID="pay-debt" /> : null}
+              {fin.debt > 0 ? <Button title={fin.cash > 0 ? 'Pay debt' : 'No cash to pay debt'} size="sm" onPress={() => act({ type: 'payDebt', amount: fin.cash })} disabled={fin.cash <= 0} style={styles.flex} testID="pay-debt" /> : null}
               {canUseRewarded('cashBoost') ? <Button title={premium ? '✨ Windfall' : '📺 Windfall'} size="sm" variant="accent" onPress={() => void runRewarded('cashBoost')} style={styles.flex} testID="rewarded-cash" /> : null}
             </View>
             {rewardedNotice ? (
@@ -53,7 +53,7 @@ export default function AssetsScreen() {
           </Card>
         </Section>
 
-        {game.character.age >= 16 ? (
+        {game.character.age >= INVEST_MIN_AGE || fin.investments.length ? (
           <Section title="Investments">
             {(Object.keys(INVESTMENT_LABELS) as InvestmentKind[]).map((kind) => {
               const inv = fin.investments.find((i) => i.kind === kind);
@@ -63,7 +63,7 @@ export default function AssetsScreen() {
                   <T kind="small">{INVESTMENT_LABELS[kind].description}</T>
                   {inv ? <T kind="small">Balance: {formatMoneyFull(inv.amount, cc)} (invested {formatMoneyFull(inv.costBasis, cc)})</T> : null}
                   <View style={styles.row}>
-                    <Button title={`Invest ${formatMoney(investAmount, cc)}`} size="sm" onPress={() => act({ type: 'invest', kind, amount: investAmount })} disabled={fin.cash < 100} style={styles.flex} testID={`invest-${kind}`} />
+                    {game.character.age >= INVEST_MIN_AGE ? <Button title={`Invest ${formatMoney(investAmount, cc)}`} size="sm" onPress={() => act({ type: 'invest', kind, amount: investAmount })} disabled={fin.cash < 100} style={styles.flex} testID={`invest-${kind}`} /> : null}
                     {inv ? <Button title="Withdraw all" size="sm" variant="secondary" onPress={() => act({ type: 'withdraw', kind, amount: inv.amount })} style={styles.flex} testID={`withdraw-${kind}`} /> : null}
                   </View>
                 </Card>

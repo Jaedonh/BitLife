@@ -9,6 +9,8 @@ import { attendRehab, doctorCost, visitDoctor } from './health';
 
 export function activityCost(state: GameState, def: ActivityDef): number {
   if (def.id === 'doctor') return doctorCost(state);
+  // The prison yard's weights cost nothing.
+  if (def.id === 'gym' && state.crime.inPrison) return 0;
   if (def.id === 'gym' || def.id === 'therapy') {
     const c = getCountry(state.character.countryCode);
     return scaleMoney(state, def.cost) * (c.publicHealthcare && def.id === 'therapy' ? 0.4 : 1);
@@ -20,8 +22,10 @@ export function activityAvailability(state: GameState, def: ActivityDef): Action
   const cost = activityCost(state, def);
   if (state.character.age < def.minAge) return { available: false, reason: `Age ${def.minAge}+`, cost };
   if (def.maxAge !== undefined && state.character.age > def.maxAge) return { available: false, reason: 'Too old', cost };
-  if (state.crime.inPrison && def.group !== 'mind_body' && def.id !== 'doctor') return { available: false, reason: 'In prison', cost };
+  if (state.crime.inPrison && !def.prisonOk) return { available: false, reason: 'Not available in prison', cost };
   if (def.perYear > 0 && actionCount(state, `activity:${def.id}`) >= def.perYear) return { available: false, reason: 'Done for this year', cost };
+  // Rehab is checked before it charges anything: without an addiction there is nothing to treat.
+  if (def.id === 'rehab' && !Object.values(state.health.addictions).some((v) => (v ?? 0) > 0)) return { available: false, reason: 'No addiction to treat', cost };
   if (def.energy > state.character.energy) return { available: false, reason: 'No energy left this year', cost };
   if (cost > state.finances.cash) return { available: false, reason: "Can't afford it", cost };
   return { available: true, cost };

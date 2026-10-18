@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { ageUp as engineAgeUp, applyAction, createLife, EVENT_REGISTRY, randomSeed, resolveChoice, secondChance } from '@/engine';
+import { ageUp as engineAgeUp, applyAction, createLife, EVENT_REGISTRY, listingsBlocker, randomSeed, resolveChoice, secondChance } from '@/engine';
 import type { GameState, LastResult, NewLifeOptions, PlayerAction } from '@/engine/types';
 import { ads } from '@/services/ads';
 import { track } from '@/services/analytics';
@@ -10,14 +10,21 @@ import { migrateSave } from './migrations';
 import { useSettingsStore } from './settingsStore';
 
 export type RewardedPlacement = 'cashBoost' | 'statBoost' | 'secondChance' | 'reroll';
-export type RewardedOutcome = 'granted' | 'unavailable' | 'dismissed' | 'capped';
+/** 'ineligible': the reward cannot apply to this life right now; the game's own message says why and nothing was spent. */
+export type RewardedOutcome = 'granted' | 'unavailable' | 'dismissed' | 'capped' | 'ineligible';
 
 const REWARDED_OUTCOME_MESSAGES: Record<RewardedOutcome, string | null> = {
   granted: null,
   unavailable: 'No ad is ready right now. Try again in a moment.',
   dismissed: 'Watch the whole ad to earn the reward.',
   capped: "You've used up this reward for today. Come back tomorrow.",
+  ineligible: null,
 };
+
+/** Why a rewarded placement cannot pay out for this life right now (null when it can). */
+function rewardedBlocker(g: GameState, placement: RewardedPlacement): string | null {
+  return placement === 'reroll' ? listingsBlocker(g) : null;
+}
 
 /** What to tell the player when a rewarded placement did not pay out (null when it did). */
 export function rewardedOutcomeMessage(outcome: RewardedOutcome): string | null {
@@ -177,6 +184,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const g = get().game;
     if (!g) return false;
     if (placement === 'secondChance' && (g.alive || g.flags.revived === true)) return false;
+    if (rewardedBlocker(g, placement)) return false;
     const settings = useSettingsStore.getState();
     // Free users need the ads SDK linked *and* initialised: before init (or when consent blocked it)
     // no rewarded ad can ever show, so the button would be a dead tap.
@@ -188,6 +196,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const g = get().game;
     if (!g) return 'unavailable';
     const settings = useSettingsStore.getState();
+    const blocked = rewardedBlocker(g, placement);
+    if (blocked) {
+      // Say why, and never show the ad or count it against the daily cap.
+      set({ game: { ...g, lastResult: { text: blocked, kind: 'info' } } });
+      return 'ineligible';
+    }
     if (!get().canUseRewarded(placement)) {
       // Distinguish 'no ad can show yet' from 'daily cap reached' so the message is honest.
       const adsUsable = settings.premium || (ads.isSupported() && ads.isReady());

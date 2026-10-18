@@ -4,9 +4,10 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { ScreenHeader } from '@/components/game/ScreenHeader';
 import { Button, Card, ListRow, Screen, Section, StatBar, T } from '@/components/ui';
+import { HUSTLE_BY_ID } from '@/data/hustles';
 import { JOB_BY_ID } from '@/data/jobs';
 import { GRAD_BY_ID, MAJOR_BY_ID } from '@/data/majors';
-import { enrollOptions, hustleOptions, meetsRequirements, STAGE_LABELS } from '@/engine';
+import { dropOutBlocker, enrollOptions, hustleOptions, meetsRequirements, skipClassBlocker, STAGE_LABELS } from '@/engine';
 import { employerLabel, formatMoney, formatMoneyFull } from '@/engine/util';
 import { useRewarded } from '@/hooks/useRewarded';
 import { useGameStore } from '@/store/gameStore';
@@ -29,6 +30,9 @@ export default function OccupationScreen() {
   const edu = game.education;
   const options = enrollOptions(game);
   const hustles = hustleOptions(game);
+  const skipBlocked = edu.enrolled ? skipClassBlocker(game) : null;
+  const canDropOut = edu.enrolled && !dropOutBlocker(game);
+  const hustleEnergy = game.career.hustle ? (HUSTLE_BY_ID[game.career.hustle.defId]?.energy ?? 0) : 0;
   const listings = game.career.listings;
   const visibleListings = showAllJobs ? listings : listings.slice(0, 8);
 
@@ -52,9 +56,10 @@ export default function OccupationScreen() {
               {edu.scholarship ? <T kind="small">🎓 Scholarship: tuition covered.</T> : null}
               <View style={styles.row}>
                 <Button title="Study harder" size="sm" onPress={() => act({ type: 'study' })} disabled={edu.studiedThisYear} style={styles.flex} testID="study" />
-                <Button title="Skip class" size="sm" variant="secondary" onPress={() => act({ type: 'skipClass' })} style={styles.flex} testID="skip-class" />
-                <Button title="Drop out" size="sm" variant="danger" onPress={() => act({ type: 'dropOut' })} style={styles.flex} testID="drop-out" />
+                <Button title="Skip class" size="sm" variant="secondary" onPress={() => act({ type: 'skipClass' })} disabled={!!skipBlocked} style={styles.flex} testID="skip-class" />
+                {canDropOut ? <Button title="Drop out" size="sm" variant="danger" onPress={() => act({ type: 'dropOut' })} style={styles.flex} testID="drop-out" /> : null}
               </View>
+              {skipBlocked ? <T kind="small">{skipBlocked}</T> : null}
             </Card>
           </Section>
         ) : null}
@@ -97,14 +102,14 @@ export default function OccupationScreen() {
           <Section title="Side hustle">
             <Card style={styles.card}>
               <T kind="subheading">{game.career.hustle.name} · Level {game.career.hustle.level}/5</T>
-              <T kind="small">Last year: {formatMoneyFull(game.career.hustle.lastIncome, cc)}</T>
+              <T kind="small">Last year: {formatMoneyFull(game.career.hustle.lastIncome, cc)}{hustleEnergy ? ` · Takes ${hustleEnergy} energy a year` : ''}</T>
               <Button title="Shut it down" size="sm" variant="danger" onPress={() => act({ type: 'stopHustle' })} testID="stop-hustle" />
             </Card>
           </Section>
-        ) : game.character.age >= 13 ? (
+        ) : game.character.age >= 13 && !game.crime.inPrison ? (
           <Section title="Start a side hustle">
-            {hustles.map(({ def, eligible }) => (
-              <ListRow key={def.id} emoji={def.emoji} title={def.name} subtitle={eligible ? def.description : `Age ${def.minAge}+`} onPress={eligible ? () => act({ type: 'startHustle', defId: def.id }) : undefined} disabled={!eligible} testID={`hustle-${def.id}`} />
+            {hustles.map(({ def, eligible, reason }) => (
+              <ListRow key={def.id} emoji={def.emoji} title={def.name} subtitle={eligible ? def.description : reason} onPress={eligible ? () => act({ type: 'startHustle', defId: def.id }) : undefined} disabled={!eligible} testID={`hustle-${def.id}`} />
             ))}
           </Section>
         ) : null}

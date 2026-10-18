@@ -3,7 +3,7 @@ import { GRAD_BY_ID, GRADUATE_PROGRAMS, MAJOR_BY_ID, majorProse, MAJORS } from '
 import { scaleMoney } from '../events/text';
 import type { Rng } from '../rng';
 import type { GameState } from '../types';
-import { addMoney, addStats, clampStat, log, money, setResult, withArticle } from '../util';
+import { actionCount, addMoney, addStats, clampStat, countAction, log, money, setResult, withArticle } from '../util';
 
 export const STAGE_LABELS: Record<string, string> = {
   none: 'Not in school',
@@ -116,9 +116,31 @@ export function studyHarder(state: GameState): GameState {
   return setResult(s, 'I hit the books. Grades should improve.', 'good', { statDeltas: { smarts: 2 } });
 }
 
+/** Times a year the player can skip class, and the energy each skip takes. */
+export const SKIP_CLASS_PER_YEAR = 2;
+export const SKIP_CLASS_ENERGY = 1;
+
+/** Why skipping class is not possible right now (null when it is). */
+export function skipClassBlocker(state: GameState): string | null {
+  if (!state.education.enrolled) return "I'm not in school right now.";
+  if (actionCount(state, 'skipClass') >= SKIP_CLASS_PER_YEAR) return "I've skipped enough this year.";
+  if (state.character.energy < SKIP_CLASS_ENERGY) return "I'm out of energy this year. Age up to recharge.";
+  return null;
+}
+
+/** Why dropping out is not possible right now (null when it is). School is compulsory until 16. */
+export function dropOutBlocker(state: GameState): string | null {
+  const edu = state.education;
+  if (!edu.enrolled) return "I'm not in school right now.";
+  if (state.character.age < 16 || edu.stage === 'primary' || edu.stage === 'middle') return "I'm too young to drop out.";
+  return null;
+}
+
 export function skipClass(state: GameState, rng: Rng): GameState {
-  if (!state.education.enrolled) return state;
-  let s: GameState = { ...state, education: { ...state.education, grade: clampStat(state.education.grade - 8) } };
+  const blocked = skipClassBlocker(state);
+  if (blocked) return setResult(state, blocked, 'info');
+  let s: GameState = countAction(state, 'skipClass');
+  s = { ...s, character: { ...s.character, energy: s.character.energy - SKIP_CLASS_ENERGY }, education: { ...s.education, grade: clampStat(s.education.grade - 8) } };
   const college = state.education.stage === 'university' || state.education.stage === 'graduate';
   if (rng.chance(0.25)) {
     s = log(s, college ? 'I skipped class and got caught. Word got back to my parents, who were furious.' : 'I skipped class and got caught. My parents were furious.', 'bad');
@@ -132,7 +154,8 @@ export function skipClass(state: GameState, rng: Rng): GameState {
 }
 
 export function dropOut(state: GameState): GameState {
-  if (!state.education.enrolled) return state;
+  const blocked = dropOutBlocker(state);
+  if (blocked) return setResult(state, blocked, 'info');
   const stage = state.education.stage;
   let s: GameState = { ...state, education: { ...state.education, enrolled: false, stage: 'done', droppedOut: true, major: null } };
   s = log(s, stage === 'university' ? 'I dropped out of university.' : stage === 'graduate' ? 'I dropped out of graduate school.' : stage === 'high' ? 'I dropped out of high school.' : 'I dropped out of school.', 'bad');
@@ -152,8 +175,7 @@ export interface EnrollOption {
 export function enrollOptions(state: GameState): EnrollOption[] {
   const out: EnrollOption[] = [];
   const smarts = state.character.stats.smarts;
-  if (state.education.enrolled || state.crime.inPrison) return out;
-  if (!hasHighSchool(state)) return out;
+  if (enrollBlocker(state)) return out;
   const major = bachelorMajor(state);
   if (!major) {
     for (const m of MAJORS) out.push({ id: m.id, name: m.name, kind: 'university', years: m.years, tuition: scaleMoney(state, m.tuition), eligible: smarts >= m.minSmarts, reason: smarts >= m.minSmarts ? undefined : `Needs ${m.minSmarts} Smarts` });
@@ -168,9 +190,19 @@ export function enrollOptions(state: GameState): EnrollOption[] {
   return out;
 }
 
+/** Why no university or graduate program can be started right now (null when one can). */
+export function enrollBlocker(state: GameState): string | null {
+  if (state.crime.inPrison) return "I can't enroll while I'm in prison.";
+  if (state.education.enrolled) return "I'm already enrolled.";
+  if (!hasHighSchool(state)) return 'I need a high school diploma first.';
+  return null;
+}
+
 export function enroll(state: GameState, rng: Rng, id: string): GameState {
+  const blocked = enrollBlocker(state);
+  if (blocked) return setResult(state, blocked, 'bad');
   const opt = enrollOptions(state).find((o) => o.id === id);
-  if (!opt || !opt.eligible) return setResult(state, opt?.reason ?? 'Not eligible.', 'bad');
+  if (!opt || !opt.eligible) return setResult(state, opt?.reason ? `${opt.reason}.` : "That program isn't open to me.", 'bad');
   const wealthy = state.flags.wealthyFamily === true;
   const scholarship = rng.chance(state.education.grade >= 85 && state.character.stats.smarts >= 70 ? 0.6 : state.character.stats.smarts >= 90 ? 0.4 : 0.05);
   let s: GameState = {

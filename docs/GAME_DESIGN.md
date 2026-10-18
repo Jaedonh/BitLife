@@ -71,7 +71,7 @@ Simulated outcomes (`npm test` enforces them): passive play median death ≈ 62,
 
 ## 6. Education
 
-Country school start age → primary → middle (11) → high (14) → graduation at the country's high-school end age (17-19). Grade starts at 50 + (Smarts−50)/2 and moves each year by (Smarts−50)/10 ± 5, +10 for Study harder, −8 per Skip class (25% chance of being caught), −3 rebellious, −4 when very unhappy. Graduation needs grade ≥ 30 (honours ≥ 85). Dropping out ends schooling.
+Country school start age → primary → middle (11) → high (14) → graduation at the country's high-school end age (17-19). Grade starts at 50 + (Smarts−50)/2 and moves each year by (Smarts−50)/10 ± 5, +10 for Study harder, −8 per Skip class (25% chance of being caught; 1 energy, twice a year), −3 rebellious, −4 when very unhappy. Graduation needs grade ≥ 30 (honours ≥ 85). Dropping out ends schooling and is only possible from high school or later and from age 16. University and graduate school need a high school diploma and cannot be started from prison.
 
 University: 25 majors with Smarts thresholds (25-65), 4-5 years, tuition $11-16k/yr (scaled) added to student debt unless on a **scholarship** (60% if grade ≥ 85 and Smarts ≥ 70; 40% if Smarts ≥ 90) or born wealthy. Graduate: medical school, law school, dental school, MBA, master's, PhD with major prerequisites. Student debt is repaid at 10%/yr (min $2k) once out of school.
 
@@ -83,9 +83,9 @@ Yearly: performance drifts ±7 ± (Smarts−50)/20, −5 when unhappy or unhealt
 
 ## 8. Side hustles and investing
 
-Six hustles (streaming, indie apps, craft shop, rideshare – needs a car, tutoring, furniture flipping), levels 0-5. Level-up chance = growth × (0.3 + stat/120) (+15% creative trait on creative hustles); 8% chance to slip a level; income by level ($0 → $18k-180k) ±20%; viral bonus chance 2-6% from level 2; level 5 sets the Hustler ribbon flag.
+Six hustles (streaming, indie apps, craft shop, rideshare – needs a car and ends once no car is owned, tutoring, furniture flipping), levels 0-5. A hustle takes its energy (1) when started and again from each new year's budget while it runs; none can be started from prison, where a running one is paused and earns nothing. Level-up chance = growth × (0.3 + stat/120) (+15% creative trait on creative hustles); 8% chance to slip a level; income by level ($0 → $18k-180k) ±20%; viral bonus chance 2-6% from level 2; level 5 sets the Hustler ribbon flag.
 
-Investments: savings (2%), index fund (normal 7% ± 15%, clamped −45..+60%), crypto (normal 12% ± 60%, clamped −80..+250%). Invest 25% of cash per tap; withdraw all. Returns accrue to the balance (unrealised until withdrawn) and never move cash on their own.
+Investments (from 18): savings (2%), index fund (normal 7% ± 15%, clamped −45..+60%), crypto (normal 12% ± 60%, clamped −80..+250%). Invest 25% of cash per tap; withdraw all. Returns accrue to the balance (unrealised until withdrawn) and never move cash on their own.
 
 ## 9. Finances and expenses
 
@@ -114,7 +114,7 @@ Yearly: neglected people (no interaction during the year just played) lose relat
 
 ## 12. Activities
 
-15 activities in three groups (mind & body, doctor, fun) with age gates, costs, energy, yearly caps, stat effects, karma and a risk roll (e.g. gym 4% injury, surgery 12% botch, vacation 6% food poisoning, party 10% "woke up somewhere unfamiliar"). The doctor costs $400 + per-illness fees (85% cheaper with public healthcare), heals +4 and cures each illness with its cure chance; rehab ($12k) cuts addictions by 40-70.
+15 activities in three groups (mind & body, doctor, fun) with age gates, costs, energy, yearly caps, stat effects, karma and a risk roll (e.g. gym 4% injury, surgery 12% botch, vacation 6% food poisoning, party 10% "woke up somewhere unfamiliar"). The doctor costs $400 + per-illness fees (85% cheaper with public healthcare), heals +4 and cures each illness with its cure chance; rehab ($12k) cuts addictions by 40-70 and is refused, free of charge, without one. In prison only the gym (free in the yard), library, jogging, meditation and the doctor are open.
 
 ## 13. Health, illness, addiction
 

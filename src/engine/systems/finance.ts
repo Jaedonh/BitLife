@@ -157,7 +157,11 @@ export function yearlyFinance(state: GameState, rng: Rng): GameState {
   return s;
 }
 
+/** Investment accounts open at this age. */
+export const INVEST_MIN_AGE = 18;
+
 export function invest(state: GameState, kind: InvestmentKind, amount: number): GameState {
+  if (state.character.age < INVEST_MIN_AGE) return setResult(state, `I have to be ${INVEST_MIN_AGE} to open an investment account.`, 'bad');
   amount = Math.round(amount);
   if (amount <= 0 || state.finances.cash < amount) return setResult(state, 'Not enough cash.', 'bad');
   const existing = state.finances.investments.find((i) => i.kind === kind);
@@ -186,8 +190,10 @@ export function withdraw(state: GameState, kind: InvestmentKind, amount: number)
 }
 
 export function payDebt(state: GameState, amount: number): GameState {
+  if (state.finances.debt <= 0) return setResult(state, "I don't have any debt to pay.", 'info');
+  if (state.finances.cash <= 0) return setResult(state, 'I have no cash to pay my debt with.', 'bad');
   amount = Math.min(state.finances.debt, Math.round(amount), state.finances.cash);
-  if (amount <= 0) return state;
+  if (amount <= 0) return setResult(state, 'I need to pay at least something.', 'bad');
   let s = addMoney(state, -amount);
   s = { ...s, finances: { ...s.finances, debt: s.finances.debt - amount } };
   return setResult(s, `I paid off ${money(s, amount)} of debt.`, 'good', { moneyDelta: -amount });

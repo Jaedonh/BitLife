@@ -1,7 +1,7 @@
 import { scaleMoney } from './events/text';
 import { Rng } from './rng';
 import { buyAsset, repairAsset, sellAsset, toggleRentOut } from './systems/assets';
-import { applyForJob, askForPromotion, askForRaise, quitJob, retire, rollListings, startHustle, stopHustle, workHarder } from './systems/careers';
+import { applyForJob, askForPromotion, askForRaise, dropCarlessHustle, listingsBlocker, quitJob, retire, rollListings, startHustle, stopHustle, workHarder } from './systems/careers';
 import { commitCrime } from './systems/crime';
 import { dropOut, enroll, skipClass, studyHarder } from './systems/education';
 import { invest, payDebt, withdraw } from './systems/finance';
@@ -32,13 +32,17 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
     case 'stopHustle': s = stopHustle(s); break;
     case 'interact': s = interact(s, rng, action.personId, action.interaction); break;
     case 'buyAsset': s = buyAsset(s, rng, action.defId, action.financing); break;
-    case 'sellAsset': s = sellAsset(s, action.assetId); break;
+    case 'sellAsset': s = dropCarlessHustle(sellAsset(s, action.assetId)); break;
     case 'repairAsset': s = action.assetId.startsWith('rent:') ? toggleRentOut(s, action.assetId.slice(5)) : repairAsset(s, action.assetId); break;
     case 'invest': s = invest(s, action.kind, action.amount); break;
     case 'withdraw': s = withdraw(s, action.kind, action.amount); break;
     case 'payDebt': s = payDebt(s, action.amount); break;
     case 'crime': s = commitCrime(s, rng, action.id); break;
-    case 'refreshListings': s = rollListings(s, rng); s = setResult(s, 'New job listings are in.', 'info'); break;
+    case 'refreshListings': {
+      const blocked = listingsBlocker(s);
+      s = blocked ? setResult(s, blocked, 'info') : setResult(rollListings(s, rng), 'New job listings are in.', 'info');
+      break;
+    }
     case 'rewarded': s = rewardedBoost(s, rng, action.placement, action.option); break;
     default: break;
   }
@@ -46,6 +50,9 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
 }
 
 function rewardedBoost(state: GameState, rng: Rng, placement: 'cashBoost' | 'statBoost' | 'secondChance' | 'reroll', option?: string): GameState {
+  // A refused reward is not spent: the reroll is checked before the ad counts.
+  const blocked = placement === 'reroll' ? listingsBlocker(state) : null;
+  if (blocked) return setResult(state, blocked, 'info');
   let s = bump(state, 'rewardedAdsUsed');
   if (placement === 'statBoost') {
     const stat = option === 'health' || option === 'smarts' || option === 'looks' ? option : 'happiness';
