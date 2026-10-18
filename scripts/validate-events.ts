@@ -108,7 +108,7 @@ async function main() {
   // Reachability
   // Lives without events, plus lives where every event (registry + these files) can fire, so
   // events gated on flags or eventFired from other events are reachable when their setup is.
-  const states = [...sampleStates(60), ...sampleStates(60, 20, makeRegistry(all), 50_000)];
+  const states = [...sampleStates(60), ...sampleStates(90, 20, makeRegistry(all), 50_000)];
   for (const { file, defs } of fileDefs) {
     for (const e of defs) {
       if (e.followUpOnly) continue;
