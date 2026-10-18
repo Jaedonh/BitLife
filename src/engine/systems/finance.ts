@@ -114,7 +114,8 @@ export function yearlyFinance(state: GameState, rng: Rng): GameState {
     expenses += payment;
     s = { ...s, education: { ...s.education, studentDebt: s.education.studentDebt - payment } };
   }
-  if (s.finances.debt > 0) {
+  // Debt is charged interest and repaid only from 18: a minor's debt waits until they are an adult.
+  if (s.finances.debt > 0 && adult) {
     const interest = Math.round(s.finances.debt * 0.15);
     const payment = Math.min(s.finances.debt + interest, Math.max(scaleMoney(s, 1_000), Math.round(s.finances.debt * 0.2)));
     expenses += payment;

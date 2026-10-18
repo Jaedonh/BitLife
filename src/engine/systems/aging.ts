@@ -16,7 +16,8 @@ export function driftStats(state: GameState, rng: Rng): GameState {
   if (married) happiness += 1;
   if (unemployedAdult) happiness -= 2;
   if (state.crime.inPrison) happiness -= 5;
-  if (state.finances.debt > 0) happiness -= 1;
+  // A minor's debt is not theirs to worry about yet (they never pay event costs and are charged no interest).
+  if (state.finances.debt > 0 && age >= 18) happiness -= 1;
   if (traits.includes('anxious')) happiness -= 1;
 
   let health = age < 30 ? rng.int(-1, 2) : age < 50 ? rng.int(-2, 1) : age < 70 ? rng.int(-3, 1) : age < 85 ? rng.int(-4, 0) : rng.int(-5, -1);
@@ -91,7 +92,12 @@ export function ageNpcs(state: GameState, rng: Rng): GameState {
   return s;
 }
 
-function onNpcDeath(state: GameState, p: Person, rng: Rng): GameState {
+/**
+ * Everything an NPC's death sets off: the journal line, grief, inheritance and, for a child, being taken in
+ * by relatives. `p` is already marked dead in `state`. Shared by natural deaths (ageNpcs) and event deaths
+ * (the `personDies` effect).
+ */
+export function onNpcDeath(state: GameState, p: Person, rng: Rng): GameState {
   let s = state;
   const close = p.relationship >= 50;
   const male = p.gender === 'male';
