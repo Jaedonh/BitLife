@@ -1,7 +1,7 @@
 export { ageUp } from './ageUp';
 export { applyAction, secondChance, statBoostBlocker, statBoostGain, STAT_BOOST } from './actions';
 export { createLife, TRAIT_LABELS } from './systems/character';
-export { resolveChoice, openNextEvent, EVENT_REGISTRY } from './events';
+export { resolveChoice, openNextEvent, beginLife, EVENT_REGISTRY } from './events';
 export * from './types';
 export * from './util';
 export { Rng, randomSeed } from './rng';

@@ -96,7 +96,7 @@ afterEach(() => {
 
 describe('DeathScreen second chance (free user)', () => {
   it('hides the rewarded button until the ads SDK is initialised', async () => {
-    useGameStore.getState().newLife({ countryCode: 'US' });
+    useGameStore.getState().newLife({ countryCode: 'US' }, { birthCard: false });
     await dieQuickly();
     jest.spyOn(ads, 'isSupported').mockReturnValue(true);
     const ready = jest.spyOn(ads, 'isReady').mockReturnValue(false);
@@ -112,7 +112,7 @@ describe('DeathScreen second chance (free user)', () => {
   });
 
   it('tells the player when no ad is ready or the ad was closed early, and revives on an earned reward', async () => {
-    useGameStore.getState().newLife({ countryCode: 'US' });
+    useGameStore.getState().newLife({ countryCode: 'US' }, { birthCard: false });
     await dieQuickly();
     jest.spyOn(ads, 'isSupported').mockReturnValue(true);
     jest.spyOn(ads, 'isReady').mockReturnValue(true);

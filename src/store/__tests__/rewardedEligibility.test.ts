@@ -22,7 +22,7 @@ describe('rewarded job-listing reroll (F18)', () => {
     await useSettingsStore.getState().hydrate();
     // Premium grants without an ad, so only the game's own rules decide.
     useSettingsStore.getState().setPremium(true);
-    useGameStore.getState().newLife({ countryCode: 'US' });
+    useGameStore.getState().newLife({ countryCode: 'US' }, { birthCard: false });
   });
 
   it('is hidden and never spent below 14 or in prison, and says why', async () => {

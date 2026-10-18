@@ -21,7 +21,7 @@ import { applyEffects } from '../src/engine/events/effects';
 import { EVENT_REGISTRY } from '../src/engine/events/registry';
 import type { Effect, EventDef } from '../src/engine/events/schema';
 import { candidatesFor } from '../src/engine/events/conditions';
-import { isEligible, resolveChoice } from '../src/engine/events/select';
+import { beginLife, isEligible, resolveChoice } from '../src/engine/events/select';
 import { renderText } from '../src/engine/events/text';
 import { Rng } from '../src/engine/rng';
 import { balancedPolicy, recklessPolicy } from '../src/engine/simulate';
@@ -55,6 +55,8 @@ function sample(): { states: GameState[]; systemLines: Map<string, { ages: Set<n
   for (let seed = 1; seed <= LIVES; seed++) {
     const policy = seed % 5 === 0 ? recklessPolicy : balancedPolicy;
     let s = createLife({}, seed * 7919);
+    states.push(s);
+    s = beginLife(s, EVENT_REGISTRY);
     const rng = new Rng(seed);
     const petRng = new Rng(seed * 31 + 7);
     const record = (from: number) => {
@@ -69,6 +71,8 @@ function sample(): { states: GameState[]; systemLines: Map<string, { ages: Set<n
       }
     };
     record(0);
+    let guard0 = 0;
+    while (s.pendingEvent && guard0++ < 5) s = resolveChoice(s, rng.pick(s.pendingEvent.choices).id, EVENT_REGISTRY);
     for (let y = 0; y < 110 && s.alive; y++) {
       const before = s.log.length;
       s = ageUp(s, EVENT_REGISTRY);

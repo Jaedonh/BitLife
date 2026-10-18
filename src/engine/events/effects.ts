@@ -77,7 +77,7 @@ export function sendToPrison(state: GameState, years: number): GameState {
  * into debt: a cost falls on their parents (see payForMinor), unless the choice has the child spend their
  * own savings (payer 'self'), which takes no more than the cash they have.
  */
-export function applyEventMoney(state: GameState, amount: number, payer?: 'self'): GameState {
+export function applyEventMoney(state: GameState, amount: number, payer?: 'self' | 'family'): GameState {
   if (amount >= 0 || state.character.age >= 18) return addMoney(state, amount);
   if (payer === 'self') return addMoney(state, -Math.min(-amount, state.finances.cash));
   return payForMinor(state, -amount);

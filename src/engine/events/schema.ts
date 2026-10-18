@@ -30,6 +30,7 @@ export interface Comparator {
 
 export type Condition =
   | ({ stat: StatId } & Comparator)
+  /** Cash, net worth and last year's income, with thresholds in USD (scaled per country like money effects). */
   | { money: Comparator }
   | { netWorth: Comparator }
   | { income: Comparator }
@@ -80,8 +81,11 @@ export type Condition =
 export type Effect =
   | { stat: StatId; delta: number }
   | { stats: Partial<Stats> }
-  /** Event money in USD (scaled per country). A minor's costs fall on their parents unless payer is 'self': the child spends their own savings (never more than they have). */
-  | { money: number; payer?: 'self' }
+  /**
+   * Event money in USD (scaled per country). A minor's costs fall on their parents unless payer is 'self': the child
+   * spends their own savings (never more than they have). payer 'family' says the parents pay on purpose (the default).
+   */
+  | { money: number; payer?: 'self' | 'family' }
   | { karma: number }
   | { fame: number }
   | { log: string; kind?: LogKind }
@@ -213,7 +217,7 @@ export function validateEvent(def: EventDef, knownIds: Set<string>): string[] {
     // A choice offered only when the player has the cash is the player spending their own money: for a
     // minor that must come out of their savings, not their parents' (which is the default for minors).
     if (def.minAge < 18 && (c.conditions ?? []).some((x) => 'money' in x) && unpaidCost(c.effects ?? [])) {
-      errors.push(`${where}: choice ${c.id} needs the player's own cash but a cost has no payer: 'self'; a minor's costs otherwise fall on their parents`);
+      errors.push(`${where}: choice ${c.id} needs the player's own cash but a cost has no payer: say payer: 'self' (the child pays from savings) or payer: 'family' (the parents pay on purpose)`);
     }
   }
   for (const list of effectLists(def.choices.flatMap((c) => [c.effects ?? []]))) {
@@ -258,7 +262,7 @@ function always(list: readonly Effect[], test: (e: Effect) => boolean): boolean 
 }
 
 function unpaidCost(effects: readonly Effect[]): boolean {
-  return effectLists([effects]).some((l) => l.some((e) => 'money' in e && e.money < 0 && e.payer !== 'self'));
+  return effectLists([effects]).some((l) => l.some((e) => 'money' in e && e.money < 0 && e.payer === undefined));
 }
 
 function canJail(effects: readonly Effect[]): boolean {

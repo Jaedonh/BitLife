@@ -15,7 +15,7 @@ import { isEligible } from '../src/engine/events/select';
 import { validateEvent, type EventDef } from '../src/engine/events/schema';
 import { ageUp } from '../src/engine/ageUp';
 import { resolveChoice } from '../src/engine/events/select';
-import { makeRegistry } from '../src/engine/events/select';
+import { beginLife, makeRegistry } from '../src/engine/events/select';
 import { createLife } from '../src/engine/systems/character';
 import { Rng } from '../src/engine/rng';
 import { balancedPolicy, recklessPolicy } from '../src/engine/simulate';
@@ -56,6 +56,10 @@ function sampleStates(n: number, recklessLives = 20, registry = makeRegistry([])
     const seed = i + seedOffset;
     const policy = i > n ? recklessPolicy : balancedPolicy;
     let s = createLife({}, seed * 7919);
+    // The newborn state (age 0) is where a new life's first card is rolled (beginLife).
+    states.push(s);
+    s = beginLife(s, registry);
+    while (s.pendingEvent) s = resolveChoice(s, choiceRng.pick(s.pendingEvent.choices).id, registry);
     const rng = new Rng(seed);
     const petRng = new Rng(seed * 31 + 7);
     // Most lives run until death so late-life states (grandchildren, retirement) are well represented;

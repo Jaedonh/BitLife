@@ -2,6 +2,7 @@ import { getCountry } from '@/data/countries';
 import { ageUp } from '../ageUp';
 import { applyAction } from '../actions';
 import { evaluateCondition } from '../events/conditions';
+import { scaleMoney } from '../events/text';
 import { makeRegistry } from '../events/select';
 import { createLife, emptyMemory } from '../systems/character';
 import { canBuy, yearlyMortgagePayment } from '../systems/assets';
@@ -367,6 +368,15 @@ describe('asset conditions', () => {
     expect(evaluateCondition(at30, { sinceEvent: 'ad_burnout', lte: 2 })).toBe(false);
     expect(evaluateCondition(at30, { sinceEvent: 'never_fired', gte: 0 })).toBe(false);
     expect(evaluateCondition(s, { jobId: ['pilot'] })).toBe(false);
+  });
+
+  it('money thresholds are in USD and scale with the country, like money effects', () => {
+    const india = createLife({ countryCode: 'IN' }, 14);
+    const cash = (s: GameState, v: number) => ({ ...s, finances: { ...s.finances, cash: v } });
+    const need = scaleMoney(india, 600);
+    expect(need).toBeLessThan(600);
+    expect(evaluateCondition(cash(india, need), { money: { gte: 600 } })).toBe(true);
+    expect(evaluateCondition(cash(india, need - 1), { money: { gte: 600 } })).toBe(false);
   });
 
   it('count compares a lifetime counter', () => {

@@ -56,9 +56,9 @@ export function isEligible(state: GameState, def: EventDef): boolean {
 }
 
 /** Rolls this year's random events into the queue (does not open them). */
-export function scheduleYearEvents(state: GameState, registry: EventRegistry): GameState {
+export function scheduleYearEvents(state: GameState, registry: EventRegistry, fixedCount?: number): GameState {
   const rng = new Rng(state.rng);
-  const count = eventCountForYear(state.character.age, rng);
+  const count = fixedCount ?? eventCountForYear(state.character.age, rng);
   const queued: QueuedEvent[] = [];
   const usedCategories = new Set<string>();
   let pool = registry.all.filter((d) => isEligible(state, d));
@@ -70,6 +70,15 @@ export function scheduleYearEvents(state: GameState, registry: EventRegistry): G
     queued.push({ eventId: def.id, context: {}, personId });
   }
   return { ...state, rng: rng.snapshot(), eventQueue: [...state.eventQueue, ...queued] };
+}
+
+/**
+ * The newborn year: a brand-new life opens with one card written for age 0 (a first bath, the first night
+ * home), since ageUp moves to age 1 before it rolls events. Only for a life starting at birth, not an heir.
+ */
+export function beginLife(state: GameState, registry: EventRegistry): GameState {
+  if (state.character.age !== 0 || state.pendingEvent || !state.alive || state.eventQueue.length) return state;
+  return openNextEvent(scheduleYearEvents(state, registry, 1), registry);
 }
 
 /** Pops the next queued event into `pendingEvent` (if nothing is pending). */

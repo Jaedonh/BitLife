@@ -218,7 +218,7 @@ describe('GraveyardScreen', () => {
 
 describe('MenuScreen', () => {
   it('shows the current life with Continue, and karma only when enabled', () => {
-    act(() => useGameStore.getState().newLife({ countryCode: 'US' }));
+    act(() => useGameStore.getState().newLife({ countryCode: 'US' }, { birthCard: false }));
     const tree = render(<MenuScreen />);
     const g = useGameStore.getState().game!;
     expect(hosts(tree, 'home-life-name')[0]).toBeDefined();

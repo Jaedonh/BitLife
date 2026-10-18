@@ -23,7 +23,7 @@ beforeEach(async () => {
 
 describe('lastResult is a moment, not part of the save', () => {
   it('is never written to storage, so a relaunch does not replay an old toast', async () => {
-    useGameStore.getState().newLife({ countryCode: 'US' });
+    useGameStore.getState().newLife({ countryCode: 'US' }, { birthCard: false });
     useGameStore.getState().act({ type: 'study' });
     useGameStore.getState().act({ type: 'activity', id: 'library' });
     expect(useGameStore.getState().game!.lastResult).not.toBeNull();
@@ -34,7 +34,7 @@ describe('lastResult is a moment, not part of the save', () => {
   });
 
   it('is dropped when an older save that still carries one is loaded', async () => {
-    useGameStore.getState().newLife({ countryCode: 'US' });
+    useGameStore.getState().newLife({ countryCode: 'US' }, { birthCard: false });
     await flush();
     const saved = JSON.parse((await AsyncStorage.getItem(StorageKeys.save))!);
     await AsyncStorage.setItem(StorageKeys.save, JSON.stringify({ ...saved, lastResult: { text: "I've done that enough this year.", kind: 'info' } }));
@@ -52,7 +52,7 @@ describe('year recap', () => {
   });
 
   it('prefers milestones and skips a line that was already the news last year', () => {
-    useGameStore.getState().newLife({ countryCode: 'US' });
+    useGameStore.getState().newLife({ countryCode: 'US' }, { birthCard: false });
     const g = useGameStore.getState().game!;
     const debt = 'Debt collectors are calling. I have no income and the interest keeps piling up.';
     const y1 = at(g, 30, [[debt, 'bad']]);
@@ -68,7 +68,7 @@ describe('year recap', () => {
     const detach = attachLifeLedger();
     let sawEvent = false;
     try {
-      useGameStore.getState().newLife({ countryCode: 'US' });
+      useGameStore.getState().newLife({ countryCode: 'US' }, { birthCard: false });
       for (let i = 0; i < 60 && !sawEvent; i++) {
         const before = useGameStore.getState().game!;
         await useGameStore.getState().ageUp();
@@ -103,7 +103,7 @@ describe('year ledger persistence', () => {
   it('keeps the saved year boundaries for the same life across a relaunch', async () => {
     const detach = attachLifeLedger();
     try {
-      useGameStore.getState().newLife({ countryCode: 'US' });
+      useGameStore.getState().newLife({ countryCode: 'US' }, { birthCard: false });
       await hydrateLifeLedger();
       for (let i = 0; i < 3; i++) {
         await useGameStore.getState().ageUp();

@@ -40,7 +40,7 @@ afterEach(() => {
 
 /** An adult life with a partner of the given kind, plenty of cash and energy. */
 function adultWith(kind: 'lover' | 'spouse'): { game: GameState; partner: Person } {
-  useGameStore.getState().newLife({ countryCode: 'US' });
+  useGameStore.getState().newLife({ countryCode: 'US' }, { birthCard: false });
   const g = useGameStore.getState().game!;
   const mom = Object.values(g.people).find((p) => p.kind === 'mother')!;
   const partner: Person = { ...mom, id: 'partner', kind, firstName: 'Sam', lastName: 'Rivera', gender: 'male', age: 30, love: 70, relationship: 70, metAtAge: 25, marriedAtAge: kind === 'spouse' ? 27 : undefined };
@@ -114,7 +114,7 @@ describe('Person screen', () => {
   });
 
   it('titles a parent Mom and does not claim a child has not spoken to her for years (UI-12, UI-23)', () => {
-    useGameStore.getState().newLife({ countryCode: 'US' });
+    useGameStore.getState().newLife({ countryCode: 'US' }, { birthCard: false });
     const g = useGameStore.getState().game!;
     const mom = Object.values(g.people).find((p) => p.kind === 'mother')!;
     useGameStore.setState({ game: { ...g, character: { ...g.character, age: 8 } } });

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { ageUp as engineAgeUp, applyAction, createLife, EVENT_REGISTRY, listingsBlocker, randomSeed, resolveChoice, secondChance, statBoostBlocker } from '@/engine';
+import { ageUp as engineAgeUp, applyAction, beginLife, createLife, EVENT_REGISTRY, listingsBlocker, randomSeed, resolveChoice, secondChance, statBoostBlocker } from '@/engine';
 import type { GameState, LastResult, LogKind, NewLifeOptions, PlayerAction } from '@/engine/types';
 import { ads } from '@/services/ads';
 import { track } from '@/services/analytics';
@@ -43,7 +43,8 @@ interface GameStore {
   pendingSummary: LastResult | null;
   /** Free generations used on this device (premium = unlimited). */
   hydrate: () => Promise<void>;
-  newLife: (options?: NewLifeOptions) => void;
+  /** Starts a life at birth. It opens with a newborn card unless birthCard is false (tests that drive the store directly). */
+  newLife: (options?: NewLifeOptions, opts?: { birthCard?: boolean }) => void;
   continueAsHeir: (childId: string) => void;
   ageUp: () => Promise<void>;
   choose: (choiceId: string) => void;
@@ -140,8 +141,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const game = migrated && migrated.lastResult ? { ...migrated, lastResult: null } : migrated;
     set({ hydrated: true, game });
   },
-  newLife: (options = {}) => {
-    const game = createLife(options, randomSeed(), Date.now());
+  newLife: (options = {}, { birthCard = true } = {}) => {
+    // A life starts with a newborn card, so the first thing the player sees is being a baby.
+    const born = createLife(options, randomSeed(), Date.now());
+    const game = birthCard ? beginLife(born, EVENT_REGISTRY) : born;
     set({ game });
     persist(game);
     track({ name: 'life_started', generation: game.generation, custom: !!(options.firstName || options.countryCode || options.customStats) });

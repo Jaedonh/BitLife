@@ -3,7 +3,7 @@ import { evaluateAll } from '../events/conditions';
 import { sendToPrison } from '../events/effects';
 import { EVENT_REGISTRY } from '../events/registry';
 import type { EventDef } from '../events/schema';
-import { makeRegistry, openNextEvent, resolveChoice } from '../events/select';
+import { beginLife, makeRegistry, openNextEvent, resolveChoice } from '../events/select';
 import { createLife } from '../systems/character';
 import type { GameState } from '../types';
 
@@ -110,5 +110,22 @@ describe('queued cards are re-checked when they open', () => {
       }
     }
     expect(misfits).toEqual([]);
+  });
+});
+
+describe('the newborn card', () => {
+  it('a new life opens with one card written for age 0; an heir or a later year does not get one', () => {
+    let opened = 0;
+    for (let seed = 1; seed <= 40; seed++) {
+      const born = beginLife(createLife({}, seed), EVENT_REGISTRY);
+      if (!born.pendingEvent) continue;
+      opened++;
+      const def = EVENT_REGISTRY.byId[born.pendingEvent.eventId]!;
+      expect(def.minAge).toBe(0);
+      expect(born.character.age).toBe(0);
+    }
+    expect(opened).toBeGreaterThan(30);
+    const older = { ...adult(), pendingEvent: null };
+    expect(beginLife(older, EVENT_REGISTRY)).toBe(older);
   });
 });

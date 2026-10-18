@@ -1,6 +1,7 @@
 import type { GameState, Person } from '../types';
 import { netWorth } from '../util';
 import type { Comparator, Condition, PersonSelector } from './schema';
+import { scaleMoney } from './text';
 
 function cmp(value: number, c: Comparator): boolean {
   if (c.gte !== undefined && !(value >= c.gte)) return false;
@@ -9,6 +10,12 @@ function cmp(value: number, c: Comparator): boolean {
   if (c.lt !== undefined && !(value < c.lt)) return false;
   if (c.eq !== undefined && value !== c.eq) return false;
   return true;
+}
+
+/** Money thresholds are authored in USD like money effects, so they scale with the country's prices too. */
+function usd(state: GameState, c: Comparator): Comparator {
+  const f = (v: number | undefined) => (v === undefined ? undefined : scaleMoney(state, v));
+  return { gte: f(c.gte), lte: f(c.lte), gt: f(c.gt), lt: f(c.lt), eq: f(c.eq) };
 }
 
 export function alivePeople(state: GameState): Person[] {
@@ -22,9 +29,9 @@ export function hasPersonOfKind(state: GameState, kinds: readonly Person['kind']
 export function evaluateCondition(state: GameState, c: Condition): boolean {
   const ch = state.character;
   if ('stat' in c) return cmp(ch.stats[c.stat], c);
-  if ('money' in c) return cmp(state.finances.cash, c.money);
-  if ('netWorth' in c) return cmp(netWorth(state), c.netWorth);
-  if ('income' in c) return cmp(state.finances.lastYear.income, c.income);
+  if ('money' in c) return cmp(state.finances.cash, usd(state, c.money));
+  if ('netWorth' in c) return cmp(netWorth(state), usd(state, c.netWorth));
+  if ('income' in c) return cmp(state.finances.lastYear.income, usd(state, c.income));
   if ('flag' in c) {
     const v = state.flags[c.flag];
     if (c.exists !== undefined) return (v !== undefined) === c.exists;

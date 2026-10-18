@@ -39,7 +39,7 @@ const has = (tree: ReactTestRenderer, id: string) => hostIds(tree, id).includes(
 const texts = (tree: ReactTestRenderer) => tree.root.findAllByType(Text).map((t) => [t.props.children].flat().join(''));
 
 function newLife(): GameState {
-  useGameStore.getState().newLife({ countryCode: 'GB', firstName: 'Ada', gender: 'female' });
+  useGameStore.getState().newLife({ countryCode: 'GB', firstName: 'Ada', gender: 'female' }, { birthCard: false });
   return useGameStore.getState().game!;
 }
 

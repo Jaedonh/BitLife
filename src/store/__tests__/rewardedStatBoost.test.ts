@@ -23,7 +23,7 @@ describe('rewarded stat boost (F10)', () => {
     await useSettingsStore.getState().hydrate();
     // Premium grants without an ad, so only the game's own rules decide.
     useSettingsStore.getState().setPremium(true);
-    useGameStore.getState().newLife({ countryCode: 'US' });
+    useGameStore.getState().newLife({ countryCode: 'US' }, { birthCard: false });
   });
 
   it('is not offered or spent for a stat already at its natural limit', async () => {

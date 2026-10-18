@@ -49,7 +49,7 @@ describe('gameStore', () => {
 
   it('creates, ages, resolves events and persists a life', async () => {
     const store = useGameStore.getState();
-    store.newLife({ firstName: 'Test', countryCode: 'US' });
+    store.newLife({ firstName: 'Test', countryCode: 'US' }, { birthCard: false });
     let g = useGameStore.getState().game!;
     expect(g.character.firstName).toBe('Test');
     for (let i = 0; i < 12; i++) {
@@ -67,7 +67,7 @@ describe('gameStore', () => {
   });
 
   it('hydrates a saved life and discards corrupt saves', async () => {
-    useGameStore.getState().newLife({ countryCode: 'GB' });
+    useGameStore.getState().newLife({ countryCode: 'GB' }, { birthCard: false });
     await flush();
     useGameStore.setState({ game: null, hydrated: false });
     await useGameStore.getState().hydrate();
@@ -81,14 +81,14 @@ describe('gameStore', () => {
   });
 
   it('records deaths in the graveyard and supports heirs', async () => {
-    useGameStore.getState().newLife({ countryCode: 'US' });
+    useGameStore.getState().newLife({ countryCode: 'US' }, { birthCard: false });
     const g = await dieQuickly();
     expect(useSettingsStore.getState().graveyard.length).toBe(1);
     expect(useSettingsStore.getState().graveyard[0]!.ribbonId).toBe(g.death!.ribbonId);
   });
 
   it('still ages up after an interstitial when the year toast clears during the ad', async () => {
-    useGameStore.getState().newLife({ countryCode: 'US' });
+    useGameStore.getState().newLife({ countryCode: 'US' }, { birthCard: false });
     const g0 = useGameStore.getState().game!;
     // A toast is on screen (the previous year's summary) when the player taps Age+ again.
     useGameStore.setState({ game: { ...g0, lastResult: { text: 'Age 0', kind: 'info' } } });
@@ -118,7 +118,7 @@ describe('gameStore', () => {
 
   it('premium users get rewards without ads', async () => {
     useSettingsStore.getState().setPremium(true);
-    useGameStore.getState().newLife({ countryCode: 'US' });
+    useGameStore.getState().newLife({ countryCode: 'US' }, { birthCard: false });
     const before = useGameStore.getState().game!.finances.cash;
     expect(useGameStore.getState().canUseRewarded('cashBoost')).toBe(true);
     const r = await useGameStore.getState().rewarded('cashBoost');
@@ -128,7 +128,7 @@ describe('gameStore', () => {
 
   it('premium rewards are instant but share the daily caps', async () => {
     useSettingsStore.getState().setPremium(true);
-    useGameStore.getState().newLife({ countryCode: 'US' });
+    useGameStore.getState().newLife({ countryCode: 'US' }, { birthCard: false });
     const results: string[] = [];
     for (let i = 0; i < 5; i++) results.push(await useGameStore.getState().rewarded('cashBoost'));
     expect(results).toEqual(['granted', 'granted', 'granted', 'capped', 'capped']);
@@ -142,7 +142,7 @@ describe('gameStore', () => {
 
   it('a second chance takes the tombstone back until the life really ends', async () => {
     useSettingsStore.getState().setPremium(true);
-    useGameStore.getState().newLife({ countryCode: 'US' });
+    useGameStore.getState().newLife({ countryCode: 'US' }, { birthCard: false });
     const dead = await dieQuickly();
     const id = dead.character.id;
     expect(useSettingsStore.getState().graveyard.length).toBe(1);
@@ -164,7 +164,7 @@ describe('gameStore', () => {
   });
 
   it('free users only get rewarded buttons once the ads SDK is initialised, and a tap with no ad loaded reports it', async () => {
-    useGameStore.getState().newLife({ countryCode: 'US' });
+    useGameStore.getState().newLife({ countryCode: 'US' }, { birthCard: false });
     jest.spyOn(ads, 'isSupported').mockReturnValue(true);
     const ready = jest.spyOn(ads, 'isReady').mockReturnValue(false);
     // SDK linked but not initialised (still booting, init failed, consent blocked): no dead button.
@@ -191,7 +191,7 @@ describe('gameStore', () => {
   });
 
   it('free users cannot use rewarded placements where ads are unsupported', () => {
-    useGameStore.getState().newLife({});
+    useGameStore.getState().newLife({}, { birthCard: false });
     expect(useGameStore.getState().canUseRewarded('cashBoost')).toBe(false);
   });
 });
