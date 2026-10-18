@@ -82,7 +82,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         hint: '{{$8000}}',
         conditions: [{ money: { gte: 8000 } }],
         effects: [
-          { money: -8000 },
+          { money: -8000, payer: 'self' },
           {
             chance: 0.55,
             then: [{ log: 'The platform removed it and the creator issued a retraction. Expensive, but clean.', kind: 'good' }, { fame: 2 }, { stat: 'happiness', delta: 4 }, { karma: 1 }],
@@ -634,7 +634,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         hint: '{{$40}}',
         conditions: [{ money: { gte: 40 } }],
         effects: [
-          { money: -40 },
+          { money: -40, payer: 'self' },
           {
             chance: 0.15,
             then: [{ log: 'It was real, and they thanked donors by name on stream. I heard mine. I glowed.', kind: 'good' }, { stat: 'happiness', delta: 5 }, { karma: 1 }],
@@ -678,7 +678,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         hint: '{{$120}}',
         conditions: [{ money: { gte: 120 } }],
         effects: [
-          { money: -120 },
+          { money: -120, payer: 'self' },
           {
             chance: 0.35,
             then: [{ log: 'A patient person in a chat window got me back in within a day. Money well spent.', kind: 'good' }, { stat: 'happiness', delta: 3 }],
@@ -809,7 +809,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         label: 'Buy a new one',
         hint: '{{$700}}',
         conditions: [{ money: { gte: 700 } }],
-        effects: [{ money: -700 }, { stat: 'happiness', delta: 2 }, { log: 'I bought a newer, shinier phone and spent a week re-entering passwords I had forgotten I had.', kind: 'money' }],
+        effects: [{ money: -700, payer: 'self' }, { stat: 'happiness', delta: 2 }, { log: 'I bought a newer, shinier phone and spent a week re-entering passwords I had forgotten I had.', kind: 'money' }],
       },
       {
         id: 'without',
@@ -834,7 +834,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         label: 'Reward them',
         hint: '{{$50}}',
         conditions: [{ money: { gte: 50 } }],
-        effects: [{ money: -50 }, { karma: 2 }, { stat: 'happiness', delta: 4 }, { log: 'I gave them {{$50}} and my thanks. Now I have two phones and one restored faith in people.', kind: 'good' }],
+        effects: [{ money: -50, payer: 'self' }, { karma: 2 }, { stat: 'happiness', delta: 4 }, { log: 'I gave them {{$50}} and my thanks. Now I have two phones and one restored faith in people.', kind: 'good' }],
       },
       {
         id: 'thanks',
@@ -894,7 +894,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         label: 'Drain my phone data',
         hint: '{{$30}}',
         conditions: [{ money: { gte: 30 } }],
-        effects: [{ money: -30 }, { stat: 'happiness', delta: 2 }, { log: 'I ran everything off my phone and streamed in low resolution like a pioneer. The bill was unkind.' }],
+        effects: [{ money: -30, payer: 'self' }, { stat: 'happiness', delta: 2 }, { log: 'I ran everything off my phone and streamed in low resolution like a pioneer. The bill was unkind.' }],
       },
     ],
   },

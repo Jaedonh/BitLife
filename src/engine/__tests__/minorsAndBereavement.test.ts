@@ -1,4 +1,5 @@
 import { ageUp } from '../ageUp';
+import { applyAction } from '../actions';
 import { scaleMoney } from '../events/text';
 import type { EventDef } from '../events/schema';
 import { makeRegistry, openNextEvent, resolveChoice } from '../events/select';
@@ -9,15 +10,16 @@ import type { GameState, Person } from '../types';
 
 const base = { category: 'random', title: 'Test', text: 'Something happened.', minAge: 0, maxAge: 120, weight: 1 } as const;
 const bill: EventDef = { ...base, id: 'test_bill', choices: [{ id: 'pay', label: 'Pay', effects: [{ money: -300 }] }] };
+const ownSavings: EventDef = { ...base, id: 'test_own_savings', choices: [{ id: 'pay', label: 'Pay for it myself', conditions: [{ money: { gte: 100 } }], effects: [{ money: -300, payer: 'self' }] }] };
 const windfall: EventDef = { ...base, id: 'test_windfall', choices: [{ id: 'take', label: 'Take it', effects: [{ money: 200 }] }] };
 const parentFalls: EventDef = {
   ...base,
   id: 'test_parent_falls',
   person: { kind: ['mother'] },
-  choices: [{ id: 'fine', label: 'Take her word', effects: [{ personDies: true, cause: 'complications after a fall' }, { log: 'She fell again. I should have fussed.', kind: 'bad' }] }],
+  choices: [{ id: 'fine', label: 'Take her word', effects: [{ stat: 'happiness', delta: -12 }, { log: 'She fell again. I should have fussed.', kind: 'bad' }, { personDies: true, cause: 'complications after a fall' }] }],
 };
-const diesTwice: EventDef = { ...parentFalls, id: 'test_dies_twice', choices: [{ id: 'ok', label: 'OK', effects: [{ personDies: true }, { personDies: true }] }] };
-const reg = makeRegistry([bill, windfall, parentFalls, diesTwice]);
+const diesTwice: EventDef = { ...parentFalls, id: 'test_dies_twice', choices: [{ id: 'ok', label: 'OK', effects: [{ stat: 'happiness', delta: -5 }, { log: 'She was gone.' }, { personDies: true }, { personDies: true }] }] };
+const reg = makeRegistry([bill, ownSavings, windfall, parentFalls, diesTwice]);
 const noEvents = makeRegistry([]);
 
 /** Seed 3 starts with a mother, a father and one sibling. */
@@ -67,6 +69,34 @@ describe('minors never pay for events or carry debt costs', () => {
     expect(after.people[kin(s, 'mother').id]!.money).toBe(0);
   });
 
+  it("a choice that spends the child's own savings takes it from them, never more than they have, and not from the parents", () => {
+    let s = lifeAt(12);
+    s = { ...s, finances: { ...s.finances, cash: 1_000 } };
+    const mother = kin(s, 'mother');
+    let after = play(s, 'test_own_savings', 'pay');
+    expect(after.finances.cash).toBe(1_000 - scaleMoney(s, 300));
+    expect(after.people[mother.id]!.money).toBe(mother.money);
+    s = { ...s, finances: { ...s.finances, cash: 150 } };
+    after = play(s, 'test_own_savings', 'pay');
+    expect(after.finances.cash).toBe(0);
+    expect(after.finances.debt).toBe(0);
+  });
+
+  it("a minor's crime fine and asset upkeep are paid by their parents, not turned into debt", () => {
+    let s = lifeAt(14);
+    s = { ...s, assets: [{ id: 'b', defId: 'bike', kind: 'car', name: 'Used bicycle', value: 150, purchasePrice: 200, condition: 90, yearlyUpkeep: 10, mortgage: null, boughtAtAge: 9 }] };
+    const aged = ageUp(s, noEvents);
+    expect(aged.finances.debt).toBe(0);
+    let caught: GameState | undefined;
+    for (let seed = 1; seed < 400 && !caught; seed++) {
+      const t = applyAction({ ...lifeAt(15), rng: { s: seed } }, { type: 'crime', id: 'shoplift' });
+      if (t.log.some((l) => l.text.includes('My parents had to pay'))) caught = t;
+    }
+    expect(caught).toBeDefined();
+    expect(caught!.finances.debt).toBe(0);
+    expect(caught!.finances.cash).toBe(0);
+  });
+
   it('a child still keeps money an event gives them, and adults still pay (a shortfall becomes debt)', () => {
     expect(play(lifeAt(10), 'test_windfall', 'take').finances.cash).toBe(scaleMoney(lifeAt(10), 200));
     const adult = play(lifeAt(30), 'test_bill', 'pay');
@@ -86,7 +116,7 @@ describe('minors never pay for events or carry debt costs', () => {
 });
 
 describe('an event death runs the same handling as a natural death', () => {
-  it('logs the death, applies grief and pays the inheritance', () => {
+  it("pays the inheritance, with the event's own line and grief instead of the engine's", () => {
     let s = lifeAt(40);
     const mother = kin(s, 'mother');
     s = patch(s, mother.id, { age: 75, money: 200_000, relationship: 60 });
@@ -100,13 +130,9 @@ describe('an event death runs the same handling as a natural death', () => {
     expect(dead.deathAge).toBe(75);
     expect(dead.deathCause).toBe('complications after a fall');
     expect(after.finances.cash).toBe(share);
-    expect(after.character.stats.happiness).toBe(45);
+    expect(after.character.stats.happiness).toBe(48);
     const lines = after.log.slice(logStart).map((l) => l.text);
-    expect(lines).toEqual([
-      `My mother ${mother.firstName} ${mother.lastName} died of complications after a fall at 75.`,
-      `I inherited $${share.toLocaleString('en-US')} from ${mother.firstName}'s estate.`,
-      'She fell again. I should have fussed.',
-    ]);
+    expect(lines).toEqual(['She fell again. I should have fussed.', `I inherited $${share.toLocaleString('en-US')} from ${mother.firstName}'s estate.`]);
   });
 
   it('takes an orphaned child in to relatives and leaves a minor no inheritance', () => {
@@ -125,6 +151,6 @@ describe('an event death runs the same handling as a natural death', () => {
     s = patch(s, mother.id, { money: 100_000, relationship: 60 });
     const after = play(s, 'test_dies_twice', 'ok', mother.id);
     expect(after.log.filter((l) => l.text.startsWith('I inherited')).length).toBe(1);
-    expect(after.log.filter((l) => l.text.startsWith('My mother')).length).toBe(1);
+    expect(after.log.filter((l) => l.text.startsWith('My mother')).length).toBe(0);
   });
 });

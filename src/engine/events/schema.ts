@@ -76,7 +76,8 @@ export type Condition =
 export type Effect =
   | { stat: StatId; delta: number }
   | { stats: Partial<Stats> }
-  | { money: number }
+  /** Event money in USD (scaled per country). A minor's costs fall on their parents unless payer is 'self': the child spends their own savings (never more than they have). */
+  | { money: number; payer?: 'self' }
   | { karma: number }
   | { fame: number }
   | { log: string; kind?: LogKind }
@@ -205,6 +206,18 @@ export function validateEvent(def: EventDef, knownIds: Set<string>): string[] {
     if (canJail(c.effects ?? []) && !mentionsInPrison(def.conditions) && !mentionsInPrison(c.conditions)) {
       errors.push(`${where}: choice ${c.id} can arrest or jail the player; add { inPrison: false } to the event's conditions (or { inPrison: true } if it is written for prison)`);
     }
+    // A choice offered only when the player has the cash is the player spending their own money: for a
+    // minor that must come out of their savings, not their parents' (which is the default for minors).
+    if (def.minAge < 18 && (c.conditions ?? []).some((x) => 'money' in x) && unpaidCost(c.effects ?? [])) {
+      errors.push(`${where}: choice ${c.id} needs the player's own cash but a cost has no payer: 'self'; a minor's costs otherwise fall on their parents`);
+    }
+  }
+  for (const list of effectLists(def.choices.flatMap((c) => [c.effects ?? []]))) {
+    // An event death is announced and grieved by the content itself (the engine adds neither).
+    const grieves = (e: Effect) => ('stat' in e && e.stat === 'happiness' && e.delta < 0) || ('stats' in e && (e.stats.happiness ?? 0) < 0);
+    if (list.some((e) => 'personDies' in e) && !(always(list, (e) => 'log' in e) && always(list, grieves))) {
+      errors.push(`${where}: a personDies effect needs a log line and a happiness loss in the same effects list`);
+    }
   }
   const usesPerson = /\{\{(person|personFull|they|them|their|They)\}\}/.test(def.text + def.choices.map((c) => c.label + (c.hint ?? '')).join(' '));
   if (usesPerson && !def.person) errors.push(`${where}: uses person placeholders but has no person selector`);
@@ -218,6 +231,20 @@ export function validateEvent(def: EventDef, knownIds: Set<string>): string[] {
     }
   }
   return errors;
+}
+
+/** Every effects list in these lists, including the branches of chance and random effects. */
+function effectLists(lists: readonly (readonly Effect[])[]): (readonly Effect[])[] {
+  return lists.flatMap((l) => [l, ...effectLists(l.flatMap((e) => ('chance' in e ? [e.then, e.else ?? []] : 'random' in e ? e.random.map((o) => o.effects) : [])))]);
+}
+
+/** Whether every path through this effects list hits an effect matching `test` (directly, or in every branch of a chance/random). */
+function always(list: readonly Effect[], test: (e: Effect) => boolean): boolean {
+  return list.some((e) => test(e) || ('chance' in e && always(e.then, test) && always(e.else ?? [], test)) || ('random' in e && e.random.every((o) => always(o.effects, test))));
+}
+
+function unpaidCost(effects: readonly Effect[]): boolean {
+  return effectLists([effects]).some((l) => l.some((e) => 'money' in e && e.money < 0 && e.payer !== 'self'));
 }
 
 function canJail(effects: readonly Effect[]): boolean {

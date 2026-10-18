@@ -190,7 +190,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
         label: 'Pay the fine',
         hint: 'Costs {{$15}}',
         conditions: [{ money: { gte: 15 } }],
-        effects: [{ money: -15 }, { log: "I paid up and returned the sharks. The librarian said 'thank you' in the way that means 'finally'.", kind: 'money' }, { karma: 1 }],
+        effects: [{ money: -15, payer: 'self' }, { log: "I paid up and returned the sharks. The librarian said 'thank you' in the way that means 'finally'.", kind: 'money' }, { karma: 1 }],
       },
       {
         id: 'apologise',
@@ -622,7 +622,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
         label: 'Pay for it myself',
         hint: 'Costs {{$150}}',
         conditions: [{ money: { gte: 150 } }],
-        effects: [{ money: -150 }, { log: 'I paid my own way. Three days of sea air, bad bunk beds and a new feeling of independence.', kind: 'good' }, { stat: 'happiness', delta: 8 }, { stat: 'health', delta: 2 }],
+        effects: [{ money: -150, payer: 'self' }, { log: 'I paid my own way. Three days of sea air, bad bunk beds and a new feeling of independence.', kind: 'good' }, { stat: 'happiness', delta: 8 }, { stat: 'health', delta: 2 }],
       },
       {
         id: 'stay',

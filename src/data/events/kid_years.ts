@@ -656,7 +656,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
         hint: 'Costs {{$20}}',
         conditions: [{ money: { gte: 20 } }],
         effects: [
-          { money: -20 },
+          { money: -20, payer: 'self' },
           {
             chance: 0.75,
             then: [{ log: 'A neighbor called the next morning. He had been raiding her trash and was very pleased with himself.', kind: 'good' }, { stat: 'happiness', delta: 6 }],
@@ -739,7 +739,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
         label: 'Offer my savings',
         hint: 'Gives {{$20}}',
         conditions: [{ money: { gte: 20 } }],
-        effects: [{ money: -20 }, { karma: 3 }, { relationship: 'person', delta: 8 }, { stat: 'happiness', delta: -1 }, { log: 'I put my coins on the table. {{person}} laughed, then cried, then put them back in my jar.', kind: 'good' }, { queue: 'kd_tight_months' }],
+        effects: [{ money: -20, payer: 'self' }, { karma: 3 }, { relationship: 'person', delta: 8 }, { stat: 'happiness', delta: -1 }, { log: 'I put my coins on the table. {{person}} laughed, then cried, then put them back in my jar.', kind: 'good' }, { queue: 'kd_tight_months' }],
       },
       {
         id: 'hide',

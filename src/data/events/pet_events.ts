@@ -412,11 +412,11 @@ export const PET_EVENTS: EventDef[] = [
         hint: '{{$600}}',
         conditions: [{ money: { gte: 600 } }],
         effects: [
-          { money: -600 },
+          { money: -600, payer: 'self' },
           {
             chance: 0.85,
             then: [{ relationship: 'person', delta: 8 }, { stat: 'happiness', delta: 4 }, { log: 'Two nights at the vet and a bag of pills, and {{person}} was back to stealing socks.', kind: 'good' }],
-            else: [{ personDies: true, cause: 'illness' }, { stat: 'happiness', delta: -12 }, { log: 'The treatment did not work. We said goodbye to {{person}} in a small quiet room.', kind: 'bad' }],
+            else: [{ stat: 'happiness', delta: -12 }, { log: 'The treatment did not work. We said goodbye to {{person}} in a small quiet room.', kind: 'bad' }, { personDies: true, cause: 'illness' }],
           },
         ],
       },
@@ -426,15 +426,15 @@ export const PET_EVENTS: EventDef[] = [
         hint: '{{$180}}',
         conditions: [{ money: { gte: 180 } }],
         effects: [
-          { money: -180 },
+          { money: -180, payer: 'self' },
           {
             chance: 0.55,
             then: [{ relationship: 'person', delta: 4 }, { stat: 'happiness', delta: 2 }, { log: 'The basic treatment did the trick, slowly. {{person}} forgave the vet before I did.', kind: 'good' }],
             else: [
               {
                 chance: 0.5,
-                then: [{ personDies: true, cause: 'illness' }, { stat: 'happiness', delta: -12 }, { log: 'It was not enough. {{person}} slipped away a week later, at home, on the good blanket.', kind: 'bad' }],
-                else: [{ money: -400 }, { stat: 'happiness', delta: -5 }, { log: 'It got worse and I paid for the full treatment anyway. {{person}} pulled through.', kind: 'bad' }],
+                then: [{ stat: 'happiness', delta: -12 }, { log: 'It was not enough. {{person}} slipped away a week later, at home, on the good blanket.', kind: 'bad' }, { personDies: true, cause: 'illness' }],
+                else: [{ money: -400, payer: 'self' }, { stat: 'happiness', delta: -5 }, { log: 'It got worse and I paid for the full treatment anyway. {{person}} pulled through.', kind: 'bad' }],
               },
             ],
           },
@@ -456,7 +456,7 @@ export const PET_EVENTS: EventDef[] = [
               {
                 chance: 0.6,
                 then: [{ relationship: 'person', delta: 3 }, { log: '{{person}} got better on the budget plan and never knew the difference.', kind: 'good' }],
-                else: [{ personDies: true, cause: 'illness' }, { stat: 'happiness', delta: -12 }, { log: 'The cheap treatment was not enough. We lost {{person}} that spring.', kind: 'bad' }],
+                else: [{ stat: 'happiness', delta: -12 }, { log: 'The cheap treatment was not enough. We lost {{person}} that spring.', kind: 'bad' }, { personDies: true, cause: 'illness' }],
               },
             ],
           },
@@ -470,7 +470,7 @@ export const PET_EVENTS: EventDef[] = [
           {
             chance: 0.4,
             then: [{ relationship: 'person', delta: 2 }, { log: 'Against all advice, {{person}} got better on {{their}} own. I do not recommend my method.' }],
-            else: [{ personDies: true, cause: 'illness' }, { stat: 'happiness', delta: -14 }, { log: '{{person}} did not get better. I think about the bill a lot.', kind: 'bad' }],
+            else: [{ stat: 'happiness', delta: -14 }, { log: '{{person}} did not get better. I think about the bill a lot.', kind: 'bad' }, { personDies: true, cause: 'illness' }],
           },
         ],
       },
@@ -494,11 +494,11 @@ export const PET_EVENTS: EventDef[] = [
         hint: '{{$400}}',
         conditions: [{ money: { gte: 400 } }],
         effects: [
-          { money: -400 },
+          { money: -400, payer: 'self' },
           {
             chance: 0.95,
             then: [{ relationship: 'person', delta: 5 }, { stat: 'happiness', delta: 2 }, { log: 'They got everything out. The vet held up the sock like a trophy.', kind: 'good' }],
-            else: [{ personDies: true, cause: 'an accident' }, { stat: 'happiness', delta: -12 }, { log: 'The chocolate had done too much damage. We lost {{person}} that night.', kind: 'bad' }],
+            else: [{ stat: 'happiness', delta: -12 }, { log: 'The chocolate had done too much damage. We lost {{person}} that night.', kind: 'bad' }, { personDies: true, cause: 'an accident' }],
           },
         ],
       },
@@ -516,7 +516,7 @@ export const PET_EVENTS: EventDef[] = [
               {
                 chance: 0.8,
                 then: [{ money: -400 }, { stat: 'happiness', delta: -2 }, { log: 'The calm voice said, "Vet. Now." It was the right call. {{person}} is fine and I am poorer.', kind: 'bad' }],
-                else: [{ personDies: true, cause: 'an accident' }, { stat: 'happiness', delta: -12 }, { log: 'The calm voice said, "Vet. Now." We went, but the chocolate had a head start. We lost {{person}}.', kind: 'bad' }],
+                else: [{ stat: 'happiness', delta: -12 }, { log: 'The calm voice said, "Vet. Now." We went, but the chocolate had a head start. We lost {{person}}.', kind: 'bad' }, { personDies: true, cause: 'an accident' }],
               },
             ],
           },
@@ -533,7 +533,7 @@ export const PET_EVENTS: EventDef[] = [
               {
                 chance: 0.75,
                 then: [{ money: -700 }, { stat: 'happiness', delta: -4 }, { log: 'By midnight {{person}} was in trouble and the emergency vet charged accordingly. {{They}} lived.', kind: 'bad' }],
-                else: [{ personDies: true, cause: 'an accident' }, { stat: 'happiness', delta: -14 }, { karma: -2 }, { log: 'I waited too long. {{person}} died in the night. I will not forgive myself quickly.', kind: 'bad' }],
+                else: [{ stat: 'happiness', delta: -14 }, { karma: -2 }, { log: 'I waited too long. {{person}} died in the night. I will not forgive myself quickly.', kind: 'bad' }, { personDies: true, cause: 'an accident' }],
               },
             ],
           },
@@ -624,7 +624,7 @@ export const PET_EVENTS: EventDef[] = [
         hint: 'Classes {{$90}}',
         conditions: [{ money: { gte: 90 } }],
         effects: [
-          { money: -90 },
+          { money: -90, payer: 'self' },
           { stat: 'health', delta: 1 },
           { relationship: 'person', delta: 5 },
           {
@@ -674,7 +674,7 @@ export const PET_EVENTS: EventDef[] = [
         hint: '{{$300}}',
         conditions: [{ money: { gte: 300 } }],
         effects: [
-          { money: -300 },
+          { money: -300, payer: 'self' },
           { relationship: 'person', delta: 4 },
           {
             chance: 0.15,
@@ -713,7 +713,7 @@ export const PET_EVENTS: EventDef[] = [
         label: 'Replace the sofa',
         hint: '{{$350}}',
         conditions: [{ money: { gte: 350 } }],
-        effects: [{ money: -350 }, { stat: 'happiness', delta: 1 }, { log: 'New sofa. {{person}} tested it within the hour and, for now, approves of it structurally.', kind: 'money' }],
+        effects: [{ money: -350, payer: 'self' }, { stat: 'happiness', delta: 1 }, { log: 'New sofa. {{person}} tested it within the hour and, for now, approves of it structurally.', kind: 'money' }],
       },
       {
         id: 'live',
@@ -1006,7 +1006,7 @@ export const PET_EVENTS: EventDef[] = [
         hint: '{{$120}}',
         conditions: [{ money: { gte: 120 } }],
         effects: [
-          { money: -120 },
+          { money: -120, payer: 'self' },
           {
             random: [
               { weight: 1, effects: [{ newPerson: { kind: 'pet', species: 'cat', relationship: 55, log: 'A second pet: {{person}}, a cat with no fear of anything.' } }] },

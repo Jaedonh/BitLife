@@ -1864,7 +1864,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
           { karma: 1 },
           {
             chance: 0.12,
-            then: [{ personDies: true, cause: 'complications after a fall' }, { stat: 'happiness', delta: -15 }, { log: '{{person}} had a second fall that winter. There was no neighbor that time.', kind: 'bad' }],
+            then: [{ stat: 'happiness', delta: -15 }, { log: '{{person}} had a second fall that winter. There was no neighbor that time.', kind: 'bad' }, { personDies: true, cause: 'complications after a fall' }],
             else: [{ log: 'I call every evening now. {{They}} complains, and picks up on the first ring.' }],
           },
         ],
@@ -1877,7 +1877,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
           { karma: -3 },
           {
             chance: 0.15,
-            then: [{ personDies: true, cause: 'complications after a fall' }, { stat: 'happiness', delta: -20 }, { log: '{{They}} fell again. I should have fussed.', kind: 'bad' }],
+            then: [{ stat: 'happiness', delta: -20 }, { log: '{{They}} fell again. I should have fussed.', kind: 'bad' }, { personDies: true, cause: 'complications after a fall' }],
             else: [{ stat: 'happiness', delta: -3 }, { log: '{{They}} was fine, as it turned out. I carried the guilt anyway.' }],
           },
         ],

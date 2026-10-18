@@ -2,6 +2,7 @@ import { ILLNESS_BY_ID } from '@/data/illnesses';
 import type { Rng } from '../rng';
 import { onNpcDeath } from '../systems/aging';
 import { makePerson } from '../systems/character';
+import { payForMinor } from '../systems/guardians';
 import { markDeath } from '../systems/death';
 import { clampRange, partnerAgeRange } from '../systems/romance';
 import type { GameState, Illness, Person } from '../types';
@@ -72,24 +73,14 @@ export function sendToPrison(state: GameState, years: number): GameState {
 }
 
 /**
- * An event's money effect. Adults gain or pay it themselves (a shortfall becomes debt). Minors never pay:
- * a cost falls on their living parents and step-parents, richest first, and whatever they cannot cover is
- * waived, so a child never spends their own cash on an event or goes into debt for one.
+ * An event's money effect. Adults gain or pay it themselves (a shortfall becomes debt). Minors never go
+ * into debt: a cost falls on their parents (see payForMinor), unless the choice has the child spend their
+ * own savings (payer 'self'), which takes no more than the cash they have.
  */
-export function applyEventMoney(state: GameState, amount: number): GameState {
+export function applyEventMoney(state: GameState, amount: number, payer?: 'self'): GameState {
   if (amount >= 0 || state.character.age >= 18) return addMoney(state, amount);
-  const guardians = Object.values(state.people)
-    .filter((p) => p.alive && (p.kind === 'mother' || p.kind === 'father' || p.kind === 'stepmother' || p.kind === 'stepfather') && p.money > 0)
-    .sort((a, b) => b.money - a.money);
-  let owed = -amount;
-  let s = state;
-  for (const g of guardians) {
-    if (owed <= 0) break;
-    const paid = Math.min(owed, g.money);
-    s = updatePerson(s, g.id, { money: g.money - paid });
-    owed -= paid;
-  }
-  return s;
+  if (payer === 'self') return addMoney(state, -Math.min(-amount, state.finances.cash));
+  return payForMinor(state, -amount);
 }
 
 type NewPersonSpec = Extract<Effect, { newPerson: unknown }>['newPerson'];
@@ -139,7 +130,7 @@ export function applyEffect(state: GameState, rng: Rng, e: Effect, ctx: EffectCo
 
   if ('stat' in e) return addStats(s, { [e.stat]: e.delta });
   if ('stats' in e) return addStats(s, e.stats);
-  if ('money' in e) return applyEventMoney(s, scaleMoney(s, e.money));
+  if ('money' in e) return applyEventMoney(s, scaleMoney(s, e.money), e.payer);
   if ('karma' in e) return addKarma(s, e.karma);
   if ('fame' in e) return withFame(s, s.character.fame + e.fame);
   if ('energy' in e) return { ...s, character: { ...s.character, energy: Math.max(0, Math.min(s.character.energyMax, s.character.energy + e.energy)) } };
@@ -166,9 +157,9 @@ export function applyEffect(state: GameState, rng: Rng, e: Effect, ctx: EffectCo
   }
   if ('personDies' in e) {
     if (!person?.alive) return s;
-    // The same handling as a natural death: journal line, grief, inheritance and orphan care.
+    // Inheritance and orphan care as for a natural death; the event's own lines announce and grieve it.
     const dead: Person = { ...person, alive: false, deathAge: person.age, deathCause: e.cause ?? 'natural causes' };
-    return onNpcDeath({ ...s, people: { ...s.people, [dead.id]: dead } }, dead, rng);
+    return onNpcDeath({ ...s, people: { ...s.people, [dead.id]: dead } }, dead, rng, { announce: false });
   }
   if ('newPerson' in e) {
     const np = e.newPerson;

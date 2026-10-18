@@ -2,6 +2,7 @@ import { ASSET_BY_ID } from '@/data/assets';
 import { getCountry } from '@/data/countries';
 import { scaleMoney } from '../events/text';
 import type { Rng } from '../rng';
+import { payForMinor } from './guardians';
 import type { Career, GameState, InvestmentKind } from '../types';
 import { addMoney, addStats, log, money, netWorth, setResult } from '../util';
 
@@ -106,8 +107,9 @@ export function yearlyFinance(state: GameState, rng: Rng): GameState {
     wealthSpend = wealthSpending(s, savings) * thrift;
   }
   for (const a of s.assets) {
-    expenses += a.yearlyUpkeep;
-    if (a.mortgage) expenses += a.mortgage.yearlyPayment;
+    // A minor's upkeep (a bike bought at 8) is covered by their parents, never a child's debt.
+    if (!adult) s = payForMinor(s, a.yearlyUpkeep + (a.mortgage?.yearlyPayment ?? 0));
+    else expenses += a.yearlyUpkeep + (a.mortgage?.yearlyPayment ?? 0);
   }
   if (s.education.studentDebt > 0 && !s.education.enrolled && adult) {
     const payment = Math.min(s.education.studentDebt, Math.max(scaleMoney(s, 2_000), Math.round(s.education.studentDebt * 0.1)));

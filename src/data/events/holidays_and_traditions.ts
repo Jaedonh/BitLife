@@ -78,7 +78,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         hint: '{{$250}}',
         conditions: [{ money: { gte: 250 } }],
         effects: [
-          { money: -250 },
+          { money: -250, payer: 'self' },
           {
             random: [
               {
@@ -107,7 +107,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         hint: '{{$60}}',
         conditions: [{ money: { gte: 60 } }],
         effects: [
-          { money: -60 },
+          { money: -60, payer: 'self' },
           { stat: 'happiness', delta: 4 },
           { relationship: 'mother', delta: 3 },
           { relationship: 'father', delta: 3 },
@@ -122,7 +122,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         hint: '{{$120}}',
         conditions: [{ money: { gte: 120 } }],
         effects: [
-          { money: -120 },
+          { money: -120, payer: 'self' },
           { stat: 'happiness', delta: 5 },
           { log: 'I bought myself the thing I had been eyeing for months, then wrapped it. Sad, or very efficient.', kind: 'money' },
         ],
@@ -1007,7 +1007,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         hint: '{{$60}}',
         conditions: [{ money: { gte: 60 } }],
         effects: [
-          { money: -60 },
+          { money: -60, payer: 'self' },
           { stat: 'happiness', delta: 4 },
           { stat: 'looks', delta: 1 },
           { log: 'I rented a pirate outfit and was the best-dressed person there, which I pointed out more than once.', kind: 'good' },
@@ -1074,7 +1074,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         hint: '{{$20}}',
         conditions: [{ money: { gte: 20 } }],
         effects: [
-          { money: -20 },
+          { money: -20, payer: 'self' },
           { stat: 'happiness', delta: 5 },
           { log: 'The town display over {{city}} was bigger, safer and had a soundtrack. My neck hurt. Worth it.', kind: 'good' },
         ],
@@ -1108,7 +1108,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         hint: '{{$100}}',
         conditions: [{ money: { gte: 100 } }],
         effects: [
-          { money: -100 },
+          { money: -100, payer: 'self' },
           { karma: 3 },
           { stat: 'happiness', delta: 3 },
           { log: 'I gave {{$100}} and got a sticker and a warm feeling. The warm feeling lasted longer.', kind: 'good' },
@@ -1306,7 +1306,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         hint: '{{$600}}',
         conditions: [{ money: { gte: 600 } }],
         effects: [
-          { money: -600 },
+          { money: -600, payer: 'self' },
           { counter: 'giftsGiven', by: 5 },
           { karma: 2 },
           { stat: 'happiness', delta: 4 },

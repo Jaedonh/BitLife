@@ -425,7 +425,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
         hint: '{{$40}}',
         conditions: [{ money: { gte: 40 } }],
         effects: [
-          { money: -40 },
+          { money: -40, payer: 'self' },
           { stat: 'happiness', delta: 2 },
           { log: 'The taxi drove for ninety seconds and stopped at my hotel. I had been one corner away for an hour.', kind: 'money' },
         ],

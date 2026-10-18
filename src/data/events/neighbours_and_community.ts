@@ -124,7 +124,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         hint: 'Costs {{$40}}',
         conditions: [{ money: { gte: 40 } }],
         effects: [
-          { money: -40 },
+          { money: -40, payer: 'self' },
           {
             chance: 0.7,
             then: [{ log: 'My dish vanished in minutes. Three neighbors asked for the recipe. I do not have a recipe.', kind: 'good' }, { stat: 'happiness', delta: 4 }, { karma: 1 }],
@@ -787,7 +787,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         hint: 'Costs {{$60}}',
         conditions: [{ money: { gte: 60 } }],
         effects: [
-          { money: -60 },
+          { money: -60, payer: 'self' },
           { stat: 'health', delta: 2 },
           {
             random: [
@@ -833,7 +833,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         hint: 'Costs {{$50}}',
         conditions: [{ money: { gte: 50 } }],
         effects: [
-          { money: -50 },
+          { money: -50, payer: 'self' },
           { stat: 'happiness', delta: 5 },
           { log: 'I ate from every food truck. I regret nothing except the last one.', kind: 'good' },
           { chance: 0.1, then: [{ illness: 'food_poisoning' }, { log: 'The last truck was a mistake, it turned out. I spent the night regretting it.', kind: 'bad' }] },
@@ -1046,7 +1046,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         hint: 'Costs {{$200}}',
         conditions: [{ money: { gte: 200 } }],
         effects: [
-          { money: -200 },
+          { money: -200, payer: 'self' },
           { stat: 'happiness', delta: 5 },
           { flag: 'nc_cafe_regular', set: true },
           { log: 'They know my order now. The dog knows my shoes. This is my place.', kind: 'good' },
@@ -1146,7 +1146,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         label: 'Throw a send-off',
         hint: 'Costs {{$120}}',
         conditions: [{ money: { gte: 120 } }],
-        effects: [{ money: -120 }, { relationship: 'person', delta: 10 }, { stat: 'happiness', delta: 3 }, { log: 'Everyone came. {{person}} cried at the speeches, then at the cake, then in the driveway.', kind: 'good' }],
+        effects: [{ money: -120, payer: 'self' }, { relationship: 'person', delta: 10 }, { stat: 'happiness', delta: 3 }, { log: 'Everyone came. {{person}} cried at the speeches, then at the cake, then in the driveway.', kind: 'good' }],
       },
       {
         id: 'visit',

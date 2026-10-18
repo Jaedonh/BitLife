@@ -1,6 +1,7 @@
 import { CRIME_BY_ID, type CrimeDef } from '@/data/crimes';
 import { sendToPrison } from '../events/effects';
 import { scaleMoney } from '../events/text';
+import { payForMinor } from './guardians';
 import type { Rng } from '../rng';
 import type { ActionAvailability, GameState } from '../types';
 import { addKarma, addMoney, addStats, bump, clampStat, log, money, plural, setResult, actionCount, countAction } from '../util';
@@ -47,10 +48,14 @@ export function commitCrime(state: GameState, rng: Rng, id: string): GameState {
       s = bump(s, 'arrests');
       s = addStats(s, { happiness: -6 });
       const fine = scaleMoney(s, rng.int(100, 1500));
-      s = addMoney(s, -fine);
-      const text = `I was caught ${def.gerund} and fined ${money(s, fine)}. It's on my record now.`;
+      // A minor's fine is paid by their parents (or waived), never turned into a child's debt.
+      const minor = s.character.age < 18;
+      s = minor ? payForMinor(s, fine) : addMoney(s, -fine);
+      const text = minor
+        ? `I was caught ${def.gerund}. My parents had to pay a ${money(s, fine)} fine, and it's on my record now.`
+        : `I was caught ${def.gerund} and fined ${money(s, fine)}. It's on my record now.`;
       s = log(s, text, 'bad');
-      return setResult(s, text, 'bad', { moneyDelta: -fine });
+      return setResult(s, text, 'bad', { moneyDelta: minor ? 0 : -fine });
     }
     s = sendToPrison(s, years);
     s = addStats(s, { happiness: -15 });

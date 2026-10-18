@@ -935,20 +935,20 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
       {
         id: 'eulogy',
         label: 'Give the eulogy',
-        effects: [{ personDies: true, cause: 'natural causes' }, { energy: -1 }, { stat: 'happiness', delta: -6 }, { karma: 3 }, { log: 'I spoke about {{person}} for four minutes and cried for three. The family said it was perfect.', kind: 'milestone' }],
+        effects: [{ energy: -1 }, { stat: 'happiness', delta: -6 }, { karma: 3 }, { log: 'I spoke about {{person}} for four minutes and cried for three. The family said it was perfect.', kind: 'milestone' }, { personDies: true, cause: 'natural causes' }],
       },
       {
         id: 'back',
         label: 'Sit at the back',
-        effects: [{ personDies: true, cause: 'natural causes' }, { stat: 'happiness', delta: -8 }, { log: 'I sat at the back and left before the sandwiches. {{person}} would have stayed for the sandwiches.' }],
+        effects: [{ stat: 'happiness', delta: -8 }, { log: 'I sat at the back and left before the sandwiches. {{person}} would have stayed for the sandwiches.' }, { personDies: true, cause: 'natural causes' }],
       },
       {
         id: 'skip',
         label: 'I cannot face it',
         effects: [
-          { personDies: true, cause: 'natural causes' },
           { stat: 'happiness', delta: -10 },
           { chance: 0.5, then: [{ karma: -1 }, { log: 'I did not go. Nobody judged me for it. I managed that part myself.', kind: 'bad' }], else: [{ stat: 'happiness', delta: 3 }, { log: 'I did not go. I sat in the garden with a cup of tea and talked to {{person}} for an hour instead.' }] },
+          { personDies: true, cause: 'natural causes' },
         ],
       },
     ],

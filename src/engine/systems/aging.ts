@@ -94,18 +94,22 @@ export function ageNpcs(state: GameState, rng: Rng): GameState {
 /**
  * Everything an NPC's death sets off: the journal line, grief, inheritance and, for a child, being taken in
  * by relatives. `p` is already marked dead in `state`. Shared by natural deaths (ageNpcs) and event deaths
- * (the `personDies` effect).
+ * (the `personDies` effect), which pass announce: false because the event writes its own line and grief.
  */
-export function onNpcDeath(state: GameState, p: Person, rng: Rng): GameState {
+export function onNpcDeath(state: GameState, p: Person, rng: Rng, opts: { announce?: boolean } = {}): GameState {
   let s = state;
+  const announce = opts.announce ?? true;
   const close = p.relationship >= 50;
   const male = p.gender === 'male';
   const label = p.kind === 'spouse' ? (male ? 'husband' : 'wife') : p.kind === 'child' ? (male ? 'son' : 'daughter') : p.kind === 'sibling' ? (male ? 'brother' : 'sister') : p.kind === 'pet' ? (p.species ?? 'pet') : p.kind === 'bestFriend' ? 'best friend' : p.kind === 'lover' ? (male ? 'boyfriend' : 'girlfriend') : p.kind;
   // Pets go by their first name only; people by their full name.
   const name = p.kind === 'pet' ? p.firstName : fullName(p);
-  s = log(s, `My ${label} ${name} ${deathPhrase(p.deathCause)} at ${p.age}.`, 'bad');
-  const grief = p.kind === 'spouse' || p.kind === 'child' ? -25 : p.kind === 'mother' || p.kind === 'father' ? -15 : p.kind === 'pet' ? -8 : close ? -10 : -3;
-  s = addStats(s, { happiness: Math.round(grief * (close ? 1 : 0.5)) });
+  if (announce) {
+    // An event that kills someone writes its own line and grief instead.
+    s = log(s, `My ${label} ${name} ${deathPhrase(p.deathCause)} at ${p.age}.`, 'bad');
+    const grief = p.kind === 'spouse' || p.kind === 'child' ? -25 : p.kind === 'mother' || p.kind === 'father' ? -15 : p.kind === 'pet' ? -8 : close ? -10 : -3;
+    s = addStats(s, { happiness: Math.round(grief * (close ? 1 : 0.5)) });
+  }
   if ((p.kind === 'mother' || p.kind === 'father' || p.kind === 'spouse') && p.money > 0 && s.character.age >= 18) {
     const siblings = Object.values(s.people).filter((x) => x.kind === 'sibling' && x.alive).length;
     const share = Math.round((p.money * (p.kind === 'spouse' ? 1 : 0.8)) / (p.kind === 'spouse' ? 1 : siblings + 1));

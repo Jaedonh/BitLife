@@ -395,7 +395,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
         hint: '{{$1200}}',
         conditions: [{ money: { gte: 1200 } }],
         effects: [
-          { money: -1200 },
+          { money: -1200, payer: 'self' },
           {
             chance: 0.92,
             then: [{ stat: 'happiness', delta: 1 }, { log: 'My lawyer asked three questions and the manager went pale. No charge. An expensive morning.', kind: 'good' }],
@@ -771,7 +771,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
         label: 'Buy peace with commissary',
         hint: '{{$40}}',
         conditions: [{ money: { gte: 40 } }],
-        effects: [{ money: -40 }, { stat: 'happiness', delta: 2 }, { log: 'A few packets of noodles bought me the bottom bunk and my own soap. Diplomacy.', kind: 'info' }],
+        effects: [{ money: -40, payer: 'self' }, { stat: 'happiness', delta: 2 }, { log: 'A few packets of noodles bought me the bottom bunk and my own soap. Diplomacy.', kind: 'info' }],
       },
       {
         id: 'transfer',
