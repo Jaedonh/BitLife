@@ -814,7 +814,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
       {
         id: 'without',
         label: 'Go without for a while',
-        effects: [{ stat: 'happiness', delta: -3 }, { stat: 'health', delta: 2 }, { stat: 'smarts', delta: 2 }, { money: -150 }, { log: 'A month without a phone. I read, I noticed trees, I missed every plan. Then I bought a cheap one.' }],
+        effects: [{ stat: 'happiness', delta: -3 }, { stat: 'health', delta: 2 }, { stat: 'smarts', delta: 2 }, { money: -150, payer: 'self' }, { log: 'A month without a phone. I read, I noticed trees, I missed every plan. Then I bought a cheap one.' }],
       },
     ],
   },

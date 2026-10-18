@@ -1041,7 +1041,7 @@ export const HEALTH_EVENTS: EventDef[] = [
               {
                 random: [
                   { weight: 5, effects: [{ money: 8000 }, { stat: 'happiness', delta: 2 }, { log: "The van's company settled. {{$8000}} for a sore neck, a year of paperwork and a very stern letter.", kind: 'money' }] },
-                  { weight: 5, effects: [{ money: -1500 }, { stat: 'happiness', delta: -6 }, { log: 'Their lawyer argued I "drove into the van." We lost. I paid my lawyer anyway.', kind: 'bad' }] },
+                  { weight: 5, effects: [{ money: -1500, payer: 'self' }, { stat: 'happiness', delta: -6 }, { log: 'Their lawyer argued I "drove into the van." We lost. I paid my lawyer anyway.', kind: 'bad' }] },
                 ],
               },
             ],

@@ -115,7 +115,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
         label: 'Buy the essentials',
         hint: '{{$200}}',
         effects: [
-          { money: -200 },
+          { money: -200, payer: 'self' },
           { stat: 'happiness', delta: -2 },
           { log: 'I bought underwear, a toothbrush and the only shirt in my size. It had a cartoon dolphin on it.' },
           { chance: 0.5, then: [{ money: 150 }, { log: 'The airline reimbursed me for most of the dolphin shirt.', kind: 'money' }] },
@@ -147,7 +147,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ money: 400 }, { stat: 'happiness', delta: 3 }, { log: 'Three forms, two calls and one very specific email later, the airline paid for everything and more.', kind: 'money' }],
-            else: [{ stat: 'happiness', delta: -4 }, { money: -120 }, { log: 'The claim vanished into a department that does not answer phones. I bought new clothes and moved on.', kind: 'bad' }],
+            else: [{ stat: 'happiness', delta: -4 }, { money: -120, payer: 'self' }, { log: 'The claim vanished into a department that does not answer phones. I bought new clothes and moved on.', kind: 'bad' }],
           },
         ],
       },
@@ -770,7 +770,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [
-              { money: -90 },
+              { money: -90, payer: 'self' },
               { stat: 'happiness', delta: 5 },
               { stat: 'smarts', delta: 1 },
               { log: 'Two walkaways and a cup of tea later, I paid half. The seller looked delighted, which worried me.', kind: 'good' },

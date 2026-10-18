@@ -452,7 +452,7 @@ export const PET_EVENTS: EventDef[] = [
             then: [{ relationship: 'person', delta: 5 }, { stat: 'happiness', delta: 3 }, { log: 'My parents paid, with a lecture attached. {{person}} recovered. So did I, eventually.', kind: 'good' }],
             else: [
               { log: 'They said no, kindly. I paid for the cheap treatment myself.' },
-              { money: -180 },
+              { money: -180, payer: 'self' },
               {
                 chance: 0.6,
                 then: [{ relationship: 'person', delta: 3 }, { log: '{{person}} got better on the budget plan and never knew the difference.', kind: 'good' }],

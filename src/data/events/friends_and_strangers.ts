@@ -1125,7 +1125,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
         label: 'Pay for the next person',
         hint: '{{$5}}',
         effects: [
-          { money: -5 },
+          { money: -5, payer: 'self' },
           { karma: 3 },
           { stat: 'happiness', delta: 3 },
           { log: 'I paid for the next order. It was a large one. The feeling held.', kind: 'good' },
