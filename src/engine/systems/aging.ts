@@ -1,7 +1,7 @@
 import { Rng } from '../rng';
 import type { GameState, Person } from '../types';
 import { personRef } from '../events/text';
-import { addMoney, addStats, bump, clampStat, deathPhrase, fullName, log, money } from '../util';
+import { addMoney, addStats, bump, clampStat, clearCoupleFlags, deathPhrase, fullName, log, money } from '../util';
 
 /** Yearly stat drift. Numbers are tuned so a passive life slowly declines. */
 export function driftStats(state: GameState, rng: Rng): GameState {
@@ -98,7 +98,7 @@ export function ageNpcs(state: GameState, rng: Rng): GameState {
  * (the `personDies` effect), which pass announce: false because the event writes its own line and grief.
  */
 export function onNpcDeath(state: GameState, p: Person, rng: Rng, opts: { announce?: boolean } = {}): GameState {
-  let s = state;
+  let s = p.kind === 'lover' || p.kind === 'spouse' ? clearCoupleFlags(state) : state;
   const announce = opts.announce ?? true;
   const close = p.relationship >= 50;
   const male = p.gender === 'male';

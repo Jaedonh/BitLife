@@ -39,7 +39,7 @@ Every push to `master` or `claude/bitlife-clone-mvp-8ogicm` builds the web versi
 - **Assets and money:** cars, homes (mortgages, rent-out), luxury items, savings/index/crypto investing, debt, taxes, bankruptcy.
 - **Activities:** gym, library, meditation, salon, surgery, doctor, therapy, rehab, parties, vacations, volunteering; 7 crimes with arrest, fines and prison.
 - **Death and legacy:** mortality model, 26 ribbons, generated obituary and epitaph, continue as an heir, graveyard.
-- **Content:** data-driven events (`src/data/events/*`) validated by tests and `scripts/validate-events.ts`.
+- **Content:** 931 data-driven events in 27 themed files (`src/data/events/*`), from a newborn's first bath to life at 100, prison and re-entry, all validated by tests and `scripts/validate-events.ts` (schema, reachability in sampled lives, wording, who pays for a child's costs). A new life opens with a newborn card; parents are Mom and Dad in the narration.
 - **Monetization:** AdMob banner/interstitial/rewarded behind a pure cadence policy (grace period, every-N age-ups, cooldown, session cap, daily rewarded caps) and a single RevenueCat one-time **Premium** entitlement (no ads, custom stats, unlimited generations, instant second chance; $4.99). Everything degrades to no-ops on web and in Expo Go.
 - **Store readiness:** icons and store art (`scripts/generate-icons.sh`), variant-aware `app.config.ts` (sample AdMob IDs outside production), SKAdNetwork ids, UMP consent + ATT, iOS privacy manifest, `eas.json`, GitHub Actions CI, privacy policy, listing copy and a release checklist in `docs/`.
 

@@ -128,7 +128,7 @@ describe('legal ages for romance', () => {
     }
   });
 
-  it('every event that creates a lover or a baby is gated: 16+ and out of prison, and babies only with an adult partner', () => {
+  it('every event that creates a lover or a baby is 16+, never written for prison, and babies only with an adult partner', () => {
     const walk = (effects: readonly Effect[]): Effect[] =>
       effects.flatMap((e) => [e, ...('random' in e ? e.random.flatMap((o) => walk(o.effects)) : []), ...('chance' in e ? [...walk(e.then), ...walk(e.else ?? [])] : [])]);
     const creates = (kinds: string[]) => EVENTS.filter((d) => d.choices.some((c) => walk(c.effects).some((e) => 'newPerson' in e && kinds.includes(e.newPerson.kind))));
@@ -136,7 +136,8 @@ describe('legal ages for romance', () => {
     expect(romantic.length).toBeGreaterThan(5);
     for (const d of romantic) {
       expect({ id: d.id, minAge: d.minAge >= 16 }).toEqual({ id: d.id, minAge: true });
-      expect({ id: d.id, guarded: d.conditions?.some((c) => 'inPrison' in c && c.inPrison === false) ?? false }).toEqual({ id: d.id, guarded: true });
+      // Only events written for prison ({ inPrison: true }) open there, so none of these may be one.
+      expect({ id: d.id, inPrison: d.conditions?.some((c) => 'inPrison' in c && c.inPrison === true) ?? false }).toEqual({ id: d.id, inPrison: false });
     }
     for (const d of creates(['child'])) {
       expect({ id: d.id, adult: d.minAge >= 18 && (d.person?.minAge ?? 0) >= 18 }).toEqual({ id: d.id, adult: true });
@@ -211,4 +212,23 @@ describe('children and heirs come from the real family', () => {
     const parents = Object.values(heir.people).filter((p) => p.kind === 'mother' || p.kind === 'father');
     expect(parents.map((p) => `${p.kind}:${p.firstName}:${p.gender}:${p.alive}`).sort()).toEqual([`mother:${state.character.firstName}:female:false`, 'mother:Alicia:female:true'].sort());
   });
+
+  it('a wedding event marries the bound lover, and breaking up clears the engagement', () => {
+    const { state, id } = withPartner(player(30), { kind: 'lover', age: 31 });
+    const engaged = { ...state, flags: { ...state.flags, lf_engaged: true, lf_living_together: true } };
+    const wed = applyEffects(engaged, new Rng(1), [{ marry: true }], { personId: id });
+    expect(wed.people[id]!.kind).toBe('spouse');
+    expect(wed.people[id]!.marriedAtAge).toBe(30);
+    expect(wed.counters.marriages).toBe(engaged.counters.marriages + 1);
+    expect(wed.flags.lf_engaged).toBeUndefined();
+    expect(wed.flags.lf_living_together).toBe(true);
+    // Not for a minor partner, and not twice.
+    const young = withPartner(player(17), { kind: 'lover', age: 17 });
+    expect(applyEffects(young.state, new Rng(1), [{ marry: true }], { personId: young.id }).people[young.id]!.kind).toBe('lover');
+    expect(applyEffects(wed, new Rng(1), [{ marry: true }], { personId: id }).counters.marriages).toBe(wed.counters.marriages);
+    const split = interactFresh(engaged, id, 'breakUp');
+    expect(split.flags.lf_engaged).toBeUndefined();
+    expect(split.flags.lf_living_together).toBeUndefined();
+  });
 });
+

@@ -70,6 +70,16 @@ export function setFlag(state: GameState, key: string, value: number | boolean |
   return { ...state, flags: { ...state.flags, [key]: value } };
 }
 
+/** Story flags about the player's current couple (engaged, moved in), cleared when that couple marries or ends. */
+const COUPLE_FLAGS = ['lf_engaged', 'lf_living_together', 'gu_i_proposed'] as const;
+
+export function clearCoupleFlags(state: GameState, keep: readonly string[] = []): GameState {
+  if (!COUPLE_FLAGS.some((k) => k in state.flags && !keep.includes(k))) return state;
+  const flags = { ...state.flags };
+  for (const k of COUPLE_FLAGS) if (!keep.includes(k)) delete flags[k];
+  return { ...state, flags };
+}
+
 export function incFlag(state: GameState, key: string, by = 1): GameState {
   const cur = state.flags[key];
   return setFlag(state, key, (typeof cur === 'number' ? cur : 0) + by);

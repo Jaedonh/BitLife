@@ -4,9 +4,9 @@ import { onNpcDeath } from '../systems/aging';
 import { makePerson } from '../systems/character';
 import { payForMinor } from '../systems/guardians';
 import { markDeath } from '../systems/death';
-import { clampRange, partnerAgeRange } from '../systems/romance';
+import { ADULT_AGE, clampRange, partnerAgeRange } from '../systems/romance';
 import type { GameState, Illness, Person } from '../types';
-import { addKarma, addMoney, addStats, bump, clampStat, incFlag, log, setFlag, withFame } from '../util';
+import { addKarma, addMoney, addStats, bump, clampStat, clearCoupleFlags, incFlag, log, setFlag, withFame } from '../util';
 import type { Effect } from './schema';
 import { renderText, scaleMoney, type TextContext } from './text';
 
@@ -154,6 +154,11 @@ export function applyEffect(state: GameState, rng: Rng, e: Effect, ctx: EffectCo
     const people = { ...s.people };
     delete people[person.id];
     return { ...s, people };
+  }
+  if ('marry' in e) {
+    if (!person?.alive || person.kind !== 'lover' || person.age < ADULT_AGE || state.character.age < ADULT_AGE || state.crime.inPrison) return s;
+    s = updatePerson(s, person.id, { kind: 'spouse', marriedAtAge: s.character.age, lastName: rng.chance(0.5) ? s.character.lastName : person.lastName });
+    return clearCoupleFlags(bump(s, 'marriages'), ['lf_living_together']);
   }
   if ('personDies' in e) {
     if (!person?.alive) return s;

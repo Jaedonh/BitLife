@@ -162,7 +162,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     maxAge: 60,
     weight: 0.8,
     cooldown: 5,
-    conditions: [{ inPrison: false }],
+    conditions: [{ inPrison: false }, { not: { flag: 'lf_engaged', eq: true } }],
     person: { kind: ['lover'], minRelationship: 60 },
     choices: [
       {
@@ -170,10 +170,12 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
         label: 'Say yes',
         effects: [
           { flag: 'lf_engaged', set: true },
+          { flag: 'gu_i_proposed', set: false },
           { love: 15 },
           { relationship: 'person', delta: 10 },
           { stat: 'happiness', delta: 10 },
           { log: "I said yes. {{person}} cried, I cried, the waiter cried a little. We're engaged.", kind: 'milestone' },
+          { queue: 'gu_wedding_planning' },
         ],
       },
       {

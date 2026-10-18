@@ -394,7 +394,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     maxAge: 95,
     weight: 1.5,
     once: true,
-    conditions: [{ inPrison: false }],
+    conditions: [{ inPrison: false }, { not: { flag: 'gy_hearing_aids' } }],
     choices: [
       {
         id: 'fit',

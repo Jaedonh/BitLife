@@ -93,6 +93,8 @@ export type Effect =
   | { relationship: 'person' | RelationshipKind; delta: number }
   | { love: number }
   | { removePerson: true }
+  /** Marries the bound lover (both 18+): they become the spouse, as with a successful proposal. The content writes the wedding line. */
+  | { marry: true }
   | { personDies: true; cause?: string }
   | { newPerson: { kind: RelationshipKind; relationship?: number; minAge?: number; maxAge?: number; gender?: Gender; species?: string; log?: string } }
   | { death: string }
@@ -227,11 +229,15 @@ export function validateEvent(def: EventDef, knownIds: Set<string>): string[] {
       errors.push(`${where}: a personDies effect needs a log line and a happiness loss in the same effects list`);
     }
   }
-  // {{mother}}/{{father}} name a living parent ("Mom"/"Dad"), so the event must require one.
-  const blob = JSON.stringify(def.choices) + def.title + def.text;
+  // {{mother}}/{{father}} name a living parent ("Mom"/"Dad"), so the event (or, for a choice that mentions
+  // them, that choice) must require one.
   for (const k of ['mother', 'father'] as const) {
-    const bound = def.person?.kind.length === 1 && def.person.kind[0] === k;
-    if (blob.includes(`{{${k}}}`) && !bound && !requiresPerson(def.conditions, k)) errors.push(`${where}: uses {{${k}}} but does not require a living ${k} ({ hasPerson: ['${k}'] })`);
+    const ph = `{{${k}}}`;
+    if ((def.person?.kind.length === 1 && def.person.kind[0] === k) || requiresPerson(def.conditions, k)) continue;
+    if ((def.title + def.text).includes(ph)) errors.push(`${where}: uses ${ph} but does not require a living ${k} ({ hasPerson: ['${k}'] })`);
+    for (const c of def.choices ?? []) {
+      if (JSON.stringify(c).includes(ph) && !requiresPerson(c.conditions, k)) errors.push(`${where}: choice ${c.id} uses ${ph} but neither it nor the event requires a living ${k} ({ hasPerson: ['${k}'] })`);
+    }
   }
   const usesPerson = /\{\{(person|personFull|they|them|their|They)\}\}/.test(def.text + def.choices.map((c) => c.label + (c.hint ?? '')).join(' '));
   if (usesPerson && !def.person) errors.push(`${where}: uses person placeholders but has no person selector`);

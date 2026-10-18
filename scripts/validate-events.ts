@@ -43,6 +43,20 @@ function buyHomeAndCar(s: GameState, seed: number): GameState {
 }
 
 /**
+ * Situations real play reaches but a few dozen sampled lives rarely do, seeded on purpose so content written
+ * for them stays reachable: a younger sibling at 3, an addiction in some adult lives, losing both parents young.
+ */
+function seedRareSituations(s: GameState, seed: number, rng: Rng): GameState {
+  const age = s.character.age;
+  if (seed % 6 === 1 && age === 3) s = applyEffects(s, rng, [{ newPerson: { kind: 'sibling', minAge: 0, maxAge: 0 } }]);
+  if (seed % 7 === 2 && age === 24) s = applyEffects(s, rng, [{ addiction: seed % 2 ? 'drugs' : 'alcohol', delta: 40 }]);
+  if (seed % 13 === 5 && age === 12) {
+    for (const p of Object.values(s.people)) if (p.alive && (p.kind === 'mother' || p.kind === 'father')) s = { ...s, people: { ...s.people, [p.id]: { ...p, alive: false, deathAge: p.age, deathCause: 'an accident' } } };
+  }
+  return s;
+}
+
+/**
  * Plays seeded lives and keeps every year's state. With the default empty registry no events
  * fire (so eligibility isn't skewed by what happened to fire); with a full registry events fire
  * and random choices are taken, so flags and follow-up chains set by other events are represented.
@@ -78,6 +92,7 @@ function sampleStates(n: number, recklessLives = 20, registry = makeRegistry([])
       if (seed % 2 === 0 && (s.character.age === 8 || s.character.age === 25 || s.character.age === 45)) {
         s = applyEffects(s, petRng, [{ newPerson: { kind: 'pet', species: seed % 4 === 0 ? 'dog' : 'cat' } }]);
       }
+      s = seedRareSituations(s, seed, petRng);
       for (const a of policy(s, rng)) s = applyAction(s, a);
       s = buyHomeAndCar(s, seed);
       states.push(s);

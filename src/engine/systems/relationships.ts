@@ -2,7 +2,7 @@ import { adjustRelationship, updatePerson } from '../events/effects';
 import { personRef, scaleMoney } from '../events/text';
 import type { Rng } from '../rng';
 import type { GameState, Person, RelationshipKind } from '../types';
-import { addKarma, addMoney, addStats, bump, clampStat, countAction, actionCount, fullName, log, lowerTitle, money, setResult, withArticle } from '../util';
+import { addKarma, addMoney, addStats, bump, clampStat, clearCoupleFlags, countAction, actionCount, fullName, log, lowerTitle, money, setResult, withArticle } from '../util';
 import { makePerson } from './character';
 import { ADULT_AGE, partnerAgeRange, romanceAllowed } from './romance';
 
@@ -243,12 +243,13 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
       s = adjustRelationship(s, personId, 10);
       s = bump(s, 'marriages');
       s = addStats(s, { happiness: 15 });
+      s = clearCoupleFlags(s, ['lf_living_together']);
       const text = `${who} said yes! We got married in ${s.character.city}.`;
       s = log(s, text, 'milestone');
       return setResult(s, text, 'good', { statDeltas: { happiness: 15 } });
     }
     case 'breakUp': {
-      s = updatePerson(s, personId, { kind: 'ex', love: 0, relationship: clampStat(person.relationship - 30) });
+      s = clearCoupleFlags(updatePerson(s, personId, { kind: 'ex', love: 0, relationship: clampStat(person.relationship - 30) }));
       s = addStats(s, { happiness: person.relationship >= 60 ? -8 : -2 });
       const text = `I broke up with ${who}.`;
       s = log(s, text, 'bad');
@@ -257,7 +258,7 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
     case 'divorce': {
       const settlement = Math.round(Math.max(0, s.finances.cash) * 0.3);
       s = addMoney(s, -settlement);
-      s = updatePerson(s, personId, { kind: 'ex', love: 0, relationship: clampStat(person.relationship - 40), money: person.money + settlement });
+      s = clearCoupleFlags(updatePerson(s, personId, { kind: 'ex', love: 0, relationship: clampStat(person.relationship - 40), money: person.money + settlement }));
       s = bump(s, 'divorces');
       s = addStats(s, { happiness: -15 });
       const text = settlement > 0 ? `I divorced ${who}. The settlement cost me ${money(s, settlement)}.` : `I divorced ${who}. There was nothing to split but the furniture.`;
@@ -313,7 +314,7 @@ export function yearlyRelationships(state: GameState, rng: Rng): GameState {
   for (const p of Object.values(s.people)) {
     if (!p.alive) continue;
     if ((p.kind === 'lover' || p.kind === 'spouse') && (p.love ?? 50) < 20 && rng.chance(0.4)) {
-      s = updatePerson(s, p.id, { kind: 'ex', love: 0 });
+      s = clearCoupleFlags(updatePerson(s, p.id, { kind: 'ex', love: 0 }));
       s = addStats(s, { happiness: -10 });
       if (p.kind === 'spouse') s = bump(s, 'divorces');
       s = log(s, p.kind === 'spouse' ? `${fullName(p)} filed for divorce. ${p.gender === 'male' ? 'He' : 'She'} said we'd grown apart.` : `${p.firstName} broke up with me.`, 'bad');
