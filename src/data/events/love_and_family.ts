@@ -961,7 +961,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     weight: 0.8,
     cooldown: 4,
     conditions: [{ inPrison: false }, { hasChildren: false }],
-    person: { kind: ['spouse'] },
+    person: { kind: ['spouse'], minAge: 18 },
     choices: [
       {
         id: 'try',
@@ -1132,7 +1132,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     weight: 0.8,
     cooldown: 3,
     conditions: [{ hasLover: true }, { inPrison: false }],
-    person: { kind: ['lover', 'spouse'] },
+    person: { kind: ['lover', 'spouse'], minAge: 18 },
     choices: [
       {
         id: 'celebrate',

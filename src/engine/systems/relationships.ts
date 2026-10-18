@@ -4,6 +4,7 @@ import type { Rng } from '../rng';
 import type { GameState, Person, RelationshipKind } from '../types';
 import { addKarma, addMoney, addStats, bump, clampStat, countAction, actionCount, fullName, log, lowerTitle, money, setResult, withArticle } from '../util';
 import { makePerson } from './character';
+import { ADULT_AGE, partnerAgeRange, romanceAllowed } from './romance';
 
 export type InteractionId =
   | 'spendTime'
@@ -49,9 +50,27 @@ export const INTERACTIONS: readonly InteractionDef[] = [
   { id: 'walk', label: 'Go for a walk', emoji: '🐕', kinds: ['pet'], minAge: 6, energy: 0, perYear: 3 },
 ];
 
+/** What still works from a cell: a phone call or the visiting room. */
+const PRISON_INTERACTIONS: ReadonlySet<InteractionId> = new Set(['conversation', 'compliment', 'insult', 'breakUp']);
+/** Romantic acts, gated on both ages (see romance.ts); marriage and children need two adults. */
+const ROMANTIC: ReadonlySet<InteractionId> = new Set(['date', 'propose', 'haveChild']);
+
+/** Why an interaction is off the table for this person right now, or null. The person screen hides it; `interact` refuses with this text. */
+function unavailableReason(state: GameState, person: Person, def: InteractionDef): string | null {
+  const me = state.character;
+  if (me.age < def.minAge) return "I'm too young for that.";
+  if (state.crime.inPrison && !PRISON_INTERACTIONS.has(def.id)) return "Not while I'm behind bars.";
+  if (ROMANTIC.has(def.id) && (!romanceAllowed(me.age, person.age) || (def.id !== 'date' && person.age < ADULT_AGE))) {
+    return person.age < ADULT_AGE && person.age <= me.age
+      ? `${person.firstName} is only ${person.age}. That will have to wait.`
+      : `I'm only ${me.age}, and ${person.firstName} is ${person.age}. That will have to wait.`;
+  }
+  return null;
+}
+
 export function availableInteractions(state: GameState, person: Person): InteractionDef[] {
   if (!person.alive) return [];
-  return INTERACTIONS.filter((i) => i.kinds.includes(person.kind) && state.character.age >= i.minAge);
+  return INTERACTIONS.filter((i) => i.kinds.includes(person.kind) && unavailableReason(state, person, i) === null);
 }
 
 function touch(state: GameState, person: Person, patch: Partial<Person['memory']> = {}): GameState {
@@ -84,7 +103,8 @@ export function interact(state: GameState, rng: Rng, personId: string, interacti
   if (!person || !person.alive) return setResult(state, 'They are no longer around.', 'bad');
   const def = INTERACTIONS.find((i) => i.id === interactionId);
   if (!def || !def.kinds.includes(person.kind)) return state;
-  if (state.character.age < def.minAge) return setResult(state, "I'm too young for that.", 'info');
+  const unavailable = unavailableReason(state, person, def);
+  if (unavailable) return setResult(state, unavailable, 'info');
   const key = `${def.id}:${personId}`;
   if (def.perYear && actionCount(state, key) >= def.perYear) return setResult(state, "I've done that enough this year.", 'info');
   if (def.energy > state.character.energy) return setResult(state, "I'm out of energy this year. Age up to recharge.", 'info');
@@ -234,20 +254,27 @@ export function interact(state: GameState, rng: Rng, personId: string, interacti
     case 'haveChild': {
       const me = s.character;
       const partnerAge = person.age;
-      const fertile = me.age <= 50 && partnerAge <= 50 && (me.gender === 'female' ? me.age <= 45 : partnerAge <= 45);
+      // Two mothers or two fathers adopt; agencies stop placing babies once both are past 55.
+      const adopting = person.gender === me.gender;
+      const fertile = adopting ? me.age <= 55 && partnerAge <= 55 : me.age <= 50 && partnerAge <= 50 && (me.gender === 'female' ? me.age <= 45 : partnerAge <= 45);
       if (!fertile || !rng.chance(0.55)) {
-        const text = fertile ? `${who} and I tried for a baby. No luck this year.` : `${who} and I tried for a baby, but it just wasn't in the cards.`;
+        const text = adopting
+          ? fertile ? `${who} and I applied to adopt. No match this year.` : `${who} and I looked into adopting, but the agencies said we had left it too late.`
+          : fertile ? `${who} and I tried for a baby. No luck this year.` : `${who} and I tried for a baby, but it just wasn't in the cards.`;
         s = log(s, text);
         return setResult(s, text, 'info');
       }
-      const baby = makePerson(rng, { kind: 'child', age: 0, countryCode: me.countryCode, lastName: me.lastName, playerAge: me.age, relationship: rng.int(70, 95), biological: true });
+      const baby = makePerson(rng, { kind: 'child', age: 0, countryCode: me.countryCode, lastName: me.lastName, playerAge: me.age, relationship: rng.int(70, 95), biological: !adopting });
       baby.otherParentId = personId;
       baby.occupation = 'Baby';
       s = { ...s, people: { ...s.people, [baby.id]: baby } };
       s = bump(s, 'children');
       s = addStats(s, { happiness: 20 });
       s = adjustRelationship(s, personId, 6);
-      const text = `${who} and I had a ${baby.gender === 'male' ? 'son' : 'daughter'}. We named ${baby.gender === 'male' ? 'him' : 'her'} ${baby.firstName}.`;
+      const male = baby.gender === 'male';
+      const text = adopting
+        ? `${who} and I adopted a baby ${male ? 'boy' : 'girl'}. We named ${male ? 'him' : 'her'} ${baby.firstName}.`
+        : `${who} and I had a ${male ? 'son' : 'daughter'}. We named ${male ? 'him' : 'her'} ${baby.firstName}.`;
       s = log(s, text, 'milestone');
       return setResult(s, text, 'good', { statDeltas: { happiness: 20 } });
     }
@@ -294,9 +321,10 @@ export function yearlyRelationships(state: GameState, rng: Rng): GameState {
     s = log(s, `I made a new friend, ${fullName(f)}.`, 'good');
   }
   const hasPartner = Object.values(s.people).some((p) => p.alive && (p.kind === 'lover' || p.kind === 'spouse'));
-  if (!hasPartner && age >= 16 && age < 75 && !s.crime.inPrison && rng.chance(0.25 + s.character.stats.looks / 400)) {
+  const band = partnerAgeRange(age);
+  if (!hasPartner && band && age < 75 && !s.crime.inPrison && rng.chance(0.25 + s.character.stats.looks / 400)) {
     const partnerGender = rng.chance(0.9) ? (s.character.gender === 'male' ? 'female' : 'male') : s.character.gender;
-    const lover = makePerson(rng, { kind: 'lover', gender: partnerGender, age: Math.max(16, age + rng.int(-4, 4)), countryCode: s.character.countryCode, playerAge: age, relationship: rng.int(50, 75) });
+    const lover = makePerson(rng, { kind: 'lover', gender: partnerGender, age: rng.int(band[0], band[1]), countryCode: s.character.countryCode, playerAge: age, relationship: rng.int(50, 75) });
     lover.love = rng.int(50, 80);
     s = { ...s, people: { ...s.people, [lover.id]: lover } };
     s = bump(s, 'lovers');

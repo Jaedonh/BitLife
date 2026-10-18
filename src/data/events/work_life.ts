@@ -619,7 +619,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 60,
     weight: 1,
     cooldown: 4,
-    conditions: [{ hasJob: true }, { partTime: false }, { hasLover: false }],
+    conditions: [{ inPrison: false }, { hasJob: true }, { partTime: false }, { hasLover: false }],
     choices: [
       {
         id: 'date',

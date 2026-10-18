@@ -35,6 +35,7 @@ export default function PersonScreen() {
         </Card>
         {p.alive ? (
           <Section title={`Interact · Energy ${energy}/${game.character.energyMax}`}>
+            {game.crime.inPrison ? <T kind="small">🔒 You are in prison: only phone calls and visits until you are released.</T> : null}
             <View style={styles.grid}>
               {interactions.map((i) => (
                 <Button

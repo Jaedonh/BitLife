@@ -2,6 +2,7 @@ import { ILLNESS_BY_ID } from '@/data/illnesses';
 import type { Rng } from '../rng';
 import { makePerson } from '../systems/character';
 import { markDeath } from '../systems/death';
+import { clampRange, partnerAgeRange } from '../systems/romance';
 import type { GameState, Illness, Person } from '../types';
 import { addKarma, addMoney, addStats, bump, clampStat, incFlag, log, setFlag, withFame } from '../util';
 import type { Effect } from './schema';
@@ -67,6 +68,36 @@ export function sendToPrison(state: GameState, years: number): GameState {
   return s;
 }
 
+type NewPersonSpec = Extract<Effect, { newPerson: unknown }>['newPerson'];
+
+/** The player's current partner: a living spouse, else a living lover. */
+function currentPartner(state: GameState): Person | undefined {
+  const living = Object.values(state.people).filter((p) => p.alive);
+  return living.find((p) => p.kind === 'spouse') ?? living.find((p) => p.kind === 'lover');
+}
+
+/**
+ * The age range for a person an event introduces, or null when nobody of that kind can join the life now.
+ * Partners follow the legal-age band (romance.ts). A step-parent is about the age of the parent they marry,
+ * and always at least 16 years older than the player. Content ranges are kept where they fit those bands.
+ */
+function newPersonAgeRange(state: GameState, np: NewPersonSpec, bound: Person | undefined): [number, number] | null {
+  const me = state.character.age;
+  const range: [number, number] = [np.minAge ?? Math.max(1, me - 4), np.maxAge ?? me + 4];
+  if (np.kind === 'lover' || np.kind === 'spouse') {
+    const band = state.crime.inPrison ? null : partnerAgeRange(me);
+    return band && clampRange(range, band);
+  }
+  if (np.kind === 'stepfather' || np.kind === 'stepmother') {
+    const parentKind = np.kind === 'stepfather' ? 'mother' : 'father';
+    const parent = bound?.kind === parentKind ? bound : Object.values(state.people).find((p) => p.kind === parentKind && p.alive);
+    const floor = Math.max(18, me + 16);
+    const lo = Math.max(floor, parent ? parent.age - 10 : floor);
+    return clampRange(range, [lo, Math.max(lo, Math.min(95, parent ? parent.age + 10 : lo + 25))]);
+  }
+  return range;
+}
+
 /** Applies a list of effects in order. Pure except for `rng`, whose state the caller must persist. */
 export function applyEffects(state: GameState, rng: Rng, effects: readonly Effect[], ctx: EffectContext = {}): GameState {
   let s = state;
@@ -115,8 +146,25 @@ export function applyEffect(state: GameState, rng: Rng, e: Effect, ctx: EffectCo
   }
   if ('newPerson' in e) {
     const np = e.newPerson;
-    const age = np.kind === 'child' ? 0 : np.kind === 'pet' ? rng.int(0, 3) : rng.int(np.minAge ?? Math.max(1, s.character.age - 4), np.maxAge ?? s.character.age + 4);
-    const p = makePerson(rng, { kind: np.kind, age, countryCode: s.character.countryCode, playerAge: s.character.age, relationship: np.relationship ?? rng.int(45, 80), gender: np.gender, species: np.species, lastName: np.kind === 'child' || np.kind === 'sibling' ? s.character.lastName : undefined });
+    let age: number;
+    if (np.kind === 'child') age = 0;
+    else if (np.kind === 'pet') age = rng.int(0, 3);
+    else {
+      const range = newPersonAgeRange(s, np, person);
+      // No partner joins the life of someone under 16 or in prison, whatever the content says.
+      if (!range) return s;
+      age = rng.int(range[0], range[1]);
+    }
+    // A baby belongs to the partner the event is about, else to the player's current partner.
+    const boundPartner = person?.alive && (person.kind === 'lover' || person.kind === 'spouse') ? person : undefined;
+    const otherParent = np.kind === 'child' ? (boundPartner ?? currentPartner(s)) : undefined;
+    const p = makePerson(rng, {
+      kind: np.kind, age, countryCode: s.character.countryCode, playerAge: s.character.age, relationship: np.relationship ?? rng.int(45, 80), gender: np.gender, species: np.species,
+      lastName: np.kind === 'child' || np.kind === 'sibling' ? s.character.lastName : undefined,
+      // With a same-sex partner the child came by adoption or a donor, so it is not marked as the player's biological child.
+      biological: np.kind === 'child' && otherParent?.gender !== s.character.gender ? true : undefined,
+    });
+    if (otherParent) p.otherParentId = otherParent.id;
     if (np.kind === 'lover' || np.kind === 'spouse') p.love = rng.int(50, 85);
     s = { ...s, people: { ...s.people, [p.id]: p } };
     if (np.kind === 'friend') s = bump(s, 'friendsMade');

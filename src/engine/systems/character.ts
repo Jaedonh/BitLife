@@ -185,24 +185,20 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
     // Family tree carried over from the previous generation.
     const prevChar = prev.character;
     const otherParent = heir?.otherParentId ? prev.people[heir.otherParentId] : undefined;
-    const mother = makePerson(rng, {
-      kind: 'mother', gender: 'female', age: prevChar.gender === 'female' ? prevChar.age : (otherParent?.age ?? prevChar.age), countryCode,
-      lastName, playerAge: startAge, relationship: rng.int(60, 95), money: 0,
-    });
-    const father = makePerson(rng, {
-      kind: 'father', gender: 'male', age: prevChar.gender === 'male' ? prevChar.age : (otherParent?.age ?? prevChar.age), countryCode,
-      lastName, playerAge: startAge, relationship: rng.int(60, 95), money: 0,
-    });
-    // The deceased player becomes a dead parent in the new tree; the other parent lives on.
-    const survivor = prevChar.gender === 'female' ? father : mother;
-    const deceased = prevChar.gender === 'female' ? mother : father;
+    const parentKind = (g: Gender): RelationshipKind => (g === 'female' ? 'mother' : 'father');
+    // The deceased player becomes a dead parent in the new tree.
+    const deceased = makePerson(rng, { kind: parentKind(prevChar.gender), gender: prevChar.gender, age: prevChar.age, countryCode, lastName, playerAge: startAge, relationship: rng.int(60, 95), money: 0 });
     deceased.firstName = prevChar.firstName; deceased.alive = false; deceased.deathAge = prevChar.age; deceased.deathCause = prev.death?.cause;
+    people[deceased.id] = deceased;
+    // The other parent carries over as they were (two mothers or two fathers included). A child with no
+    // recorded other parent gets none: nobody is invented.
     if (otherParent) {
-      survivor.firstName = otherParent.firstName; survivor.lastName = otherParent.lastName; survivor.alive = otherParent.alive; survivor.money = otherParent.money;
-      survivor.deathAge = otherParent.deathAge; survivor.deathCause = otherParent.deathCause;
+      const survivor = makePerson(rng, {
+        kind: parentKind(otherParent.gender), gender: otherParent.gender, age: otherParent.age, countryCode, lastName: otherParent.lastName, playerAge: startAge, relationship: rng.int(60, 95), money: otherParent.money,
+      });
+      survivor.firstName = otherParent.firstName; survivor.alive = otherParent.alive; survivor.deathAge = otherParent.deathAge; survivor.deathCause = otherParent.deathCause;
+      people[survivor.id] = survivor;
     }
-    people[mother.id] = mother;
-    people[father.id] = father;
     for (const p of Object.values(prev.people)) {
       if (p.kind === 'child' && p.id !== heirId && p.alive) {
         const sib = makePerson(rng, { kind: 'sibling', gender: p.gender, age: p.age, countryCode, lastName: p.lastName, playerAge: startAge, relationship: rng.int(40, 85) });
