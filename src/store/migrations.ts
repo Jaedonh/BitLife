@@ -1,3 +1,4 @@
+import { upgradeJusticeState } from '@/engine/systems/justice';
 import { SCHEMA_VERSION, STAT_IDS, type GameState } from '@/engine/types';
 
 type Rec = Record<string, unknown>;
@@ -37,6 +38,8 @@ function isGameStateShape(s: Rec): boolean {
   if (!isRec(h) || !arrayOf(h.illnesses, isRec) || !isRec(h.addictions) || !isNum(h.criticalYears)) return false;
   const cr = s.crime;
   if (!isRec(cr) || !isBool(cr.inPrison) || !isNum(cr.sentenceYearsLeft) || !isNum(cr.notoriety)) return false;
+  // Juvenile court and parole fields are optional (older saves have none of them).
+  if (!nullOr(cr.juvenile, isBool) || !nullOr(cr.sentenceYears, isNum) || !nullOr(cr.paroleYearsLeft, isNum) || !nullOr(cr.sealedConvictions, isNum)) return false;
   if (!recordOf(s.people, (p) => isRec(p) && isStr(p.id) && isStr(p.firstName) && isStr(p.kind) && isBool(p.alive) && isNum(p.age) && isNum(p.relationship))) return false;
   if (!arrayOf(s.assets, (a) => isRec(a) && isStr(a.id) && isNum(a.value))) return false;
   if (!arrayOf(s.log, (l) => isRec(l) && isStr(l.text) && isStr(l.kind) && isNum(l.age))) return false;
@@ -61,5 +64,5 @@ export function migrateSave(raw: unknown): GameState | null {
   // Future migrations go here, e.g. if (s.schemaVersion === 1) { ...; s = { ...s, schemaVersion: 2 }; }
   if (s.schemaVersion !== SCHEMA_VERSION) return null;
   if (!isGameStateShape(s)) return null;
-  return s as unknown as GameState;
+  return upgradeJusticeState(s as unknown as GameState);
 }

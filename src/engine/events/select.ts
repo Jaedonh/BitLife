@@ -5,6 +5,7 @@ import { candidatesFor, evaluateAll } from './conditions';
 import { applyEffects } from './effects';
 import type { EventDef } from './schema';
 import { renderText } from './text';
+import { SYSTEM_EVENTS } from '../systems/justice';
 
 export interface EventRegistry {
   all: readonly EventDef[];
@@ -12,7 +13,10 @@ export interface EventRegistry {
 }
 
 export function makeRegistry(defs: readonly EventDef[]): EventRegistry {
-  return { all: defs, byId: Object.fromEntries(defs.map((d) => [d.id, d])) };
+  // The engine's own cards (court, parole) belong to every registry, so an arrest never strands its trial.
+  const ids = new Set(defs.map((d) => d.id));
+  const all = [...defs, ...SYSTEM_EVENTS.filter((d) => !ids.has(d.id))];
+  return { all, byId: Object.fromEntries(all.map((d) => [d.id, d])) };
 }
 
 /** How many random events to roll this year, by age band. */
@@ -29,7 +33,13 @@ export function fitsState(state: GameState, def: EventDef): boolean {
   const age = state.character.age;
   if (age < def.minAge || age > def.maxAge) return false;
   if (state.crime.inPrison && !writtenForPrison(def.conditions)) return false;
+  if (state.crime.inPrison && state.crime.juvenile && !writtenForJuvenile(def.conditions)) return false;
   return evaluateAll(state, def.conditions);
+}
+
+/** Juvenile detention is its own world inside that one: only events requiring { juvenile: true } open there. */
+function writtenForJuvenile(conditions: EventDef['conditions']): boolean {
+  return (conditions ?? []).some((c) => ('juvenile' in c && c.juvenile) || ('all' in c && writtenForJuvenile(c.all)));
 }
 
 /**
@@ -98,13 +108,16 @@ export function openNextEvent(state: GameState, registry: EventRegistry): GameSt
     const person = next!.personId ? s.people[next!.personId] : undefined;
     if (next!.personId && !person) continue;
     if (person && def.person && !candidatesFor(s, def.person).some((p) => p.id === person.id)) continue;
-    const choices = def.choices.filter((c) => evaluateAll(s, c.conditions));
+    // A code-defined card can withdraw choices for this showing (context.hide: "id,id"), e.g. a lawyer who was refused.
+    const hidden = new Set((next!.context.hide ?? '').split(','));
+    const choices = def.choices.filter((c) => evaluateAll(s, c.conditions) && !hidden.has(c.id));
     if (choices.length === 0) continue;
+    const tc = { person, vars: def.vars?.length ? next!.context : undefined };
     const pending: PendingEvent = {
       eventId: def.id,
-      title: renderText(def.title, s, { person }),
-      text: renderText(def.text, s, { person }),
-      choices: choices.map((c) => ({ id: c.id, label: renderText(c.label, s, { person }), hint: c.hint ? renderText(c.hint, s, { person }) : undefined })),
+      title: renderText(def.title, s, tc),
+      text: renderText(def.text, s, tc),
+      choices: choices.map((c) => ({ id: c.id, label: renderText(c.label, s, tc), hint: c.hint ? renderText(c.hint, s, tc) : undefined })),
       context: next!.context,
       personId: next!.personId,
     };
@@ -126,7 +139,9 @@ export function resolveChoice(state: GameState, choiceId: string, registry: Even
   let s: GameState = { ...state, pendingEvent: null, firedEvents: { ...state.firedEvents, [def.id]: state.character.age } };
   s = bump(s, 'eventsFaced');
   s = log(s, `${pending.text} → ${shownLabel}`, 'event');
-  s = applyEffects(s, rng, choice.effects, { personId: pending.personId, person: pending.personId ? s.people[pending.personId] : undefined });
+  // Only a code-defined card's context feeds its effects (its case, e.g. the court's charge and fee).
+  const vars = def.vars?.length ? pending.context : undefined;
+  s = applyEffects(s, rng, choice.effects, { personId: pending.personId, person: pending.personId ? s.people[pending.personId] : undefined, vars });
   s = { ...s, rng: rng.snapshot() };
   return openNextEvent(s, registry);
 }

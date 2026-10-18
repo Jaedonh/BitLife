@@ -70,6 +70,8 @@ function playLife(seed: number, policy: Policy, countryCode: string | undefined)
     while (s.pendingEvent && guard++ < 20) s = resolveChoice(s, rng.pick(s.pendingEvent.choices).id, EVENT_REGISTRY);
     if (!s.alive) break;
     for (const a of policy(s, rng)) s = applyAction(s, a);
+    // An arrest opens a court card; answer it before the next year, as the app does.
+    while (s.pendingEvent && guard++ < 40) s = resolveChoice(s, rng.pick(s.pendingEvent.choices).id, EVENT_REGISTRY);
     const age = s.character.age;
     if (s.finances.bankrupt) out.bankrupt = true;
     if (age >= 25 && age <= 59 && s.career.job && !s.career.job.partTime) {

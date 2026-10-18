@@ -2,6 +2,7 @@ import { Redirect } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { EventModal } from '@/components/game/EventModal';
 import { ScreenHeader } from '@/components/game/ScreenHeader';
 import { WorkActionRow } from '@/components/game/WorkActionRow';
 import type { BadgeSpec } from '@/components/game/WorkChip';
@@ -176,6 +177,8 @@ export default function ActivitiesScreen() {
           </View>
         ) : null}
       </ScrollView>
+      {/* An arrest opens the court card right here (the life screen underneath cannot present it). */}
+      <EventModal />
     </Screen>
   );
 }

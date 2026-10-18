@@ -4,7 +4,8 @@ import { StyleSheet, Text } from 'react-native';
 import { EventModal } from '@/components/game/EventModal';
 import { eventCardModel } from '@/components/game/eventCard';
 import { Button, ListRow } from '@/components/ui';
-import { createLife } from '@/engine';
+import { createLife, EVENT_REGISTRY, openNextEvent } from '@/engine';
+import { trialCard } from '@/engine/systems/justice';
 import type { GameState, PendingEvent } from '@/engine/types';
 import { useGameStore } from '@/store/gameStore';
 
@@ -80,6 +81,20 @@ describe('eventCardModel', () => {
     const mother = Object.values(game.people).find((p) => p.kind === 'mother')!;
     const m = eventCardModel(game, { ...taxAudit, personId: mother.id });
     expect(m.person).toEqual({ emoji: '👩', name: `${mother.firstName} ${mother.lastName}`, relation: 'Mother' });
+  });
+
+  it("shows the court card's lawyer fee as a cost, or a warning when it is more than the player has", () => {
+    const court = (cash: number) => {
+      const g = openNextEvent({ ...adult(cash), eventQueue: [trialCard(adult(cash), 'car_theft', 3)] }, EVENT_REGISTRY);
+      return eventCardModel(g, g.pendingEvent!);
+    };
+    const rich = court(50_000);
+    expect(rich.emoji).toBe('🚨');
+    expect(rich.choices.map((c) => c.tone)).toEqual(['neutral', 'neutral', 'cost', 'neutral']);
+    expect(rich.choices[2]!.chip).toMatch(/^\$12,000 · /);
+    const broke = court(0).choices[2]!;
+    expect(broke).toMatchObject({ tone: 'credit', chip: '$12,000 · more than I have' });
+    expect(broke.accessibilityLabel).toBe('Hire a lawyer, $12,000 · more than I have');
   });
 
   it('falls back gracefully for an unknown event and a partial state', () => {

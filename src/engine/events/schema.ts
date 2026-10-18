@@ -72,6 +72,8 @@ export type Condition =
   | { hustle: boolean }
   | { retired: boolean }
   | { illnessCount: Comparator }
+  /** Serving time in juvenile detention. Only events with { juvenile: true } (and { inPrison: true }) open there. */
+  | { juvenile: boolean }
   | { eventFired: string }
   | { eventNotFired: string }
   | { any: Condition[] }
@@ -114,7 +116,16 @@ export type Effect =
   | { chance: number; then: Effect[]; else?: Effect[] }
   | { asset: 'damage' | 'lose'; kind?: AssetKind; amount?: number }
   | { achievement: string }
-  | { energy: number };
+  | { energy: number }
+  /** Code-defined court card (sys_trial) only: settles the case stored in the card's context. */
+  | { trial: TrialPlea }
+  /** Code-defined parole card (sys_parole) only: the board decides on early release. */
+  | { paroleHearing: ParoleApproach };
+
+export type TrialPlea = 'plea' | 'public' | 'lawyer' | 'self';
+export const TRIAL_PLEAS: readonly TrialPlea[] = ['plea', 'public', 'lawyer', 'self'];
+export type ParoleApproach = 'remorse' | 'plans' | 'waive';
+export const PAROLE_APPROACHES: readonly ParoleApproach[] = ['remorse', 'plans', 'waive'];
 
 export interface ChoiceDef {
   id: string;
@@ -171,6 +182,8 @@ export interface EventDef {
   choices: ChoiceDef[];
   /** Follow-ups only: never picked randomly, only via a `queue` effect. */
   followUpOnly?: boolean;
+  /** Code-defined (sys_) cards only: placeholders filled from the queued card's context, e.g. ['charge']. */
+  vars?: readonly string[];
 }
 
 const PLACEHOLDER_RE = /\{\{([^}]+)\}\}/g;
@@ -213,6 +226,9 @@ export function validateEvent(def: EventDef, knownIds: Set<string>): string[] {
     seen.add(c.id);
     if (!c.label) errors.push(`${where}: choice ${c.id} missing label`);
     for (const e of c.effects ?? []) checkEffect(e, where, knownIds, errors);
+    if (!def.id.startsWith('sys_') && effectLists([c.effects ?? []]).some((l) => l.some((e) => 'trial' in e || 'paroleHearing' in e))) {
+      errors.push(`${where}: choice ${c.id} uses a court or parole effect, which only the engine's own sys_ cards can use`);
+    }
     // An arrest or a sentence written for the outside must not reach a player already in prison (and one
     // written for the inside must not reach a free one), so the event or the choice says which it is.
     if (canJail(c.effects ?? []) && !mentionsInPrison(def.conditions) && !mentionsInPrison(c.conditions)) {
@@ -246,6 +262,8 @@ export function validateEvent(def: EventDef, knownIds: Set<string>): string[] {
   if (def.minAge < 18 && !orphanOnly && /\b[Mm]y parents\b/.test(JSON.stringify(def.choices) + def.title + def.text)) {
     errors.push(`${where}: says "my parents" in an event open to children; use {{parents}} (renders "Mom and Dad", "Mom", "Dad and Maria" or "my family")`);
   }
+  if (def.vars?.length && !def.id.startsWith('sys_')) errors.push(`${where}: only the engine's own sys_ cards can declare vars`);
+  const known = def.vars?.length ? new Set([...KNOWN_PLACEHOLDERS, ...def.vars]) : KNOWN_PLACEHOLDERS;
   const usesPerson = /\{\{(person|personFull|they|them|their|They)\}\}/.test(def.text + def.choices.map((c) => c.label + (c.hint ?? '')).join(' '));
   if (usesPerson && !def.person) errors.push(`${where}: uses person placeholders but has no person selector`);
   for (const text of [def.title, def.text, ...def.choices.map((c) => c.label), ...def.choices.map((c) => c.hint ?? '')]) {
@@ -254,7 +272,7 @@ export function validateEvent(def: EventDef, knownIds: Set<string>): string[] {
       const key = m[1]!.trim();
       if (key.startsWith('$')) {
         if (!/^\$\d+$/.test(key)) errors.push(`${where}: bad money placeholder ${key}`);
-      } else if (!KNOWN_PLACEHOLDERS.has(key)) errors.push(`${where}: unknown placeholder ${key}`);
+      } else if (!known.has(key)) errors.push(`${where}: unknown placeholder ${key}`);
     }
   }
   return errors;
@@ -283,7 +301,7 @@ function unpaidCost(effects: readonly Effect[]): boolean {
 }
 
 function canJail(effects: readonly Effect[]): boolean {
-  return effects.some((e) => 'prison' in e || 'arrest' in e || ('random' in e && e.random.some((o) => canJail(o.effects))) || ('chance' in e && (canJail(e.then) || canJail(e.else ?? []))));
+  return effects.some((e) => 'prison' in e || 'arrest' in e || 'trial' in e || ('random' in e && e.random.some((o) => canJail(o.effects))) || ('chance' in e && (canJail(e.then) || canJail(e.else ?? []))));
 }
 
 function mentionsInPrison(conditions: readonly Condition[] | undefined): boolean {
@@ -292,6 +310,8 @@ function mentionsInPrison(conditions: readonly Condition[] | undefined): boolean
 
 function checkEffect(e: Effect, where: string, knownIds: Set<string>, errors: string[]): void {
   if ('queue' in e && !knownIds.has(e.queue)) errors.push(`${where}: queues unknown event ${e.queue}`);
+  if ('trial' in e && !TRIAL_PLEAS.includes(e.trial)) errors.push(`${where}: unknown trial plea ${String(e.trial)}`);
+  if ('paroleHearing' in e && !PAROLE_APPROACHES.includes(e.paroleHearing)) errors.push(`${where}: unknown parole approach ${String(e.paroleHearing)}`);
   if ('random' in e) {
     if (!e.random.length) errors.push(`${where}: empty random outcome list`);
     for (const o of e.random) for (const x of o.effects) checkEffect(x, where, knownIds, errors);

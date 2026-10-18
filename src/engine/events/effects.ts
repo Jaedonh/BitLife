@@ -3,6 +3,7 @@ import type { Rng } from '../rng';
 import { onNpcDeath } from '../systems/aging';
 import { makePerson } from '../systems/character';
 import { payForMinor } from '../systems/guardians';
+import { onParole, revokeParole, settleParole, settleTrial, stayLength, verdictNote } from '../systems/justice';
 import { markDeath } from '../systems/death';
 import { ADULT_AGE, clampRange, partnerAgeRange } from '../systems/romance';
 import type { GameState, Illness, Person } from '../types';
@@ -51,10 +52,19 @@ export function removeJob(state: GameState, reason: 'quit' | 'fired' | 'promoted
   return s;
 }
 
-/** Convicts the player. A sentence handed down while already inside is served after the time left, never instead of it. */
+/**
+ * Convicts the player. A sentence handed down while already inside is served after the time left, never instead
+ * of it. Under 18 it means juvenile detention: at most two years in all, out by 18, and school carries on inside.
+ * A conviction ends parole.
+ */
 export function sendToPrison(state: GameState, years: number): GameState {
   const sentence = Math.max(1, Math.round(years));
-  let s = removeJob(state, 'left');
+  const juvenile = state.character.age < 18;
+  const prior = state.crime.inPrison ? state.crime.sentenceYearsLeft : 0;
+  const left = stayLength(state, prior + sentence);
+  const edu = state.education;
+  const schoolGoesOn = juvenile && (edu.stage === 'primary' || edu.stage === 'middle' || edu.stage === 'high');
+  let s = revokeParole(removeJob(state, 'left'));
   s = {
     ...s,
     crime: {
@@ -63,10 +73,12 @@ export function sendToPrison(state: GameState, years: number): GameState {
       arrests: s.crime.arrests + 1,
       convictions: s.crime.convictions + 1,
       inPrison: true,
-      sentenceYearsLeft: (s.crime.inPrison ? s.crime.sentenceYearsLeft : 0) + sentence,
-      notoriety: clampStat(s.crime.notoriety + years * 3),
+      sentenceYearsLeft: left,
+      sentenceYears: (s.crime.inPrison ? (s.crime.sentenceYears ?? prior) : 0) + left - prior,
+      notoriety: clampStat(s.crime.notoriety + sentence * 3),
+      ...(juvenile ? { juvenile: true } : {}),
     },
-    education: { ...s.education, enrolled: false },
+    education: schoolGoesOn ? edu : { ...edu, enrolled: false },
   };
   s = bump(s, 'arrests');
   return s;
@@ -120,13 +132,15 @@ export function applyEffects(state: GameState, rng: Rng, effects: readonly Effec
     if (!s.alive) break;
     s = applyEffect(s, rng, e, ctx);
   }
-  return s;
+  // A sentence in this list: after the event's own verdict line, say how parole or juvenile court changed it.
+  const jail = effects.find((e) => 'prison' in e);
+  return jail && 'prison' in jail ? verdictNote(state, s, jail.prison) : s;
 }
 
 export function applyEffect(state: GameState, rng: Rng, e: Effect, ctx: EffectContext): GameState {
   let s = state;
   const person = currentPerson(s, ctx);
-  const textCtx: TextContext = { person };
+  const textCtx: TextContext = { person, vars: ctx.vars };
 
   if ('stat' in e) return addStats(s, { [e.stat]: e.delta });
   if ('stats' in e) return addStats(s, e.stats);
@@ -196,7 +210,10 @@ export function applyEffect(state: GameState, rng: Rng, e: Effect, ctx: EffectCo
     return s;
   }
   if ('death' in e) return markDeath(s, e.death);
-  if ('prison' in e) return sendToPrison(s, e.prison);
+  // On parole it counts double; applyEffects notes it after the event's own verdict.
+  if ('prison' in e) return sendToPrison(s, onParole(s) ? e.prison * 2 : e.prison);
+  if ('trial' in e) return settleTrial(s, rng, e.trial, ctx.vars ?? {}, sendToPrison);
+  if ('paroleHearing' in e) return settleParole(s, rng, e.paroleHearing);
   if ('arrest' in e) return bump({ ...s, crime: { ...s.crime, record: true, arrests: s.crime.arrests + 1 } }, 'arrests');
   if ('illness' in e) return giveIllness(s, e.illness);
   if ('cureIllness' in e) return { ...s, health: { ...s.health, illnesses: s.health.illnesses.filter((i) => i.chronic) } };

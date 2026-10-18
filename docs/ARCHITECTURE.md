@@ -77,6 +77,14 @@ death, prison…). A small interpreter applies effects, so writers never touch
 engine code and AI-generated content can be validated mechanically
 (`npm test` runs `events.validate.test.ts` over every event).
 
+A few cards belong to the engine itself: `SYSTEM_EVENTS` in
+`src/engine/systems/justice.ts` (the court card `sys_trial` and the parole
+hearing `sys_parole`). `makeRegistry` adds them to every registry, so they use
+the same queue, modal and journal as content. They are follow-up only, carry
+their case in the queued card's `context` (rendered through the card's own
+`vars` placeholders), and are settled by engine effects (`trial`,
+`paroleHearing`) that content files may not use.
+
 ## State and persistence
 
 `GameState` is a single JSON-serialisable object (`src/engine/types.ts`). It has

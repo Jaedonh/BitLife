@@ -86,6 +86,8 @@ function sample(): { states: GameState[]; systemLines: Map<string, { ages: Set<n
         s = applyEffects(s, petRng, [{ newPerson: { kind: 'pet', species: seed % 4 === 0 ? 'dog' : 'cat' } }]);
       }
       for (const a of policy(s, rng)) s = applyAction(s, a);
+      // An arrest opens a court card; answer it before the next year, as the app does.
+      while (s.pendingEvent && guard++ < 40) s = resolveChoice(s, rng.pick(s.pendingEvent.choices).id, EVENT_REGISTRY);
       s = buyHomeAndCar(s, seed);
       record(before);
       states.push({ ...s, pendingEvent: null, eventQueue: [] });

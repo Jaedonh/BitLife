@@ -93,4 +93,28 @@ describe('migrateSave', () => {
     // ...and the untouched copy still passes
     expect(migrateSave(withField(save, 'character.age', save.character.age))).not.toBeNull();
   });
+
+  it('loads saves from before juvenile court and parole, moving a jailed teen to juvenile detention', () => {
+    // Saved by the old engine: a 15-year-old serving five years with adults, school ended, no juvenile or parole fields.
+    const g = createLife({ countryCode: 'US' }, 1234, 1_700_000_000_000);
+    const old = JSON.parse(
+      JSON.stringify({
+        ...g,
+        year: g.character.birthYear + 15,
+        character: { ...g.character, age: 15 },
+        education: { ...g.education, stage: 'high', enrolled: false, grade: 55 },
+        crime: { record: true, arrests: 1, convictions: 1, crimesCommitted: 3, inPrison: true, sentenceYearsLeft: 5, prisonYearsTotal: 1, notoriety: 15 },
+      }),
+    );
+    const teen = migrateSave(old);
+    expect(teen?.crime.juvenile).toBe(true);
+    expect(teen?.crime.sentenceYearsLeft).toBe(2);
+    expect(teen?.education.enrolled).toBe(true);
+    // An adult inside gets the length of the stay, so parole can be worked out; mistyped new fields are rejected.
+    const adult = migrateSave({ ...old, character: { ...old.character, age: 30 }, year: g.character.birthYear + 30 });
+    expect(adult?.crime.juvenile).toBeUndefined();
+    expect(adult?.crime.sentenceYears).toBe(5);
+    expect(migrateSave(withField(old, 'crime.paroleYearsLeft', 'two'))).toBeNull();
+    expect(migrateSave(withField(old, 'crime.juvenile', 1))).toBeNull();
+  });
 });

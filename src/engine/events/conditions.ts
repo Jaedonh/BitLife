@@ -76,6 +76,7 @@ export function evaluateCondition(state: GameState, c: Condition): boolean {
   if ('hustle' in c) return (state.career.hustle !== null) === c.hustle;
   if ('retired' in c) return state.career.retired === c.retired;
   if ('illnessCount' in c) return cmp(state.health.illnesses.length, c.illnessCount);
+  if ('juvenile' in c) return (state.crime.inPrison && state.crime.juvenile === true) === c.juvenile;
   if ('eventFired' in c) return state.firedEvents[c.eventFired] !== undefined;
   if ('eventNotFired' in c) return state.firedEvents[c.eventNotFired] === undefined;
   if ('any' in c) return c.any.some((x) => evaluateCondition(state, x));

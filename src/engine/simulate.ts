@@ -87,6 +87,9 @@ export function simulateLife(seed: number, policy: Policy, maxYears = 130): { st
     if (s.pendingEvent) throw new Error(`event loop did not terminate at age ${s.character.age}`);
     if (!s.alive) break;
     for (const a of policy(s, rng)) s = applyAction(s, a);
+    // An arrest opens a court card; it is answered before the next year, as in the app.
+    while (s.pendingEvent && guard++ < 40) s = resolveChoice(s, rng.pick(s.pendingEvent.choices).id, EVENT_REGISTRY);
+    if (!s.alive) break;
     checkInvariants(s);
     const added = s.log.length - before;
     maxLogPerYear = Math.max(maxLogPerYear, added);

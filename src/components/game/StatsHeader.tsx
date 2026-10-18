@@ -15,7 +15,7 @@ export function lifeStatus(game: GameState): string {
   const c = game.character;
   const left = game.crime.sentenceYearsLeft;
   return game.crime.inPrison
-    ? `In prison · ${left} ${left === 1 ? 'year' : 'years'} left`
+    ? `${game.crime.juvenile ? 'In detention' : 'In prison'} · ${left} ${left === 1 ? 'year' : 'years'} left`
     : game.career.job
       ? `${game.career.job.title} · ${employerLabel(game.career.job.company)}`
       : game.education.enrolled

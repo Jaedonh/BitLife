@@ -1,14 +1,17 @@
 import { CRIME_BY_ID, type CrimeDef } from '@/data/crimes';
-import { sendToPrison } from '../events/effects';
+import { EVENT_REGISTRY } from '../events/registry';
+import { openNextEvent } from '../events/select';
 import { parentsRef, scaleMoney } from '../events/text';
 import { guardianFunds, payForMinor } from './guardians';
+import { onParole, paroleCard, paroleEligible, paroleHearingChance, releaseFromPrison, sealJuvenileRecord, TRIAL_EVENT_ID, trialCard, yearlyParole } from './justice';
 import type { Rng } from '../rng';
 import type { ActionAvailability, GameState } from '../types';
 import { addKarma, addMoney, addStats, bump, capitalize, clampStat, log, money, plural, setResult, actionCount, countAction } from '../util';
 
 export function crimeAvailability(state: GameState, def: CrimeDef): ActionAvailability {
   if (state.character.age < def.minAge) return { available: false, reason: `Age ${def.minAge}+` };
-  if (state.crime.inPrison) return { available: false, reason: 'In prison' };
+  if (state.crime.inPrison) return { available: false, reason: state.crime.juvenile ? 'In detention' : 'In prison' };
+  if (state.pendingEvent?.eventId === TRIAL_EVENT_ID || state.eventQueue.some((q) => q.eventId === TRIAL_EVENT_ID)) return { available: false, reason: 'I have a court date first' };
   if (def.energy > state.character.energy) return { available: false, reason: 'No energy left this year' };
   if (actionCount(state, `crime:${def.id}`) >= 2) return { available: false, reason: 'Too risky to repeat this year' };
   return { available: true };
@@ -60,11 +63,14 @@ export function commitCrime(state: GameState, rng: Rng, id: string): GameState {
       s = log(s, text, 'bad');
       return setResult(s, text, 'bad', { moneyDelta: minor ? 0 : -fine });
     }
-    s = sendToPrison(s, years);
-    s = addStats(s, { happiness: -15 });
-    const text = `I was arrested for ${def.noun} and sentenced to ${plural(years, 'year')} in prison.`;
+    // A sentence is for a court to pass: the case opens the court card (justice.ts) instead of a cell door.
+    const paroleBroken = onParole(s);
+    s = addStats(s, { happiness: -4 });
+    s = { ...s, eventQueue: [trialCard(s, def.id, paroleBroken ? years * 2 : years, paroleBroken), ...s.eventQueue] };
+    const text = `I was arrested for ${def.noun}. My case went to ${s.character.age < 18 ? 'juvenile court' : 'court'}.`;
     s = log(s, text, 'bad');
-    return setResult(s, text, 'bad');
+    s = setResult(s, text, 'bad');
+    return s.pendingEvent ? s : openNextEvent(s, EVENT_REGISTRY);
   }
   s = addStats(s, { happiness: -3 });
   const text = `I tried ${def.gerund}, but it went wrong and I ran. Nobody followed.${injured ? ' I limped home.' : ''}`;
@@ -72,23 +78,27 @@ export function commitCrime(state: GameState, rng: Rng, id: string): GameState {
   return setResult(s, text, 'info');
 }
 
-/** Prison time passes; release when the sentence ends. */
+/**
+ * Prison time passes; release when the sentence ends (juvenile detention by 18 at the latest). Half-way through
+ * an adult sentence, a yearly parole hearing may be queued. Outside, parole counts down, and at 18 a juvenile
+ * record is sealed.
+ */
 export function yearlyPrison(state: GameState, rng: Rng): GameState {
-  if (!state.crime.inPrison) return state;
+  if (!state.crime.inPrison) return sealJuvenileRecord(yearlyParole(state));
+  const juvenile = state.crime.juvenile === true;
   let s = bump(state, 'yearsInPrison');
   s = { ...s, crime: { ...s.crime, prisonYearsTotal: s.crime.prisonYearsTotal + 1 } };
   const left = s.crime.sentenceYearsLeft - 1;
   if (rng.chance(0.15)) {
     s = addStats(s, { health: -rng.int(3, 10) });
-    s = log(s, 'I got into a fight in the yard.', 'bad');
+    s = log(s, juvenile ? 'I got into a scuffle in the common room.' : 'I got into a fight in the yard.', 'bad');
   }
-  if (left <= 0) {
-    s = { ...s, crime: { ...s.crime, inPrison: false, sentenceYearsLeft: 0 } };
-    s = addStats(s, { happiness: 10 });
-    s = log(s, 'I was released from prison.', 'milestone');
+  if (left <= 0 || (juvenile && s.character.age >= 18)) {
+    s = releaseFromPrison(s, 'served');
   } else {
     s = { ...s, crime: { ...s.crime, sentenceYearsLeft: left } };
-    s = log(s, `Another year behind bars. ${plural(left, 'year')} to go.`, 'bad');
+    s = log(s, juvenile ? `Another year in juvenile detention. ${plural(left, 'year')} to go.` : `Another year behind bars. ${plural(left, 'year')} to go.`, 'bad');
+    if (paroleEligible(s) && rng.chance(paroleHearingChance(s))) s = { ...s, eventQueue: [...s.eventQueue, paroleCard(s)] };
   }
-  return s;
+  return sealJuvenileRecord(s);
 }

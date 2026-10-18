@@ -23,7 +23,7 @@ export function activityAvailability(state: GameState, def: ActivityDef): Action
   const cost = activityCost(state, def);
   if (state.character.age < def.minAge) return { available: false, reason: `Age ${def.minAge}+`, cost };
   if (def.maxAge !== undefined && state.character.age > def.maxAge) return { available: false, reason: 'Too old', cost };
-  if (state.crime.inPrison && !def.prisonOk) return { available: false, reason: 'Not available in prison', cost };
+  if (state.crime.inPrison && !def.prisonOk) return { available: false, reason: state.crime.juvenile ? 'Not available in detention' : 'Not available in prison', cost };
   if (def.perYear > 0 && actionCount(state, `activity:${def.id}`) >= def.perYear) return { available: false, reason: 'Done for this year', cost };
   // Rehab is checked before it charges anything: without an addiction there is nothing to treat.
   if (def.id === 'rehab' && !Object.values(state.health.addictions).some((v) => (v ?? 0) > 0)) return { available: false, reason: 'No addiction to treat', cost };

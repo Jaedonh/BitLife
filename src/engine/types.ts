@@ -294,6 +294,14 @@ export interface CrimeRecord {
   sentenceYearsLeft: number;
   prisonYearsTotal: number;
   notoriety: number; // 0-100
+  /** Serving in juvenile detention (sentenced before 18): school continues, at most 2 years, out by 18. */
+  juvenile?: boolean;
+  /** Length in years of the current stay, sentences added inside included; parole needs half of it served. */
+  sentenceYears?: number;
+  /** Years of parole left after an early release (the `parole` flag mirrors it for events). */
+  paroleYearsLeft?: number;
+  /** Convictions sealed with the juvenile record at 18: no longer on the record or in the obituary. */
+  sealedConvictions?: number;
 }
 
 export type LogKind = 'info' | 'good' | 'bad' | 'event' | 'milestone' | 'money' | 'death' | 'year';
