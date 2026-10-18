@@ -60,8 +60,8 @@ describe('Button', () => {
     return tree.root.findByType(Text).props as { numberOfLines?: number; style: unknown };
   }
 
-  it('truncates to a single line by default', () => {
-    expect(labelProps(render(<Button title="Go" />)).numberOfLines).toBe(1);
+  it('wraps up to two lines by default instead of truncating to one', () => {
+    expect(labelProps(render(<Button title="Go" />)).numberOfLines).toBe(2);
   });
 
   it('forwards numberOfLines and centres wrapped labels', () => {

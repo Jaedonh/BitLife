@@ -69,3 +69,55 @@ export const peopleColors = {
   /** Inline outcome banner after an interaction. */
   noticeBg: '#1E1B38',
 } as const;
+
+// ---- u1-life: life screen journal, feedback toasts and profile sheet ----
+/** Translucent fills for change pills and status chips (text on them uses the matching solid colour). */
+export const lifeTints = {
+  up: 'rgba(74, 222, 128, 0.14)',
+  down: 'rgba(248, 113, 113, 0.16)',
+  money: 'rgba(163, 230, 53, 0.14)',
+  warning: 'rgba(251, 191, 36, 0.16)',
+  accent: 'rgba(163, 230, 53, 0.12)',
+  primary: 'rgba(124, 58, 237, 0.22)',
+  neutral: 'rgba(165, 161, 194, 0.12)',
+} as const;
+
+/** Dark text for use on the lime accent (the Age button and accent chips). */
+export const onAccent = '#0F0E1A';
+
+/** Light violet for text that names the brand purple (the primary itself is too dark for text on dark cards). */
+export const violetSoft = '#C4B5FD';
+
+// ---- u4-work: chips, badges, sheets and gain/loss colours for Work & School, Assets and Activities ----
+export const workUi = {
+  /** Minimum touch target (px) for controls on these screens. */
+  touch: 44,
+  gain: colors.success,
+  loss: colors.danger,
+  chipBg: colors.bgElevated,
+  chipBorder: colors.cardBorder,
+  chipSelectedBg: 'rgba(124, 58, 237, 0.32)',
+  chipSelectedBorder: '#A78BFA',
+  badgeNeutralBg: 'rgba(165, 161, 194, 0.14)',
+  badgeGoodBg: 'rgba(74, 222, 128, 0.14)',
+  badgeBadBg: 'rgba(248, 113, 113, 0.14)',
+  badgeEnergyBg: 'rgba(251, 191, 36, 0.14)',
+  badgeInfoBg: 'rgba(96, 165, 250, 0.14)',
+  rowDisabledBg: '#1C1A33',
+  sheetBg: colors.card,
+  sheetHandle: '#4B4775',
+  meterEmpty: colors.bgElevated,
+} as const;
+
+// ── u5-legacy: tombstone, graveyard and legacy screens ──────────────────────
+export const legacyColors = {
+  /** Tombstone face and its carved edge. */
+  stone: '#2A2740',
+  stoneEdge: '#3D3866',
+  /** Gold for a ribbon earned for the first time. */
+  newRibbon: '#FBBF24',
+  /** Locked ribbon tile background. */
+  lockedTile: '#1A1830',
+  /** Secondary text on an accent (lime) surface. */
+  onAccentMuted: '#2E3B10',
+} as const;

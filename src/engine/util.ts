@@ -81,22 +81,38 @@ export function netWorth(state: GameState): number {
   return Math.round(state.finances.cash + assets + invest - state.finances.debt - state.education.studentDebt);
 }
 
-export function formatMoney(amount: number, countryCode: string): string {
-  const c = getCountry(countryCode);
-  const abs = Math.abs(amount);
-  const sign = amount < 0 ? '-' : '';
-  let body: string;
-  if (abs >= 1_000_000_000) body = `${(abs / 1_000_000_000).toFixed(abs >= 10_000_000_000 ? 0 : 1)}B`;
-  else if (abs >= 1_000_000) body = `${(abs / 1_000_000).toFixed(abs >= 10_000_000 ? 0 : 1)}M`;
-  else if (abs >= 100_000) body = `${Math.round(abs / 1000)}K`;
-  else body = Math.round(abs).toLocaleString('en-US');
-  return `${sign}${c.currencySymbol}${body}`;
+/** "999", "12,450", "450K", "2.4M", "18M", "1.2B": an absolute amount, shortened once it gets long. */
+function abbreviateAmount(abs: number): string {
+  const units: [number, string][] = [[1e12, 'T'], [1e9, 'B'], [1e6, 'M']];
+  for (const [size, suffix] of units) {
+    // 999,600 reads "1.0M", not "1000K".
+    if (abs >= size * 0.9995) {
+      const v = abs / size;
+      return `${v >= 9.95 ? Math.round(v) : v.toFixed(1)}${suffix}`;
+    }
+  }
+  if (abs >= 100_000) return `${Math.round(abs / 1000)}K`;
+  return Math.round(abs).toLocaleString('en-US');
 }
 
+/**
+ * Money for display, abbreviated ("₹2.4M"). Game amounts are USD-based units scaled by the
+ * country's salary multiplier; the country's `fxRate` converts them to local currency here,
+ * for display only. Never parse the result back into a number: keep the raw amount instead.
+ */
+export function formatMoney(amount: number, countryCode: string): string {
+  const c = getCountry(countryCode);
+  const local = amount * c.fxRate;
+  const sign = Math.round(local) < 0 ? '-' : '';
+  return `${sign}${c.currencySymbol}${abbreviateAmount(Math.abs(local))}`;
+}
+
+/** Money for display with full digits ("₹2,412,000"), converted to local currency like formatMoney. */
 export function formatMoneyFull(amount: number, countryCode: string): string {
   const c = getCountry(countryCode);
-  const sign = amount < 0 ? '-' : '';
-  return `${sign}${c.currencySymbol}${Math.round(Math.abs(amount)).toLocaleString('en-US')}`;
+  const local = Math.round(amount * c.fxRate);
+  const sign = local < 0 ? '-' : '';
+  return `${sign}${c.currencySymbol}${Math.abs(local).toLocaleString('en-US')}`;
 }
 
 export function fullName(p: { firstName: string; lastName: string }): string {

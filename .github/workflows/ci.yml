@@ -24,6 +24,8 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Scripted playthrough against the web export
         run: node e2e/playthrough.mjs
+      - name: Life screen journal, toasts and profile checks
+        run: node e2e/life-ui.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

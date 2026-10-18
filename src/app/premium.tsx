@@ -7,7 +7,7 @@ import { Button, Card, Screen, T } from '@/components/ui';
 import { buyPremium, restorePremium } from '@/services/monetization';
 import { purchases, type PremiumOffer } from '@/services/purchases';
 import { useSettingsStore } from '@/store/settingsStore';
-import { colors, spacing, typography } from '@/theme';
+import { spacing, typography } from '@/theme';
 
 const PERKS = [
   ['🚫', 'No ads, ever', 'No banners, no interstitials. Rewarded perks are granted instantly, within the same daily limits.'],
@@ -70,7 +70,12 @@ export default function PremiumScreen() {
           </Card>
         ) : (
           <>
-            <Button testID="buy-premium" title={offer ? `Unlock Premium · ${offer.priceString}` : supported ? 'Unlock Premium' : 'Unlock Premium (unavailable in this build)'} size="lg" variant="accent" loading={busy} disabled={!supported} onPress={() => void buy()} />
+            <Button testID="buy-premium" title={offer ? `Unlock Premium · ${offer.priceString}` : 'Unlock Premium'} size="lg" variant="accent" loading={busy} disabled={!supported} onPress={() => void buy()} />
+            {!supported ? (
+              <T kind="small" style={styles.center} testID="premium-unavailable">
+                Purchases are not available in this version. Get LifeLoop from the App Store or Google Play to buy Premium.
+              </T>
+            ) : null}
             <Button title="Restore purchases" variant="ghost" onPress={() => void restorePremium().then((ok) => setMsg(ok ? 'Premium restored. Thank you!' : 'No previous purchase found for this store account.'))} testID="premium-restore" />
           </>
         )}
@@ -79,7 +84,7 @@ export default function PremiumScreen() {
             {msg}
           </T>
         ) : null}
-        <T kind="small" style={{ textAlign: 'center', color: colors.textFaint }}>
+        <T kind="small" style={styles.center}>
           One-time purchase. Not a subscription. Price shown in your local currency by the store.
         </T>
       </ScrollView>
@@ -94,4 +99,5 @@ const styles = StyleSheet.create({
   card: { gap: spacing.md },
   perk: { flexDirection: 'row', gap: spacing.md, alignItems: 'flex-start' },
   perkEmoji: { fontSize: 24, width: 32 },
+  center: { textAlign: 'center' },
 });

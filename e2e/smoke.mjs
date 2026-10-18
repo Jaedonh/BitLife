@@ -14,7 +14,7 @@ import path from 'node:path';
 
 const DIST = path.resolve('dist');
 const OUT = path.resolve('e2e/screenshots');
-const PORT = 8123;
+const PORT = Number(process.env.E2E_PORT ?? 8123);
 /** Serve and open the export under a subpath, as GitHub Pages does (e.g. BASE_PATH=/BitLife). */
 const BASE = (process.env.BASE_PATH ?? '').replace(/\/$/, '');
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.ico': 'image/x-icon', '.json': 'application/json', '.ttf': 'font/ttf', '.woff2': 'font/woff2', '.svg': 'image/svg+xml' };

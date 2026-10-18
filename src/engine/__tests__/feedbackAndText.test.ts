@@ -156,7 +156,8 @@ describe('obituaries fit the age (F17)', () => {
   it('a 19-year-old is not mocked for never marrying or for student debt', () => {
     const s = ageTo(base, 19);
     const obit = markDeath({ ...s, finances: { ...s.finances, cash: 0, debt: 4_000 } }, 'a car crash').death!.obituary;
-    expect(obit).toMatch(/left behind debts of £4,000\./);
+    // 4,000 game units shown in pounds at the display rate (0.79).
+    expect(obit).toMatch(/left behind debts of £3,160\./);
     expect(obit).not.toMatch(/never married|surprised no one/);
   });
 

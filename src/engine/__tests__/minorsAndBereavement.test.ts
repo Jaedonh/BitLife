@@ -154,3 +154,28 @@ describe('an event death runs the same handling as a natural death', () => {
     expect(after.log.filter((l) => l.text.startsWith('My mother')).length).toBe(0);
   });
 });
+
+describe("a child's doctor visits and outings", () => {
+  it("are paid by the parents, so a baby can see a doctor with no money of their own", () => {
+    const s = lifeAt(1);
+    const before = Object.values(s.people).filter((p) => p.kind === 'mother' || p.kind === 'father').reduce((n, p) => n + p.money, 0);
+    const after = applyAction(s, { type: 'activity', id: 'doctor' });
+    expect(after.lastResult?.kind).toBe('good');
+    expect(after.finances.cash).toBe(0);
+    expect(after.finances.debt).toBe(0);
+    const paid = before - Object.values(after.people).filter((p) => p.kind === 'mother' || p.kind === 'father').reduce((n, p) => n + p.money, 0);
+    expect(paid).toBeGreaterThan(0);
+    expect(after.lastResult?.moneyDelta).toBeUndefined();
+  });
+
+  it('fall back on the child\'s own cash when the parents cannot cover it, and are refused when neither can', () => {
+    let s = lifeAt(10);
+    for (const p of Object.values(s.people)) if (p.kind === 'mother' || p.kind === 'father') s = patch(s, p.id, { money: 0 });
+    expect(applyAction(s, { type: 'activity', id: 'doctor' }).lastResult?.text).toBe("Can't afford it");
+    s = { ...s, finances: { ...s.finances, cash: 100_000 } };
+    const after = applyAction(s, { type: 'activity', id: 'doctor' });
+    expect(after.finances.cash).toBeLessThan(100_000);
+    expect(after.lastResult?.moneyDelta).toBe(after.finances.cash - 100_000);
+  });
+});
+

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { ScreenHeader } from '@/components/game/ScreenHeader';
-import { Button, Card, Screen, T } from '@/components/ui';
+import { Button, Card, confirmAction, Screen, T } from '@/components/ui';
 import { COUNTRIES } from '@/data/countries';
 import type { Gender, StatId, Stats } from '@/engine/types';
 import { useGameStore } from '@/store/gameStore';
@@ -23,7 +23,10 @@ export default function NewLifeScreen() {
   const [stats, setStats] = useState<Stats>({ happiness: 80, health: 90, smarts: 60, looks: 60 });
   const [wealthy, setWealthy] = useState(false);
 
-  const start = () => {
+  const living = useGameStore((s) => !!s.game?.alive);
+
+  const start = async () => {
+    if (living && !(await confirmAction('Start a new life?', 'Your current life will be lost.', 'Start over'))) return;
     newLife({
       firstName: firstName || undefined,
       lastName: lastName || undefined,

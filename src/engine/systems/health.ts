@@ -3,6 +3,7 @@ import { ILLNESSES, ILLNESS_BY_ID, shortIllnessName } from '@/data/illnesses';
 import { giveIllness } from '../events/effects';
 import { scaleMoney } from '../events/text';
 import type { Rng } from '../rng';
+import { spend } from './guardians';
 import type { AddictionKind, GameState } from '../types';
 import { addMoney, addStats, joinList, log, setResult } from '../util';
 
@@ -105,7 +106,7 @@ export function doctorCost(state: GameState): number {
 export function visitDoctor(state: GameState, rng: Rng): GameState {
   if (state.health.doctorVisitsThisYear >= 4) return setResult(state, 'The clinic is fully booked for the rest of the year.', 'info');
   const cost = doctorCost(state);
-  let s = addMoney(state, -cost);
+  let s = spend(state, cost);
   s = { ...s, health: { ...s.health, doctorVisitsThisYear: s.health.doctorVisitsThisYear + 1 } };
   const cured: string[] = [];
   let curedSerious = false;
@@ -131,7 +132,7 @@ export function visitDoctor(state: GameState, rng: Rng): GameState {
   if (cured.length && !kept.length) lines.push(curedSerious ? "I'm on the mend." : "I'm feeling much better.");
   const text = lines.length ? lines.join(' ') : 'The doctor gave me a clean bill of health.';
   s = log(s, text, 'good');
-  return setResult(s, text, 'good', { statDeltas: { health: heal }, moneyDelta: -cost });
+  return setResult(s, text, 'good', { statDeltas: { health: heal }, moneyDelta: s.finances.cash - state.finances.cash || undefined });
 }
 
 /** Rehab: expensive, but knocks addictions down hard. */

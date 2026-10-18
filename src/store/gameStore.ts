@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 import { ageUp as engineAgeUp, applyAction, createLife, EVENT_REGISTRY, listingsBlocker, randomSeed, resolveChoice, secondChance, statBoostBlocker } from '@/engine';
-import type { GameState, LastResult, NewLifeOptions, PlayerAction } from '@/engine/types';
+import type { GameState, LastResult, LogKind, NewLifeOptions, PlayerAction } from '@/engine/types';
 import { ads } from '@/services/ads';
 import { track } from '@/services/analytics';
 import { canShowRewarded, recordAgeUp, recordInterstitialShown, recordRewardedUsed, shouldShowInterstitial } from '@/services/ads/policy';
@@ -60,29 +60,52 @@ let persistTimer: ReturnType<typeof setTimeout> | null = null;
 function persist(game: GameState | null) {
   if (persistTimer) clearTimeout(persistTimer);
   persistTimer = setTimeout(() => {
-    if (game) void writeJson(StorageKeys.save, game);
+    // lastResult is a toast for the moment it happened: never saved, so a relaunch never replays it.
+    if (game) void writeJson(StorageKeys.save, { ...game, lastResult: null });
     else void remove(StorageKeys.save);
   }, 150);
 }
 
-/** One-line recap of the year that just passed, shown as a toast. */
-function yearSummary(before: GameState, after: GameState): LastResult {
+/** Which of a year's journal lines is worth a toast: milestones and events first. */
+const HIGHLIGHT_RANK: Partial<Record<LogKind, number>> = { milestone: 4, event: 3, bad: 2, good: 2, money: 1 };
+
+/**
+ * The year's most notable new line, skipping any line that also happened last year (a debt
+ * reminder or a recurring chore would otherwise be the headline every single year).
+ */
+export function yearHighlight(before: GameState, after: GameState): string | null {
+  const lastYear = new Set(before.log.filter((l) => l.kind !== 'year' && l.age === before.character.age).map((l) => l.text));
+  let best: { text: string; rank: number } | null = null;
+  for (const l of after.log.slice(before.log.length)) {
+    const rank = HIGHLIGHT_RANK[l.kind] ?? 0;
+    if (!rank || lastYear.has(l.text)) continue;
+    if (!best || rank > best.rank) best = { text: l.text, rank };
+  }
+  return best?.text ?? null;
+}
+
+function yearDeltas(before: GameState, after: GameState): Pick<LastResult, 'statDeltas' | 'moneyDelta'> {
   const statDeltas: Partial<GameState['character']['stats']> = {};
   for (const k of ['happiness', 'health', 'smarts', 'looks'] as const) {
     const d = after.character.stats[k] - before.character.stats[k];
     if (d) statDeltas[k] = d;
   }
   const moneyDelta = after.finances.cash - before.finances.cash;
-  const highlight = after.log
-    .slice(before.log.length)
-    .find((l) => l.kind === 'milestone' || l.kind === 'bad' || l.kind === 'money' || l.kind === 'good');
+  return { statDeltas, moneyDelta: moneyDelta || undefined };
+}
+
+/** One-line recap of the year that just passed, shown as a toast ("2011 · Age 12 · highlight"). */
+function yearSummary(before: GameState, after: GameState): LastResult {
+  const highlight = yearHighlight(before, after);
   return {
-    text: `${after.year} · Age ${after.character.age}${highlight ? ` · ${highlight.text}` : ''}`,
-    kind: 'info',
-    statDeltas,
-    moneyDelta: moneyDelta || undefined,
+    text: `${after.year} · Age ${after.character.age}${highlight ? ` · ${highlight}` : ''}`,
+    kind: 'year',
+    ...yearDeltas(before, after),
   };
 }
+
+/** The state just before the Age+ whose recap is waiting for that year's event cards to close. */
+let summaryBase: GameState | null = null;
 
 function recordDeath(game: GameState) {
   if (game.alive || !game.death) return;
@@ -111,8 +134,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   pendingSummary: null,
   hydrate: async () => {
     const raw = await readJson<unknown>(StorageKeys.save);
-    const game = migrateSave(raw);
-    if (raw && !game) void remove(StorageKeys.save);
+    const migrated = migrateSave(raw);
+    if (raw && !migrated) void remove(StorageKeys.save);
+    // Saves written before results were stripped may still carry one: it must not replay at launch.
+    const game = migrated && migrated.lastResult ? { ...migrated, lastResult: null } : migrated;
     set({ hydrated: true, game });
   },
   newLife: (options = {}) => {
@@ -150,6 +175,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!current || current.character.id !== g.character.id || current.updatedAt !== g.updatedAt) return;
     let next = { ...engineAgeUp(current), updatedAt: Date.now() };
     const summary = next.alive ? yearSummary(current, next) : null;
+    summaryBase = summary && next.pendingEvent ? current : null;
     if (summary && !next.pendingEvent) {
       next = { ...next, lastResult: summary };
       set({ game: next, pendingSummary: null });
@@ -167,7 +193,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     let next = { ...resolveChoice(g, choiceId, EVENT_REGISTRY), updatedAt: Date.now() };
     const summary = get().pendingSummary;
     if (summary && !next.pendingEvent && next.alive) {
-      next = { ...next, lastResult: summary };
+      // The recap's numbers cover the whole Age+, the choices just made on the year's cards included.
+      const base = summaryBase && summaryBase.character.id === next.character.id ? summaryBase : null;
+      summaryBase = null;
+      next = { ...next, lastResult: base ? { ...summary, ...yearDeltas(base, next) } : summary };
       set({ game: next, pendingSummary: null });
     } else {
       set({ game: next });

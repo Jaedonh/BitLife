@@ -1,11 +1,14 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { getCountry } from '@/data/countries';
 import { STAGE_LABELS } from '@/engine';
 import type { GameState } from '@/engine/types';
 import { employerLabel, formatMoney } from '@/engine/util';
 import { StatBar } from '@/components/ui';
-import { colors, radius, spacing, typography } from '@/theme';
+import { useSettingsStore } from '@/store/settingsStore';
+import { colors, lifeTints, radius, spacing, typography } from '@/theme';
+import { avatarFor, totalDebt } from './lifeFormat';
 
 /** One line for where a life stands right now: "Barista · Zenith Coffee", "High school", "Toddler". */
 export function lifeStatus(game: GameState): string {
@@ -30,15 +33,63 @@ export function lifeStatus(game: GameState): string {
                   : 'Unemployed';
 }
 
-export function StatsHeader({ game }: { game: GameState }) {
+/** Energy chip; pulses once when the year's energy runs out. */
+function EnergyChip({ energy, max }: { energy: number; max: number }) {
+  const empty = energy <= 0;
+  const [pulse] = useState(() => new Animated.Value(1));
+  const wasEmpty = useRef(empty);
+  useEffect(() => {
+    if (empty && !wasEmpty.current) {
+      const native = Platform.OS !== 'web';
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1.12, duration: 140, useNativeDriver: native }),
+        Animated.timing(pulse, { toValue: 1, duration: 140, useNativeDriver: native }),
+        Animated.timing(pulse, { toValue: 1.12, duration: 140, useNativeDriver: native }),
+        Animated.timing(pulse, { toValue: 1, duration: 160, useNativeDriver: native }),
+      ]).start();
+    }
+    wasEmpty.current = empty;
+  }, [empty, pulse]);
+  return (
+    <Animated.View style={[styles.chip, empty ? styles.chipWarn : styles.chipEnergy, { transform: [{ scale: pulse }] }]} testID="chip-energy">
+      <Text style={[styles.chipText, empty && { color: colors.warning }]}>{empty ? '⚡ Out of energy' : `⚡ Energy ${energy}/${max}`}</Text>
+    </Animated.View>
+  );
+}
+
+export function StatsHeader({ game, onOpenProfile }: { game: GameState; onOpenProfile?: () => void }) {
+  const showKarma = useSettingsStore((s) => s.settings.showKarma);
   const c = game.character;
   const country = getCountry(c.countryCode);
   const subtitle = lifeStatus(game);
+  const debt = totalDebt(game);
+  const cash = formatMoney(game.finances.cash, c.countryCode);
+  const debtText = formatMoney(debt, c.countryCode);
+  const spoken = [
+    `${c.firstName} ${c.lastName}, age ${c.age}, ${subtitle}`,
+    `${cash} cash${debt > 0 ? `, ${debtText} debt` : ''}`,
+    `Happiness ${c.stats.happiness}, Health ${c.stats.health}, Smarts ${c.stats.smarts}, Looks ${c.stats.looks} percent`,
+    `Energy ${c.energy} of ${c.energyMax}`,
+    c.fame > 0 ? `Fame ${c.fame}` : '',
+    showKarma ? `Karma ${c.karma}` : '',
+  ]
+    .filter(Boolean)
+    .join('. ');
   return (
-    <View style={styles.card} testID="stats-header">
+    <Pressable
+      testID="stats-header"
+      onPress={onOpenProfile}
+      disabled={!onOpenProfile}
+      accessibilityRole="button"
+      accessibilityLabel={spoken}
+      accessibilityHint="Opens your profile"
+      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+    >
       <View style={styles.top}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{c.gender === 'male' ? '👦' : '👧'}</Text>
+          <Text style={styles.avatarText} testID="char-avatar">
+            {avatarFor(c.age, c.gender)}
+          </Text>
         </View>
         <View style={styles.names}>
           <Text style={typography.heading} numberOfLines={1} testID="char-name">
@@ -53,8 +104,13 @@ export function StatsHeader({ game }: { game: GameState }) {
             {c.age}
           </Text>
           <Text style={styles.money} testID="char-money">
-            {formatMoney(game.finances.cash, c.countryCode)}
+            {cash}
           </Text>
+          {debt > 0 ? (
+            <Text style={styles.debt} testID="char-debt" numberOfLines={1}>
+              {debtText} debt
+            </Text>
+          ) : null}
         </View>
       </View>
       <View style={styles.bars}>
@@ -63,7 +119,21 @@ export function StatsHeader({ game }: { game: GameState }) {
         <StatBar label="Smarts" value={c.stats.smarts} color={colors.smarts} testID="stat-smarts" />
         <StatBar label="Looks" value={c.stats.looks} color={colors.looks} testID="stat-looks" />
       </View>
-    </View>
+      <View style={styles.chips}>
+        <EnergyChip energy={c.energy} max={c.energyMax} />
+        {c.fame > 0 ? (
+          <View style={[styles.chip, styles.chipFame]} testID="chip-fame">
+            <Text style={styles.chipText}>⭐ Fame {c.fame}</Text>
+          </View>
+        ) : null}
+        {showKarma ? (
+          <View style={[styles.chip, styles.chipKarma]} testID="chip-karma">
+            <Text style={styles.chipText}>☯ Karma {c.karma}</Text>
+          </View>
+        ) : null}
+        {onOpenProfile && !(c.fame > 0 && showKarma) ? <Text style={styles.more}>Profile ›</Text> : null}
+      </View>
+    </Pressable>
   );
 }
 
@@ -77,6 +147,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
     gap: spacing.md,
   },
+  pressed: { opacity: 0.92 },
   top: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.primaryDark, alignItems: 'center', justifyContent: 'center' },
   avatarText: { fontSize: 26 },
@@ -84,5 +155,14 @@ const styles = StyleSheet.create({
   right: { alignItems: 'flex-end' },
   age: { ...typography.title, fontSize: 24, lineHeight: 28 },
   money: { ...typography.small, color: colors.money, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  debt: { fontSize: 12, lineHeight: 16, color: colors.danger, fontWeight: '700', fontVariant: ['tabular-nums'] },
   bars: { gap: 6 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6, marginTop: -2 },
+  chip: { borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1 },
+  chipEnergy: { backgroundColor: lifeTints.neutral, borderColor: colors.cardBorder },
+  chipWarn: { backgroundColor: lifeTints.warning, borderColor: colors.warning },
+  chipFame: { backgroundColor: lifeTints.warning, borderColor: 'transparent' },
+  chipKarma: { backgroundColor: lifeTints.primary, borderColor: 'transparent' },
+  chipText: { color: colors.text, fontSize: 12, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  more: { ...typography.label, marginLeft: 'auto', color: colors.textMuted },
 });

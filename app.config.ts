@@ -123,7 +123,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bundler: 'metro',
   },
   plugins: [
-    'expo-router',
+    ['expo-router', { sitemap: false }],
     './plugins/withAndroidGameCategory',
     [
       'expo-splash-screen',

@@ -2,10 +2,10 @@ import * as Application from 'expo-application';
 import { router } from 'expo-router';
 import * as StoreReview from 'expo-store-review';
 import { useState } from 'react';
-import { Alert, Linking, Platform, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Linking, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { ScreenHeader } from '@/components/game/ScreenHeader';
-import { Button, Card, Screen, Section, T } from '@/components/ui';
+import { Button, Card, confirmAction, Screen, Section, T } from '@/components/ui';
 import { PRIVACY_URL, SUPPORT_EMAIL } from '@/config/legal';
 import { usingTestAds } from '@/config/monetization';
 import { ads } from '@/services/ads';
@@ -30,19 +30,10 @@ export default function SettingsScreen() {
     setMsg(ok ? 'Premium restored. Thank you!' : 'No previous purchase found for this store account.');
   };
 
-  const deleteLife = () => {
-    const go = () => {
-      abandon();
-      router.replace('/');
-    };
-    if (Platform.OS === 'web') {
-        if (globalThis.confirm?.('Delete the current life? This cannot be undone.')) go();
-      return;
-    }
-    Alert.alert('Delete current life?', 'This cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: go },
-    ]);
+  const deleteLife = async () => {
+    if (!(await confirmAction('Delete current life?', 'This cannot be undone.', 'Delete'))) return;
+    abandon();
+    router.replace('/');
   };
 
   return (
@@ -51,17 +42,18 @@ export default function SettingsScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <Section title="Gameplay">
           <Card style={styles.card}>
-            <Row label="Haptic feedback" value={settings.haptics} onChange={(v) => setSetting('haptics', v)} />
-            <Row label="Show karma on tombstone & profile" value={settings.showKarma} onChange={(v) => setSetting('showKarma', v)} />
+            <Row label="Haptic feedback" detail="A light tap when you choose an answer." value={settings.haptics} onChange={(v) => setSetting('haptics', v)} testID="setting-haptics" />
+            <View style={styles.divider} />
+            <Row label="Show karma" detail="Karma is hidden by default. Turn this on to see it on your life card and on the tombstone." value={settings.showKarma} onChange={(v) => setSetting('showKarma', v)} testID="setting-karma" />
           </Card>
         </Section>
         <Section title="Premium">
           <Card style={styles.card}>
             <T kind="body">{premium ? '✨ Premium is active on this device.' : 'Remove ads and unlock premium perks with a one-time purchase.'}</T>
             <T kind="small">Free forever: every event, career, country, relationship, asset, activity, crime and ribbon, one generation hand-off per family line, and all future core content. Premium only adds no ads, custom starting stats, unlimited generations and instant second chances.</T>
-            <View style={styles.row}>
-              {!premium ? <Button title="Go Premium" onPress={() => router.push('/premium')} style={styles.flex} testID="settings-premium" /> : null}
-              <Button title="Restore purchases" variant="secondary" loading={restoring} onPress={() => void restore()} style={styles.flex} testID="restore-purchases" />
+            <View style={styles.stack}>
+              {!premium ? <Button title="Go Premium" onPress={() => router.push('/premium')} testID="settings-premium" /> : null}
+              <Button title="Restore purchases" variant="secondary" loading={restoring} onPress={() => void restore()} testID="restore-purchases" />
             </View>
             {msg ? <T kind="small">{msg}</T> : null}
           </Card>
@@ -69,9 +61,9 @@ export default function SettingsScreen() {
         <Section title="Privacy">
           <Card style={styles.card}>
             <T kind="small">LifeLoop stores your saves on this device only. Ads are provided by Google AdMob; purchases are processed by the app store and RevenueCat.</T>
-            <View style={styles.row}>
-              <Button title="Privacy policy" variant="secondary" onPress={() => void Linking.openURL(PRIVACY_URL)} style={styles.flex} testID="privacy-policy" />
-              {ads.isPrivacyOptionsRequired() ? <Button title="Ad privacy options" variant="secondary" onPress={() => void ads.showPrivacyOptions()} style={styles.flex} /> : null}
+            <View style={styles.stack}>
+              <Button title="Privacy policy" variant="secondary" onPress={() => void Linking.openURL(PRIVACY_URL)} testID="privacy-policy" />
+              {ads.isPrivacyOptionsRequired() ? <Button title="Ad privacy options" variant="secondary" onPress={() => void ads.showPrivacyOptions()} /> : null}
             </View>
           </Card>
         </Section>
@@ -85,7 +77,8 @@ export default function SettingsScreen() {
         </Section>
         <Section title="Danger zone">
           <Card style={styles.card}>
-            <Button title="Delete current life" variant="danger" onPress={deleteLife} disabled={!game} testID="delete-life" />
+            <T kind="small">Ends the life you are playing without a tombstone. Your graveyard and purchases stay.</T>
+            <Button title="Delete current life" variant="danger" onPress={() => void deleteLife()} disabled={!game} testID="delete-life" />
           </Card>
         </Section>
         <Text style={styles.version}>
@@ -98,12 +91,30 @@ export default function SettingsScreen() {
   );
 }
 
-function Row({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
+/** react-native-web paints the "on" thumb teal unless told otherwise (activeThumbColor is a web-only prop). */
+const WEB_SWITCH = (Platform.OS === 'web' ? { activeThumbColor: colors.text } : {}) as object;
+
+/** A whole-row toggle: the label, its explanation and the switch form one 48+ px tap target. */
+function Row({ label, detail, value, onChange, testID }: { label: string; detail: string; value: boolean; onChange: (v: boolean) => void; testID: string }) {
   return (
-    <View style={styles.toggle}>
-      <Text style={typography.body}>{label}</Text>
-      <Switch value={value} onValueChange={onChange} trackColor={{ true: colors.primary, false: colors.cardBorder }} thumbColor={colors.text} />
-    </View>
+    <Pressable
+      onPress={() => onChange(!value)}
+      accessibilityRole="switch"
+      accessibilityLabel={label}
+      accessibilityHint={detail}
+      accessibilityState={{ checked: value }}
+      style={({ pressed }) => [styles.toggle, pressed && styles.pressed]}
+      testID={testID}
+    >
+      <View style={styles.toggleText}>
+        <Text style={typography.subheading}>{label}</Text>
+        <Text style={typography.small}>{detail}</Text>
+      </View>
+      {/* The row handles the tap; the switch only shows the state, so one tap never toggles twice. */}
+      <View pointerEvents="none" accessible={false} importantForAccessibility="no-hide-descendants">
+        <Switch value={value} trackColor={{ true: colors.primary, false: colors.cardBorder }} thumbColor={colors.text} {...WEB_SWITCH} />
+      </View>
+    </Pressable>
   );
 }
 
@@ -111,7 +122,11 @@ const styles = StyleSheet.create({
   content: { padding: spacing.lg, paddingBottom: spacing.xxl },
   card: { gap: spacing.sm },
   row: { flexDirection: 'row', gap: spacing.sm },
+  stack: { gap: spacing.sm },
   flex: { flex: 1 },
-  toggle: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  toggle: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.md, minHeight: 48, paddingVertical: spacing.xs },
+  toggleText: { flex: 1, gap: 2 },
+  pressed: { opacity: 0.8 },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.cardBorder },
   version: { ...typography.small, textAlign: 'center', marginTop: spacing.lg },
 });

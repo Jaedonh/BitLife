@@ -5,7 +5,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useGameStore } from '@/store/gameStore';
 import { useSettingsStore } from '@/store/settingsStore';
-import { colors, radius, spacing } from '@/theme';
+import { colors, onAccent, radius, spacing } from '@/theme';
+
+/** How far the round Age button rises above the bar. Content behind the bar must leave this much room. */
+export const AGE_BUTTON_OVERHANG = 28;
 
 const TABS: { key: string; label: string; emoji: string; href: '/occupation' | '/assets' | '/relationships' | '/activities' }[] = [
   { key: 'occupation', label: 'Work', emoji: '💼', href: '/occupation' },
@@ -78,7 +81,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: -28,
+    marginTop: -AGE_BUTTON_OVERHANG,
     borderWidth: 4,
     borderColor: colors.bgElevated,
     shadowColor: colors.accent,
@@ -89,6 +92,6 @@ const styles = StyleSheet.create({
   },
   agePressed: { transform: [{ scale: 0.96 }] },
   ageDisabled: { opacity: 0.4 },
-  agePlus: { color: '#0F0E1A', fontSize: 30, fontWeight: '900', lineHeight: 32 },
-  ageLabel: { color: '#0F0E1A', fontSize: 11, fontWeight: '800', marginTop: -2, letterSpacing: 0.5 },
+  agePlus: { color: onAccent, fontSize: 30, fontWeight: '900', lineHeight: 32 },
+  ageLabel: { color: onAccent, fontSize: 11, fontWeight: '800', marginTop: -2, letterSpacing: 0.5 },
 });

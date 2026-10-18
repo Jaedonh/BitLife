@@ -1,21 +1,34 @@
-import { router } from 'expo-router';
+import * as ExpoRouter from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { formatMoney } from '@/engine/util';
 import { useGameStore } from '@/store/gameStore';
 import { colors, spacing, typography } from '@/theme';
+import { isLifeRoute, totalDebt } from './lifeFormat';
 
-export function ScreenHeader({ title, subtitle, onBack }: { title: string; subtitle?: string; onBack?: () => void }) {
+// Rendered outside a router (unit tests of a single screen) there is no pathname to read.
+const usePathnameSafe: () => string | null = typeof ExpoRouter.usePathname === 'function' ? ExpoRouter.usePathname : () => null;
+
+/**
+ * Title bar for section and menu screens. Cash (and debt, when there is any) shows only for a
+ * living character on the screens about that life: `showMoney` decides explicitly, otherwise
+ * the current route does (Work, Assets, People, a person, Activities).
+ */
+export function ScreenHeader({ title, subtitle, onBack, showMoney }: { title: string; subtitle?: string; onBack?: () => void; showMoney?: boolean }) {
   const game = useGameStore((s) => s.game);
+  const pathname = usePathnameSafe();
+  const wantMoney = showMoney ?? isLifeRoute(pathname);
+  const money = game && game.alive && wantMoney ? game : null;
+  const debt = money ? totalDebt(money) : 0;
   return (
     <View style={styles.row}>
       <Pressable
         testID="back"
         accessibilityRole="button"
         accessibilityLabel="Back"
-        onPress={onBack ?? (() => (router.canGoBack() ? router.back() : router.replace('/')))}
-        hitSlop={12}
-        style={styles.back}
+        onPress={onBack ?? (() => (ExpoRouter.router.canGoBack() ? ExpoRouter.router.back() : ExpoRouter.router.replace('/')))}
+        hitSlop={4}
+        style={({ pressed }) => [styles.back, pressed && styles.pressed]}
       >
         <Text style={styles.backText}>‹</Text>
       </Pressable>
@@ -29,19 +42,29 @@ export function ScreenHeader({ title, subtitle, onBack }: { title: string; subti
           </Text>
         ) : null}
       </View>
-      {game ? (
-        <Text style={styles.money} testID="header-money">
-          {formatMoney(game.finances.cash, game.character.countryCode)}
-        </Text>
+      {money ? (
+        <View style={styles.moneyCol} accessible accessibilityLabel={`${formatMoney(money.finances.cash, money.character.countryCode)} cash${debt > 0 ? `, ${formatMoney(debt, money.character.countryCode)} debt` : ''}`}>
+          <Text style={styles.money} testID="header-money">
+            {formatMoney(money.finances.cash, money.character.countryCode)}
+          </Text>
+          {debt > 0 ? (
+            <Text style={styles.debt} testID="header-debt">
+              {formatMoney(debt, money.character.countryCode)} debt
+            </Text>
+          ) : null}
+        </View>
       ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
-  back: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', borderRadius: 18, backgroundColor: colors.bgElevated },
-  backText: { color: colors.text, fontSize: 26, lineHeight: 28, marginTop: -2 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
+  back: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 22, backgroundColor: colors.bgElevated },
+  pressed: { opacity: 0.7 },
+  backText: { color: colors.text, fontSize: 28, lineHeight: 30, marginTop: -2 },
   titles: { flex: 1 },
+  moneyCol: { alignItems: 'flex-end' },
   money: { ...typography.subheading, color: colors.money, fontVariant: ['tabular-nums'] },
+  debt: { fontSize: 12, lineHeight: 16, color: colors.danger, fontWeight: '700', fontVariant: ['tabular-nums'] },
 });

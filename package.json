@@ -15,6 +15,7 @@
     "build:web": "expo export --platform web",
     "doctor": "expo-doctor",
     "e2e": "node e2e/playthrough.mjs",
+    "e2e:life": "node e2e/life-ui.mjs",
     "check:privacy": "tsx scripts/check-privacy-url.ts",
     "eas-build-post-install": "if [ \"$APP_VARIANT\" = \"production\" ]; then npm run check:privacy; fi",
     "balance": "tsx scripts/balance-report.ts",

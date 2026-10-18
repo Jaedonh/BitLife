@@ -54,7 +54,8 @@ describe('event flow', () => {
 
   it('scales money by country', () => {
     const s = createLife({ countryCode: 'IN' }, 1);
-    expect(renderText('{{$1000}}', s)).toBe('₹150');
+    // $1,000 scales to 150 game units (salary multiplier 0.15), shown in rupees at 83 per dollar.
+    expect(renderText('{{$1000}}', s)).toBe('₹12,450');
   });
 
   it('schedules at most a few events per year from the real registry', () => {
