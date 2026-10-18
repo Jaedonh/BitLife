@@ -359,4 +359,10 @@ describe('asset conditions', () => {
     expect(evaluateCondition(withAsset('sedan', 'car'), { ownsAssetId: ['sedan', 'old_hatchback'] })).toBe(true);
     expect(evaluateCondition(withAsset('condo', 'house'), { noAsset: 'house' })).toBe(false);
   });
+
+  it('count compares a lifetime counter', () => {
+    const s = createLife({}, 12);
+    expect(evaluateCondition(s, { count: 'divorces', gte: 1 })).toBe(false);
+    expect(evaluateCondition({ ...s, counters: { ...s.counters, divorces: 2 } }, { count: 'divorces', gte: 1 })).toBe(true);
+  });
 });

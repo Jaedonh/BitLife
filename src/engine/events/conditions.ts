@@ -59,6 +59,7 @@ export function evaluateCondition(state: GameState, c: Condition): boolean {
   if ('noAddiction' in c) return (state.health.addictions[c.noAddiction] ?? 0) <= 0;
   if ('ownsAsset' in c) return state.assets.some((a) => a.kind === c.ownsAsset);
   if ('noAsset' in c) return !state.assets.some((a) => a.kind === c.noAsset);
+  if ('count' in c) return cmp(state.counters[c.count] ?? 0, c);
   if ('ownsAssetId' in c) return state.assets.some((a) => c.ownsAssetId.includes(a.defId));
   if ('hustle' in c) return (state.career.hustle !== null) === c.hustle;
   if ('retired' in c) return state.career.retired === c.retired;

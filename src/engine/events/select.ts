@@ -28,7 +28,17 @@ export function eventCountForYear(age: number, rng: Rng): number {
 export function fitsState(state: GameState, def: EventDef): boolean {
   const age = state.character.age;
   if (age < def.minAge || age > def.maxAge) return false;
+  if (state.crime.inPrison && !writtenForPrison(def.conditions)) return false;
   return evaluateAll(state, def.conditions);
+}
+
+/**
+ * Prison is its own world: only events whose conditions require { inPrison: true } (at the top
+ * level or inside `all`) open there, random or queued. A follow-up queued before a choice that
+ * jailed the player is dropped instead of opening behind bars.
+ */
+function writtenForPrison(conditions: EventDef['conditions']): boolean {
+  return (conditions ?? []).some((c) => ('inPrison' in c && c.inPrison) || ('all' in c && writtenForPrison(c.all)));
 }
 
 export function isEligible(state: GameState, def: EventDef): boolean {

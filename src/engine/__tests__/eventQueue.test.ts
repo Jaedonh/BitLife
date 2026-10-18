@@ -39,7 +39,9 @@ const firstWalk: EventDef = {
   conditions: [{ hasPerson: ['pet'] }, { inPrison: false }],
   choices: [{ id: 'walk', label: 'Walk', effects: [] }],
 };
-const reg = makeRegistry([jail, outside, childhood, adopt, firstWalk]);
+const unguarded: EventDef = { ...base, id: 'test_unguarded', choices: [{ id: 'ok', label: 'OK', effects: [] }] };
+const inside: EventDef = { ...base, id: 'test_inside', conditions: [{ inPrison: true }], choices: [{ id: 'ok', label: 'OK', effects: [] }] };
+const reg = makeRegistry([jail, outside, childhood, adopt, firstWalk, unguarded, inside]);
 const queue = (...ids: string[]) => ids.map((eventId) => ({ eventId, context: {} }));
 
 describe('queued cards are re-checked when they open', () => {
@@ -53,6 +55,15 @@ describe('queued cards are re-checked when they open', () => {
     // Without the arrest the same card still opens.
     s = resolveChoice(s, 'free', reg);
     expect(s.pendingEvent?.eventId).toBe('test_outside');
+  });
+
+  it('in prison only opens cards written for prison, even ones with no prison condition', () => {
+    let s = openNextEvent({ ...adult(), eventQueue: queue('test_jail', 'test_unguarded', 'test_inside') }, reg);
+    s = resolveChoice(s, 'caught', reg);
+    expect(s.pendingEvent?.eventId).toBe('test_inside');
+    // Outside, the unguarded card opens as usual.
+    s = openNextEvent({ ...adult(), eventQueue: queue('test_unguarded') }, reg);
+    expect(s.pendingEvent?.eventId).toBe('test_unguarded');
   });
 
   it('skips a card that is outside its age range', () => {

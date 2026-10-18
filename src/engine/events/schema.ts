@@ -62,6 +62,8 @@ export type Condition =
   | { noAsset: AssetKind }
   /** Owns at least one asset with one of these definition ids (src/data/assets.ts), e.g. a real car rather than a bicycle. */
   | { ownsAssetId: string[] }
+  /** A lifetime counter, e.g. { count: 'divorces', gte: 1 } or { count: 'firings', gte: 2 }. */
+  | ({ count: keyof LifetimeCounters } & Comparator)
   | { hustle: boolean }
   | { retired: boolean }
   | { illnessCount: Comparator }
