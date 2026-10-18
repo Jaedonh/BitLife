@@ -1,7 +1,7 @@
 import { CRIME_BY_ID, type CrimeDef } from '@/data/crimes';
 import { sendToPrison } from '../events/effects';
 import { scaleMoney } from '../events/text';
-import { payForMinor } from './guardians';
+import { guardianFunds, payForMinor } from './guardians';
 import type { Rng } from '../rng';
 import type { ActionAvailability, GameState } from '../types';
 import { addKarma, addMoney, addStats, bump, clampStat, log, money, plural, setResult, actionCount, countAction } from '../util';
@@ -50,10 +50,13 @@ export function commitCrime(state: GameState, rng: Rng, id: string): GameState {
       const fine = scaleMoney(s, rng.int(100, 1500));
       // A minor's fine is paid by their parents (or waived), never turned into a child's debt.
       const minor = s.character.age < 18;
+      const parentsPay = minor && guardianFunds(s) > 0;
       s = minor ? payForMinor(s, fine) : addMoney(s, -fine);
-      const text = minor
-        ? `I was caught ${def.gerund}. My parents had to pay a ${money(s, fine)} fine, and it's on my record now.`
-        : `I was caught ${def.gerund} and fined ${money(s, fine)}. It's on my record now.`;
+      const text = !minor
+        ? `I was caught ${def.gerund} and fined ${money(s, fine)}. It's on my record now.`
+        : parentsPay
+          ? `I was caught ${def.gerund}. My parents had to pay a ${money(s, fine)} fine, and it's on my record now.`
+          : `I was caught ${def.gerund}. I was too young to be fined, but it's on my record now.`;
       s = log(s, text, 'bad');
       return setResult(s, text, 'bad', { moneyDelta: minor ? 0 : -fine });
     }

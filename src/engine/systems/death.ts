@@ -1,7 +1,7 @@
 import { getCountry } from '@/data/countries';
 import { GRAD_BY_ID, majorProse } from '@/data/majors';
 import type { GameState, Person } from '../types';
-import { deathPhrase, formatMoneyFull, fullName, joinList, log, netWorth, numberWord, pronouns, roleWithArticle } from '../util';
+import { deathPhrase, formatMoneyFull, fullName, joinList, log, netWorth, numberWord, pronouns, roleWithArticle, sentence } from '../util';
 import { awardRibbon } from './ribbons';
 
 const EPITAPHS = [
@@ -62,7 +62,7 @@ function degreePhrase(degree: string): string | null {
   }
 }
 
-const SCHOOL_STAGE: Record<string, string> = { primary: 'elementary school', middle: 'middle school', high: 'high school' };
+const SCHOOL_STAGE: Record<string, string> = { primary: 'elementary school', middle: 'middle school', high: 'high school', university: 'college', graduate: 'graduate school' };
 
 function relationLabel(p: Person): string {
   switch (p.kind) {
@@ -109,14 +109,16 @@ export function buildObituary(state: GameState, cause: string, worth: number, ri
   if (c.age < 18) {
     const stage = state.education.enrolled ? SCHOOL_STAGE[state.education.stage] : undefined;
     const schoolText = stage
-      ? `${p.Subject} was in ${stage}${lastJob ? ` and worked part-time as ${roleWithArticle(lastJob.title)} at ${lastJob.company}` : ''}.`
+      ? sentence(`${p.Subject} was in ${stage}${lastJob ? ` and worked part-time as ${roleWithArticle(lastJob.title)} at ${lastJob.company}` : ''}`)
       : c.age < 1
         ? `${p.Subject} was only a baby.`
         : c.age < 4
           ? `${p.Subject} was only a toddler.`
           : c.age < country.schoolStartAge
             ? `${p.Subject} had not started school yet.`
-            : `${p.Subject} had already left school.`;
+            : state.crime.inPrison || state.crime.prisonYearsTotal > 0
+              ? `${p.Subject} had been in school before ${p.possessive} sentence.`
+              : `${p.Subject} had already left school.`;
     const survivors = childSurvivors(state, p.possessive);
     const familyText = survivors ? ` ${p.Subject} is survived by ${survivors}.` : '';
     return `${opening} ${schoolText}${familyText}${crimeText} Remembered as: ${ribbonName}.`;
@@ -170,5 +172,5 @@ export function buildObituary(state: GameState, cause: string, worth: number, ri
       : worth < 1_000
         ? `${p.Subject} left behind next to nothing.`
         : `${p.Subject} left behind ${formatMoneyFull(worth, c.countryCode)}.`;
-  return `${opening} ${careerText}${eduText}.${familyText ? ` ${familyText}` : ''} ${moneyText}${crimeText} Remembered as: ${ribbonName}.`;
+  return `${opening} ${sentence(`${careerText}${eduText}`)}${familyText ? ` ${familyText}` : ''} ${moneyText}${crimeText} Remembered as: ${ribbonName}.`;
 }

@@ -18,3 +18,10 @@ export function payForMinor(state: GameState, cost: number): GameState {
   }
   return { ...state, people };
 }
+
+/** What the player's living parents and step-parents could pay toward a minor's cost right now. */
+export function guardianFunds(state: GameState): number {
+  return Object.values(state.people)
+    .filter((p) => p.alive && (p.kind === 'mother' || p.kind === 'father' || p.kind === 'stepmother' || p.kind === 'stepfather'))
+    .reduce((sum, p) => sum + Math.max(0, p.money), 0);
+}

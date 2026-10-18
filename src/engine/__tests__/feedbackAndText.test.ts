@@ -48,11 +48,14 @@ describe('result toasts report the change actually applied (F10)', () => {
     expect(after.lastResult).toMatchObject({ text: "Happiness +12. That's as high as it goes.", statDeltas: { happiness: 12 } });
   });
 
-  it('only refuses the boost outright when no stat can grow', () => {
+  it('a boost with no stat chosen goes to happiness, and is refused (not spent) when happiness is maxed', () => {
     const p = adult.character.potential;
-    const maxed = withStats(adult, { happiness: 100, health: p.health, smarts: p.smarts, looks: p.looks });
-    expect(statBoostBlocker(maxed, undefined)).toMatch(/already as high/);
-    expect(statBoostBlocker(withStats(maxed, { happiness: 60 }), undefined)).toBeNull();
+    const happy = withStats(adult, { happiness: 100, health: 40 });
+    expect(p.health).toBeGreaterThan(40);
+    expect(statBoostBlocker(happy, undefined)).toBe("I'm already as happy as I can be.");
+    const after = applyAction(happy, { type: 'rewarded', placement: 'statBoost' });
+    expect(after.counters.rewardedAdsUsed).toBe(happy.counters.rewardedAdsUsed);
+    expect(statBoostBlocker(withStats(happy, { happiness: 60 }), undefined)).toBeNull();
   });
 
   it('spending time with a distant relative claims the +1 it gives, not +3', () => {
@@ -164,3 +167,34 @@ describe('obituaries fit the age (F17)', () => {
     expect(obit).toMatch(/which surprised no one\./);
   });
 });
+
+describe('recheck follow-ups', () => {
+  const base = ageTo(createLife({ countryCode: 'US' }, 3), 20);
+  const job = (company: string, partTime: boolean) => ({ defId: 'cashier', title: 'Cashier', company, salary: 20_000, level: 0, performance: 50, yearsHeld: 1, yearsAtLevel: 1, category: 'service' as const, partTime, askedThisYear: false });
+
+  it('an obituary does not double the period after a company name ending in one', () => {
+    const adultDeath = markDeath({ ...base, career: { ...base.career, job: { ...base.career.job!, ...job('Northwind Inc.', false) } } }, 'a heart attack');
+    expect(adultDeath.death!.obituary).toContain('at Northwind Inc.');
+    expect(adultDeath.death!.obituary).not.toContain('..');
+    const teen = { ...base, character: { ...base.character, age: 16 }, education: { ...base.education, enrolled: true, stage: 'high' as const }, career: { ...base.career, job: { ...base.career.job!, ...job('Harvest Ltd.', true) } } };
+    expect(markDeath(teen, 'a car crash').death!.obituary).not.toContain('..');
+  });
+
+  it('rehab reports its cost in the toast', () => {
+    const s = { ...base, finances: { ...base.finances, cash: 50_000 }, health: { ...base.health, addictions: { alcohol: 50 } } };
+    const after = applyAction(s, { type: 'activity', id: 'rehab' });
+    expect(after.lastResult?.moneyDelta).toBe(after.finances.cash - s.finances.cash);
+    expect(after.lastResult?.moneyDelta).toBeLessThan(0);
+  });
+
+  it("a minor's fine with no parent to pay it is not said to be paid by parents", () => {
+    let caught: GameState | undefined;
+    for (let seed = 1; seed < 400 && !caught; seed++) {
+      const kid = { ...base, rng: { s: seed }, character: { ...base.character, age: 15 }, people: Object.fromEntries(Object.entries(base.people).map(([k, p]) => [k, p.kind === 'mother' || p.kind === 'father' ? { ...p, alive: false } : p])) };
+      const t = applyAction(kid, { type: 'crime', id: 'shoplift' });
+      if (t.lastResult?.text.includes('on my record')) caught = t;
+    }
+    expect(caught?.lastResult?.text).toMatch(/too young to be fined/);
+  });
+});
+

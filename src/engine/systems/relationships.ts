@@ -99,6 +99,18 @@ function relLabel(p: Person): string {
 }
 
 export function interact(state: GameState, rng: Rng, personId: string, interactionId: string): GameState {
+  const out = interactOnce(state, rng, personId, interactionId);
+  // A paid interaction that went ahead reports its cost in the toast, whatever the outcome (a ring for a 'no').
+  const def = INTERACTIONS.find((i) => i.id === interactionId);
+  const key = `${interactionId}:${personId}`;
+  const done = actionCount(out, key) > actionCount(state, key);
+  if (def?.cost && done && out.lastResult && out.lastResult.moneyDelta === undefined) {
+    return { ...out, lastResult: { ...out.lastResult, moneyDelta: -scaleMoney(state, def.cost) } };
+  }
+  return out;
+}
+
+function interactOnce(state: GameState, rng: Rng, personId: string, interactionId: string): GameState {
   const person = state.people[personId];
   if (!person || !person.alive) return setResult(state, 'They are no longer around.', 'bad');
   const def = INTERACTIONS.find((i) => i.id === interactionId);

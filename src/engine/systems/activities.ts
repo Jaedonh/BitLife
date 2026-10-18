@@ -42,8 +42,8 @@ export function doActivity(state: GameState, rng: Rng, id: string): GameState {
 
   if (def.id === 'doctor') return visitDoctor(s, rng);
   if (def.id === 'rehab') {
-    s = addMoney(s, -cost);
-    return attendRehab(s, rng);
+    s = attendRehab(addMoney(s, -cost), rng);
+    return s.lastResult ? { ...s, lastResult: { ...s.lastResult, moneyDelta: -cost } } : s;
   }
   s = addMoney(s, -cost);
 

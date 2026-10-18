@@ -85,7 +85,7 @@ const BOOST_MAXED: Record<keyof Stats, string> = {
  * to grow; without one, at least one stat must.
  */
 export function statBoostBlocker(state: GameState, option?: string): string | null {
-  if (option === undefined) return STAT_KEYS.some((k) => statBoostGain(state, k) > 0) ? null : 'All my stats are already as high as they can go.';
+  // With no option the boost goes to happiness (boostStat), so that is what is checked.
   const stat = boostStat(option);
   return statBoostGain(state, stat) > 0 ? null : BOOST_MAXED[stat];
 }
