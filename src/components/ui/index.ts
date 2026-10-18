@@ -5,3 +5,4 @@ export { Fill, Screen } from './Screen';
 export { Section } from './Section';
 export { StatBar } from './StatBar';
 export { T } from './Text';
+export { confirmAction } from './confirm';
