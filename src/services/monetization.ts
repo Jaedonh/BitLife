@@ -70,12 +70,24 @@ export async function buyPremium(): Promise<'purchased' | 'cancelled' | 'error' 
   return result;
 }
 
-export async function restorePremium(): Promise<boolean> {
+export type RestoreOutcome = 'restored' | 'notFound' | 'unavailable';
+
+/** Purchases cannot be made (or restored) in this build: web, or a store build without the SDK configured. */
+export const PURCHASES_UNAVAILABLE = 'Purchases are not available in this version. Get LifeLoop from the App Store or Google Play to buy or restore Premium.';
+
+/** What to tell the player after a restore. */
+export function restoreMessage(outcome: RestoreOutcome): string {
+  return outcome === 'restored' ? 'Premium restored. Thank you!' : outcome === 'unavailable' ? PURCHASES_UNAVAILABLE : 'No previous purchase found for this store account.';
+}
+
+/** Restores a previous purchase. Without a store to ask, it says so instead of "nothing found". */
+export async function restorePremium(): Promise<RestoreOutcome> {
+  if (!purchases.isSupported()) return 'unavailable';
   const ok = await purchases.restore();
   if (ok) {
     grantEpoch++;
     useSettingsStore.getState().setPremium(true);
     track({ name: 'premium_restored' });
   }
-  return ok;
+  return ok ? 'restored' : 'notFound';
 }

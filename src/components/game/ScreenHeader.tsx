@@ -10,6 +10,20 @@ import { isLifeRoute, totalDebt } from './lifeFormat';
 const usePathnameSafe: () => string | null = typeof ExpoRouter.usePathname === 'function' ? ExpoRouter.usePathname : () => null;
 
 /**
+ * Where Back goes when there is no history to go back to (a reload or a deep link on web): a screen
+ * about the life being played returns to the life screen, a menu screen to the main menu.
+ */
+export function backFallback(pathname: string | null | undefined, hasLife: boolean): '/life' | '/' {
+  return hasLife && isLifeRoute(pathname) ? '/life' : '/';
+}
+
+/** Back: the previous screen, or the fallback when the history is empty. */
+export function goBack(pathname: string | null | undefined, hasLife: boolean): void {
+  if (ExpoRouter.router.canGoBack()) ExpoRouter.router.back();
+  else ExpoRouter.router.replace(backFallback(pathname, hasLife));
+}
+
+/**
  * Title bar for section and menu screens. Cash (and debt, when there is any) shows only for a
  * living character on the screens about that life: `showMoney` decides explicitly, otherwise
  * the current route does (Work, Assets, People, a person, Activities).
@@ -26,7 +40,7 @@ export function ScreenHeader({ title, subtitle, onBack, showMoney }: { title: st
         testID="back"
         accessibilityRole="button"
         accessibilityLabel="Back"
-        onPress={onBack ?? (() => (ExpoRouter.router.canGoBack() ? ExpoRouter.router.back() : ExpoRouter.router.replace('/')))}
+        onPress={onBack ?? (() => goBack(pathname, !!game))}
         hitSlop={4}
         style={({ pressed }) => [styles.back, pressed && styles.pressed]}
       >

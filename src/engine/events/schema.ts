@@ -82,7 +82,7 @@ export type Condition =
   | { southern: boolean }
   /** Still living in the family home (a minor, or a young adult on a low income who has not moved out). */
   | { atHome: boolean }
-  /** Years since I retired (false if I never did, or went back to work since), e.g. a retirement party at { lte: 0 }. */
+  /** Years since I retired (false if I never did, or went back to work since), e.g. a retirement party at { lte: 1 }, since cards after retiring open at the next birthday. */
   | ({ sinceRetired: true } & Comparator)
   | { hustle: boolean }
   | { retired: boolean }

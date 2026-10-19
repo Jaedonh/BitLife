@@ -57,6 +57,56 @@ function investmentReturn(kind: InvestmentKind, rng: Rng): number {
   return rng.normal(0.12, 0.6, -0.8, 2.5);
 }
 
+/**
+ * Collections: heavy debt (over $60k, scaled) with no income at all. The stress costs happiness every
+ * year it lasts, but the journal says so when it starts and then only every `DEBT_CALLS.every` years,
+ * in rotating words, so a jobless stretch does not write the same sentence for decades.
+ */
+export const DEBT_CALLS = {
+  every: 5,
+  /** Number flags: the last age it held, the age of the last line, and how many stretches and reminders were written. */
+  flags: { held: 'debtCallsHeld', line: 'debtCallsLine', stretches: 'debtCallsStretches', reminders: 'debtCallsReminders' },
+  first: 'Debt collectors started calling. I have no income and the interest keeps piling up.',
+  again: [
+    'The debt collectors are calling again. No income, and the interest is piling up once more.',
+    'Back in collections. With no income, the debt grows a little every month.',
+    'The collection letters started again. I have no income to answer them with.',
+  ],
+  reminders: [
+    'Still no income. My debt has grown so much that I stopped opening the letters.',
+    'Another year of collection calls. I know the collectors by their first names now.',
+    'I let the collectors go to voicemail now. The debt keeps growing without me.',
+    'Years without an income. My debt has a life of its own now.',
+  ],
+} as const;
+
+function debtCollectors(state: GameState): GameState {
+  // Behind bars the journal is about prison (no calls reach a cell): the debt still weighs, and the
+  // collectors are news again once I am out, because the stretch outside starts over.
+  if (state.crime.inPrison) return addStats(state, { happiness: -4 });
+  const age = state.character.age;
+  const f = DEBT_CALLS.flags;
+  const num = (key: string): number | null => (typeof state.flags[key] === 'number' ? (state.flags[key] as number) : null);
+  const held = num(f.held);
+  const lastLine = num(f.line);
+  const stretches = num(f.stretches) ?? 0;
+  const reminders = num(f.reminders) ?? 0;
+  const flags: GameState['flags'] = { ...state.flags, [f.held]: age };
+  let text: string | null = null;
+  if (held !== age - 1) {
+    // A new stretch (it did not hold last year) is news.
+    text = lastLine === null ? DEBT_CALLS.first : DEBT_CALLS.again[Math.max(0, stretches - 1) % DEBT_CALLS.again.length]!;
+    flags[f.stretches] = stretches + 1;
+  } else if (lastLine === null || age - lastLine >= DEBT_CALLS.every) {
+    // An ongoing one gets a reminder now and then, never the same words twice in a row.
+    text = DEBT_CALLS.reminders[reminders % DEBT_CALLS.reminders.length]!;
+    flags[f.reminders] = reminders + 1;
+  }
+  if (text) flags[f.line] = age;
+  const s = addStats({ ...state, flags }, { happiness: -4 });
+  return text ? log(s, text, 'bad') : s;
+}
+
 /** The whole yearly cash-flow pass. Runs after careers have updated salary. */
 export function yearlyFinance(state: GameState, rng: Rng): GameState {
   // The debt carried into the year (event costs, new tuition) before any of it is repaid.
@@ -145,15 +195,13 @@ export function yearlyFinance(state: GameState, rng: Rng): GameState {
     },
   };
   s = notePeakDebt(s);
-  if (adult && debt > scaleMoney(s, 60_000) && gross === 0) {
-    s = log(s, 'Debt collectors are calling. I have no income and the interest keeps piling up.', 'bad');
-    s = addStats(s, { happiness: -4 });
-  }
+  if (adult && debt > scaleMoney(s, 60_000) && gross === 0) s = debtCollectors(s);
   if (adult && debt > scaleMoney(s, 250_000) && debt > netWorth(s) + scaleMoney(s, 250_000)) {
     // Bankruptcy: lose non-primary assets, clear debt.
+    const again = s.finances.bankrupt;
     const kept = s.assets.filter((a) => a.primary);
     s = { ...s, assets: kept, finances: { ...s.finances, debt: 0, investments: [], bankrupt: true } };
-    s = log(s, 'I declared bankruptcy. The court took almost everything.', 'bad');
+    s = log(s, again ? 'I declared bankruptcy again. Once more, the court took almost everything.' : 'I declared bankruptcy. The court took almost everything.', 'bad');
     s = addStats(s, { happiness: -15 });
   }
   const worth = netWorth(s);

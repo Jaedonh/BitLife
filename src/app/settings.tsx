@@ -10,7 +10,8 @@ import { Button, Card, confirmAction, Screen, Section, T } from '@/components/ui
 import { PRIVACY_URL, SUPPORT_EMAIL } from '@/config/legal';
 import { usingTestAds } from '@/config/monetization';
 import { ads } from '@/services/ads';
-import { restorePremium } from '@/services/monetization';
+import { PURCHASES_UNAVAILABLE, restoreMessage, restorePremium } from '@/services/monetization';
+import { purchases } from '@/services/purchases';
 import { useGameStore } from '@/store/gameStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { colors, spacing, typography } from '@/theme';
@@ -28,9 +29,9 @@ export default function SettingsScreen() {
 
   const restore = async () => {
     setRestoring(true);
-    const ok = await restorePremium();
+    const outcome = await restorePremium();
     setRestoring(false);
-    setMsg(ok ? 'Premium restored. Thank you!' : 'No previous purchase found for this store account.');
+    setMsg(restoreMessage(outcome));
   };
 
   const deleteLife = async () => {
@@ -62,8 +63,13 @@ export default function SettingsScreen() {
             <T kind="small">Free forever: every event, career, country, relationship, asset, activity, crime and ribbon, one generation hand-off per family line, and all future core content. Premium only adds no ads, custom starting stats, unlimited generations and instant second chances.</T>
             <View style={styles.stack}>
               {!premium ? <Button title="Go Premium" onPress={() => router.push('/premium')} testID="settings-premium" /> : null}
-              <Button title="Restore purchases" variant="secondary" loading={restoring} onPress={() => void restore()} testID="restore-purchases" />
+              {purchases.isSupported() ? <Button title="Restore purchases" variant="secondary" loading={restoring} onPress={() => void restore()} testID="restore-purchases" /> : null}
             </View>
+            {!purchases.isSupported() && !premium ? (
+              <T kind="small" testID="purchases-unavailable">
+                {PURCHASES_UNAVAILABLE}
+              </T>
+            ) : null}
             {msg ? <T kind="small">{msg}</T> : null}
           </Card>
         </Section>

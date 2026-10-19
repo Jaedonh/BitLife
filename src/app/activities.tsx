@@ -28,8 +28,12 @@ const PREVIEW_YEARS = 4;
 
 const inYears = (n: number) => (n === 1 ? 'next year' : `in ${n} years`);
 
-function energyBadge(energy: number): BadgeSpec {
-  return energy > 0 ? { label: `⚡ ${energy}`, tone: 'energy' } : { label: 'No energy', tone: 'neutral' };
+/**
+ * The energy an activity takes. One that takes none has no chip: "No energy" would read as "you are
+ * out of energy", which is what "No energy left" means everywhere else.
+ */
+function energyBadges(energy: number): BadgeSpec[] {
+  return energy > 0 ? [{ label: `⚡ ${energy}`, tone: 'energy' }] : [];
 }
 
 export default function ActivitiesScreen() {
@@ -66,7 +70,7 @@ export default function ActivitiesScreen() {
             <T kind="subheading">
               ⚡ {energy} of {energyMax} energy left
             </T>
-            <T kind="small">Most activities take some. It refills when you age up.</T>
+            <T kind="small">Activities marked ⚡ take some. It refills when you age up.</T>
           </View>
         </Card>
 
@@ -110,7 +114,7 @@ export default function ActivitiesScreen() {
                 const cost = avail.cost ?? 0;
                 const locked = age < a.minAge;
                 const used = actionCount(game, `activity:${a.id}`);
-                const badges: BadgeSpec[] = locked ? [] : [energyBadge(a.energy)];
+                const badges: BadgeSpec[] = locked ? [] : energyBadges(a.energy);
                 if (!locked && a.perYear > 0) badges.push({ label: `${used}/${a.perYear} this year`, tone: used >= a.perYear ? 'bad' : 'neutral' });
                 return (
                   <WorkActionRow
@@ -142,7 +146,7 @@ export default function ActivitiesScreen() {
                   emoji={c.emoji}
                   title={c.name}
                   subtitle={avail.available ? c.description : avail.reason}
-                  badges={[energyBadge(c.energy)]}
+                  badges={energyBadges(c.energy)}
                   onPress={() => act({ type: 'crime', id: c.id })}
                   disabled={!avail.available}
                   testID={`crime-${c.id}`}

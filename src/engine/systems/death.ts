@@ -63,6 +63,19 @@ function degreePhrase(degree: string): string | null {
   }
 }
 
+const DEGREE_RANK: Record<string, number> = { bachelor: 1, master: 2, doctor: 3 };
+
+/** The obituary names the highest degree (a PhD over a later MBA); between equals, the most recent. */
+export function highestDegree(degrees: readonly string[]): string | undefined {
+  let best: { phrase: string; rank: number } | undefined;
+  for (const d of degrees) {
+    const phrase = degreePhrase(d);
+    const rank = DEGREE_RANK[d.split(':')[0]!] ?? 0;
+    if (phrase && (!best || rank >= best.rank)) best = { phrase, rank };
+  }
+  return best?.phrase;
+}
+
 const SCHOOL_STAGE: Record<string, string> = { primary: 'elementary school', middle: 'middle school', high: 'high school', university: 'college', graduate: 'graduate school' };
 
 function relationLabel(p: Person): string {
@@ -147,6 +160,8 @@ export function buildObituary(state: GameState, cause: string, worth: number, ri
     : null;
   // Elected office and the armed forces are served in, not worked at.
   const serving = lastJob && (lastJob.defId === 'military' || (lastJob.defId === 'politician' && lastJob.level > 0));
+  // Never worked at all: "which he insisted was a lifestyle choice" ends that sentence, so the education goes first.
+  const idle = !lastJob && !studying && !bestJob && state.counters.yearsEmployed === 0 && c.age >= 23;
   const careerText = lastJob
     ? serving
       ? `${p.Subject} served ${lastJob.defId === 'military' ? 'in the Army ' : ''}as ${roleWithArticle(lastJob.title)}`
@@ -162,10 +177,18 @@ export function buildObituary(state: GameState, cause: string, worth: number, ri
         : state.counters.yearsEmployed === 0
           ? c.age < 23
             ? `${p.Subject} was just getting started in life`
-            : `${p.Subject} never held a steady job, which ${p.subject} insisted was a lifestyle choice`
+            : `${p.Subject} never held a steady job`
           : `${p.Subject} worked a string of jobs`;
-  const degree = edu.degrees.filter((d) => d.includes(':')).map(degreePhrase).filter((d): d is string => !!d).pop();
+  const degree = highestDegree(edu.degrees);
   const eduText = degree ? ` and held ${degree}` : edu.droppedOut ? (edu.degrees.includes('high_school') ? ' and dropped out of college' : ' and never finished school') : '';
+  const idleText = degree
+    ? `${p.Subject} earned ${degree} but never held a steady job`
+    : edu.droppedOut
+      ? edu.degrees.includes('high_school')
+        ? `${p.Subject} dropped out of college and never held a steady job`
+        : `${p.Subject} never finished school or held a steady job`
+      : `${p.Subject} never held a steady job`;
+  const lifeText = idle ? `${idleText}, which ${p.subject} insisted was a lifestyle choice` : `${careerText}${eduText}`;
   const aliveGrandchildren = Object.values(state.people).filter((x) => x.kind === 'grandchild' && x.alive).length;
   const kidsText = aliveChildren ? `${numberWord(aliveChildren)} ${aliveChildren === 1 ? 'child' : 'children'}` : '';
   const grandText = aliveGrandchildren ? `${numberWord(aliveGrandchildren)} ${aliveGrandchildren === 1 ? 'grandchild' : 'grandchildren'}` : '';
@@ -191,5 +214,5 @@ export function buildObituary(state: GameState, cause: string, worth: number, ri
       : worth < 1_000
         ? `${p.Subject} left behind next to nothing.`
         : `${p.Subject} left behind ${formatMoneyFull(worth, c.countryCode)}.`;
-  return `${opening} ${sentence(`${careerText}${eduText}`)}${familyText ? ` ${familyText}` : ''} ${moneyText}${crimeText} Remembered as: ${ribbonName}.`;
+  return `${opening} ${sentence(lifeText)}${familyText ? ` ${familyText}` : ''} ${moneyText}${crimeText} Remembered as: ${ribbonName}.`;
 }

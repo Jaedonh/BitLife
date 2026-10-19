@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { sendToPrison } from '@/engine/events/effects';
 import type { GameState, LogEntry } from '@/engine/types';
 import { StorageKeys } from '@/services/storage';
 import { useGameStore, yearHighlight } from '../gameStore';
@@ -96,6 +97,102 @@ describe('year recap', () => {
     } finally {
       detach();
     }
+  });
+});
+
+describe('year recap after the cards', () => {
+  it('is rewritten once the cards close: no "Another year behind bars" in the year parole was granted', async () => {
+    let checked = 0;
+    for (let seed = 1; seed <= 400 && checked < 3; seed++) {
+      useGameStore.getState().newLife({ countryCode: 'US' }, { birthCard: false });
+      const g = useGameStore.getState().game!;
+      // Six years, three served and a clean file: a hearing is likely and parole often granted.
+      const inside = sendToPrison({ ...g, character: { ...g.character, age: 30 }, year: g.character.birthYear + 30, rng: { s: seed } }, 6);
+      useGameStore.setState({ game: { ...inside, flags: { ...inside.flags, cp_prison_good_conduct: 5 }, crime: { ...inside.crime, sentenceYearsLeft: 4 } } });
+      await useGameStore.getState().ageUp();
+      let next = useGameStore.getState().game!;
+      if (next.pendingEvent?.eventId !== 'sys_parole') continue;
+      // Before the card closes the recap waits; its headline was picked behind bars.
+      expect(useGameStore.getState().pendingSummary?.text).toMatch(/Another year behind bars/);
+      useGameStore.getState().choose('remorse');
+      next = useGameStore.getState().game!;
+      while (next.pendingEvent) {
+        useGameStore.getState().choose(next.pendingEvent.choices[0]!.id);
+        next = useGameStore.getState().game!;
+      }
+      if (next.crime.inPrison || !next.alive) continue;
+      checked++;
+      const recap = next.lastResult!;
+      expect(recap.kind).toBe('year');
+      expect(recap.text).not.toMatch(/behind bars/);
+      expect(recap.text).toContain('The board granted parole.');
+    }
+    expect(checked).toBeGreaterThan(0);
+  });
+
+  it('the store passes where the cards began: behind bars, a card outcome beats "Another year behind bars"', async () => {
+    let checked = 0;
+    for (let seed = 1; seed <= 300 && checked < 2; seed++) {
+      useGameStore.getState().newLife({ countryCode: 'US' }, { birthCard: false });
+      const g = useGameStore.getState().game!;
+      const inside = sendToPrison({ ...g, character: { ...g.character, age: 30 }, year: g.character.birthYear + 30, rng: { s: seed } }, 6);
+      useGameStore.setState({ game: inside });
+      await useGameStore.getState().ageUp();
+      let next = useGameStore.getState().game!;
+      if (!next.pendingEvent || next.pendingEvent.eventId === 'sys_parole') continue;
+      const cardsFrom = next.log.length;
+      while (next.pendingEvent) {
+        useGameStore.getState().choose(next.pendingEvent.choices[0]!.id);
+        next = useGameStore.getState().game!;
+      }
+      if (!next.alive) continue;
+      const withCards = yearHighlight(inside, next, cardsFrom);
+      // Only a year where a card's line ties with the year's own tells the two apart.
+      if (withCards === yearHighlight(inside, next)) continue;
+      checked++;
+      expect(next.lastResult!.text).toContain(withCards!);
+      expect(next.lastResult!.text).not.toMatch(/Another year behind bars/);
+    }
+    expect(checked).toBeGreaterThan(0);
+  });
+
+  it("never headlines the card the player just answered, only what came of it", () => {
+    useGameStore.getState().newLife({ countryCode: 'US' }, { birthCard: false });
+    const g = useGameStore.getState().game!;
+    const before = { ...g, character: { ...g.character, age: 30 } };
+    const after: GameState = {
+      ...before,
+      character: { ...before.character, age: 31 },
+      log: [
+        ...before.log,
+        { age: 31, year: 2031, text: '2031: Age 31', kind: 'year' },
+        { age: 31, year: 2031, text: 'My boss pulled me aside after the meeting. → Take the deal', kind: 'event' },
+        { age: 31, year: 2031, text: 'I took the deal and got a corner office.', kind: 'good' },
+      ],
+    };
+    expect(yearHighlight(before, after)).toBe('I took the deal and got a corner office.');
+  });
+
+  it("a card's outcome wins a tie with the year's own line: a year added to the sentence is not '1 year to go'", () => {
+    useGameStore.getState().newLife({ countryCode: 'US' }, { birthCard: false });
+    const g = useGameStore.getState().game!;
+    const before = { ...g, character: { ...g.character, age: 30 } };
+    const yearLines: LogEntry[] = [
+      { age: 31, year: 2031, text: '2031: Age 31', kind: 'year' },
+      { age: 31, year: 2031, text: 'Another year behind bars. 1 year to go.', kind: 'bad' },
+    ];
+    const cardLines: LogEntry[] = [
+      { age: 31, year: 2031, text: 'A fight broke out in the yard. → Step in', kind: 'event' },
+      { age: 31, year: 2031, text: 'The fight was written up as an assault with my name on it. A year added to my sentence.', kind: 'bad' },
+    ];
+    const after: GameState = { ...before, character: { ...before.character, age: 31 }, log: [...before.log, ...yearLines, ...cardLines] };
+    const cardsFrom = before.log.length + yearLines.length;
+    expect(yearHighlight(before, after, cardsFrom)).toBe('The fight was written up as an assault with my name on it. A year added to my sentence.');
+    // Without cards (or before they close) the year's own line is still the headline.
+    expect(yearHighlight(before, after)).toBe('Another year behind bars. 1 year to go.');
+    // A bigger line from the year itself still outranks a card's smaller one.
+    const milestone: GameState = { ...after, log: [...before.log, yearLines[0]!, { age: 31, year: 2031, text: 'I turned 31 behind bars.', kind: 'milestone' }, ...cardLines] };
+    expect(yearHighlight(before, milestone, cardsFrom)).toBe('I turned 31 behind bars.');
   });
 });
 

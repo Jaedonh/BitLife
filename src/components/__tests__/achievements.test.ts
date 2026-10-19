@@ -15,6 +15,13 @@ describe('achievement toasts', () => {
     expect(toastFromAchievements([], 3)).toBeNull();
   });
 
+  it('names a money target in the currency of the life that earned it', () => {
+    expect(toastFromAchievements([ACHIEVEMENT_BY_ID.millionaire!], 4, 'IN')!.text).toBe('💰 Millionaire: Reach a net worth of ₹12,000,000, a million US dollars at Indian wages.');
+    expect(achievementFace(ACHIEVEMENT_BY_ID.millionaire!, false, 'GB').description).toBe('Reach a net worth of £1,000,000.');
+    expect(achievementFace(ACHIEVEMENT_BY_ID.millionaire!, false).description).toBe(ACHIEVEMENT_BY_ID.millionaire!.description);
+    expect(achievementFace(ACHIEVEMENT_BY_ID.married!, true, 'IN').description).toBe('Get married.');
+  });
+
   it('is never pushed aside by a year recap', () => {
     // On screen (or waiting behind an event card) when the recap arrives: it finishes first.
     let q = enqueueToast(EMPTY_QUEUE, trophy(1, 'married'));

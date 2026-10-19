@@ -23,7 +23,7 @@ export function canBuy(state: GameState, defId: string, financing: 'cash' | 'mor
   if (!def) return { ok: false, reason: 'Unknown item', cost: 0 };
   const price = assetPrice(state, def);
   if (state.character.age < def.minAge) return { ok: false, reason: `Age ${def.minAge}+`, cost: price };
-  if (state.crime.inPrison) return { ok: false, reason: 'Not while in prison', cost: price };
+  if (state.crime.inPrison) return { ok: false, reason: state.crime.juvenile ? 'Not while in detention' : 'Not while in prison', cost: price };
   if (financing === 'mortgage') {
     if (!def.mortgageable) return { ok: false, reason: 'Cannot be mortgaged', cost: price };
     const down = Math.round(price * DOWN_PAYMENT);

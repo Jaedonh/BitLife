@@ -105,4 +105,14 @@ await run(async ({ page, shot }) => {
   await page.waitForSelector(tid('age-up'), { timeout: 10000 });
   await page.waitForTimeout(500);
   check(!(await visible(page, 'result-toast')), 'no stale toast replays after a reload');
+
+  // A reload on a section screen leaves no history: Back still returns to the life screen, not the menu.
+  await onScreen(page, 'tab-activities').click();
+  await page.waitForTimeout(400);
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForSelector(tid('back'), { timeout: 10000 });
+  await page.waitForTimeout(300);
+  await onScreen(page, 'back').click();
+  await page.waitForTimeout(600);
+  check(new URL(page.url()).pathname.endsWith('/life') && (await visible(page, 'age-up')), `Back after a reload on Activities returns to the life screen (${new URL(page.url()).pathname})`);
 });

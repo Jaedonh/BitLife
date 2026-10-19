@@ -4,7 +4,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { ScreenHeader } from '@/components/game/ScreenHeader';
 import { Button, Card, Screen, T } from '@/components/ui';
-import { buyPremium, restorePremium } from '@/services/monetization';
+import { buyPremium, PURCHASES_UNAVAILABLE, restoreMessage, restorePremium } from '@/services/monetization';
 import { purchases, type PremiumOffer } from '@/services/purchases';
 import { useSettingsStore } from '@/store/settingsStore';
 import { spacing, typography } from '@/theme';
@@ -71,12 +71,14 @@ export default function PremiumScreen() {
         ) : (
           <>
             <Button testID="buy-premium" title={offer ? `Unlock Premium · ${offer.priceString}` : 'Unlock Premium'} size="lg" variant="accent" loading={busy} disabled={!supported} onPress={() => void buy()} />
+            {/* Without a store there is nothing to buy or restore: the note says so, and no Restore button promises otherwise. */}
             {!supported ? (
               <T kind="small" style={styles.center} testID="premium-unavailable">
-                Purchases are not available in this version. Get LifeLoop from the App Store or Google Play to buy Premium.
+                {PURCHASES_UNAVAILABLE}
               </T>
-            ) : null}
-            <Button title="Restore purchases" variant="ghost" onPress={() => void restorePremium().then((ok) => setMsg(ok ? 'Premium restored. Thank you!' : 'No previous purchase found for this store account.'))} testID="premium-restore" />
+            ) : (
+              <Button title="Restore purchases" variant="ghost" onPress={() => void restorePremium().then((r) => setMsg(restoreMessage(r)))} testID="premium-restore" />
+            )}
           </>
         )}
         {msg ? (

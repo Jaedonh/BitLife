@@ -1,4 +1,5 @@
-import { ACHIEVEMENT_BY_ID, ACHIEVEMENT_GROUPS, ACHIEVEMENTS, type AchievementContext } from '@/data/achievements';
+import { achievementDescription, ACHIEVEMENT_BY_ID, ACHIEVEMENT_GROUPS, ACHIEVEMENTS, millionaireTarget, type AchievementContext } from '@/data/achievements';
+import { COUNTRIES } from '@/data/countries';
 import { ageUp } from '../ageUp';
 import { applyAction } from '../actions';
 import { applyEffect } from '../events/effects';
@@ -57,10 +58,13 @@ describe('achievement definitions', () => {
       expect(a.name.length).toBeGreaterThan(1);
       expect(a.name.length).toBeLessThanOrEqual(24);
       expect(a.emoji.length).toBeGreaterThan(0);
-      expect(a.description).toMatch(/^[A-Z].*\.$/);
-      expect(a.description.length).toBeLessThanOrEqual(100);
-      // The unlock toast reads "Name: description", so a colon inside the description would read twice.
-      expect(a.description).not.toContain(':');
+      // A country-specific description (money in the local currency) follows the same rules in every country.
+      for (const text of [a.description, ...(a.describe ? COUNTRIES.map((c) => a.describe!(c.code)) : [])]) {
+        expect(text).toMatch(/^[A-Z].*\.$/);
+        expect(text.length).toBeLessThanOrEqual(100);
+        // The unlock toast reads "Name: description", so a colon inside the description would read twice.
+        expect(text).not.toContain(':');
+      }
       expect(groups.has(a.group)).toBe(true);
       // Secrets live together, and only there.
       expect(!!a.secret).toBe(a.group === 'secret');
@@ -166,6 +170,32 @@ describe('life milestones', () => {
     expect(earns({ ...us, education: { ...us.education, degrees: ['high_school'] }, finances: { ...us.finances, cash: 2_000_000 } }, 'dropout_millionaire')).toBe(false);
   });
 
+  it('the Millionaire target is the one shown on screen, in the local currency', () => {
+    const ctx = NONE;
+    // India: a million US dollars at Indian wages is ₹12,000,000 (two significant figures), not ₹1,000,000.
+    expect(millionaireTarget('IN')).toBe(12_000_000);
+    expect(achievementDescription(ACHIEVEMENT_BY_ID.millionaire!, 'IN')).toBe('Reach a net worth of ₹12,000,000, a million US dollars at Indian wages.');
+    const india = at(life(3, 'IN'), 33);
+    const rupees = (r: number): GameState => ({ ...india, finances: { ...india.finances, cash: Math.ceil(r / 83), debt: 0, investments: [] }, assets: [] });
+    expect(ACHIEVEMENT_BY_ID.millionaire!.test(rupees(4_439_006), ctx)).toBe(false);
+    expect(ACHIEVEMENT_BY_ID.millionaire!.test(rupees(11_999_000), ctx)).toBe(false);
+    expect(ACHIEVEMENT_BY_ID.millionaire!.test(rupees(12_000_000), ctx)).toBe(true);
+    // The UK: never less than a million of the local currency, so £632,000 is not yet a millionaire.
+    expect(achievementDescription(ACHIEVEMENT_BY_ID.millionaire!, 'GB')).toBe('Reach a net worth of £1,000,000.');
+    const uk = at(life(3, 'GB'), 50);
+    expect(ACHIEVEMENT_BY_ID.millionaire!.test({ ...uk, finances: { ...uk.finances, cash: 800_000 } }, ctx)).toBe(false);
+    expect(ACHIEVEMENT_BY_ID.millionaire!.test({ ...uk, finances: { ...uk.finances, cash: Math.ceil(1_000_000 / 0.79) } }, ctx)).toBe(true);
+    expect(achievementDescription(ACHIEVEMENT_BY_ID.millionaire!, 'US')).toBe('Reach a net worth of $1,000,000.');
+    // Every country's target is at least a million on screen and the description names it.
+    for (const c of COUNTRIES) {
+      expect(millionaireTarget(c.code)).toBeGreaterThanOrEqual(1_000_000);
+      expect(achievementDescription(ACHIEVEMENT_BY_ID.millionaire!, c.code)).toContain(`${c.currencySymbol}${millionaireTarget(c.code).toLocaleString('en-US')}`);
+    }
+    // Without a life the description is the general one; Debt Free names its local amount too.
+    expect(achievementDescription(ACHIEVEMENT_BY_ID.millionaire!)).toBe(ACHIEVEMENT_BY_ID.millionaire!.description);
+    expect(achievementDescription(ACHIEVEMENT_BY_ID.debt_free!, 'IN')).toBe('Pay off a debt of ₹250,000 or more without going bankrupt.');
+  });
+
   it('a millionaire still in high school is not a dropout yet', () => {
     // Italian high school runs to 19: at 18 a student who inherited a fortune has no diploma *yet*.
     const it18 = at(life(5, 'IT'), 18);
@@ -222,6 +252,15 @@ describe('ways to live', () => {
     // Bankruptcy is not paying it off, and a small debt is not an escape.
     expect(earns({ ...s, finances: { ...s.finances, bankrupt: true } }, 'debt_free')).toBe(false);
     expect(earns({ ...s, flags: { ...s.flags, peakDebt: 5_000 } }, 'debt_free')).toBe(false);
+  });
+
+  it('debt free asks for the round local amount its description names', () => {
+    // The UK: $20,000 at British wages is £12,640, shown and tested as £13,000.
+    expect(achievementDescription(ACHIEVEMENT_BY_ID.debt_free!, 'GB')).toBe('Pay off a debt of £13,000 or more without going bankrupt.');
+    const uk = at(life(5, 'GB'), 40);
+    const paid = (pounds: number): GameState => ({ ...uk, flags: { ...uk.flags, peakDebt: pounds / 0.79 }, finances: { ...uk.finances, debt: 0, bankrupt: false }, education: { ...uk.education, studentDebt: 0 } });
+    expect(earns(paid(12_900), 'debt_free')).toBe(false);
+    expect(earns(paid(13_000), 'debt_free')).toBe(true);
   });
 
   it('debt free counts student loans as debt', () => {

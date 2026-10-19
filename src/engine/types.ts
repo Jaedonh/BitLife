@@ -188,7 +188,10 @@ export interface Education {
   expelled: boolean;
   studiedThisYear: boolean;
   studentDebt: number;
+  /** A scholarship won at enrollment (tuition waived). */
   scholarship: boolean;
+  /** A wealthy family pays this program's tuition (waived like a scholarship, but not one). Optional: older saves have none. */
+  parentsPay?: boolean;
 }
 
 export type JobCategory =
@@ -231,7 +234,8 @@ export interface JobHistoryEntry {
   fromAge: number;
   toAge: number;
   salary: number;
-  reason: 'quit' | 'fired' | 'promoted' | 'retired' | 'left';
+  /** 'laidOff': the yearly layoff (cutbacks), which is not a firing and does not count toward `counters.firings`. */
+  reason: 'quit' | 'fired' | 'promoted' | 'retired' | 'left' | 'laidOff';
 }
 
 export interface Career {

@@ -95,9 +95,16 @@ export function StatsHeader({ game, onOpenProfile }: { game: GameState; onOpenPr
           <Text style={typography.heading} numberOfLines={1} testID="char-name">
             {c.firstName} {c.lastName}
           </Text>
-          <Text style={typography.small} numberOfLines={1}>
-            {country.flag} {c.city} · {subtitle}
-          </Text>
+          {/* The city and the status wrap as two pieces, so a long city never cuts off the years left in prison. */}
+          <View style={styles.place} testID="char-status">
+            {/* A no-break space: a plain one would be trimmed at the end of the piece. */}
+            <Text style={[typography.small, styles.placePart]} numberOfLines={1}>
+              {`${country.flag} ${c.city} ·\u00A0`}
+            </Text>
+            <Text style={[typography.small, styles.placePart]} numberOfLines={1}>
+              {subtitle}
+            </Text>
+          </View>
         </View>
         <View style={styles.right}>
           <Text style={styles.age} testID="char-age">
@@ -152,6 +159,8 @@ const styles = StyleSheet.create({
   avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.primaryDark, alignItems: 'center', justifyContent: 'center' },
   avatarText: { fontSize: 26 },
   names: { flex: 1 },
+  place: { flexDirection: 'row', flexWrap: 'wrap' },
+  placePart: { maxWidth: '100%' },
   right: { alignItems: 'flex-end' },
   age: { ...typography.title, fontSize: 24, lineHeight: 28 },
   money: { ...typography.small, color: colors.money, fontWeight: '700', fontVariant: ['tabular-nums'] },

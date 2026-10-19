@@ -2,7 +2,7 @@
  * Pure model of the global feedback toasts: turning a game result into a toast and
  * the queue rules (one at a time, a short backlog, a new year makes older results moot).
  */
-import type { AchievementDef } from '@/data/achievements';
+import { achievementDescription, type AchievementDef } from '@/data/achievements';
 import type { GameState, LastResult, LogKind } from '@/engine/types';
 import { formatMoneyFull } from '@/engine/util';
 import { moneyPill, statPills, type Pill } from './lifeFormat';
@@ -68,11 +68,12 @@ export function toastFromResult(result: LastResult, game: GameState, prev: GameS
 }
 
 /** The toast for a batch of achievements unlocked by the same moment. */
-export function toastFromAchievements(defs: readonly AchievementDef[], id: number): ToastItem | null {
+export function toastFromAchievements(defs: readonly AchievementDef[], id: number, countryCode?: string | null): ToastItem | null {
   if (!defs.length) return null;
   const one = defs.length === 1 ? defs[0] : undefined;
   const title = one ? 'Achievement unlocked' : `${defs.length} achievements unlocked`;
-  const text = one ? `${one.emoji} ${one.name}: ${one.description}` : defs.map((d) => `${d.emoji} ${d.name}`).join(' · ');
+  // An amount of money reads in the currency of the life that earned it.
+  const text = one ? `${one.emoji} ${one.name}: ${achievementDescription(one, countryCode)}` : defs.map((d) => `${d.emoji} ${d.name}`).join(' · ');
   return { id, kind: 'milestone', title, text, pills: [], count: 1, duration: toastDuration(text, title), icon: '🏆', sticky: true };
 }
 

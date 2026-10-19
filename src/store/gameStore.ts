@@ -67,20 +67,29 @@ function persist(game: GameState | null) {
   }, 150);
 }
 
-/** Which of a year's journal lines is worth a toast: milestones and events first. */
-const HIGHLIGHT_RANK: Partial<Record<LogKind, number>> = { milestone: 4, event: 3, bad: 2, good: 2, money: 1 };
+/**
+ * Which of a year's journal lines is worth a toast: milestones first. A card's own line ("text → choice")
+ * is what the player just read, so it is never the headline; what the choice led to can be.
+ */
+const HIGHLIGHT_RANK: Partial<Record<LogKind, number>> = { milestone: 4, bad: 2, good: 2, money: 1 };
 
 /**
  * The year's most notable new line, skipping any line that also happened last year (a debt
- * reminder or a recurring chore would otherwise be the headline every single year).
+ * reminder or a recurring chore would otherwise be the headline every single year). Once the
+ * year's cards are closed it covers their outcomes too, so the recap never contradicts them
+ * ("Another year behind bars" in the year parole was granted). Lines from `cardsFrom` on were
+ * written by the year's cards: they are its latest news, so they win a tie with what the year
+ * wrote before them ("1 year to go" from a card that then added a year to the sentence).
  */
-export function yearHighlight(before: GameState, after: GameState): string | null {
+export function yearHighlight(before: GameState, after: GameState, cardsFrom = after.log.length): string | null {
   const lastYear = new Set(before.log.filter((l) => l.kind !== 'year' && l.age === before.character.age).map((l) => l.text));
-  let best: { text: string; rank: number } | null = null;
-  for (const l of after.log.slice(before.log.length)) {
+  let best: { text: string; rank: number; card: boolean } | null = null;
+  for (let i = before.log.length; i < after.log.length; i++) {
+    const l = after.log[i]!;
     const rank = HIGHLIGHT_RANK[l.kind] ?? 0;
     if (!rank || lastYear.has(l.text)) continue;
-    if (!best || rank > best.rank) best = { text: l.text, rank };
+    const card = i >= cardsFrom;
+    if (!best || rank > best.rank || (rank === best.rank && card && !best.card)) best = { text: l.text, rank, card };
   }
   return best?.text ?? null;
 }
@@ -96,8 +105,8 @@ function yearDeltas(before: GameState, after: GameState): Pick<LastResult, 'stat
 }
 
 /** One-line recap of the year that just passed, shown as a toast ("2011 · Age 12 · highlight"). */
-function yearSummary(before: GameState, after: GameState): LastResult {
-  const highlight = yearHighlight(before, after);
+function yearSummary(before: GameState, after: GameState, cardsFrom?: number): LastResult {
+  const highlight = yearHighlight(before, after, cardsFrom);
   return {
     text: `${after.year} · Age ${after.character.age}${highlight ? ` · ${highlight}` : ''}`,
     kind: 'year',
@@ -107,6 +116,8 @@ function yearSummary(before: GameState, after: GameState): LastResult {
 
 /** The state just before the Age+ whose recap is waiting for that year's event cards to close. */
 let summaryBase: GameState | null = null;
+/** Where that year's card outcomes start in the journal (its length when the first card opened). */
+let summaryCardsFrom = 0;
 
 function recordDeath(game: GameState) {
   if (game.alive || !game.death) return;
@@ -199,6 +210,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     let next = { ...engineAgeUp(current), updatedAt: Date.now() };
     const summary = next.alive ? yearSummary(current, next) : null;
     summaryBase = summary && next.pendingEvent ? current : null;
+    summaryCardsFrom = next.log.length;
     if (summary && !next.pendingEvent) {
       next = { ...next, lastResult: summary };
       set({ game: next, pendingSummary: null });
@@ -217,10 +229,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
     let next = { ...resolveChoice(g, choiceId, EVENT_REGISTRY), updatedAt: Date.now() };
     const summary = get().pendingSummary;
     if (summary && !next.pendingEvent && next.alive) {
-      // The recap's numbers cover the whole Age+, the choices just made on the year's cards included.
+      // The recap covers the whole Age+, the choices just made on the year's cards included: their
+      // numbers, and their news (parole granted outranks "Another year behind bars").
       const base = summaryBase && summaryBase.character.id === next.character.id ? summaryBase : null;
       summaryBase = null;
-      next = { ...next, lastResult: base ? { ...summary, ...yearDeltas(base, next) } : summary };
+      next = { ...next, lastResult: base ? yearSummary(base, next, summaryCardsFrom) : summary };
       set({ game: next, pendingSummary: null });
     } else {
       set({ game: next });

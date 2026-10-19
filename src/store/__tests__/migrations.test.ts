@@ -1,4 +1,6 @@
 import { ageUp, createLife, EVENT_REGISTRY, resolveChoice, SCHEMA_VERSION } from '@/engine';
+import { Rng } from '@/engine/rng';
+import { DEBT_CALLS, yearlyFinance } from '@/engine/systems/finance';
 import type { GameState } from '@/engine/types';
 import { migrateSave } from '../migrations';
 
@@ -249,5 +251,73 @@ describe('saves from before guardians for orphans and far-away people', () => {
     expect(migrateSave(withField(saved, `people.${id}.relative`, 'aunt'))).toBeNull();
     expect(migrateSave(withField(saved, `people.${id}.farAway`, 1))).toBeNull();
     expect(migrateSave(withField(saved, `people.${id}.farAway`, true))).not.toBeNull();
+  });
+});
+
+describe('saves from before layoffs and parents paying tuition were told apart', () => {
+  /** A 45-year-old saved by the old engine: one layoff stored as a firing, one real firing, and a degree the family paid for. */
+  function oldSave(): GameState {
+    const g = createLife({ countryCode: 'US' }, 4321, 1_700_000_000_000);
+    const at = (age: number, text: string) => ({ age, year: g.character.birthYear + age, text, kind: 'bad' as const });
+    return JSON.parse(
+      JSON.stringify({
+        ...g,
+        year: g.character.birthYear + 45,
+        character: { ...g.character, age: 45 },
+        flags: { ...g.flags, wealthyFamily: true },
+        education: { ...g.education, stage: 'graduate', enrolled: true, major: 'mba', degrees: ['high_school', 'bachelor:business'], scholarship: true },
+        career: {
+          ...g.career,
+          history: [
+            { title: 'Analyst', company: 'Quantum Systems', fromAge: 22, toAge: 34, salary: 70_000, reason: 'fired' },
+            { title: 'Clerk', company: 'Granite Media', fromAge: 35, toAge: 40, salary: 40_000, reason: 'fired' },
+          ],
+        },
+        counters: { ...g.counters, firings: 2 },
+        log: [...g.log, at(34, 'Quantum Systems made cutbacks and I was laid off.'), at(40, 'I was fired from Granite Media for poor performance.'), { ...at(43, 'Mom and Dad will pay for business school. I know how lucky I am.'), kind: 'good' }],
+      }),
+    ) as GameState;
+  }
+
+  it('relabels the layoff, keeps the real firing, and moves the family-paid tuition off the scholarship', () => {
+    const loaded = migrateSave(oldSave())!;
+    expect(loaded.career.history.map((h) => h.reason)).toEqual(['laidOff', 'fired']);
+    expect(loaded.counters.firings).toBe(1);
+    expect(loaded.education.scholarship).toBe(false);
+    expect(loaded.education.parentsPay).toBe(true);
+    // Loading it again changes nothing.
+    expect(migrateSave(JSON.parse(JSON.stringify(loaded)))).toEqual(loaded);
+  });
+
+  it('leaves a real scholarship alone, and rejects a mistyped parentsPay', () => {
+    const old = oldSave();
+    const won = { ...old, log: [...old.log, { age: 43, year: old.year - 2, text: 'I won a full scholarship to business school!', kind: 'good' as const }] };
+    expect(migrateSave(won)!.education.scholarship).toBe(true);
+    expect(migrateSave(withField(old, 'education.parentsPay', 'yes'))).toBeNull();
+  });
+});
+
+describe('saves from before the debt-collector line was throttled', () => {
+  const OLD = 'Debt collectors are calling. I have no income and the interest keeps piling up.';
+  /** A 44-year-old in collections since 40, saved when the old engine wrote the same line every year. */
+  function oldSave(): GameState {
+    const g = createLife({ countryCode: 'US' }, 2468, 1_700_000_000_000);
+    const lines = [40, 41, 42, 43, 44].map((age) => ({ age, year: g.character.birthYear + age, text: OLD, kind: 'bad' as const }));
+    return JSON.parse(JSON.stringify({ ...g, year: g.character.birthYear + 44, character: { ...g.character, age: 44 }, finances: { ...g.finances, debt: 70_000 }, log: [...g.log, ...lines] })) as GameState;
+  }
+
+  it('carries on from the last old line instead of announcing the calls as new', () => {
+    let s = migrateSave(oldSave())!;
+    expect(s.flags).toMatchObject({ [DEBT_CALLS.flags.held]: 44, [DEBT_CALLS.flags.line]: 44, [DEBT_CALLS.flags.stretches]: 1 });
+    expect(migrateSave(JSON.parse(JSON.stringify(s)))).toEqual(s);
+    const ours = new Set<string>([DEBT_CALLS.first, ...DEBT_CALLS.again, ...DEBT_CALLS.reminders]);
+    for (let age = 45; age <= 49; age++) s = yearlyFinance({ ...s, character: { ...s.character, age }, finances: { ...s.finances, cash: 0 } }, new Rng(age));
+    // Still in collections: nothing new until the five-year reminder, which is not "started calling".
+    expect(s.log.filter((l) => ours.has(l.text)).map((l) => [l.age, l.text])).toEqual([[49, DEBT_CALLS.reminders[0]]]);
+  });
+
+  it('leaves a save without the old line alone', () => {
+    const fresh = JSON.parse(JSON.stringify(createLife({ countryCode: 'US' }, 2468, 1_700_000_000_000))) as GameState;
+    expect(migrateSave(fresh)!.flags[DEBT_CALLS.flags.line]).toBeUndefined();
   });
 });

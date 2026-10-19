@@ -4,6 +4,7 @@ import { achievementFace, achievementProgress, unlockLine } from '@/components/g
 import { ScreenHeader } from '@/components/game/ScreenHeader';
 import { Card, Screen, T } from '@/components/ui';
 import { ACHIEVEMENT_GROUPS, ACHIEVEMENTS, type AchievementDef } from '@/data/achievements';
+import { useGameStore } from '@/store/gameStore';
 import { useSettingsStore, type AchievementUnlock } from '@/store/settingsStore';
 import { colors, legacyColors, lifeTints, radius, spacing, typography } from '@/theme';
 
@@ -11,6 +12,8 @@ const MAX_CONTENT = 520;
 
 export default function AchievementsScreen() {
   const unlocked = useSettingsStore((s) => s.achievements);
+  // Money targets are shown in the currency of the life being played (or just finished).
+  const countryCode = useGameStore((s) => s.game?.character.countryCode ?? null);
   const { unlocked: count, total } = achievementProgress(unlocked);
   const pct = total ? Math.round((count / total) * 100) : 0;
   return (
@@ -45,7 +48,7 @@ export default function AchievementsScreen() {
               </View>
               <View style={styles.list}>
                 {defs.map((def, i) => (
-                  <AchievementRow key={def.id} def={def} unlock={Object.prototype.hasOwnProperty.call(unlocked, def.id) ? unlocked[def.id] : undefined} first={i === 0} />
+                  <AchievementRow key={def.id} def={def} unlock={Object.prototype.hasOwnProperty.call(unlocked, def.id) ? unlocked[def.id] : undefined} first={i === 0} countryCode={countryCode} />
                 ))}
               </View>
             </View>
@@ -56,9 +59,9 @@ export default function AchievementsScreen() {
   );
 }
 
-function AchievementRow({ def, unlock, first }: { def: AchievementDef; unlock?: AchievementUnlock; first: boolean }) {
+function AchievementRow({ def, unlock, first, countryCode }: { def: AchievementDef; unlock?: AchievementUnlock; first: boolean; countryCode: string | null }) {
   const done = !!unlock;
-  const face = achievementFace(def, done);
+  const face = achievementFace(def, done, countryCode);
   return (
     <View
       style={[styles.row, !first && styles.rowDivider]}

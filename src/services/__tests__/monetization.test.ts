@@ -71,7 +71,7 @@ async function load(opts: { cachedPremium: boolean; storeAnswer: boolean | null;
     const raw = await AsyncStorage.getItem(StorageKeys.premium);
     return raw == null ? null : (JSON.parse(raw) as { premium: boolean }).premium;
   };
-  return { useSettingsStore, purchases, ads, bootMonetization, buyPremium: monetization.buyPremium, storedPremium };
+  return { useSettingsStore, purchases, ads, bootMonetization, buyPremium: monetization.buyPremium, restorePremium: monetization.restorePremium, restoreMessage: monetization.restoreMessage, storedPremium };
 }
 
 describe('bootMonetization premium re-validation', () => {
@@ -162,5 +162,26 @@ describe('bootMonetization premium re-validation', () => {
     expect(t.purchases.onPremiumChange).not.toHaveBeenCalled();
     expect(t.useSettingsStore.getState().premium).toBe(true);
     expect(t.ads.init).not.toHaveBeenCalled();
+  });
+});
+
+describe('restorePremium', () => {
+  it('says purchases are unavailable, without asking a store, when none exists (web)', async () => {
+    const t = await load({ cachedPremium: false, storeAnswer: null, supported: false });
+    expect(await t.restorePremium()).toBe('unavailable');
+    expect(t.purchases.restore).not.toHaveBeenCalled();
+    expect(t.restoreMessage('unavailable')).toMatch(/^Purchases are not available in this version\./);
+    expect(t.restoreMessage('unavailable')).not.toMatch(/No previous purchase/);
+  });
+
+  it('reports a restored purchase or none found when the store answers', async () => {
+    const t = await load({ cachedPremium: false, storeAnswer: false });
+    jest.mocked(t.purchases.restore).mockResolvedValueOnce(false);
+    expect(await t.restorePremium()).toBe('notFound');
+    expect(t.restoreMessage('notFound')).toBe('No previous purchase found for this store account.');
+    jest.mocked(t.purchases.restore).mockResolvedValueOnce(true);
+    expect(await t.restorePremium()).toBe('restored');
+    expect(t.useSettingsStore.getState().premium).toBe(true);
+    expect(t.restoreMessage('restored')).toBe('Premium restored. Thank you!');
   });
 });

@@ -21,7 +21,7 @@ export function meetsRequirements(state: GameState, def: JobDef): { ok: boolean;
   if (def.partTime && c.age > 24) return { ok: false, reason: 'Part-time roles are for under-25s' };
   if (c.age > MAX_HIRING_AGE) return { ok: false, reason: 'Nobody is hiring at my age' };
   if (def.id === 'military' && c.age > 35) return { ok: false, reason: 'Too old to enlist' };
-  if (state.crime.inPrison) return { ok: false, reason: 'In prison' };
+  if (state.crime.inPrison) return { ok: false, reason: state.crime.juvenile ? 'In detention' : 'In prison' };
   if (r.noRecord && state.crime.record) return { ok: false, reason: 'Criminal record' };
   switch (r.education) {
     case 'high_school':
@@ -169,7 +169,7 @@ function promotionLine(def: JobDef, title: string): string {
 /** Why a fresh set of job listings would be useless right now (null when it would not). */
 export function listingsBlocker(state: GameState): string | null {
   if (state.character.age < 14) return "I'm too young for job listings. They open up at 14.";
-  if (state.crime.inPrison) return "I can't job-hunt from a prison cell.";
+  if (state.crime.inPrison) return state.crime.juvenile ? "I can't job-hunt from detention." : "I can't job-hunt from a prison cell.";
   return null;
 }
 
@@ -313,6 +313,18 @@ export function retire(state: GameState): GameState {
   return setResult(s, 'Retired with a pension.', 'good');
 }
 
+/**
+ * Cutbacks end the job without it being the player's fault: the history says laid off, and it is not
+ * a firing (no `firings` count, so no Three Strikes and no `{ count: 'firings' }` events).
+ */
+export function layOff(state: GameState): GameState {
+  const s = removeJob(state, 'left');
+  if (s === state) return s;
+  const history = s.career.history.slice(0, -1);
+  const entry = s.career.history[s.career.history.length - 1]!;
+  return { ...s, career: { ...s.career, history: [...history, { ...entry, reason: 'laidOff' }] } };
+}
+
 /** Yearly career progression: performance drift, raises, promotions, layoffs, injuries, hustle income. */
 export function yearlyCareer(state: GameState, rng: Rng, servedYear = false): GameState {
   let s = state;
@@ -351,7 +363,7 @@ export function yearlyCareer(state: GameState, rng: Rng, servedYear = false): Ga
       return yearlyHustle(s, rng, servedYear);
     }
     if (rng.chance(0.02)) {
-      s = removeJob(s, 'fired');
+      s = layOff(s);
       s = addStats(s, { happiness: -8 });
       s = log(s, def.id === 'military' ? 'The Army cut its numbers and I was discharged.' : `${capitalize(job.company)} made cutbacks and I was laid off.`, 'bad');
       return yearlyHustle(s, rng, servedYear);
@@ -378,7 +390,7 @@ export function ownsCar(state: GameState): boolean {
 
 /** Why this hustle cannot be started right now (null when it can). */
 export function hustleBlocker(state: GameState, def: HustleDef): string | null {
-  if (state.crime.inPrison) return "I can't run a side hustle from a prison cell.";
+  if (state.crime.inPrison) return state.crime.juvenile ? "I can't run a side hustle from detention." : "I can't run a side hustle from a prison cell.";
   if (state.career.hustle) return 'I already have a side hustle going.';
   if (state.character.age < def.minAge) return `I have to be ${def.minAge} or older for that.`;
   if (def.needsCar && !ownsCar(state)) return 'I need a car for that.';

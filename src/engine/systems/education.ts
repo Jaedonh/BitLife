@@ -82,7 +82,7 @@ export function yearlyEducation(state: GameState, rng: Rng): GameState {
   if (e.stage === 'university' && e.major) {
     const major = MAJOR_BY_ID[e.major];
     const years = major?.years ?? 4;
-    if (!e.scholarship) s = { ...s, education: { ...s.education, studentDebt: s.education.studentDebt + scaleMoney(s, major?.tuition ?? 12000) } };
+    if (!tuitionCovered(e)) s = { ...s, education: { ...s.education, studentDebt: s.education.studentDebt + scaleMoney(s, major?.tuition ?? 12000) } };
     if (s.education.yearsInStage >= years) {
       if (s.education.grade >= 25) {
         s = { ...s, education: { ...s.education, stage: 'done', enrolled: false, degrees: [...s.education.degrees, `bachelor:${e.major}`] } };
@@ -98,7 +98,7 @@ export function yearlyEducation(state: GameState, rng: Rng): GameState {
   }
   if (e.stage === 'graduate' && e.major) {
     const prog = GRAD_BY_ID[e.major];
-    if (!e.scholarship) s = { ...s, education: { ...s.education, studentDebt: s.education.studentDebt + scaleMoney(s, prog?.tuition ?? 20000) } };
+    if (!tuitionCovered(e)) s = { ...s, education: { ...s.education, studentDebt: s.education.studentDebt + scaleMoney(s, prog?.tuition ?? 20000) } };
     if (s.education.yearsInStage >= (prog?.years ?? 2)) {
       s = { ...s, education: { ...s.education, stage: 'done', enrolled: false, degrees: [...s.education.degrees, prog?.grants ?? `master:${e.major}`] } };
       s = log(s, prog?.earned ?? `I completed ${prog?.prose ?? 'graduate school'}.`, 'milestone');
@@ -107,6 +107,11 @@ export function yearlyEducation(state: GameState, rng: Rng): GameState {
     return s;
   }
   return s;
+}
+
+/** Tuition is waived for a scholarship, or when a wealthy family pays it. */
+export function tuitionCovered(e: GameState['education']): boolean {
+  return e.scholarship || e.parentsPay === true;
 }
 
 export function studyHarder(state: GameState): GameState {
@@ -225,7 +230,7 @@ export function enrollOptions(state: GameState): EnrollOption[] {
 
 /** Why no university or graduate program can be started right now (null when one can). */
 export function enrollBlocker(state: GameState): string | null {
-  if (state.crime.inPrison) return "I can't enroll while I'm in prison.";
+  if (state.crime.inPrison) return state.crime.juvenile ? "I can't enroll while I'm in detention." : "I can't enroll while I'm in prison.";
   if (state.education.enrolled) return "I'm already enrolled.";
   if (!hasHighSchool(state)) return 'I need a high school diploma first.';
   return null;
@@ -240,7 +245,7 @@ export function enroll(state: GameState, rng: Rng, id: string): GameState {
   const scholarship = rng.chance(state.education.grade >= 85 && state.character.stats.smarts >= 70 ? 0.6 : state.character.stats.smarts >= 90 ? 0.4 : 0.05);
   let s: GameState = {
     ...state,
-    education: { ...state.education, enrolled: true, stage: opt.kind, major: id, yearsInStage: 0, grade: clampStat(45 + (state.character.stats.smarts - 50) / 2), scholarship: scholarship || wealthy, droppedOut: false },
+    education: { ...state.education, enrolled: true, stage: opt.kind, major: id, yearsInStage: 0, grade: clampStat(45 + (state.character.stats.smarts - 50) / 2), scholarship, parentsPay: wealthy && !scholarship, droppedOut: false },
   };
   const university = opt.kind === 'university';
   // "computer science" for a major, "medical school" for a graduate program.

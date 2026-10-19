@@ -2,7 +2,7 @@
  * Presentation helpers for achievements: progress counts and the "unlocked by" line.
  * Pure, so the home, death and achievements screens agree and tests need no renderer.
  */
-import { ACHIEVEMENTS, type AchievementDef } from '@/data/achievements';
+import { achievementDescription, ACHIEVEMENTS, type AchievementDef } from '@/data/achievements';
 import type { AchievementUnlock } from '@/store/settingsStore';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -38,8 +38,11 @@ export function unlockLine(u: AchievementUnlock): string {
   return when ? `${who} · ${when}` : who;
 }
 
-/** What a tile shows: secret achievements stay hidden until unlocked. */
-export function achievementFace(def: AchievementDef, unlocked: boolean): { emoji: string; name: string; description: string } {
+/**
+ * What a tile shows: secret achievements stay hidden until unlocked. With the country of the life being
+ * played, an amount of money is given in its currency ("Reach a net worth of ₹12,000,000…").
+ */
+export function achievementFace(def: AchievementDef, unlocked: boolean, countryCode?: string | null): { emoji: string; name: string; description: string } {
   if (def.secret && !unlocked) return { emoji: '❓', name: '???', description: 'A secret. Keep living to find it.' };
-  return { emoji: def.emoji, name: def.name, description: def.description };
+  return { emoji: def.emoji, name: def.name, description: achievementDescription(def, countryCode) };
 }

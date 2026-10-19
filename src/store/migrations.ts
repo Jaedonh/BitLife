@@ -1,5 +1,7 @@
+import { DEBT_CALLS } from '@/engine/systems/finance';
 import { upgradeJusticeState } from '@/engine/systems/justice';
 import { SCHEMA_VERSION, STAT_IDS, type GameState } from '@/engine/types';
+import { capitalize } from '@/engine/util';
 
 type Rec = Record<string, unknown>;
 const isRec = (v: unknown): v is Rec => typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -31,6 +33,8 @@ function isGameStateShape(s: Rec): boolean {
   if (!isRec(s.rng) || !isNum(s.rng.s) || !isBool(s.alive)) return false;
   const e = s.education;
   if (!isRec(e) || !isStr(e.stage) || !isBool(e.enrolled) || !isNum(e.grade) || !arrayOf(e.degrees, isStr) || !isNum(e.studentDebt)) return false;
+  // Parents paying tuition is optional (saves from before it have none).
+  if (!nullOr(e.parentsPay, isBool)) return false;
   const career = s.career;
   if (!isRec(career) || !nullOr(career.job, (j) => isRec(j) && isStr(j.title) && isNum(j.salary)) || !arrayOf(career.history, isRec) || !arrayOf(career.listings, isRec)) return false;
   if (!isRec(career.experience) || !nullOr(career.hustle, isRec) || !isNum(career.totalYearsWorked) || !isBool(career.retired)) return false;
@@ -63,6 +67,49 @@ function isGameStateShape(s: Rec): boolean {
 }
 
 /**
+ * Older saves recorded two things wrongly, and both can be read back from the journal:
+ * - a yearly layoff was stored as a firing (history 'fired', +1 `firings`): its line names the company and the year;
+ * - a wealthy family paying tuition set `scholarship`: a real scholarship always wrote "I won a full scholarship".
+ * Each repair changes what it matched, so loading the same save again changes nothing.
+ */
+function repairCareerAndSchool(state: GameState): GameState {
+  let s = state;
+  const layoffs = new Set(s.log.filter((l) => l.kind === 'bad' && (/ made cutbacks and I was laid off\.$/.test(l.text) || l.text === 'The Army cut its numbers and I was discharged.')).map((l) => `${l.age}|${l.text}`));
+  if (layoffs.size && s.career.history.some((h) => h.reason === 'fired')) {
+    let fixed = 0;
+    const history = s.career.history.map((h) => {
+      const line = h.company === 'the Army' ? 'The Army cut its numbers and I was discharged.' : `${capitalize(h.company)} made cutbacks and I was laid off.`;
+      if (h.reason !== 'fired' || !layoffs.has(`${h.toAge}|${line}`)) return h;
+      fixed++;
+      return { ...h, reason: 'laidOff' as const };
+    });
+    if (fixed) s = { ...s, career: { ...s.career, history }, counters: { ...s.counters, firings: Math.max(0, s.counters.firings - fixed) } };
+  }
+  const e = s.education;
+  if (e.scholarship && e.parentsPay === undefined && s.flags.wealthyFamily === true && !s.log.some((l) => l.text.startsWith('I won a full scholarship'))) {
+    s = { ...s, education: { ...e, scholarship: false, parentsPay: true } };
+  }
+  return s;
+}
+
+/** The line older saves wrote every year of collections. */
+const OLD_DEBT_CALLS_LINE = 'Debt collectors are calling. I have no income and the interest keeps piling up.';
+
+/**
+ * A save from before the debt-collector line was throttled may be in the middle of collections: it carries on
+ * from its last old line (a reminder only after `DEBT_CALLS.every` years, "again" for a new stretch) instead of
+ * announcing the calls as if they had just started. Once the flags exist this changes nothing.
+ */
+function carryDebtCalls(state: GameState): GameState {
+  const f = DEBT_CALLS.flags;
+  if (state.flags[f.line] !== undefined) return state;
+  let last: number | null = null;
+  for (const l of state.log) if (l.text === OLD_DEBT_CALLS_LINE) last = l.age;
+  if (last === null) return state;
+  return { ...state, flags: { ...state.flags, [f.held]: last, [f.line]: last, [f.stretches]: 1 } };
+}
+
+/**
  * Upgrades a persisted GameState from an older schema. Returns null when the
  * save cannot be understood (the caller then discards it rather than crashing).
  */
@@ -77,5 +124,5 @@ export function migrateSave(raw: unknown): GameState | null {
     s = { ...s };
     delete s.flavorSeen;
   }
-  return upgradeJusticeState(s as unknown as GameState);
+  return carryDebtCalls(repairCareerAndSchool(upgradeJusticeState(s as unknown as GameState)));
 }

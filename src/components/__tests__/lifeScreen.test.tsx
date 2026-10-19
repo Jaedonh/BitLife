@@ -3,7 +3,7 @@ import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 
 import { LifeLog } from '@/components/game/LifeLog';
 import { ResultToast } from '@/components/game/ResultToast';
-import { ScreenHeader } from '@/components/game/ScreenHeader';
+import { backFallback, ScreenHeader } from '@/components/game/ScreenHeader';
 import { StatsHeader } from '@/components/game/StatsHeader';
 import type { GameState, LogEntry } from '@/engine/types';
 import { useGameStore } from '@/store/gameStore';
@@ -97,9 +97,28 @@ describe('StatsHeader', () => {
     act(() => pressable.props.onPress());
     expect(onOpen).toHaveBeenCalledTimes(1);
   });
+
+  it('keeps the years left in detention as their own piece, so a long city cannot cut them off', () => {
+    const g = newLife();
+    const locked = { ...g, character: { ...g.character, age: 16, city: 'Benin City' }, crime: { ...g.crime, inPrison: true, juvenile: true, sentenceYearsLeft: 2 } };
+    const tree = render(<StatsHeader game={locked} />);
+    const status = tree.root.find((n) => typeof n.type === 'string' && n.props.testID === 'char-status');
+    const pieces = status.findAllByType(Text).map((t) => [t.props.children].flat().join(''));
+    expect(pieces[pieces.length - 1]).toBe('In detention · 2 years left');
+    // The row wraps instead of truncating the whole line.
+    expect([status.props.style].flat()).toEqual(expect.arrayContaining([expect.objectContaining({ flexWrap: 'wrap' })]));
+  });
 });
 
 describe('ScreenHeader', () => {
+  it('Back with no history (a reload on web) returns to the life from its screens, and to the menu from the others', () => {
+    for (const path of ['/activities', '/occupation', '/assets', '/relationships', '/person/p_1']) {
+      expect(backFallback(path, true)).toBe('/life');
+      expect(backFallback(path, false)).toBe('/');
+    }
+    for (const path of ['/settings', '/achievements', '/premium', '/graveyard', null]) expect(backFallback(path, true)).toBe('/');
+  });
+
   it('shows cash only for a living character on the screens about that life', () => {
     const g = newLife();
     let tree = render(<ScreenHeader title="Assets" />);

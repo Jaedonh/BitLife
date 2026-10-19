@@ -17,6 +17,7 @@ import { JOB_BY_ID } from '@/data/jobs';
 import { GRAD_BY_ID, MAJOR_BY_ID } from '@/data/majors';
 import { dropOutBlocker, enrollOptions, hustleOptions, meetsRequirements, skipClassBlocker, STAGE_LABELS } from '@/engine';
 import { scaleMoney } from '@/engine/events/text';
+import { pensionSalary } from '@/engine/systems/finance';
 import { employerLabel, formatMoney, formatMoneyFull } from '@/engine/util';
 import { useRewarded } from '@/hooks/useRewarded';
 import { useGameStore } from '@/store/gameStore';
@@ -24,7 +25,7 @@ import { useSettingsStore } from '@/store/settingsStore';
 import { colors, spacing, workUi } from '@/theme';
 
 /** How a past job ended, in the work history. */
-const HISTORY_REASON: Record<string, string> = { quit: 'quit', fired: 'let go', promoted: 'promoted', retired: 'retired', left: 'moved on' };
+const HISTORY_REASON: Record<string, string> = { quit: 'quit', fired: 'let go', laidOff: 'laid off', promoted: 'promoted', retired: 'retired', left: 'moved on' };
 
 const STAT_LABEL = { smarts: 'Smarts', looks: 'Looks', happiness: 'Happiness', health: 'Health' } as const;
 
@@ -79,12 +80,15 @@ export default function OccupationScreen() {
   const hustleEnergy = hustleDef?.energy ?? 0;
   const nextHustleIncome = hustle && hustleDef && hustle.level < HUSTLE_MAX_LEVEL ? scaleMoney(game, hustleDef.incomeByLevel[hustle.level + 1] ?? 0) : null;
   const openHustles = hustles.filter((h) => h.eligible).length;
+  // A retiree without a job lives on the pension (a new job pays instead, and the pension resumes when it ends).
+  const pension = game.career.retired && !job ? pensionSalary(game.career) : null;
 
   const subtitle = (() => {
     if (inPrison) return game.crime.juvenile ? 'Juvenile detention' : 'In prison';
     if (job) return `${job.title} · ${employerLabel(job.company)}`;
     if (edu.enrolled) return STAGE_LABELS[edu.stage];
     if (early) return early.title;
+    if (pension !== null) return pension > 0 ? `Retired · ${formatMoney(pension, cc)}/yr pension` : 'Retired';
     return age < 14 ? 'Too young to work' : 'Looking for work';
   })();
 
@@ -105,7 +109,7 @@ export default function OccupationScreen() {
   }
 
   async function retire() {
-    if (await confirmAction('Retire?', "You'll stop working for good and live on your pension and savings.", 'Retire')) act({ type: 'retire' });
+    if (await confirmAction('Retire?', "You'll leave your job and live on your pension and savings. You can still take a job from the listings later.", 'Retire')) act({ type: 'retire' });
   }
 
   async function stopHustle() {
@@ -157,7 +161,7 @@ export default function OccupationScreen() {
               </T>
               <LabeledBar label="Grade" value={edu.grade} color={colors.smarts} />
               {edu.studentDebt > 0 ? <T kind="small">Student loans: {formatMoneyFull(edu.studentDebt, cc)}</T> : null}
-              {edu.scholarship ? <T kind="small">🎓 Scholarship: tuition covered.</T> : null}
+              {edu.scholarship ? <T kind="small">🎓 Scholarship: tuition covered.</T> : edu.parentsPay ? <T kind="small">🏡 Your family is paying your tuition.</T> : null}
               <View style={styles.row}>
                 <Button title="Study harder" size="sm" onPress={() => act({ type: 'study' })} disabled={edu.studiedThisYear} style={[styles.flex, styles.tap]} testID="study" />
                 <Button title="Skip class" size="sm" variant="secondary" onPress={() => act({ type: 'skipClass' })} disabled={!!skipBlocked} style={[styles.flex, styles.tap]} testID="skip-class" />
@@ -376,7 +380,7 @@ export default function OccupationScreen() {
                 { label: 'Length', value: `${enrolling.years} years` },
                 { label: 'Tuition', value: `${formatMoneyFull(enrolling.tuition, cc)}/yr` },
                 { label: 'Total tuition', value: formatMoneyFull(enrolling.tuition * enrolling.years, cc), strong: true },
-                { label: 'Paid by', value: parentsPay ? 'Your parents' : 'Student loans', color: parentsPay ? workUi.gain : colors.warning },
+                { label: 'Paid by', value: parentsPay ? 'Your family' : 'Student loans', color: parentsPay ? workUi.gain : colors.warning },
                 ...(edu.studentDebt > 0 ? [{ label: 'Loans you already have', value: formatMoneyFull(edu.studentDebt, cc) }] : []),
               ]
             : []

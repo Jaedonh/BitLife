@@ -86,7 +86,7 @@ export function ResultToast() {
     const offAchievements = useSettingsStore.subscribe((s, prev) => {
       const n = s.achievementNotice;
       if (!n || n === prev.achievementNotice) return;
-      const item = toastFromAchievements(n.ids.map((id) => ACHIEVEMENT_BY_ID[id]).filter((d): d is AchievementDef => !!d), ++seq);
+      const item = toastFromAchievements(n.ids.map((id) => ACHIEVEMENT_BY_ID[id]).filter((d): d is AchievementDef => !!d), ++seq, useGameStore.getState().game?.character.countryCode);
       if (item) dispatch({ type: 'push', item });
     });
     const offResults = useGameStore.subscribe((s, prev) => {
