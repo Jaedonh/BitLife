@@ -122,6 +122,7 @@ export function candidatesFor(state: GameState, sel: PersonSelector): Person[] {
     if ((sel.alive ?? true) !== p.alive) return false;
     // Someone lost recently: the player's age at the death is recorded (an older save's undated death never matches).
     if (sel.diedWithin !== undefined && (p.lostAtAge === undefined || state.character.age - p.lostAtAge > sel.diedWithin)) return false;
+    if (sel.knownFor && !cmp(state.character.age - (p.metAtAge ?? 0), sel.knownFor)) return false;
     if (sel.minRelationship !== undefined && p.relationship < sel.minRelationship) return false;
     if (sel.maxRelationship !== undefined && p.relationship > sel.maxRelationship) return false;
     if (sel.minAge !== undefined && p.age < sel.minAge) return false;

@@ -1,4 +1,4 @@
-import { evaluateCondition } from '../events/conditions';
+import { candidatesFor, evaluateCondition } from '../events/conditions';
 import { applyEffects } from '../events/effects';
 import { Rng } from '../rng';
 import { createLife, makePerson } from '../systems/character';
@@ -126,5 +126,17 @@ describe('newPerson occupation and layoffs from cards', () => {
     expect(after.career.job).toBeNull();
     expect(after.career.history.at(-1)?.reason).toBe('laidOff');
     expect(after.counters.firings ?? 0).toBe(0);
+  });
+});
+
+describe('knownFor', () => {
+  it('binds people by how many years the player has known them', () => {
+    const base = at('US', 40, 2020);
+    const old = makePerson(new Rng(5), { kind: 'friend', countryCode: 'US', playerAge: 10, age: 40 });
+    const fresh = makePerson(new Rng(6), { kind: 'friend', countryCode: 'US', playerAge: 38, age: 40 });
+    const s: GameState = { ...base, people: { ...base.people, [old.id]: old, [fresh.id]: fresh } };
+    const ids = candidatesFor(s, { kind: ['friend'], knownFor: { gte: 20 } }).map((p) => p.id);
+    expect(ids).toContain(old.id);
+    expect(ids).not.toContain(fresh.id);
   });
 });

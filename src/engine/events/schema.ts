@@ -229,6 +229,8 @@ export interface PersonSelector {
    * whose death an older save did not date never matches.
    */
   diedWithin?: number;
+  /** Years since the player met them (metAtAge), e.g. { knownFor: { gte: 20 } } for 'known each other for decades'. */
+  knownFor?: Comparator;
   /**
    * Only people the player knew before the family's move abroad (the immigrant scenario, `character.moveAbroad`):
    * the friends and grandparents back home, not someone met far away since (a tourist, a cousin's wedding guest).
