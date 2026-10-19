@@ -16,7 +16,7 @@ Character limits are enforced by the stores; counts are given in brackets. Never
 
 ## Apple promotional text (≤ 170)
 
-`New: every life ends with an obituary written from the way you actually lived. Continue as your child and build a dynasty across generations.` [141]
+`New: start as an orphan, an immigrant or a farm kid, meet your grandparents, watch your kids grow up, and take your chances in court.` [133]
 
 ## Full description (≤ 4000, both stores)
 
@@ -25,19 +25,23 @@ LifeLoop is a text-based life simulator. You are born into a random family, in a
 
 Study hard or skip class. Take the safe job or chase the dream. Propose, break up, start over. Buy the house, flip it, lose it. Get caught. Get away with it. Grow old, or don't.
 
+START ANYWHERE
+• Eight ways to begin: an ordinary family, foster care, a big family, a single parent, a family that moves abroad, a child prodigy, a farm, or (Premium) a wealthy family.
+
 LIVE A WHOLE LIFE IN MINUTES
 • One tap = one year. A full life takes a coffee break.
-• Hundreds of hand-written events with real choices and real consequences.
+• Over 1,000 hand-written events, from your first bath to your 100th birthday, with real choices and real consequences.
 • Four stats to balance: Happiness, Health, Smarts and Looks.
 
 BUILD A CAREER (OR A CRIMINAL RECORD)
 • 70+ careers with real ladders: from cashier to CEO, resident to surgeon, cadet to police chief.
 • University majors, graduate school, scholarships and student debt.
 • Side hustles: stream, build apps, flip furniture, drive nights.
-• Petty theft to bank robbery. Prison is boring. Parole is not guaranteed.
+• Petty theft to bank robbery. Get your day in court: plead guilty, hire a lawyer or defend yourself. Teens go to juvenile detention and keep up with school. Prison is boring. Parole is not guaranteed.
 
 LOVE, FAMILY, FRIENDS
-• Date, propose, marry, divorce, have children.
+• Date, propose, marry, divorce, have children, and watch them grow up, move out and give you grandchildren.
+• Grandparents who spoil you, coworkers who come with every job.
 • Parents, siblings and friends remember how you treat them.
 • Neglect a relationship and it fades. Insult the wrong person and they insult back.
 
@@ -49,7 +53,7 @@ MONEY
 DIE WELL
 • Every life ends with a tombstone, a ribbon that sums you up, and an obituary written from what you actually did.
 • Continue as your child, inherit your fortune (or your debts), and build a dynasty.
-• Collect ribbons in the Graveyard.
+• Collect ribbons in the Graveyard and 40 achievements that carry over from life to life.
 
 FAIR BY DESIGN
 • The whole game is free. No energy, no timers, no content locked behind a paywall.
