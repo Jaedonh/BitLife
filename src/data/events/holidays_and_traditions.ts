@@ -1,12 +1,18 @@
 import type { EventDef } from '@/engine/events/schema';
 
 /**
- * All ages, non-denominational: birthdays, new-year resolutions, winter
+ * All ages, non-denominational: birthdays, new-year resolutions, holiday
  * gatherings with the whole family, gifts you hate, hosting dinner for twelve,
  * secrets at the table, costume parties, fireworks, charity drives, storms on
  * the road home, toasts that go wrong and the quiet holiday after a loss.
  * Follow-ups (followUpOnly) are queued by the events that set them up.
+ * The yearly rituals repeat, but not every year: their cooldowns (5-10 years) keep
+ * the same scene from coming back so often that it reads as a glitch.
  */
+
+/** Real cars (the 'car' asset kind also covers the bicycle and the scooter). */
+const REAL_CAR = ['old_hatchback', 'sedan', 'pickup', 'ev', 'luxury_sedan', 'sports_car', 'supercar', 'classic_car'];
+
 export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ birthdays
   {
@@ -69,7 +75,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 90,
     weight: 2,
-    cooldown: 2,
+    cooldown: 10,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -142,7 +148,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     id: 'hd_surprise_party',
     category: 'holiday',
     title: 'Surprise party',
-    text: 'I opened the door to a dark room, then thirty people shouted at me at once. {{person}} had been planning a surprise party for weeks and somehow I had suspected nothing.',
+    text: 'I opened the door to a dark room, then thirty people shouted at me at once. {{person}} had been planning a surprise party for weeks. I had half guessed, but not the thirty people.',
     minAge: 10,
     maxAge: 85,
     weight: 1,
@@ -154,9 +160,12 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         id: 'tears',
         label: 'Burst into happy tears',
         effects: [
-          { stat: 'happiness', delta: 8 },
           { relationship: 'person', delta: 8 },
-          { log: '{{person}} got the hug of {{their}} life. I cried, laughed, cried again, then found the snacks.', kind: 'good' },
+          {
+            chance: 0.6,
+            then: [{ stat: 'happiness', delta: 7 }, { log: '{{person}} got the hug of {{their}} life. I cried, laughed, cried again, then found the snacks.', kind: 'good' }],
+            else: [{ stat: 'happiness', delta: 1 }, { log: 'I sobbed in front of thirty people. Someone has the video. {{person}} says it was sweet.' }],
+          },
         ],
       },
       {
@@ -182,12 +191,12 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
       },
       {
         id: 'knew',
-        label: 'Admit you knew',
+        label: 'Admit I had guessed',
         effects: [
           { stat: 'happiness', delta: 2 },
-          { karma: -1 },
+          { karma: 1 },
           { relationship: 'person', delta: -5 },
-          { log: "I admitted I had known for a week. {{person}}'s face fell a little. I should have lied.", kind: 'bad' },
+          { log: "I admitted I had guessed a week ago. {{person}}'s face fell a little. I should have lied.", kind: 'bad' },
         ],
       },
     ],
@@ -201,14 +210,17 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 0.8,
     cooldown: 6,
-    conditions: [{ inPrison: false }],
+    // Nobody at home to remember: no partner, no children and not living with my family; phones that ping.
+    conditions: [{ inPrison: false }, { married: false }, { hasLover: false }, { hasChildren: false }, { atHome: false }, { year: { gte: 2008 } }],
     choices: [
       {
         id: 'sulk',
-        label: 'Say nothing and sulk',
+        label: 'Make it a day for me',
         effects: [
-          { stat: 'happiness', delta: -6 },
-          { log: 'I sulked in silence. When someone finally remembered, the apology was worse than the forgetting.', kind: 'bad' },
+          { stat: 'happiness', delta: 2 },
+          { relationship: 'friend', delta: -2 },
+          { relationship: 'bestFriend', delta: -2 },
+          { log: 'I took myself to a movie and turned my phone off. If anyone remembered late, they got voicemail.' },
         ],
       },
       {
@@ -224,7 +236,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
       },
       {
         id: 'cake',
-        label: 'Buy your own cake',
+        label: 'Buy myself a cake',
         hint: '{{$25}}',
         conditions: [{ money: { gte: 25 } }],
         effects: [
@@ -238,7 +250,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         id: 'call',
         label: 'Call someone and tell them',
         effects: [
-          { stat: 'happiness', delta: 2 },
+          { energy: -1 },
+          { stat: 'happiness', delta: 3 },
           { karma: 1 },
           { relationship: 'friend', delta: 3 },
           { relationship: 'bestFriend', delta: 3 },
@@ -257,7 +270,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     maxAge: 40,
     weight: 3,
     once: true,
-    conditions: [{ inPrison: false }],
+    conditions: [{ inPrison: false }, { eventNotFired: 'ad_fortieth' }],
     choices: [
       {
         id: 'party',
@@ -322,7 +335,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 90,
     weight: 2,
-    cooldown: 2,
+    cooldown: 10,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -430,7 +443,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 8,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -496,11 +509,11 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     id: 'hd_winter_gathering',
     category: 'holiday',
     title: 'The whole family',
-    text: 'The whole family squeezed into one house for the winter holidays: too many coats, one bathroom, and {{person}} in charge of the kitchen, shouting cheerful instructions at anyone who walked past.',
+    text: 'The whole family squeezed into one house for the holidays: shoes piled by the door, one bathroom, and {{person}} in charge of the kitchen, shouting cheerful instructions at anyone who walked past.',
     minAge: 5,
     maxAge: 90,
-    weight: 2.5,
-    cooldown: 2,
+    weight: 2,
+    cooldown: 10,
     conditions: [{ inPrison: false }],
     person: { kind: ['mother', 'father', 'sibling', 'spouse', 'child'], minAge: 18 },
     choices: [
@@ -508,6 +521,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         id: 'help',
         label: 'Help {{person}} cook',
         effects: [
+          { energy: -1 },
           { relationship: 'person', delta: 6 },
           { stat: 'happiness', delta: 3 },
           { stat: 'smarts', delta: 1 },
@@ -532,7 +546,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         id: 'phone',
         label: 'Hide on the couch',
         effects: [
-          { stat: 'happiness', delta: 1 },
+          { stat: 'happiness', delta: 3 },
           { relationship: 'person', delta: -4 },
           { log: 'I spent most of the day on the couch with a screen. {{person}} noticed. {{They}} always notices.' },
         ],
@@ -557,7 +571,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 90,
     weight: 2,
-    cooldown: 3,
+    cooldown: 10,
     conditions: [{ inPrison: false }],
     person: { kind: ['mother', 'father', 'stepmother', 'stepfather', 'sibling', 'spouse', 'lover', 'friend', 'bestFriend'] },
     choices: [
@@ -619,8 +633,9 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     minAge: 22,
     maxAge: 85,
     weight: 1.2,
-    cooldown: 3,
-    conditions: [{ inPrison: false }, { money: { gte: 400 } }],
+    cooldown: 6,
+    // My own kitchen and oven: not while I still live with my family.
+    conditions: [{ inPrison: false }, { atHome: false }, { money: { gte: 400 } }],
     choices: [
       {
         id: 'full',
@@ -664,9 +679,9 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
       {
         id: 'dessert',
         label: 'Downgrade to dessert only',
-        hint: '{{$120}}',
+        hint: '{{$40}}',
         effects: [
-          { money: -120 },
+          { money: -40 },
           { stat: 'happiness', delta: 3 },
           { relationship: 'mother', delta: -1 },
           { relationship: 'sibling', delta: -1 },
@@ -802,7 +817,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         id: 'skip',
         label: 'Skip it, stay in my room',
         effects: [
-          { stat: 'happiness', delta: -5 },
+          { energy: 1 },
+          { stat: 'happiness', delta: -4 },
           { relationship: 'mother', delta: -3 },
           { relationship: 'father', delta: -3 },
           { relationship: 'sibling', delta: -3 },
@@ -828,10 +844,12 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         id: 'hug',
         label: 'Hug it out',
         effects: [
-          { relationship: 'person', delta: 15 },
-          { stat: 'happiness', delta: 6 },
           { karma: 2 },
-          { log: "I went first. The hug was stiff for a second and then it wasn't. We talked until the house slept.", kind: 'good' },
+          {
+            chance: 0.7,
+            then: [{ relationship: 'person', delta: 15 }, { stat: 'happiness', delta: 6 }, { log: "I went first. The hug was stiff for a second and then it wasn't. We talked until the house slept.", kind: 'good' }],
+            else: [{ relationship: 'person', delta: -2 }, { stat: 'happiness', delta: -3 }, { log: 'I went in for a hug and got a handshake. The nuts and I spent the evening together.', kind: 'bad' }],
+          },
         ],
       },
       {
@@ -861,7 +879,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { relationship: 'person', delta: -3 },
           { relationship: 'mother', delta: -2 },
           { relationship: 'father', delta: -2 },
-          { stat: 'happiness', delta: -2 },
+          { energy: 1 },
           { log: 'I left early. Easier than talking. The ride home was very quiet.' },
         ],
       },
@@ -958,6 +976,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         label: 'Write the first letter',
         conditions: [{ flag: 'hd_tradition', eq: 'letters' }],
         effects: [
+          { energy: -1 },
           { stat: 'smarts', delta: 2 },
           { stat: 'happiness', delta: 4 },
           { relationship: 'person', delta: 4 },
@@ -968,7 +987,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         id: 'lowkey',
         label: 'Keep it low-key',
         effects: [
-          { stat: 'happiness', delta: 2 },
+          { stat: 'happiness', delta: 3 },
           { relationship: 'person', delta: 2 },
           { log: 'We kept the first one small and quiet. {{person}} seemed to think that was the whole point.' },
         ],
@@ -985,13 +1004,14 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     minAge: 8,
     maxAge: 70,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 10,
     conditions: [{ inPrison: false }],
     choices: [
       {
         id: 'homemade',
         label: 'Build one from scratch',
         effects: [
+          { energy: -1 },
           { stat: 'smarts', delta: 2 },
           {
             random: [
@@ -1044,7 +1064,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 75,
     weight: 1.2,
-    cooldown: 4,
+    cooldown: 8,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -1095,11 +1115,11 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     id: 'hd_charity_drive',
     category: 'holiday',
     title: 'Charity drive',
-    text: 'The local holiday drive is collecting food, coats and money for families having a rough year. A volunteer with a clipboard has made eye contact with me. There is no escape.',
+    text: 'The local holiday drive is collecting food, clothes and money for families having a rough year. A volunteer with a clipboard has made eye contact with me. There is no escape.',
     minAge: 10,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 8,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -1118,6 +1138,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         id: 'volunteer',
         label: 'Volunteer a full day',
         effects: [
+          { energy: -1 },
           { karma: 3 },
           { stat: 'happiness', delta: 4 },
           { stat: 'health', delta: -1 },
@@ -1133,7 +1154,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 2 },
           {
             chance: 0.15,
-            then: [{ money: -150 }, { log: 'I gave away a bag of old clothes. The good coat was in it. Somebody in {{city}} is very warm now.', kind: 'bad' }],
+            then: [{ money: -150 }, { log: 'I gave away a bag of old clothes, my good jacket included. Somebody in {{city}} looks great.', kind: 'bad' }],
             else: [{ log: 'Three bags of things I never touched went to people who will use them. My closet breathed.' }],
           },
         ],
@@ -1157,7 +1178,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 1,
-    cooldown: 4,
+    cooldown: 6,
     conditions: [{ inPrison: false }],
     person: { kind: ['sibling', 'friend', 'bestFriend', 'spouse', 'child', 'mother', 'father'], minRelationship: 30, minAge: 18 },
     choices: [
@@ -1178,7 +1199,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         id: 'short',
         label: 'Keep it to one sentence',
         effects: [
-          { stat: 'happiness', delta: 2 },
+          { stat: 'happiness', delta: 1 },
           { relationship: 'person', delta: 3 },
           { log: 'One sentence, one glass, done. People called it the best toast ever, mostly because it was over.' },
         ],
@@ -1186,7 +1207,9 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
       {
         id: 'notes',
         label: 'Read from my phone',
+        conditions: [{ year: { gte: 2010 } }],
         effects: [
+          { energy: -1 },
           { stat: 'smarts', delta: 1 },
           { stat: 'happiness', delta: 3 },
           { relationship: 'person', delta: 4 },
@@ -1197,9 +1220,9 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         id: 'decline',
         label: 'Politely decline',
         effects: [
-          { stat: 'happiness', delta: -1 },
+          { stat: 'happiness', delta: 2 },
           { relationship: 'person', delta: -4 },
-          { log: '"I would rather not" is a full sentence. Forty people disagreed. {{person}} forgave me, slowly.' },
+          { log: '"I would rather not" is a full sentence. Forty people disagreed. I enjoyed my dinner anyway.' },
         ],
       },
     ],
@@ -1212,8 +1235,9 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 1.2,
-    cooldown: 3,
-    conditions: [{ inPrison: false }],
+    cooldown: 6,
+    // Sleet at the year-end holidays: a cold-winter country north of the equator, and a real car.
+    conditions: [{ inPrison: false }, { climate: ['snowy', 'mild'] }, { southern: false }, { ownsAssetId: REAL_CAR }],
     choices: [
       {
         id: 'push',
@@ -1276,7 +1300,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
       },
       {
         id: 'back',
-        label: 'Turn back and video-call',
+        label: 'Turn back and call home',
         effects: [
           { stat: 'happiness', delta: -4 },
           { relationship: 'mother', delta: -2 },
@@ -1297,7 +1321,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 90,
     weight: 2,
-    cooldown: 2,
+    cooldown: 10,
     conditions: [{ inPrison: false }, { money: { gte: 150 } }],
     choices: [
       {
@@ -1325,6 +1349,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         id: 'handmade',
         label: 'Make everything by hand',
         effects: [
+          { energy: -1 },
           { stat: 'smarts', delta: 2 },
           { stat: 'happiness', delta: 3 },
           { counter: 'giftsGiven', by: 3 },
@@ -1376,7 +1401,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 70,
     weight: 1.5,
-    cooldown: 2,
+    cooldown: 4,
     conditions: [{ hasJob: true }, { inPrison: false }],
     choices: [
       {
@@ -1486,8 +1511,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
   {
     id: 'hd_school_concert',
     category: 'holiday',
-    title: 'The winter concert',
-    text: "The school winter concert is tonight. My class has one song, two costumes that don't fit anyone, and a teacher who really, really wants this to go well.",
+    title: 'The school concert',
+    text: "The school concert is tonight. My class has one song, two costumes that don't fit anyone, and a teacher who really, really wants this to go well.",
     minAge: 5,
     maxAge: 13,
     weight: 2,
@@ -1509,6 +1534,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         id: 'triangle',
         label: 'Play the triangle with conviction',
         effects: [
+          { energy: -1 },
           { stat: 'happiness', delta: 4 },
           { stat: 'smarts', delta: 1 },
           { grade: 1 },
@@ -1543,7 +1569,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 85,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 10,
     conditions: [{ inPrison: false }],
     choices: [
       {

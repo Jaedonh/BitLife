@@ -385,7 +385,7 @@ export const GRANDPARENTS_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 3 },
           {
             chance: 0.6,
-            then: [{ money: 40 }, { log: 'I tried to give it back. By dessert the {{$40}} was in my coat pocket again.', kind: 'money' }],
+            then: [{ money: 40 }, { log: 'I tried to give it back. By dessert the {{$40}} was back in my pocket.', kind: 'money' }],
             else: [{ log: '{{person}} took the money back, looked at me a long moment and said I was raised right.' }],
           },
         ],
@@ -666,6 +666,8 @@ export const GRANDPARENTS_EVENTS: EventDef[] = [
     maxAge: 30,
     weight: 1.2,
     once: true,
+    // Video calls on a phone.
+    conditions: [{ year: { gte: 2012 } }],
     person: { kind: ['grandparent'], minAge: 60 },
     choices: [
       {
@@ -1015,7 +1017,7 @@ export const GRANDPARENTS_EVENTS: EventDef[] = [
         label: 'Move into {{their}} spare room',
         // Not while sharing a home with a partner.
         conditions: [{ any: [{ hasLover: false }, { not: { flag: 'lf_living_together' } }] }],
-        effects: [{ relationship: 'person', delta: 12 }, { karma: 4 }, { stat: 'happiness', delta: -3 }, { stat: 'health', delta: -2 }, { flag: 'gp_live_in_caregiver', set: true }, { log: "I moved into {{person}}'s spare room. We argue about the heating and share the crossword.", kind: 'milestone' }],
+        effects: [{ relationship: 'person', delta: 12 }, { karma: 4 }, { stat: 'happiness', delta: -3 }, { stat: 'health', delta: -2 }, { flag: 'gp_live_in_caregiver', set: true }, { log: "I moved into {{person}}'s spare room. We argue about the TV volume and share the crossword.", kind: 'milestone' }],
       },
       {
         id: 'weekends',
@@ -1077,7 +1079,7 @@ export const GRANDPARENTS_EVENTS: EventDef[] = [
     weight: 1,
     once: true,
     // A winter that needs home heating, in a home of their own (not after the assisted-living card).
-    conditions: [{ notCountry: ['NG', 'IN', 'BR', 'MX'] }, { eventNotFired: 'gp_assisted_living' }],
+    conditions: [{ climate: ['snowy', 'mild'] }, { eventNotFired: 'gp_assisted_living' }],
     person: { kind: ['grandparent'], minAge: 70 },
     choices: [
       {
@@ -1465,8 +1467,8 @@ export const GRANDPARENTS_EVENTS: EventDef[] = [
   {
     id: 'gp_detention_visit',
     category: 'prison',
-    title: 'Visiting day',
-    text: "{{person}} came to visit me in detention, in {{their}} best coat, and spent the whole hour telling me about the neighbors' dog. {{They}} didn't once ask why I'm here.",
+    title: 'Sunday best',
+    text: "{{person}} came to visit me in detention, in {{their}} Sunday best, and spent the whole hour telling me about the neighbors' dog. {{They}} didn't once ask why I'm here.",
     minAge: 10,
     maxAge: 17,
     weight: 1.5,
@@ -1477,7 +1479,7 @@ export const GRANDPARENTS_EVENTS: EventDef[] = [
       {
         id: 'thank',
         label: 'Thank {{them}} for coming',
-        effects: [{ stat: 'happiness', delta: 2 }, { relationship: 'person', delta: 5 }, { log: 'I thanked {{person}} for coming. {{They}} said {{they}} would be back next month, same coat.' }],
+        effects: [{ stat: 'happiness', delta: 2 }, { relationship: 'person', delta: 5 }, { log: 'I thanked {{person}} for coming. {{They}} said {{they}} would be back next month, same outfit.' }],
       },
       {
         id: 'sorry',

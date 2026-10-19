@@ -6,8 +6,10 @@ import type { EventDef } from '@/engine/events/schema';
  * The no-pet events (stray cat, a friend's dog, the class hamster, the shelter,
  * an inherited parrot, a sibling's rabbit) create pets with `newPerson`. The pet
  * events are bound to a living pet via `person: { kind: ['pet'] }` (or a dead one
- * for grief) and move that bond with `relationship: 'person'`. Follow-ups queued
- * from adoption are not bound to the new pet, so they use `relationship: 'pet'`.
+ * for grief), with `species` when the scene needs one (a walk in the park is for a
+ * dog, dander for something with fur), and move that bond with
+ * `relationship: 'person'`. Follow-ups queued from adoption are not bound to the
+ * new pet, so they use `relationship: 'pet'`.
  */
 export const PET_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ getting a pet
@@ -36,6 +38,7 @@ export const PET_EVENTS: EventDef[] = [
         id: 'find_owner',
         label: 'Look for its owner',
         effects: [
+          { energy: -1 },
           { karma: 3 },
           {
             chance: 0.5,
@@ -72,6 +75,7 @@ export const PET_EVENTS: EventDef[] = [
         label: 'Take the dog',
         effects: [
           { newPerson: { kind: 'pet', species: 'dog', relationship: 55, log: '{{person}} arrived with a leash, a bed and a list of rules. {{They}} ignored the rules by Tuesday.' } },
+          { money: -60 },
           { relationship: 'person', delta: 10 },
           { karma: 3 },
           { stat: 'happiness', delta: 5 },
@@ -127,6 +131,7 @@ export const PET_EVENTS: EventDef[] = [
         id: 'palace',
         label: 'Build it a palace',
         effects: [
+          { energy: -1 },
           { stat: 'smarts', delta: 3 },
           { stat: 'happiness', delta: 5 },
           {
@@ -269,7 +274,7 @@ export const PET_EVENTS: EventDef[] = [
       {
         id: 'cover',
         label: 'Cover the cage for guests',
-        effects: [{ relationship: 'pet', delta: -4 }, { stat: 'happiness', delta: -1 }, { log: 'Under the blanket the parrot sulked, then said the word anyway, muffled.' }],
+        effects: [{ relationship: 'pet', delta: -4 }, { stat: 'happiness', delta: 1 }, { log: 'Under the blanket the parrot sulked, then said the word anyway, muffled.' }],
       },
     ],
   },
@@ -290,6 +295,7 @@ export const PET_EVENTS: EventDef[] = [
         label: 'Adopt the rabbit',
         effects: [
           { newPerson: { kind: 'pet', species: 'rabbit', relationship: 60, log: 'The rabbit is mine now. {{person}} and I have an understanding about carrots.' } },
+          { energy: -1 },
           { stat: 'happiness', delta: 4 },
           { karma: 2 },
           { relationship: 'person', delta: 3 },
@@ -303,7 +309,7 @@ export const PET_EVENTS: EventDef[] = [
           { relationship: 'person', delta: -5 },
           {
             chance: 0.6,
-            then: [{ log: '{{person}} drove back grumbling and took the rabbit. It did not look grateful either.' }, { stat: 'happiness', delta: 1 }],
+            then: [{ log: '{{person}} drove back grumbling and took the rabbit. It did not look grateful either.' }, { stat: 'happiness', delta: 3 }],
             else: [{ log: '{{person}} said {{they}} would deal with it and did not. I fed it anyway.', kind: 'bad' }, { stat: 'happiness', delta: -2 }, { karma: 1 }],
           },
         ],
@@ -318,7 +324,7 @@ export const PET_EVENTS: EventDef[] = [
   {
     id: 'pt_first_night_home',
     category: 'family',
-    title: 'First night home',
+    title: 'The new arrival',
     text: 'The new arrival has spent the first evening inspecting every corner of the house and is now wide awake at two in the morning, which means I am too.',
     minAge: 4,
     maxAge: 85,
@@ -351,7 +357,7 @@ export const PET_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 70,
     weight: 1,
-    cooldown: 3,
+    cooldown: 6,
     conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend', 'sibling', 'coworker'], minAge: 18 },
     choices: [
@@ -361,6 +367,7 @@ export const PET_EVENTS: EventDef[] = [
         hint: 'Pays {{$150}}',
         effects: [
           { money: 150 },
+          { energy: -1 },
           { relationship: 'person', delta: 4 },
           {
             chance: 0.75,
@@ -383,7 +390,7 @@ export const PET_EVENTS: EventDef[] = [
       {
         id: 'free',
         label: 'Do it for free',
-        effects: [{ karma: 3 }, { relationship: 'person', delta: 8 }, { stat: 'happiness', delta: 2 }, { log: 'I did it for nothing. {{person}} brought me back a fridge magnet and a lifetime of favors.', kind: 'good' }],
+        effects: [{ energy: -1 }, { karma: 3 }, { relationship: 'person', delta: 8 }, { stat: 'happiness', delta: 2 }, { log: 'I did it for nothing. {{person}} brought me back a fridge magnet and a lifetime of favors.', kind: 'good' }],
       },
       {
         id: 'decline',
@@ -404,7 +411,7 @@ export const PET_EVENTS: EventDef[] = [
     weight: 1.5,
     cooldown: 3,
     conditions: [{ inPrison: false }],
-    person: { kind: ['pet'] },
+    person: { kind: ['pet'], species: ['dog', 'cat'] },
     choices: [
       {
         id: 'pay',
@@ -486,7 +493,7 @@ export const PET_EVENTS: EventDef[] = [
     weight: 1.5,
     cooldown: 3,
     conditions: [{ inPrison: false }],
-    person: { kind: ['pet'] },
+    person: { kind: ['pet'], species: ['dog'] },
     choices: [
       {
         id: 'vet',
@@ -551,7 +558,7 @@ export const PET_EVENTS: EventDef[] = [
     weight: 1.2,
     cooldown: 4,
     conditions: [{ inPrison: false }],
-    person: { kind: ['pet'] },
+    person: { kind: ['pet'], species: ['dog', 'cat'] },
     choices: [
       {
         id: 'search',
@@ -601,7 +608,7 @@ export const PET_EVENTS: EventDef[] = [
     weight: 0.8,
     cooldown: 3,
     conditions: [{ inPrison: false }],
-    person: { kind: ['pet'] },
+    person: { kind: ['pet'], species: ['dog', 'cat'] },
     choices: [
       {
         id: 'enter',
@@ -653,7 +660,7 @@ export const PET_EVENTS: EventDef[] = [
     weight: 1.5,
     cooldown: 2,
     conditions: [{ inPrison: false }],
-    person: { kind: ['pet'], minAge: 10 },
+    person: { kind: ['pet'], species: ['dog', 'cat'], minAge: 10 },
     choices: [
       {
         id: 'cherish',
@@ -706,7 +713,7 @@ export const PET_EVENTS: EventDef[] = [
     weight: 1.5,
     cooldown: 3,
     conditions: [{ inPrison: false }],
-    person: { kind: ['pet'] },
+    person: { kind: ['pet'], species: ['dog', 'cat'] },
     choices: [
       {
         id: 'replace',
@@ -745,7 +752,7 @@ export const PET_EVENTS: EventDef[] = [
     weight: 1.2,
     cooldown: 4,
     conditions: [{ inPrison: false }],
-    person: { kind: ['pet'] },
+    person: { kind: ['pet'], species: ['dog', 'parrot'] },
     choices: [
       {
         id: 'apologise',
@@ -775,8 +782,8 @@ export const PET_EVENTS: EventDef[] = [
           { money: -120 },
           {
             chance: 0.7,
-            then: [{ relationship: 'person', delta: 5 }, { stat: 'happiness', delta: 2 }, { log: 'Three sessions and a puzzle feeder. {{person}} now spends my absences on puzzles, not howling.', kind: 'good' }],
-            else: [{ stat: 'happiness', delta: -2 }, { log: 'The trainer left shaking her head. {{person}} howled her out the door.', kind: 'bad' }],
+            then: [{ relationship: 'person', delta: 5 }, { stat: 'happiness', delta: 2 }, { log: 'Three sessions and a puzzle feeder. {{person}} now spends my absences on puzzles, not noise.', kind: 'good' }],
+            else: [{ stat: 'happiness', delta: -2 }, { log: 'The trainer left shaking her head. {{person}} saw her out at full volume.', kind: 'bad' }],
           },
         ],
       },
@@ -792,7 +799,7 @@ export const PET_EVENTS: EventDef[] = [
     weight: 0.7,
     once: true,
     conditions: [{ inPrison: false }],
-    person: { kind: ['pet'] },
+    person: { kind: ['pet'], species: ['dog', 'cat', 'rabbit', 'hamster'] },
     choices: [
       {
         id: 'meds',
@@ -828,7 +835,8 @@ export const PET_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 0.8,
     once: true,
-    conditions: [{ noAsset: 'house' }, { inPrison: false }],
+    // A rented place of my own: not a home I own, and not my family's.
+    conditions: [{ noAsset: 'house' }, { atHome: false }, { inPrison: false }],
     person: { kind: ['pet'] },
     choices: [
       {
@@ -867,7 +875,7 @@ export const PET_EVENTS: EventDef[] = [
     weight: 1,
     cooldown: 5,
     conditions: [{ hasLover: true }, { inPrison: false }],
-    person: { kind: ['pet'] },
+    person: { kind: ['pet'], species: ['dog', 'cat'] },
     choices: [
       {
         id: 'pet',
@@ -905,7 +913,7 @@ export const PET_EVENTS: EventDef[] = [
     weight: 0.8,
     cooldown: 4,
     conditions: [{ hasJob: true }, { inPrison: false }],
-    person: { kind: ['pet'] },
+    person: { kind: ['pet'], species: ['dog'] },
     choices: [
       {
         id: 'bring',
@@ -926,7 +934,8 @@ export const PET_EVENTS: EventDef[] = [
       {
         id: 'photo',
         label: 'Bring a framed photo',
-        effects: [{ stat: 'happiness', delta: 2 }, { log: 'I put a framed photo of {{person}} on my desk. It won "best behaved" in the office vote.' }],
+        hint: '{{$15}}',
+        effects: [{ money: -15 }, { stat: 'happiness', delta: 2 }, { log: 'I put a framed photo of {{person}} on my desk. It won "best behaved" in the office vote.' }],
       },
     ],
   },
@@ -940,7 +949,7 @@ export const PET_EVENTS: EventDef[] = [
     weight: 1,
     cooldown: 4,
     conditions: [{ inPrison: false }],
-    person: { kind: ['pet'] },
+    person: { kind: ['pet'], species: ['dog'] },
     choices: [
       {
         id: 'chat',
@@ -993,7 +1002,7 @@ export const PET_EVENTS: EventDef[] = [
     weight: 0.8,
     once: true,
     conditions: [{ inPrison: false }],
-    person: { kind: ['pet'], minRelationship: 55 },
+    person: { kind: ['pet'], species: ['dog', 'cat'], minRelationship: 55 },
     choices: [
       {
         id: 'home',
@@ -1038,7 +1047,7 @@ export const PET_EVENTS: EventDef[] = [
     weight: 0.8,
     cooldown: 5,
     conditions: [{ inPrison: false }],
-    person: { kind: ['pet'] },
+    person: { kind: ['pet'], species: ['dog', 'cat'] },
     choices: [
       {
         id: 'takeaway',
@@ -1075,7 +1084,7 @@ export const PET_EVENTS: EventDef[] = [
     weight: 1,
     cooldown: 5,
     conditions: [{ hasChildren: true }, { inPrison: false }],
-    person: { kind: ['pet'] },
+    person: { kind: ['pet'], species: ['dog', 'cat', 'rabbit'] },
     choices: [
       {
         id: 'encourage',
@@ -1104,25 +1113,26 @@ export const PET_EVENTS: EventDef[] = [
   {
     id: 'pt_old_toy',
     category: 'family',
-    title: 'Under the sofa',
-    text: "Moving the sofa, I found {{person}}'s old toy, chewed flat and still faintly smelling of {{them}}. I sat on the floor for a while and did not move the sofa back.",
+    title: 'The box in the closet',
+    text: "At the back of a closet I found a box of {{person}}'s things: a collar, a name tag and a toy chewed flat. I sat down on the floor with it for a while and remembered.",
     minAge: 8,
     maxAge: 90,
     weight: 0.7,
     once: true,
     conditions: [{ inPrison: false }],
-    person: { kind: ['pet'], alive: false },
+    person: { kind: ['pet'], species: ['dog', 'cat'], alive: false },
     choices: [
       {
         id: 'keep',
-        label: 'Keep it',
-        effects: [{ stat: 'happiness', delta: 1 }, { log: 'It lives in a drawer now. I know exactly which drawer.' }],
+        label: 'Keep the box',
+        effects: [{ stat: 'happiness', delta: 2 }, { log: 'The box went back on the shelf, where I can reach it. I know exactly which shelf.' }],
       },
       {
         id: 'shelter',
         label: 'Visit the shelter',
         conditions: [{ noPerson: ['pet'] }],
         effects: [
+          { energy: -1 },
           { karma: 1 },
           {
             chance: 0.6,
@@ -1142,8 +1152,8 @@ export const PET_EVENTS: EventDef[] = [
       },
       {
         id: 'bin',
-        label: 'Throw it away',
-        effects: [{ stat: 'happiness', delta: -3 }, { log: 'I put it in the trash, then took it out, then put it back. Three times.' }],
+        label: 'Give the collar away',
+        effects: [{ karma: 2 }, { stat: 'happiness', delta: -1 }, { log: 'I gave the collar and the toy to the shelter. Some new arrival is chewing on them already.' }],
       },
     ],
   },

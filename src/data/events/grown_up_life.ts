@@ -1,4 +1,4 @@
-import type { EventDef } from '@/engine/events/schema';
+import type { Condition, EventDef } from '@/engine/events/schema';
 
 /**
  * Ages 25-64, the grown-up middle of a life: proposing, planning a wedding and
@@ -20,6 +20,11 @@ const REAL_CARS = ['old_hatchback', 'sedan', 'pickup', 'ev', 'luxury_sedan', 'sp
 const FUEL_CARS = REAL_CARS.filter((id) => id !== 'ev');
 /** Homes with a roof of their own (not a studio, condo or penthouse in a block). */
 const ROOFED_HOMES = ['townhouse', 'suburban', 'farmhouse', 'beach_house', 'mansion'];
+/**
+ * Widowhood cards grieve the one marriage of the life: one wedding and no spouse now, so the late spouse they bind
+ * is the person I married and nobody since (never a first husband after a second wedding, or a second widowhood).
+ */
+const WIDOWED: Condition[] = [{ married: false }, { count: 'marriages', eq: 1 }];
 
 export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ the wedding chain
@@ -27,7 +32,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     id: 'gu_ring_in_pocket',
     category: 'romance',
     title: 'The ring in my pocket',
-    text: 'I have carried a ring in my coat pocket for three weeks, waiting for the perfect moment with {{person}}. Every time I reach for my keys, my heart stops.',
+    text: 'I have carried a ring in my pocket for three weeks, waiting for the perfect moment with {{person}}. Every time I reach for my keys, my heart stops.',
     minAge: 22,
     maxAge: 55,
     weight: 1.2,
@@ -574,7 +579,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
         id: 'kids',
         label: 'Save it for the kids',
         conditions: [{ hasChildren: true }],
-        effects: [{ relationship: 'child', delta: 2 }, { karma: 1 }, { stat: 'happiness', delta: 2 }, { log: 'I boxed it up for the kids. One day they will ask, and I will tell them the good parts.' }],
+        effects: [{ relationship: 'child', delta: 2 }, { karma: 1 }, { log: 'I boxed it up for the kids. One day they will ask, and I will tell them the good parts.' }],
       },
       {
         id: 'toss',
@@ -606,7 +611,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     maxAge: 64,
     weight: 2,
     once: true,
-    conditions: [{ married: false }, { hasLover: false }],
+    conditions: [...WIDOWED, { hasLover: false }],
     person: { kind: ['spouse'], alive: false },
     choices: [
       {
@@ -647,7 +652,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
           { log: 'I stopped answering the door for a while. The grief needed room, so I gave it the whole place.' },
           {
             chance: 0.5,
-            then: [{ stat: 'happiness', delta: 2 }, { log: 'When I came out of it, something in me was steadier than before.' }],
+            then: [{ stat: 'happiness', delta: 5 }, { log: 'When I came out of it, something in me was steadier than before.' }],
             else: [{ stat: 'happiness', delta: -6 }, { log: 'It took a long time to open the curtains again.', kind: 'bad' }],
           },
         ],
@@ -658,18 +663,18 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     id: 'gu_widowed_closet',
     category: 'family',
     title: 'The closet',
-    text: "{{person}}'s side of the closet is exactly as {{they}} left it. The shirts barely smell of {{them}} anymore. I keep telling people I will deal with it soon.",
+    text: "{{person}}'s side of the closet is exactly as {{they}} left it, down to the shoes. I keep telling people I will deal with it soon, and I keep meaning it.",
     minAge: 25,
     maxAge: 64,
     weight: 1.5,
     once: true,
-    conditions: [{ married: false }],
+    conditions: [...WIDOWED, { hasLover: false }],
     person: { kind: ['spouse'], alive: false },
     choices: [
       {
         id: 'donate',
         label: 'Donate most of it',
-        effects: [{ karma: 4 }, { stat: 'happiness', delta: -3 }, { log: 'I gave almost everything to a shelter. Somewhere, a stranger is warm in {{their}} good coat.', kind: 'good' }],
+        effects: [{ karma: 4 }, { stat: 'happiness', delta: -3 }, { log: 'I gave almost everything to a shelter. I hope whoever got {{their}} good jacket stands up straight.', kind: 'good' }],
       },
       {
         id: 'one',
@@ -704,7 +709,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     maxAge: 64,
     weight: 1,
     once: true,
-    conditions: [{ married: false }],
+    conditions: [...WIDOWED, { hasLover: false }],
     person: { kind: ['spouse'], alive: false },
     choices: [
       {
@@ -734,7 +739,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     maxAge: 64,
     weight: 1,
     once: true,
-    conditions: [{ married: false }, { hasLover: false }],
+    conditions: [...WIDOWED, { hasLover: false }],
     person: { kind: ['spouse'], alive: false },
     choices: [
       {
@@ -752,6 +757,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
         id: 'coffee',
         label: 'Suggest coffee as friends',
         effects: [
+          { energy: -1 },
           { stat: 'happiness', delta: 2 },
           {
             chance: 0.7,
@@ -776,7 +782,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     maxAge: 64,
     weight: 1,
     once: true,
-    conditions: [{ hasJob: true }, { married: false }, { hasLover: false }],
+    conditions: [{ hasJob: true }, ...WIDOWED, { hasLover: false }],
     person: { kind: ['spouse'], alive: false },
     choices: [
       {
@@ -1008,7 +1014,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
         id: 'paint',
         label: 'Paint over it',
         hint: '{{$80}}',
-        effects: [{ money: -80 }, { relationship: 'person', delta: -2 }, { stat: 'happiness', delta: 2 }, { log: 'Two coats of paint and it was gone. {{person}} was quietly devastated for an afternoon.' }],
+        effects: [{ money: -80 }, { relationship: 'person', delta: -2 }, { stat: 'happiness', delta: 3 }, { log: 'Two coats of paint and it was gone. {{person}} was quietly devastated for an afternoon.' }],
       },
       {
         id: 'frame',
@@ -1031,7 +1037,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
         id: 'photo',
         label: 'Take a photo, then paint',
         hint: '{{$80}}',
-        effects: [{ money: -80 }, { relationship: 'person', delta: 1 }, { stat: 'happiness', delta: 2 }, { log: 'I took a photo before I painted. The mural is my phone wallpaper now.' }],
+        effects: [{ money: -80 }, { relationship: 'person', delta: 1 }, { stat: 'happiness', delta: 1 }, { log: 'I took a photo before I painted. The mural is my phone wallpaper now.' }],
       },
     ],
   },
@@ -1039,7 +1045,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     id: 'gu_preschool_dropoff',
     category: 'family',
     title: 'First day of preschool',
-    text: 'First day of preschool. {{person}} marched in, hung {{their}} coat on the hook with {{their}} name on it, and did not look back once. I am the one crying on the sidewalk outside.',
+    text: 'First day of preschool. {{person}} marched in, hung {{their}} backpack on the hook with {{their}} name on it, and did not look back once. I am the one crying on the sidewalk outside.',
     minAge: 25,
     maxAge: 64,
     weight: 2,
@@ -1096,7 +1102,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
       {
         id: 'sorry',
         label: 'Apologize to him',
-        effects: [{ karma: 1 }, { stat: 'happiness', delta: -1 }, { log: 'I apologized. He said it happens weekly. {{person}} asked if his head gets cold.' }],
+        effects: [{ karma: 1 }, { stat: 'happiness', delta: -2 }, { log: 'I apologized. He said it happens weekly. {{person}} asked if his head gets cold.' }],
       },
       {
         id: 'explain',
@@ -1132,13 +1138,13 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
   {
     id: 'gu_boomerang_kid',
     category: 'family',
-    title: 'Back home',
+    title: 'Eleven boxes',
     text: "{{person}} asked if {{they}} could move back in 'just for a few months' while {{they}} gets back on {{their}} feet. {{They}} has eleven boxes, a houseplant and, as far as I can tell, no timeline.",
     minAge: 40,
     maxAge: 64,
     weight: 1.5,
     cooldown: 10,
-    person: { kind: ['child'], minAge: 22, maxAge: 35 },
+    person: { kind: ['child'], minAge: 22, maxAge: 35, movedOut: true },
     choices: [
       {
         id: 'rules',
@@ -1163,7 +1169,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
           { karma: -1 },
           {
             chance: 0.5,
-            then: [{ relationship: 'person', delta: -4 }, { log: "I said no. {{They}} found a roommate within a week and calls it my 'tough love era'." }],
+            then: [{ relationship: 'person', delta: -4 }, { stat: 'happiness', delta: 2 }, { log: "I said no. {{They}} found a roommate within a week and calls it my 'tough love era'." }],
             else: [{ relationship: 'person', delta: -10 }, { stat: 'happiness', delta: -3 }, { log: 'I said no. {{They}} has not called much since.', kind: 'bad' }],
           },
         ],
@@ -1345,7 +1351,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     maxAge: 64,
     weight: 1.2,
     cooldown: 6,
-    person: { kind: ['child'], minAge: 20, maxAge: 40 },
+    person: { kind: ['child'], minAge: 20, maxAge: 40, married: false },
     choices: [
       {
         id: 'charm',
@@ -1486,7 +1492,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
   {
     id: 'gu_settle_down',
     category: 'family',
-    title: 'The question',
+    title: 'Settling down',
     text: "Over dinner {{person}} asked, between the potatoes and the gravy, when I am going to 'settle down'. Everyone else at the table suddenly found their plates very interesting.",
     minAge: 30,
     maxAge: 45,

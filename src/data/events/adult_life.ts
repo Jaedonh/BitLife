@@ -5,9 +5,13 @@ import type { EventDef } from '@/engine/events/schema';
  * purchases, reunions, aging parents, the school run, jury duty, a surprise
  * inheritance, godparenting, hobbies that become obsessions, a renovation
  * gone wrong, a local election, a house fire, a long-lost sibling and burnout.
+ * Cards about a house, a yard or a homeowners' association need a home of my own.
  * Follow-ups (followUpOnly) are queued by the events that set them up and
  * never fire on their own.
  */
+/** Houses with a front door and a yard of their own (not a studio, condo or penthouse). */
+const HOUSE_WITH_YARD = ['townhouse', 'suburban', 'farmhouse', 'beach_house', 'mansion'];
+
 export const ADULT_LIFE_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ home & money
   {
@@ -57,7 +61,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 1,
     cooldown: 5,
-    conditions: [{ inPrison: false }],
+    conditions: [{ inPrison: false }, { ownsAssetId: HOUSE_WITH_YARD }],
     choices: [
       {
         id: 'repaint',
@@ -101,7 +105,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 1,
     cooldown: 5,
-    conditions: [{ inPrison: false }],
+    conditions: [{ inPrison: false }, { ownsAssetId: HOUSE_WITH_YARD }],
     choices: [
       {
         id: 'survey',
@@ -190,6 +194,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
         id: 'teach',
         label: 'Offer to teach rhythm',
         effects: [
+          { energy: -1 },
           { stat: 'smarts', delta: 1 },
           { karma: 2 },
           { stat: 'happiness', delta: 2 },
@@ -266,6 +271,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
         id: 'return',
         label: 'Return it every time',
         effects: [
+          { energy: -1 },
           { karma: 3 },
           { stat: 'happiness', delta: -1 },
           { log: 'I carried it home eleven times. The neighbor and I are friends now, mostly out of exhaustion.' },
@@ -288,7 +294,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 1,
     cooldown: 8,
-    conditions: [{ inPrison: false }, { money: { gte: 4000 } }],
+    conditions: [{ inPrison: false }, { ownsAsset: 'house' }, { money: { gte: 4000 } }],
     choices: [
       {
         id: 'another',
@@ -339,7 +345,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 0.3,
     once: true,
-    conditions: [{ inPrison: false }],
+    conditions: [{ inPrison: false }, { ownsAsset: 'house' }],
     choices: [
       {
         id: 'out',
@@ -522,6 +528,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
         id: 'manage',
         label: 'Offer to manage them',
         effects: [
+          { energy: -1 },
           { stat: 'smarts', delta: 2 },
           { stat: 'happiness', delta: 2 },
           {
@@ -609,7 +616,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
       {
         id: 'spectate',
         label: 'Just watch',
-        effects: [{ stat: 'happiness', delta: 3 }, { stat: 'smarts', delta: 1 }, { log: 'I watched, took notes, and judged the judges silently.' }],
+        effects: [{ energy: -1 }, { stat: 'happiness', delta: 3 }, { stat: 'smarts', delta: 1 }, { log: 'I watched, took notes, and judged the judges silently.' }],
       },
       {
         id: 'skip',
@@ -666,7 +673,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 40,
     weight: 3,
     once: true,
-    conditions: [{ inPrison: false }],
+    // Not both forties (holidays_and_traditions' hd_fortieth) in one year.
+    conditions: [{ inPrison: false }, { eventNotFired: 'hd_fortieth' }],
     choices: [
       {
         id: 'party',
@@ -696,7 +704,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
       {
         id: 'ignore',
         label: 'Ignore it entirely',
-        effects: [{ stat: 'happiness', delta: -3 }, { log: 'I ate leftovers, went to bed early and told nobody. Forty happened anyway.' }],
+        effects: [{ stat: 'happiness', delta: -1 }, { stat: 'health', delta: 2 }, { log: 'I ate leftovers, went to bed early and told nobody. Forty happened anyway.' }],
       },
       {
         id: 'list',
@@ -776,7 +784,15 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
       {
         id: 'forgive',
         label: 'Accept the apology',
-        effects: [{ karma: 4 }, { stat: 'happiness', delta: 5 }, { log: 'I accepted. It did not undo anything, but something in my chest unclenched.', kind: 'good' }],
+        effects: [
+          { energy: -1 },
+          { karma: 4 },
+          {
+            chance: 0.7,
+            then: [{ stat: 'happiness', delta: 5 }, { log: 'I accepted. It did not undo anything, but something in my chest unclenched.', kind: 'good' }],
+            else: [{ stat: 'happiness', delta: -2 }, { log: 'We talked for an hour. It opened more than it closed, and I slept badly for a week.', kind: 'bad' }],
+          },
+        ],
       },
       {
         id: 'ignore',
@@ -935,47 +951,55 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     ],
   },
   {
+    // Not another sales pitch (money_events' mn_mlm_pitch is the starter-kit one): a friend signs me up for something.
     id: 'ad_friend_mlm',
     category: 'random',
-    title: 'A business opportunity',
-    text: "{{person}} invited me to a 'wellness evening' that turned out to be a pitch. There are tiers, a starter kit, and a diagram shaped suspiciously like a triangle.",
+    title: 'Twenty miles',
+    text: "{{person}} signed us both up for a twenty-mile charity walk and told the organizers I am 'basically a hiker'. The walk is in three weeks. I own one pair of sneakers and zero hiking socks.",
     minAge: 30,
     maxAge: 59,
     weight: 1,
-    cooldown: 6,
+    once: true,
     conditions: [{ inPrison: false }],
-    person: { kind: ['friend', 'bestFriend', 'sibling', 'ex'] },
+    person: { kind: ['friend', 'bestFriend', 'sibling'] },
     choices: [
       {
-        id: 'buy',
-        label: 'Buy the starter kit',
-        hint: '{{$900}}',
+        id: 'train',
+        label: 'Train for it properly',
         effects: [
-          { money: -900 },
-          { relationship: 'person', delta: 6 },
+          { energy: -1 },
+          { stat: 'health', delta: 4 },
+          { karma: 2 },
+          { relationship: 'person', delta: 5 },
           {
-            chance: 0.15,
-            then: [{ money: 1500 }, { log: 'I sold kits to three coworkers. I am now the problem.', kind: 'money' }],
-            else: [{ stat: 'happiness', delta: -4 }, { log: 'The kit is in the garage. I have four hundred units of a shampoo nobody wants.', kind: 'bad' }],
+            chance: 0.8,
+            then: [{ stat: 'happiness', delta: 5 }, { log: 'Three weeks of evening walks, then twenty miles with {{person}}. Money raised, blisters earned.', kind: 'good' }],
+            else: [{ injury: 3 }, { log: 'I twisted an ankle in training and cheered {{person}} over the line from a folding chair.', kind: 'bad' }],
           },
         ],
       },
       {
-        id: 'decline',
-        label: 'Decline kindly',
-        effects: [{ relationship: 'person', delta: -3 }, { karma: 1 }, { log: 'I said no gently. {{person}} will try again at a birthday.' }],
+        id: 'sponsor',
+        label: 'Sponsor {{them}} instead',
+        hint: '{{$100}}',
+        effects: [{ money: -100 }, { karma: 2 }, { relationship: 'person', delta: -2 }, { log: 'I sponsored {{person}} and stayed home. {{They}} sent photos of the finish line and {{their}} feet.' }],
       },
       {
-        id: 'intervene',
-        label: 'Stage an intervention',
+        id: 'untrained',
+        label: 'Walk it with no training',
         effects: [
-          { karma: 3 },
+          { karma: 1 },
           {
             chance: 0.5,
-            then: [{ relationship: 'person', delta: 8 }, { stat: 'happiness', delta: 3 }, { log: '{{They}} listened. The triangle lost a tier, and {{person}} thanked me later.', kind: 'good' }],
-            else: [{ relationship: 'person', delta: -12 }, { stat: 'happiness', delta: -3 }, { log: '{{They}} called me negative and blocked me. Sales must go on.', kind: 'bad' }],
+            then: [{ relationship: 'person', delta: 6 }, { stat: 'happiness', delta: 5 }, { log: 'I walked twenty miles on pride alone. {{person}} and I crossed the line together, limping.', kind: 'good' }],
+            else: [{ injury: 4 }, { relationship: 'person', delta: 2 }, { stat: 'happiness', delta: -2 }, { log: "Mile twelve took my knees. I finished in the support van, eating the volunteers' oranges.", kind: 'bad' }],
           },
         ],
+      },
+      {
+        id: 'excuse',
+        label: 'Find a good excuse',
+        effects: [{ karma: -1 }, { relationship: 'person', delta: -5 }, { stat: 'happiness', delta: 2 }, { log: 'I found a family commitment that weekend. {{person}} walked with a stranger and mentions it often.' }],
       },
     ],
   },
@@ -1027,7 +1051,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 1.2,
     cooldown: 8,
-    conditions: [{ inPrison: false }],
+    // Not within a few years of love_and_family's lf_parent_health_scare, which also offers to move the parent in.
+    conditions: [{ inPrison: false }, { not: { sinceEvent: 'lf_parent_health_scare', lte: 5 } }],
     person: { kind: ['mother', 'father'], minAge: 65 },
     choices: [
       {
@@ -1039,7 +1064,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 15 },
           { karma: 4 },
           { stat: 'happiness', delta: -3 },
-          { log: '{{person}} moved into the spare room. We argue about the thermostat, and I would not change a thing.' },
+          { log: '{{person}} moved in with me. We argue about the thermostat, and I would not change a thing.' },
           { queue: 'ad_parent_care_worsens' },
         ],
       },
@@ -1146,18 +1171,18 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
   {
     id: 'ad_parent_tech_support',
     category: 'random',
-    title: 'The printer again',
-    text: "{{person}} called for the fourth time this week. The printer is 'being weird', the television is 'doing the thing', and somehow I am the expert.",
+    title: 'The thermostat is thinking',
+    text: "{{person}} called for the fourth time this week. The new thermostat is 'thinking for itself', the remote has 'gone dead', and somehow I am the expert.",
     minAge: 30,
     maxAge: 59,
     weight: 1.5,
-    cooldown: 3,
-    conditions: [{ inPrison: false }],
+    cooldown: 5,
+    conditions: [{ inPrison: false }, { not: { sinceEvent: 'tm_parent_tech_help', lte: 5 } }],
     person: { kind: ['mother', 'father'] },
     choices: [
       {
         id: 'drive',
-        label: 'Drive over and fix it',
+        label: 'Go over and fix it',
         effects: [{ energy: -1 }, { relationship: 'person', delta: 6 }, { karma: 2 }, { stat: 'happiness', delta: 2 }, { log: 'I unplugged it and plugged it back in. {{person}} called me a genius and fed me.', kind: 'good' }],
       },
       {
@@ -1198,6 +1223,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
         id: 'carpool',
         label: 'Set up a carpool',
         effects: [
+          { money: -100 },
           { stat: 'happiness', delta: 3 },
           { log: 'Three families, one schedule, fewer mornings in the car for everyone.' },
           { chance: 0.6, then: [{ newPerson: { kind: 'friend', relationship: 50, log: 'Another parent, {{person}}, and I now split mornings and gossip.' } }] },
@@ -1226,7 +1252,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
   {
     id: 'ad_parent_teacher_night',
     category: 'random',
-    title: 'Parent-teacher night',
+    title: 'Tiny chairs',
     text: "Parent-teacher night for {{person}}. Tiny chairs, long lines, and a teacher who starts every sentence with 'so' in a way that makes me nervous.",
     minAge: 30,
     maxAge: 59,
@@ -1443,7 +1469,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
       {
         id: 'conscience',
         label: 'Vote my conscience',
-        effects: [{ karma: 4 }, { stat: 'happiness', delta: 3 }, { log: 'I held out, argued, and in the end we got it right. I think. I hope.', kind: 'good' }],
+        effects: [{ energy: -1 }, { karma: 4 }, { stat: 'happiness', delta: 3 }, { log: 'I held out, argued, and in the end we got it right. I think. I hope.', kind: 'good' }],
       },
       {
         id: 'along',
@@ -1490,6 +1516,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
         id: 'volunteer',
         label: 'Volunteer for someone else',
         effects: [
+          { energy: -1 },
           { karma: 2 },
           { stat: 'happiness', delta: 2 },
           { log: 'I handed out flyers for a candidate I mostly agreed with. My shoes did not survive it.' },
@@ -1557,13 +1584,13 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
   {
     id: 'ad_burnout',
     category: 'random',
-    title: 'Running on empty',
+    title: 'The parking lot',
     text: 'I have been tired for a year. Not sleepy, tired. I sat in the parking lot at {{company}} this morning for twenty minutes, unable to go in.',
     minAge: 30,
     maxAge: 59,
     weight: 1.2,
     cooldown: 5,
-    conditions: [{ hasJob: true }, { inPrison: false }],
+    conditions: [{ hasJob: true }, { inPrison: false }, { not: { sinceEvent: 'wk_burnout', lte: 5 } }],
     choices: [
       {
         id: 'push',
@@ -1637,6 +1664,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
       {
         id: 'remote',
         label: 'Ask to work from home',
+        conditions: [{ year: { gte: 2012 } }],
         effects: [
           {
             chance: 0.45,

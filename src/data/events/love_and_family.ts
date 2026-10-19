@@ -101,7 +101,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
   {
     id: 'lf_meet_their_parents',
     category: 'romance',
-    title: 'Meeting the parents',
+    title: "The father's handshake",
     text: "{{person}} invited me to Sunday lunch with {{their}} parents. I was warned about the father's handshake, the mother's questions, and a dog that judges people.",
     minAge: 16,
     maxAge: 50,
@@ -149,7 +149,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
       {
         id: 'bail',
         label: 'Fake a stomach bug',
-        effects: [{ karma: -2 }, { love: -8 }, { relationship: 'person', delta: -4 }, { log: "I bailed. {{person}} knew. {{person}}'s parents now call me 'the one with the stomach'.", kind: 'bad' }],
+        effects: [{ karma: -2 }, { love: -8 }, { relationship: 'person', delta: -4 }, { stat: 'happiness', delta: 2 }, { log: "I bailed. {{person}} knew. {{person}}'s parents now call me 'the one with the stomach'.", kind: 'bad' }],
       },
     ],
   },
@@ -368,7 +368,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
           { relationship: 'person', delta: -3 },
           {
             chance: 0.5,
-            then: [{ stat: 'happiness', delta: 2 }, { log: '{{They}} groveled beautifully. A weekend away appeared on the calendar.' }],
+            then: [{ stat: 'happiness', delta: 6 }, { log: '{{They}} groveled beautifully. A weekend away appeared on the calendar.' }],
             else: [{ stat: 'happiness', delta: -4 }, { love: -4 }, { log: 'The sulk lasted a week. Nobody won.', kind: 'bad' }],
           },
         ],
@@ -379,7 +379,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.4,
-            then: [{ love: 4 }, { log: "{{They}} got it on the second guess. I'll take it." }],
+            then: [{ love: 4 }, { stat: 'happiness', delta: 4 }, { log: "{{They}} got it on the second guess. I'll take it." }],
             else: [{ love: -6 }, { stat: 'happiness', delta: -3 }, { log: '{{They}} guessed my birthday. It is not my birthday.', kind: 'bad' }],
           },
         ],
@@ -462,7 +462,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 80,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 5,
     conditions: [{ inPrison: false }],
     person: { kind: ['lover', 'spouse'] },
     choices: [
@@ -486,7 +486,8 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
         id: 'night',
         label: 'Take a night apart',
         effects: [
-          { stat: 'happiness', delta: -3 },
+          { stat: 'happiness', delta: -1 },
+          { stat: 'health', delta: 2 },
           { love: -4 },
           {
             chance: 0.7,
@@ -573,7 +574,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
       {
         id: 'delete',
         label: 'Delete the message',
-        effects: [{ karma: 1 }, { love: 2 }, { stat: 'happiness', delta: -1 }, { log: 'I deleted it. Closed doors can stay closed.' }],
+        effects: [{ karma: 1 }, { love: 2 }, { stat: 'happiness', delta: 1 }, { log: 'I deleted it. Closed doors can stay closed.' }],
       },
       {
         id: 'polite',
@@ -609,7 +610,14 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
       {
         id: 'tell',
         label: 'Tell {{person}} about it',
-        effects: [{ karma: 2 }, { love: 5 }, { relationship: 'person', delta: 5 }, { log: "I told {{person}}. {{They}} shrugged and said 'go if you want'. I didn't want to.", kind: 'good' }],
+        effects: [
+          { karma: 2 },
+          {
+            chance: 0.75,
+            then: [{ love: 7 }, { relationship: 'person', delta: 5 }, { log: "I told {{person}}. {{They}} shrugged and said 'go if you want'. I didn't want to.", kind: 'good' }],
+            else: [{ love: -3 }, { log: '{{person}} went quiet and asked who it was. Then asked again, a week later.', kind: 'bad' }],
+          },
+        ],
       },
     ],
   },
@@ -617,7 +625,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     id: 'lf_partner_job_far',
     category: 'romance',
     title: 'A job far away',
-    text: "{{person}} got a job offer in another city. Better money, better title, and a four-hour drive from everything we've built here. {{They}} wants to know what I think.",
+    text: "{{person}} was offered a one-year posting in another city. Better money, better title, and a four-hour drive from everything we've built here. {{They}} wants to know what I think.",
     minAge: 20,
     maxAge: 60,
     weight: 0.7,
@@ -627,25 +635,26 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     choices: [
       {
         id: 'quit_go',
-        label: 'Quit and move with {{them}}',
+        label: 'Quit and go with {{them}}',
         conditions: [{ hasJob: true }],
         effects: [
           { loseJob: true, reason: 'left' },
           { love: 15 },
           { relationship: 'person', delta: 10 },
-          { log: 'I quit my job and we moved together. New city, new everything.', kind: 'milestone' },
+          // The city never changes in the engine, so the posting ends and we come home.
+          { log: 'I quit my job and went with {{them}} for the year. When it ended, we came back to {{city}}.', kind: 'milestone' },
           {
             chance: 0.6,
-            then: [{ money: 3000 }, { stat: 'happiness', delta: 6 }, { log: 'The money from {{their}} new job made the first months easy.', kind: 'good' }],
-            else: [{ stat: 'happiness', delta: -4 }, { log: "Finding my feet in the new city took longer than I'd hoped." }],
+            then: [{ money: 3000 }, { stat: 'happiness', delta: 6 }, { log: 'The posting paid {{them}} well, and the savings made the first months back easy.', kind: 'good' }],
+            else: [{ stat: 'happiness', delta: -4 }, { log: "Starting over in {{city}} without a job took longer than I'd hoped." }],
           },
         ],
       },
       {
         id: 'free_go',
-        label: 'Move with {{them}}',
+        label: 'Go with {{them}} for the year',
         conditions: [{ hasJob: false }, { enrolled: false }],
-        effects: [{ love: 12 }, { relationship: 'person', delta: 8 }, { stat: 'happiness', delta: 4 }, { log: 'We moved together. I had nothing holding me here but boxes.', kind: 'milestone' }],
+        effects: [{ love: 12 }, { relationship: 'person', delta: 8 }, { stat: 'happiness', delta: 4 }, { log: 'Nothing held me here but boxes, so I went along for the year. Then we came home to {{city}}.', kind: 'milestone' }],
       },
       {
         id: 'distance',
@@ -718,7 +727,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
         effects: [
           { love: -10 },
           { relationship: 'person', delta: -8 },
-          { stat: 'happiness', delta: -3 },
+          { stat: 'happiness', delta: 3 },
           { karma: -2 },
           {
             chance: 0.5,
@@ -928,11 +937,11 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     id: 'lf_love_note',
     category: 'romance',
     title: 'A little note',
-    text: 'I found a note from {{person}} tucked into my coat pocket. Three words and a badly drawn heart. {{They}} must have written it days ago and said nothing.',
+    text: 'I found a note from {{person}} tucked into the book I am reading. Three words and a badly drawn heart. {{They}} must have written it days ago and said nothing.',
     minAge: 16,
     maxAge: 100,
     weight: 1.5,
-    cooldown: 2,
+    cooldown: 5,
     conditions: [{ inPrison: false }],
     person: { kind: ['lover', 'spouse'] },
     choices: [
@@ -1003,10 +1012,11 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
 
   // ------------------------------------------------------------ single life
   {
+    // Not an office scene (work_life's wk_workplace_flirt is that one): someone from the morning commute.
     id: 'lf_coworker_asks_out',
     category: 'romance',
-    title: 'Asked out',
-    text: "A coworker from {{company}} hung around after everyone else had left and asked, with alarming sincerity, if I'd like to get dinner sometime. Not a work dinner.",
+    title: 'The 8:10',
+    text: 'The same person has sat across from me on the 8:10 every morning for a year. We have never spoken. Today they closed their book, said my stop was next, and asked me to dinner.',
     minAge: 18,
     maxAge: 65,
     weight: 1,
@@ -1019,70 +1029,75 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.65,
-            then: [{ stat: 'happiness', delta: 6 }, { newPerson: { kind: 'lover', relationship: 60, log: 'Dinner went well. {{person}} and I are now a thing, and the office knows.' } }],
-            else: [{ stat: 'happiness', delta: -2 }, { log: 'Dinner was fine. The second one never happened. Mondays got weird.' }],
+            then: [{ stat: 'happiness', delta: 6 }, { newPerson: { kind: 'lover', relationship: 60, log: 'Dinner with {{person}} went well. We still take the 8:10, now in the same row.' } }],
+            else: [{ stat: 'happiness', delta: -3 }, { log: 'One dinner, no spark. I take the 8:25 now, which is a real sacrifice.' }],
           },
         ],
       },
       {
         id: 'decline',
         label: 'Politely decline',
-        effects: [{ karma: 1 }, { stat: 'happiness', delta: 1 }, { log: 'I said no kindly. We nod at each other in the break room now, which is manageable.' }],
+        effects: [{ karma: 1 }, { stat: 'happiness', delta: -1 }, { log: 'I said no kindly. We still nod across the aisle every morning, a little more carefully.' }],
       },
       {
-        id: 'hr',
-        label: 'Report it to HR',
+        id: 'coffee',
+        label: 'Suggest coffee first',
         effects: [
-          { karma: -2 },
+          { money: -10 },
+          { stat: 'happiness', delta: 2 },
           {
-            chance: 0.5,
-            then: [{ stat: 'happiness', delta: -3 }, { log: 'HR had a quiet word. It was handled. The office took sides anyway.' }],
-            else: [{ stat: 'happiness', delta: -4 }, { log: "HR said a dinner invitation isn't a crime. I looked slightly dramatic.", kind: 'bad' }],
+            chance: 0.4,
+            then: [{ newPerson: { kind: 'friend', relationship: 55, log: 'Coffee with {{person}} became a Friday habit. No romance, just the best commute in town.' } }],
+            else: [{ log: 'We had coffee at the station. Pleasant, brief, and the train was late, as usual.' }],
           },
         ],
       },
     ],
   },
   {
+    // A grown-up setup by a friend, never within a few years of young_adult's ya_blind_date (a friend's setup too).
     id: 'lf_blind_date',
     category: 'romance',
-    title: 'Blind date',
-    text: "A friend set me up on a blind date. All I know is a name, a restaurant, and the phrase 'you'll either love them or have a great story'.",
+    title: 'The setup',
+    text: "{{person}} has decided my love life is a project. {{They}} has found a candidate, booked a table and written me a page of talking points in case I freeze. I have been asked to wear the blue shirt.",
     minAge: 18,
     maxAge: 70,
     weight: 1.2,
-    cooldown: 2,
-    conditions: [{ hasLover: false }, { inPrison: false }],
+    cooldown: 4,
+    conditions: [{ hasLover: false }, { inPrison: false }, { not: { sinceEvent: 'ya_blind_date', lte: 4 } }],
+    person: { kind: ['friend', 'bestFriend'], minAge: 18 },
     choices: [
       {
         id: 'go',
-        label: 'Go',
+        label: 'Go, in the blue shirt',
         hint: '{{$80}}',
         effects: [
           { money: -80 },
+          { relationship: 'person', delta: 2 },
           {
             random: [
-              { weight: 45, effects: [{ stat: 'happiness', delta: 6 }, { newPerson: { kind: 'lover', relationship: 58, log: '{{person}} turned out to be lovely. Second date booked before dessert.' } }] },
-              { weight: 40, effects: [{ stat: 'happiness', delta: 1 }, { log: 'A pleasant evening and no spark. We shook hands, which says it all.' }] },
-              { weight: 15, effects: [{ stat: 'happiness', delta: -3 }, { log: 'Great story. They talked about their ex for ninety minutes and ordered for me.', kind: 'bad' }] },
+              { weight: 45, effects: [{ stat: 'happiness', delta: 6 }, { newPerson: { kind: 'lover', relationship: 58, log: '{{person}} was lovely, and the talking points stayed in my pocket. A second date is booked.' } }] },
+              { weight: 40, effects: [{ stat: 'happiness', delta: 1 }, { log: 'Perfectly nice. We split the bill and agreed we would make excellent cousins.' }] },
+              { weight: 15, effects: [{ stat: 'happiness', delta: -3 }, { log: 'My date had a page of talking points too. We read them aloud and left before dessert.', kind: 'bad' }] },
             ],
           },
         ],
       },
       {
         id: 'cancel',
-        label: 'Cancel last minute',
-        effects: [{ karma: -1 }, { stat: 'happiness', delta: 1 }, { log: 'I stayed in. My friend called me a coward, affectionately.' }],
+        label: 'Cancel at the last minute',
+        effects: [{ karma: -1 }, { relationship: 'person', delta: -4 }, { stat: 'happiness', delta: 2 }, { log: "I canceled with an hour to spare. {{person}} has filed the talking points under 'next time'." }],
       },
       {
-        id: 'group',
-        label: 'Make it a group thing',
+        id: 'coffee',
+        label: 'Ask for coffee instead',
         effects: [
-          { stat: 'happiness', delta: 3 },
+          { money: -10 },
+          { stat: 'happiness', delta: 2 },
           {
-            chance: 0.3,
-            then: [{ newPerson: { kind: 'friend', relationship: 55, log: 'No romance, but I made a new friend, {{person}}, who was not my date.' } }],
-            else: [{ log: 'Safer in numbers. Nobody fell in love, everyone ate well.' }],
+            chance: 0.35,
+            then: [{ newPerson: { kind: 'lover', relationship: 50, log: 'Coffee with {{person}} ran two hours. The talking points were never needed.' } }],
+            else: [{ log: 'Coffee was short and fine. I bought a bag of beans, so it was not a total loss.' }],
           },
         ],
       },
@@ -1148,7 +1163,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 8 },
           { relationship: 'mother', delta: 4 },
           { relationship: 'father', delta: 4 },
-          { log: 'We told everyone. The grandparents-to-be started knitting within the hour.', kind: 'good' },
+          { log: 'We told everyone. Both families started knitting within the hour.', kind: 'good' },
           {
             random: [
               { weight: 92, effects: [{ newPerson: { kind: 'child', relationship: 80, log: '{{person}} was born. Small, loud, perfect.' } }] },
@@ -1232,6 +1247,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
         id: 'listen',
         label: 'Hear {{their}} side first',
         effects: [
+          { energy: -1 },
           { karma: 2 },
           { relationship: 'person', delta: 6 },
           {
@@ -1270,7 +1286,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
         id: 'pay',
         label: 'Apologize and offer to pay',
         hint: '{{$300}}',
-        effects: [{ money: -300 }, { karma: 2 }, { relationship: 'person', delta: -2 }, { log: "I paid for the other kid's glasses. {{person}} wrote an apology under protest." }],
+        effects: [{ money: -300 }, { karma: 3 }, { relationship: 'person', delta: -2 }, { log: "I paid for the other kid's glasses. {{person}} wrote an apology under protest." }],
       },
     ],
   },
@@ -1284,7 +1300,9 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     weight: 0.7,
     once: true,
     conditions: [{ inPrison: false }],
-    person: { kind: ['child'], minAge: 14 },
+    // A child who has not married yet. The engine reads this card's journal line (it opens with the child's
+    // name and says "is gay"), so whoever they marry later is of their own gender (systems/family.ts).
+    person: { kind: ['child'], minAge: 14, married: false },
     choices: [
       {
         id: 'hug',
@@ -1427,7 +1445,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
           { relationship: 'person', delta: -8 },
           {
             chance: 0.5,
-            then: [{ log: '{{They}} stayed, resentfully. The house is full and tense.', kind: 'bad' }],
+            then: [{ stat: 'happiness', delta: 2 }, { log: '{{They}} stayed, resentfully. The house is full and tense, but full.', kind: 'bad' }],
             else: [{ childMilestone: 'movedOut' }, { stat: 'happiness', delta: -4 }, { log: '{{They}} left anyway and calls less now.', kind: 'bad' }],
           },
         ],
@@ -1465,6 +1483,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
         id: 'home',
         label: 'Encourage it at home',
         effects: [
+          { energy: -1 },
           { relationship: 'person', delta: 5 },
           { stat: 'happiness', delta: 2 },
           {
@@ -1560,6 +1579,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
         label: 'Offer a lot of advice',
         effects: [
           { childMilestone: 'expecting' },
+          { stat: 'smarts', delta: 1 },
           {
             chance: 0.4,
             then: [{ relationship: 'person', delta: 3 }, { log: '{{They}} took the advice and even thanked me for some of it.' }],
@@ -1642,54 +1662,40 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     ],
   },
   {
+    // After the last parent is gone. The estate's money is the engine's (the inheritance line at the death), so this
+    // card splits what is left in the house and sells only the furniture.
     id: 'lf_sibling_inheritance',
     category: 'family',
-    title: 'The will',
-    text: "Clearing out our late parent's house, {{person}} and I found the will. It splits everything evenly. {{They}} thinks {{they}} deserves more for 'doing all the visiting'. {{They}} has a point, slightly.",
+    title: 'The last boxes',
+    text: '{{person}} and I finally sat down with the last boxes from the family house. Most of it is easy. The clock, the photo albums and the good ring are not, and {{they}} has brought a list.',
     minAge: 25,
     maxAge: 85,
     weight: 0.7,
     once: true,
-    conditions: [{ inPrison: false }, { any: [{ noPerson: ['mother'] }, { noPerson: ['father'] }] }],
+    // No living mother or father, though a non-orphan always had one: at least one parent has died. An orphan's
+    // foster siblings never shared a family house with me.
+    conditions: [{ inPrison: false }, { noPerson: ['mother', 'father'] }, { not: { flag: 'foster_care' } }],
     person: { kind: ['sibling'] },
     choices: [
       {
         id: 'even',
-        label: 'Insist on an even split',
-        effects: [
-          { money: 6000 },
-          { relationship: 'person', delta: -6 },
-          {
-            chance: 0.5,
-            then: [{ log: '{{They}} grumbled, then let it go. We still speak, mostly at funerals.', kind: 'money' }],
-            else: [{ relationship: 'person', delta: -10 }, { log: '{{They}} took it personally. Holidays are complicated now.', kind: 'bad' }],
-          },
-        ],
+        label: 'Split everything evenly',
+        effects: [{ money: 400 }, { karma: 1 }, { relationship: 'person', delta: -3 }, { stat: 'happiness', delta: 2 }, { log: 'We went item by item, sold my half of the furniture, and flipped a coin for the clock.', kind: 'money' }],
       },
       {
         id: 'give',
-        label: 'Let {{them}} have more',
-        effects: [{ money: 3000 }, { karma: 4 }, { relationship: 'person', delta: 12 }, { stat: 'happiness', delta: 2 }, { log: 'I took less. {{They}} hugged me in the empty kitchen and we both cried.', kind: 'good' }],
+        label: 'Let {{them}} choose first',
+        effects: [{ karma: 3 }, { relationship: 'person', delta: 10 }, { stat: 'happiness', delta: -2 }, { log: 'I let {{person}} choose first. {{They}} took the clock, then handed me the albums unasked.', kind: 'good' }],
       },
       {
-        id: 'lawyer',
-        label: 'Get a lawyer',
-        hint: '{{$1500}}',
-        effects: [
-          { money: -1500 },
-          { karma: -2 },
-          { relationship: 'person', delta: -15 },
-          {
-            chance: 0.6,
-            then: [{ money: 7000 }, { log: 'The lawyer got me the full share and a sibling who no longer calls.', kind: 'money' }],
-            else: [{ money: 4000 }, { log: 'The lawyer ate the difference. {{person}} and I both lost.', kind: 'bad' }],
-          },
-        ],
+        id: 'sell',
+        label: 'Sell my half, ring included',
+        effects: [{ money: 900 }, { karma: -2 }, { relationship: 'person', delta: -6 }, { stat: 'happiness', delta: 1 }, { log: "A dealer gave me {{$900}} for my half, ring included. {{person}} has not said 'ring' since.", kind: 'money' }],
       },
       {
         id: 'keepsakes',
         label: 'Take only the keepsakes',
-        effects: [{ karma: 3 }, { relationship: 'person', delta: 8 }, { stat: 'happiness', delta: 4 }, { log: 'I took the photo albums and the chipped mug. {{They}} can have the rest. I got the better deal.' }],
+        effects: [{ karma: 2 }, { relationship: 'person', delta: 6 }, { stat: 'happiness', delta: 3 }, { log: 'I took the photo albums and the chipped mug. {{They}} can have the rest. I got the better deal.' }],
       },
     ],
   },
@@ -1738,14 +1744,14 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
   {
     id: 'lf_mother_remarries',
     category: 'family',
-    title: "Mom's new husband",
-    text: '{{person}} sat me down to say she is getting married again. He is a retired dentist with a boat and a laugh you can hear from the parking lot. She looks happy. She wants my blessing.',
+    title: 'A man with a boat',
+    text: '{{person}} sat me down to say she is getting married. He has a boat, a laugh you can hear from the parking lot and, she says, excellent manners. She looks happy. She wants my blessing.',
     minAge: 16,
     maxAge: 80,
     weight: 0.6,
     once: true,
     conditions: [{ inPrison: false }, { noPerson: ['father'] }, { noPerson: ['stepfather'] }],
-    person: { kind: ['mother'] },
+    person: { kind: ['mother'], maxAge: 85 },
     choices: [
       {
         id: 'bless',
@@ -1787,14 +1793,14 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
   {
     id: 'lf_father_remarries',
     category: 'family',
-    title: "Dad's new wife",
+    title: 'Between courses',
     text: "{{person}} brought a woman to dinner and introduced her as 'a friend', then, between courses, as his fiancée. He looks younger. She looks nervous. They want to know if I'm okay with it.",
     minAge: 16,
     maxAge: 80,
     weight: 0.6,
     once: true,
     conditions: [{ inPrison: false }, { noPerson: ['mother'] }, { noPerson: ['stepmother'] }],
-    person: { kind: ['father'] },
+    person: { kind: ['father'], maxAge: 85 },
     choices: [
       {
         id: 'welcome',
@@ -1803,7 +1809,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 10 },
           { karma: 3 },
           { stat: 'happiness', delta: 3 },
-          { newPerson: { kind: 'stepmother', relationship: 50, gender: 'female', minAge: 45, maxAge: 72, log: '{{person}} turned out to be kind, and a far better cook than Dad.' } },
+          { newPerson: { kind: 'stepmother', relationship: 50, gender: 'female', minAge: 45, maxAge: 72, log: '{{person}} turned out to be kind, and a far better cook than {{father}}.' } },
         ],
       },
       {
@@ -1816,7 +1822,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
       },
       {
         id: 'object',
-        label: 'Tell him it is too soon',
+        label: 'Tell him it is too fast',
         effects: [
           { relationship: 'person', delta: -12 },
           { karma: -3 },
@@ -1824,7 +1830,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [
-              { log: 'He married her anyway. He said grief has no schedule, and he was right.', kind: 'bad' },
+              { log: 'He married her anyway. He said he had been alone long enough, and he was right.', kind: 'bad' },
               { newPerson: { kind: 'stepmother', relationship: 20, gender: 'female', minAge: 45, maxAge: 72, log: '{{person}} is polite to me in the way people are polite to a draft.' } },
             ],
             else: [{ stat: 'happiness', delta: -3 }, { log: 'They postponed. He is lonelier for it, and I did that.', kind: 'bad' }],
@@ -1836,13 +1842,14 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
   {
     id: 'lf_parent_health_scare',
     category: 'family',
-    title: 'A fall',
-    text: '{{person}} slipped on the back steps and lay there for an hour before a neighbor found {{them}}. {{They}} is fine, {{they}} insists, and will not be fussed over.',
+    title: 'A dizzy spell',
+    text: "{{person}} fainted in the supermarket and spent a night in the hospital for tests that came back 'inconclusive'. {{They}} is fine, {{they}} insists, and will not be fussed over.",
     minAge: 30,
     maxAge: 80,
     weight: 0.9,
     cooldown: 4,
-    conditions: [{ inPrison: false }],
+    // Not within a few years of adult_life's ad_parent_care (a fall at home), which also offers to move the parent in.
+    conditions: [{ inPrison: false }, { not: { sinceEvent: 'ad_parent_care', lte: 5 } }],
     person: { kind: ['mother', 'father'], minAge: 60 },
     choices: [
       {
@@ -1872,7 +1879,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
           { karma: 1 },
           {
             chance: 0.12,
-            then: [{ stat: 'happiness', delta: -15 }, { log: '{{person}} had a second fall that winter. There was no neighbor that time.', kind: 'bad' }, { personDies: true, cause: 'complications after a fall' }],
+            then: [{ stat: 'happiness', delta: -15 }, { log: '{{person}} had a stroke a few months later, alone in the kitchen. I had called that very morning.', kind: 'bad' }, { personDies: true, cause: 'a stroke' }],
             else: [{ log: 'I call every evening now. {{They}} complains, and picks up on the first ring.' }],
           },
         ],
@@ -1885,7 +1892,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
           { karma: -3 },
           {
             chance: 0.15,
-            then: [{ stat: 'happiness', delta: -20 }, { log: '{{They}} fell again. I should have fussed.', kind: 'bad' }, { personDies: true, cause: 'complications after a fall' }],
+            then: [{ stat: 'happiness', delta: -20 }, { log: 'It happened again, worse, with nobody there. I should have fussed.', kind: 'bad' }, { personDies: true, cause: 'a stroke' }],
             else: [{ stat: 'happiness', delta: -3 }, { log: '{{They}} was fine, as it turned out. I carried the guilt anyway.' }],
           },
         ],

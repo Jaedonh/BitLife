@@ -1,7 +1,16 @@
-import type { EventDef } from '@/engine/events/schema';
+import type { Condition, EventDef } from '@/engine/events/schema';
 
 /** The real cars (not the bicycle or scooter, which also count as kind 'car'). */
 const REAL_CAR = ['old_hatchback', 'sedan', 'pickup', 'ev', 'luxury_sedan', 'sports_car', 'supercar', 'classic_car'];
+
+/** Homes with rooms to spare and a table for the whole family (not a studio, condo or penthouse). */
+const BIG_HOME = ['townhouse', 'suburban', 'farmhouse', 'beach_house', 'mansion'];
+
+/**
+ * Widowhood cards grieve the one marriage of the life: one wedding and no spouse now, so the late spouse they bind
+ * is the person I married and nobody since (never a first husband after a second wedding, or a second widowhood).
+ */
+const WIDOWED: Condition[] = [{ married: false }, { count: 'marriages', eq: 1 }];
 
 /**
  * Ages 60-110, told by the older person: old friends retiring, dying and moving
@@ -10,7 +19,9 @@ const REAL_CAR = ['old_hatchback', 'sedan', 'pickup', 'ev', 'luxury_sedan', 'spo
  * calls and the family chat, hosting the holiday as the eldest, a retirees'
  * cruise, hearing aids, a new hip, glasses on my head, 90+ and 100th-birthday
  * moments, old records and grown children with kids of their own.
- * Grandchildren are not people in the engine, so they stay unbound and plural.
+ * Grandchildren are people in the engine: a card about one binds them
+ * (`person: { kind: ['grandchild'] }`, with an age that fits the scene), or binds a child
+ * who has some (`kids: { gte: 1 }`), so no card talks about grandchildren who do not exist.
  */
 export const GOLDEN_YEARS_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ old friends
@@ -86,7 +97,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
       {
         id: 'clean',
         label: 'Tell a cleaned-up version',
-        effects: [{ personDies: true, cause: 'natural causes' }, { stat: 'happiness', delta: -5 }, { karma: 1 }, { log: 'I told a version fit for the grandchildren. Two old friends in the back row shook their heads.' }],
+        effects: [{ personDies: true, cause: 'natural causes' }, { stat: 'happiness', delta: -5 }, { karma: 1 }, { log: 'I told a version fit for a church hall. Two old friends in the back row shook their heads.' }],
       },
       {
         id: 'band',
@@ -153,7 +164,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
   {
     id: 'gy_assisted_living_visit',
     category: 'friends',
-    title: 'Visiting hours',
+    title: 'Lemon cleaner and gravy',
     text: '{{person}} has moved into assisted living on the edge of town. The hallways smell of lemon cleaner and gravy. {{They}} says the food is fine, the staff are kind and the chair yoga is brutal.',
     minAge: 65,
     maxAge: 100,
@@ -177,7 +188,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
           {
             chance: 0.25,
             then: [{ stat: 'happiness', delta: 2 }, { log: 'A nurse caught me with the eclairs. I am on a list now. {{person}} is very proud of me.' }],
-            else: [{ stat: 'happiness', delta: 3 }, { log: 'I smuggled eclairs in under my coat. {{person}} ate two and hid one for later.', kind: 'good' }],
+            else: [{ stat: 'happiness', delta: 3 }, { log: 'I smuggled eclairs past the front desk. {{person}} ate two and hid one for later.', kind: 'good' }],
           },
         ],
       },
@@ -224,7 +235,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
         id: 'mine',
         label: 'Get out my own photos',
         conditions: [{ hasChildren: true }],
-        effects: [{ relationship: 'person', delta: 2 }, { stat: 'happiness', delta: 4 }, { log: 'I fought back with photos of my own family. It became a duel. We both enjoyed it enormously.' }],
+        effects: [{ relationship: 'person', delta: 2 }, { stat: 'happiness', delta: 3 }, { log: 'I fought back with photos of my own family. It became a duel. We both enjoyed it enormously.' }],
       },
       {
         id: 'ask',
@@ -244,7 +255,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
         label: 'Invent a dentist appointment',
         effects: [
           { karma: -2 },
-          { stat: 'happiness', delta: 2 },
+          { stat: 'happiness', delta: 4 },
           {
             chance: 0.3,
             then: [{ relationship: 'person', delta: -6 }, { log: '{{person}} spotted me in the coffee shop across the road ten minutes later. We do not discuss it.', kind: 'bad' }],
@@ -409,7 +420,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
   {
     id: 'gy_library_reader',
     category: 'elderly',
-    title: 'Story time',
+    title: 'The Saturday rug',
     text: 'The library asked for volunteers to read to children on Saturday mornings. Twelve kids on a rug, one picture book about a bear who loses his hat, and the toughest audience I have ever faced.',
     minAge: 60,
     maxAge: 90,
@@ -468,8 +479,8 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 2 },
           {
             chance: 0.3,
-            then: [{ money: 150 }, { fame: 1 }, { log: 'By spring a pear of mine sold at the center art fair for {{$150}}. The buyer was my teacher.', kind: 'good' }],
-            else: [{ log: 'My pears improved all winter. By spring they were recognizably fruit.' }],
+            then: [{ money: 150 }, { fame: 1 }, { log: 'By the last class a pear of mine sold at the center art fair for {{$150}}. The buyer was my teacher.', kind: 'good' }],
+            else: [{ log: 'My pears improved week by week. By the last class they were recognizably fruit.' }],
           },
         ],
       },
@@ -596,7 +607,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     maxAge: 100,
     weight: 1.2,
     cooldown: 6,
-    person: { kind: ['child'], minAge: 38 },
+    person: { kind: ['child'], minAge: 38, kids: { gte: 1 } },
     choices: [
       {
         id: 'hang',
@@ -650,7 +661,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     minAge: 62,
     maxAge: 105,
     weight: 1.2,
-    cooldown: 5,
+    cooldown: 8,
     conditions: [{ not: { jobCategory: ['tech'] } }],
     choices: [
       {
@@ -709,7 +720,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     maxAge: 105,
     weight: 1.2,
     once: true,
-    conditions: [{ married: false }, { hasLover: false }, { not: { flag: 'gy_lives_with_kids' } }],
+    conditions: [...WIDOWED, { hasLover: false }, { not: { flag: 'gy_lives_with_kids' } }],
     person: { kind: ['spouse'], alive: false },
     choices: [
       {
@@ -721,7 +732,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
           {
             chance: 0.6,
             then: [{ newPerson: { kind: 'friend', relationship: 50, log: '{{person}} from the grief group lost a husband of fifty years. We meet for soup on Fridays.' } }],
-            else: [{ log: 'The group met in a church basement with bad coffee. It helped more than I expected.', kind: 'good' }],
+            else: [{ log: 'The group met in the library on Mondays, over bad coffee. It helped more than I expected.', kind: 'good' }],
           },
         ],
       },
@@ -747,23 +758,24 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     id: 'gy_widow_closet',
     category: 'family',
     title: 'The hall closet',
-    text: "{{person}}'s coats are still in the hall closet, smelling faintly of {{them}}. Friends keep asking, gently, what I plan to do with them. I plan to keep opening the closet.",
+    text: "{{person}}'s jackets are still in the hall closet, buttoned the way {{they}} left them. Friends keep asking, gently, what I plan to do with them. I plan to keep opening the closet.",
     minAge: 60,
     maxAge: 105,
     weight: 1,
     once: true,
-    conditions: [{ married: false }, { not: { flag: 'gy_assisted_living' } }, { not: { flag: 'gy_lives_with_kids' } }],
+    // The same closet as gu_widowed_closet, for a widow who did not get that card.
+    conditions: [...WIDOWED, { hasLover: false }, { eventNotFired: 'gu_widowed_closet' }, { not: { flag: 'gy_assisted_living' } }, { not: { flag: 'gy_lives_with_kids' } }],
     person: { kind: ['spouse'], alive: false },
     choices: [
       {
         id: 'donate',
         label: 'Donate them to the shelter',
-        effects: [{ karma: 4 }, { stat: 'happiness', delta: -2 }, { log: "I gave the coats to the shelter. This winter a stranger is warm in {{person}}'s good wool.", kind: 'good' }],
+        effects: [{ karma: 4 }, { stat: 'happiness', delta: -2 }, { log: "I gave the jackets to the shelter. Somewhere a stranger is wearing {{person}}'s good one.", kind: 'good' }],
       },
       {
         id: 'one',
         label: 'Keep one, give the rest',
-        effects: [{ karma: 2 }, { stat: 'happiness', delta: 1 }, { log: 'I kept the blue one with the torn pocket. The rest went to people who needed coats more.' }],
+        effects: [{ karma: 2 }, { stat: 'happiness', delta: 1 }, { log: 'I kept the blue one with the torn pocket. The rest went to people who needed them more.' }],
       },
       {
         id: 'kids',
@@ -787,7 +799,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     maxAge: 100,
     weight: 1,
     once: true,
-    conditions: [{ married: false }, { not: { flag: 'gy_assisted_living' } }],
+    conditions: [...WIDOWED, { hasLover: false }, { not: { flag: 'gy_assisted_living' } }],
     person: { kind: ['spouse'], alive: false },
     choices: [
       {
@@ -833,13 +845,13 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
   {
     id: 'gy_widow_dinner_invite',
     category: 'romance',
-    title: 'An invitation',
+    title: 'Dinner, properly',
     text: "Someone from my walking group asked me to dinner, properly, with a time and a place. I said I would think about it, then went home and explained the whole thing to {{person}}'s photo.",
     minAge: 62,
     maxAge: 95,
     weight: 0.8,
     once: true,
-    conditions: [{ married: false }, { hasLover: false }],
+    conditions: [...WIDOWED, { hasLover: false }, { eventNotFired: 'gu_widowed_dinner_invite' }],
     person: { kind: ['spouse'], alive: false },
     choices: [
       {
@@ -977,7 +989,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
   {
     id: 'gy_al_talent_night',
     category: 'elderly',
-    title: 'Talent night',
+    title: 'The spoon champion',
     text: "My first Friday at the residence is talent night. Last year's winner played the spoons and has acted like a celebrity ever since. The sign-up sheet is by the elevator, and Doris is watching it.",
     minAge: 75,
     maxAge: 110,
@@ -1187,7 +1199,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
       {
         id: 'mute',
         label: 'Mute it',
-        effects: [{ stat: 'happiness', delta: 2 }, { relationship: 'child', delta: -2 }, { log: 'I muted the chat. Three weeks later I learned I had missed my own birthday dinner plans.' }],
+        effects: [{ stat: 'happiness', delta: 4 }, { relationship: 'child', delta: -2 }, { log: 'I muted the chat. Three weeks later I learned I had missed my own birthday dinner plans.' }],
       },
       {
         id: 'voice',
@@ -1212,7 +1224,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     maxAge: 95,
     weight: 1.2,
     cooldown: 4,
-    conditions: [{ noPerson: ['mother', 'father', 'stepmother', 'stepfather'] }, { not: { flag: 'gy_assisted_living' } }, { not: { flag: 'gy_lives_with_kids' } }],
+    conditions: [{ noPerson: ['mother', 'father', 'stepmother', 'stepfather'] }, { ownsAssetId: BIG_HOME }, { not: { flag: 'gy_assisted_living' } }, { not: { flag: 'gy_lives_with_kids' } }],
     person: { kind: ['child'], minAge: 30 },
     choices: [
       {
@@ -1471,7 +1483,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     id: 'gy_glasses_on_head',
     category: 'random',
     title: 'The search',
-    text: 'I spent twenty minutes hunting for my reading glasses: drawers, coat pockets, the fridge. {{person}} watched the entire search before mentioning that they were on top of my head.',
+    text: 'I spent twenty minutes hunting for my reading glasses: drawers, every pocket, the fridge. {{person}} watched the entire search before mentioning that they were on top of my head.',
     minAge: 60,
     maxAge: 105,
     weight: 1.2,
@@ -1598,12 +1610,12 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
       {
         id: 'letter',
         label: 'Write to the students',
-        effects: [{ karma: 3 }, { stat: 'smarts', delta: 1 }, { stat: 'happiness', delta: 3 }, { log: 'I wrote the students a letter: be kind, wear a coat, call home. It is on a bulletin board now.', kind: 'good' }],
+        effects: [{ karma: 3 }, { stat: 'smarts', delta: 1 }, { stat: 'happiness', delta: 3 }, { log: 'I wrote the students a letter: be kind, eat breakfast, call home. It is on a bulletin board now.', kind: 'good' }],
       },
       {
         id: 'quiet',
         label: 'Keep it to myself',
-        effects: [{ stat: 'happiness', delta: 2 }, { log: 'I put the letter away and said every name in my class out loud, one by one. It took a while.' }],
+        effects: [{ stat: 'happiness', delta: 4 }, { log: 'I put the letter away and said every name in my class out loud, one by one. It took a while.' }],
       },
     ],
   },
@@ -1652,23 +1664,23 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     id: 'gy_record_grandkid_questions',
     category: 'family',
     title: 'Secret handshakes',
-    text: "One of {{person}}'s kids heard about my criminal record from a cousin and came straight to me with questions. Was I in a gang? Did I have a nickname? Do I still know any secret handshakes?",
+    text: '{{person}} heard about my criminal record from a cousin and came straight to me with questions. Was I in a gang? Did I have a nickname? Do I still know any secret handshakes?',
     minAge: 60,
     maxAge: 100,
     weight: 1.2,
     once: true,
     conditions: [{ criminalRecord: true }],
-    person: { kind: ['child'], minAge: 32 },
+    person: { kind: ['grandchild'], minAge: 7, maxAge: 16 },
     choices: [
       {
         id: 'truth',
         label: 'Tell the plain truth',
-        effects: [{ karma: 3 }, { relationship: 'person', delta: 4 }, { stat: 'happiness', delta: -1 }, { log: 'I told the plain truth: bad choices, real consequences, no secret handshakes. The kid listened.', kind: 'good' }],
+        effects: [{ karma: 3 }, { relationship: 'person', delta: 4 }, { stat: 'happiness', delta: -1 }, { log: 'I told {{person}} the plain truth: bad choices, real consequences, no secret handshakes.', kind: 'good' }],
       },
       {
         id: 'tale',
         label: 'Spin a wild tale',
-        effects: [{ karma: -2 }, { stat: 'happiness', delta: 4 }, { relationship: 'person', delta: -4 }, { log: 'I described a daring getaway involving a laundry cart and a goose. {{person}} would like a word.' }],
+        effects: [{ karma: -2 }, { stat: 'happiness', delta: 4 }, { relationship: 'person', delta: 3 }, { relationship: 'child', delta: -4 }, { log: 'I described a getaway with a laundry cart and a goose. {{person}} loved it. The parents did not.' }],
       },
       {
         id: 'lesson',
@@ -1680,8 +1692,8 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 2 },
           {
             chance: 0.5,
-            then: [{ log: 'I made it a lesson about choices. The kid fell asleep halfway through. Lessons are like that.' }],
-            else: [{ stat: 'happiness', delta: 3 }, { log: 'I made it a lesson about choices. A month later the kid repeated it back to me, word for word.', kind: 'good' }],
+            then: [{ log: 'I made it a lesson about choices. {{person}} fell asleep halfway through. Lessons are like that.' }],
+            else: [{ stat: 'happiness', delta: 3 }, { log: 'I made it a lesson about choices. A month later {{person}} repeated it back to me, word for word.', kind: 'good' }],
           },
         ],
       },
@@ -1695,7 +1707,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
   {
     id: 'gy_record_old_associate',
     category: 'crime',
-    title: 'An old face',
+    title: 'By the coffee urn',
     text: 'A man from my bad old days turned up at the senior center with a walker and a church group. He remembers everything I ever did, in detail, and he likes to reminisce loudly by the coffee urn.',
     minAge: 65,
     maxAge: 95,
@@ -1731,7 +1743,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
       {
         id: 'church',
         label: 'Join his church group',
-        effects: [{ karma: 4 }, { stat: 'happiness', delta: 2 }, { log: 'I joined his group. We visit the sick on Tuesdays. Old sins, new habits.', kind: 'good' }],
+        effects: [{ energy: -1 }, { karma: 4 }, { stat: 'happiness', delta: 2 }, { log: 'I joined his group. We visit the sick on Tuesdays. Old sins, new habits.', kind: 'good' }],
       },
       {
         id: 'job',
@@ -1802,12 +1814,12 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     id: 'gy_living_history',
     category: 'family',
     title: 'Living history',
-    text: "One of {{person}}'s kids is doing a school project called Living History, and I am the history. There is a list of questions and a recorder. Question one: 'What was it like before electricity?'",
+    text: "{{person}} is doing a school project called Living History, and I am the history. There is a list of questions and a recorder. Question one: 'What was it like before electricity?'",
     minAge: 60,
     maxAge: 95,
     weight: 1.2,
     once: true,
-    person: { kind: ['child'], minAge: 32, maxAge: 55 },
+    person: { kind: ['grandchild'], minAge: 8, maxAge: 14 },
     choices: [
       {
         id: 'honest',
@@ -1830,12 +1842,12 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
       {
         id: 'photos',
         label: 'Bring out the old photos',
-        effects: [{ relationship: 'person', delta: 5 }, { stat: 'happiness', delta: 3 }, { log: 'We went through boxes of old photos. The kid laughed at my hair for twenty minutes straight.' }],
+        effects: [{ relationship: 'person', delta: 5 }, { stat: 'happiness', delta: 3 }, { log: 'We went through boxes of old photos. {{person}} laughed at my hair for twenty minutes straight.' }],
       },
       {
         id: 'current',
         label: "Insist I'm not history yet",
-        effects: [{ relationship: 'person', delta: -1 }, { stat: 'smarts', delta: 1 }, { stat: 'happiness', delta: 3 }, { log: 'I said I am not history, I am current events. The kid used that as the title.' }],
+        effects: [{ relationship: 'person', delta: -1 }, { stat: 'smarts', delta: 1 }, { stat: 'happiness', delta: 3 }, { log: 'I said I am not history, I am current events. {{person}} used that as the title.' }],
       },
     ],
   },
@@ -1843,13 +1855,14 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     id: 'gy_grandkid_driving',
     category: 'family',
     title: 'Practice hours',
-    text: "{{person}}'s oldest needs practice hours before the driving test, and I am the only adult in the family brave or foolish enough to sit in the passenger seat. The car is mine. So is the risk.",
+    text: '{{person}} needs practice hours before the driving test, and I am the only adult in the family brave or foolish enough to sit in the passenger seat. The car is mine. So is the risk.',
     minAge: 60,
     maxAge: 90,
     weight: 1,
     once: true,
     conditions: [{ ownsAssetId: REAL_CAR }, { not: { flag: 'gy_stopped_driving' } }],
-    person: { kind: ['child'], minAge: 36, maxAge: 60 },
+    // Old enough to be near a driving test almost everywhere (16-18 by country).
+    person: { kind: ['grandchild'], minAge: 17, maxAge: 19 },
     choices: [
       {
         id: 'calm',
@@ -1860,8 +1873,8 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
           { karma: 2 },
           {
             chance: 0.2,
-            then: [{ money: -400 }, { log: 'We hit the recycling bins once. A {{$400}} bumper later, the grandkid passed anyway.' }],
-            else: [{ stat: 'happiness', delta: 4 }, { log: 'Twelve lessons, two gray hairs, one pass. The grandkid hugged me in the test center lot.', kind: 'good' }],
+            then: [{ money: -400 }, { log: 'We hit the recycling bins once. A {{$400}} bumper later, {{person}} passed anyway.' }],
+            else: [{ stat: 'happiness', delta: 4 }, { log: 'Twelve lessons, two gray hairs, one pass. {{person}} hugged me in the test center lot.', kind: 'good' }],
           },
         ],
       },
@@ -1873,7 +1886,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
           {
             chance: 0.3,
             then: [{ money: -800 }, { stat: 'happiness', delta: -5 }, { log: 'The highway lesson ended in a scrape with a guardrail. Everyone is fine except the bumper.', kind: 'bad' }],
-            else: [{ stat: 'happiness', delta: 5 }, { log: 'We merged, passed a truck and lived. The grandkid drives better than I do now.', kind: 'good' }],
+            else: [{ stat: 'happiness', delta: 5 }, { log: 'We merged, passed a truck and lived. {{person}} drives better than I do now.', kind: 'good' }],
           },
         ],
       },
@@ -1885,7 +1898,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
       {
         id: 'no',
         label: 'Say my nerves cannot',
-        effects: [{ relationship: 'person', delta: -3 }, { stat: 'health', delta: 1 }, { log: 'I said my nerves could not take it. The grandkid learned with an instructor and a calmer car.' }],
+        effects: [{ relationship: 'person', delta: -3 }, { stat: 'health', delta: 1 }, { log: 'I said my nerves could not take it. {{person}} learned with an instructor and a calmer car.' }],
       },
     ],
   },
@@ -1893,12 +1906,12 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     id: 'gy_great_grandchild',
     category: 'family',
     title: 'Great',
-    text: "{{person}} called with news: {{their}} oldest is expecting, which makes me a great-grandparent. I said 'great' four times in a row before I realized it was the actual word.",
+    text: "{{person}} called with news: a baby is on the way, which makes me a great-grandparent. I said 'great' four times in a row before I realized it was the actual word.",
     minAge: 72,
     maxAge: 105,
     weight: 1,
     once: true,
-    person: { kind: ['child'], minAge: 45 },
+    person: { kind: ['grandchild'], minAge: 20 },
     choices: [
       {
         id: 'knit',

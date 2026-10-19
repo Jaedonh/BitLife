@@ -379,6 +379,7 @@ export function validateEvent(def: EventDef, knownIds: Set<string>): string[] {
   }
   const usesPerson = /\{\{(person|personFull|they|them|their|They)\}\}/.test(def.text + def.choices.map((c) => c.label + (c.hint ?? '')).join(' '));
   if (usesPerson && !def.person) errors.push(`${where}: uses person placeholders but has no person selector`);
+  if (def.person?.species !== undefined && !(def.person.kind.length === 1 && def.person.kind[0] === 'pet')) errors.push(`${where}: species in the person selector needs person: { kind: ['pet'] }`);
   for (const text of [def.title, def.text, ...def.choices.map((c) => c.label), ...def.choices.map((c) => c.hint ?? '')]) {
     for (const issue of textIssues(text)) errors.push(`${where}: ${issue}`);
     for (const m of text.matchAll(PLACEHOLDER_RE)) {

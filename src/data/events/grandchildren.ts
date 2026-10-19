@@ -39,7 +39,7 @@ export const GRANDCHILDREN_EVENTS: EventDef[] = [
   {
     id: 'gc_first_steps',
     category: 'family',
-    title: 'First steps',
+    title: 'Three wobbly steps',
     text: 'I was babysitting {{person}} when {{they}} let go of my coffee table, swayed, and took three wobbly steps straight into my arms. First steps, and nobody else saw them.',
     minAge: 45,
     maxAge: 85,
@@ -512,7 +512,7 @@ export const GRANDCHILDREN_EVENTS: EventDef[] = [
         id: 'legend',
         label: 'Add a few famous ancestors',
         effects: [
-          { stat: 'happiness', delta: 4 },
+          { stat: 'happiness', delta: 5 },
           { relationship: 'person', delta: 3 },
           { karma: -1 },
           {
@@ -570,7 +570,7 @@ export const GRANDCHILDREN_EVENTS: EventDef[] = [
         id: 'edit',
         label: 'Skip the embarrassing ones',
         effects: [
-          { stat: 'happiness', delta: 2 },
+          { stat: 'happiness', delta: 4 },
           { relationship: 'person', delta: 1 },
           { log: 'I skipped a few. {{person}} noticed exactly which ones and has written them down for later.' },
         ],
@@ -580,8 +580,8 @@ export const GRANDCHILDREN_EVENTS: EventDef[] = [
         label: 'Find the farm photos',
         conditions: [{ flag: 'farm' }],
         effects: [
-          { stat: 'happiness', delta: 4 },
-          { relationship: 'person', delta: 5 },
+          { stat: 'happiness', delta: 3 },
+          { relationship: 'person', delta: 6 },
           { log: 'I showed {{person}} the farm: dawn chores, mud and a goat with opinions. {{They}} was horrified.', kind: 'good' },
         ],
       },
@@ -590,8 +590,9 @@ export const GRANDCHILDREN_EVENTS: EventDef[] = [
         label: 'Name every sibling in it',
         conditions: [{ flag: 'scenario:big_family' }],
         effects: [
-          { stat: 'happiness', delta: 4 },
-          { relationship: 'person', delta: 4 },
+          { stat: 'happiness', delta: 3 },
+          { stat: 'smarts', delta: 1 },
+          { relationship: 'person', delta: 5 },
           { log: 'I named every sibling in the photo, in order, with one crime each. {{person}} took notes.', kind: 'good' },
         ],
       },
@@ -1043,6 +1044,7 @@ export const GRANDCHILDREN_EVENTS: EventDef[] = [
         label: 'Give some life advice',
         effects: [
           { energy: -1 },
+          { karma: 1 },
           {
             chance: 0.5,
             then: [{ stat: 'happiness', delta: 4 }, { relationship: 'person', delta: 5 }, { log: 'I told {{person}} to be kind, save a little and call {{their}} grandparents. {{They}} wrote it down.', kind: 'good' }],
@@ -1209,7 +1211,7 @@ export const GRANDCHILDREN_EVENTS: EventDef[] = [
         id: 'away',
         label: 'Ask them not to bring {{them}}',
         effects: [
-          { karma: 1 },
+          { karma: 3 },
           { stat: 'happiness', delta: -6 },
           { relationship: 'person', delta: -4 },
           { log: 'I asked the family to keep {{person}} away from here. I see {{them}} in photos now. Safer, and it hurts.', kind: 'bad' },
@@ -1790,7 +1792,7 @@ export const GRANDCHILDREN_EVENTS: EventDef[] = [
     minAge: 45,
     maxAge: 105,
     weight: 1.5,
-    cooldown: 4,
+    cooldown: 6,
     // A phone call and a drop-by: we do not share a home.
     conditions: [LIVING_APART],
     person: { kind: ['child'], minAge: 22, movedOut: true },
