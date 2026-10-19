@@ -69,6 +69,8 @@ export type Condition =
   | { jobId: string[] }
   /** Years since an event last fired (false if it never did), e.g. { sinceEvent: 'ad_burnout', gte: 1, lte: 5 }. */
   | ({ sinceEvent: string } & Comparator)
+  /** Years since my last release (false if never released), from adult prison, juvenile detention or either. */
+  | ({ sinceRelease: 'adult' | 'juvenile' | 'any' } & Comparator)
   /** A lifetime counter, e.g. { count: 'divorces', gte: 1 } or { count: 'firings', gte: 2 }. */
   | ({ count: keyof LifetimeCounters } & Comparator)
   | { hustle: boolean }

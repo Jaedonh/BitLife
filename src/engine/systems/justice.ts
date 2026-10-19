@@ -25,7 +25,8 @@ export const TRIAL_EVENT_ID = 'sys_trial';
 export const PAROLE_EVENT_ID = 'sys_parole';
 /** Longest stay in juvenile detention, sentences passed inside included. */
 export const JUVENILE_MAX_YEARS = 2;
-export const PAROLE_YEARS = 2;
+/** Parole covers the rest of the release year and two full years after it (it counts down at each birthday). */
+export const PAROLE_YEARS = 3;
 /** The content parole board (crime_and_prison.ts): the engine's hearing takes its place in a year it sits. */
 const CONTENT_PAROLE_BOARD = 'cp_parole_hearing';
 
@@ -268,10 +269,14 @@ export function releaseFromPrison(state: GameState, how: 'served' | 'parole'): G
   delete crime.juvenile;
   delete crime.sentenceYears;
   if (how === 'parole') crime.paroleYearsLeft = PAROLE_YEARS;
+  crime.lastRelease = { age: state.character.age, juvenile };
   const flags: GameState['flags'] = { ...state.flags, released: true };
   if (how === 'parole') flags.parole = true;
   delete flags.cp_parole_recommended;
   delete flags.paroleWaived;
+  // Conduct write-ups belong to this stay; a later sentence starts with a clean file.
+  delete flags.cp_prison_good_conduct;
+  delete flags.cp_prison_infraction;
   let s: GameState = { ...state, crime, flags };
   s = addStats(s, { happiness: 10 });
   s = log(s, releaseLine(s, how, juvenile), 'milestone');
@@ -293,7 +298,7 @@ export function verdictNote(before: GameState, after: GameState, years: number):
   return log(after, stay < Math.max(1, Math.round(years)) ? `I was ${age}, so it meant juvenile detention instead: ${plural(stay, 'year')}.` : `I was ${age}, so I'd serve it in juvenile detention.`, 'bad');
 }
 
-/** A year on parole passes outside; it ends quietly after two. */
+/** A year on parole passes outside; it ends quietly after two full years. */
 export function yearlyParole(state: GameState): GameState {
   if (!onParole(state)) return state;
   const left = (state.crime.paroleYearsLeft ?? 0) - 1;

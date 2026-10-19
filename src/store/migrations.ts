@@ -42,6 +42,7 @@ function isGameStateShape(s: Rec): boolean {
   if (!isRec(cr) || !isBool(cr.inPrison) || !isNum(cr.sentenceYearsLeft) || !isNum(cr.notoriety)) return false;
   // Juvenile court and parole fields are optional (older saves have none of them).
   if (!nullOr(cr.juvenile, isBool) || !nullOr(cr.sentenceYears, isNum) || !nullOr(cr.paroleYearsLeft, isNum) || !nullOr(cr.sealedConvictions, isNum)) return false;
+  if (!nullOr(cr.lastRelease, (r) => isRec(r) && isNum(r.age) && isBool(r.juvenile))) return false;
   if (!recordOf(s.people, (p) => isRec(p) && isStr(p.id) && isStr(p.firstName) && isStr(p.kind) && isBool(p.alive) && isNum(p.age) && isNum(p.relationship))) return false;
   // Family links and children's milestones (S1) are optional: saves from before them simply have none.
   if (!recordOf(s.people, (p) => isRec(p) && nullOr(p.viaId, isStr) && nullOr(p.growth, isRec) && nullOr(p.workplace, (w) => isRec(w) && isStr(w.jobId) && isStr(w.company)))) return false;

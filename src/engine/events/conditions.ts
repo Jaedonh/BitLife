@@ -73,6 +73,11 @@ export function evaluateCondition(state: GameState, c: Condition): boolean {
     const at = state.firedEvents[c.sinceEvent];
     return at !== undefined && cmp(state.character.age - at, c);
   }
+  if ('sinceRelease' in c) {
+    const out = state.crime.lastRelease;
+    if (!out || (c.sinceRelease !== 'any' && out.juvenile !== (c.sinceRelease === 'juvenile'))) return false;
+    return cmp(state.character.age - out.age, c);
+  }
   if ('ownsAssetId' in c) return state.assets.some((a) => c.ownsAssetId.includes(a.defId));
   if ('hustle' in c) return (state.career.hustle !== null) === c.hustle;
   if ('retired' in c) return state.career.retired === c.retired;

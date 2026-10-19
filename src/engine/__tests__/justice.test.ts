@@ -11,7 +11,7 @@ import { Rng } from '../rng';
 import { createLife } from '../systems/character';
 import { crimeAvailability } from '../systems/crime';
 import { activityAvailability } from '../systems/activities';
-import { candidatesFor } from '../events/conditions';
+import { candidatesFor, evaluateAll } from '../events/conditions';
 import { CRIME_BY_ID } from '@/data/crimes';
 import { ACTIVITY_BY_ID } from '@/data/activities';
 import { money } from '../util';
@@ -233,6 +233,7 @@ describe('juvenile court', () => {
     expect(s.crime.juvenile).toBeUndefined();
     expect(s.flags.released).toBe(true);
     expect(s.log.some((l) => l.age === 16 && /^I walked out of juvenile detention with my things in a plastic bag\. (Mom|Dad) was waiting outside\.$/.test(l.text))).toBe(true);
+    expect(s.crime.lastRelease).toEqual({ age: 16, juvenile: true });
   });
 
   it('juvenile court asks for at most two years, and a plea deal works down from that', () => {
@@ -363,7 +364,7 @@ describe('parole', () => {
     expect(hearings / 200).toBeLessThan(1.5);
   });
 
-  it('granted parole releases the player with a parole flag for two years', () => {
+  it('granted parole releases the player with a parole flag for the rest of the year and two more', () => {
     const inside = serving(6, 3, { cp_prison_good_conduct: 5 });
     const card = openNextEvent({ ...inside, eventQueue: [paroleCard(inside)] }, EVENT_REGISTRY);
     expect(card.pendingEvent?.eventId).toBe(PAROLE_EVENT_ID);
@@ -374,10 +375,22 @@ describe('parole', () => {
     expect(s.crime.inPrison).toBe(false);
     expect(s.flags.parole).toBe(true);
     expect(s.flags.released).toBe(true);
-    expect(s.crime.paroleYearsLeft).toBe(2);
+    // Write-ups belong to this stay; a later sentence starts with a clean file.
+    expect(s.flags.cp_prison_good_conduct).toBeUndefined();
+    // Re-entry events time themselves from the release.
+    expect(s.crime.lastRelease).toEqual({ age: s.character.age, juvenile: false });
+    expect(evaluateAll(s, [{ sinceRelease: 'adult', lte: 0 }])).toBe(true);
+    expect(evaluateAll(s, [{ sinceRelease: 'juvenile', lte: 5 }])).toBe(false);
+    expect(evaluateAll(s, [{ sinceRelease: 'any', gte: 1 }])).toBe(false);
+    expect(s.crime.paroleYearsLeft).toBe(3);
     expect(s.log.at(-1)?.text).toBe("The board granted parole. I walked out with my things in a paper bag and a parole officer's number.");
+    // Two full years of event rolls still see the parole flag after the release year.
+    s = year(s);
+    expect(s.crime.paroleYearsLeft).toBe(2);
+    expect(s.flags.parole).toBe(true);
     s = year(s);
     expect(s.crime.paroleYearsLeft).toBe(1);
+    expect(s.flags.parole).toBe(true);
     s = year(s);
     expect(s.crime.paroleYearsLeft).toBeUndefined();
     expect(s.flags.parole).toBeUndefined();

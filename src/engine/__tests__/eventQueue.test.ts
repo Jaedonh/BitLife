@@ -45,6 +45,16 @@ const reg = makeRegistry([jail, outside, childhood, adopt, firstWalk, unguarded,
 const queue = (...ids: string[]) => ids.map((eventId) => ({ eventId, context: {} }));
 
 describe('queued cards are re-checked when they open', () => {
+  it('a one-time card queued again by a repeatable one opens only once', () => {
+    const once: EventDef = { ...base, id: 'test_once', once: true, followUpOnly: true, choices: [{ id: 'ok', label: 'OK', effects: [] }] };
+    const r = makeRegistry([once, unguarded]);
+    let s = openNextEvent({ ...adult(), eventQueue: queue('test_once') }, r);
+    expect(s.pendingEvent?.eventId).toBe('test_once');
+    s = resolveChoice(s, 'ok', r);
+    s = openNextEvent({ ...s, eventQueue: queue('test_once', 'test_unguarded') }, r);
+    expect(s.pendingEvent?.eventId).toBe('test_unguarded');
+  });
+
   it('skips a card whose conditions an earlier card this year made false', () => {
     let s = openNextEvent({ ...adult(), eventQueue: queue('test_jail', 'test_outside') }, reg);
     expect(s.pendingEvent?.eventId).toBe('test_jail');

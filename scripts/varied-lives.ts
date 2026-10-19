@@ -24,6 +24,8 @@ export function varyLife(state: GameState, seed: number): GameState {
   if (seed % 9 === 7 && age === 19 && !s.education.enrolled) s = { ...s, flags: { ...s.flags, yp_trade_course: true } };
   // A teen sentence goes to juvenile detention (justice.ts), which court cards otherwise make rare in samples.
   if (seed % 11 === 4 && age === 15) s = applyEffects(s, new Rng(seed + 15), [{ prison: 2 }]);
+  // ...and some teens go back a second time, so content for a repeat stay is sampled too.
+  if (seed % 11 === 4 && seed % 2 === 0 && age === 13) s = applyEffects(s, new Rng(seed + 13), [{ prison: 1 }]);
   if (seed % 3 === 1 && age >= 22 && age <= 30 && !s.education.enrolled) {
     const program = enrollOptions(s).find((o) => o.kind === 'graduate' && o.eligible);
     if (program) s = applyAction(s, { type: 'enroll', major: program.id });

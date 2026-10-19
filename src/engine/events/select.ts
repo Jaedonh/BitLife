@@ -101,6 +101,8 @@ export function openNextEvent(state: GameState, registry: EventRegistry): GameSt
     s = { ...s, eventQueue: rest };
     const def = registry.byId[next!.eventId];
     if (!def) continue;
+    // A repeatable card can queue its follow-up again; a one-time card still shows only once.
+    if (def.once && s.firedEvents[def.id] !== undefined) continue;
     // Re-validate: an earlier card this year may have jailed the player, cost them their job, spent their
     // money or brought home a pet since scheduling. Once/cooldown already passed then. Follow-ups are checked
     // too, after the choice that queued them, so their conditions may rely on the state it created.

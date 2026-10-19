@@ -337,6 +337,8 @@ export interface CrimeRecord {
   paroleYearsLeft?: number;
   /** Convictions sealed with the juvenile record at 18: no longer on the record or in the obituary. */
   sealedConvictions?: number;
+  /** The most recent release from prison or juvenile detention (re-entry events time themselves from it). */
+  lastRelease?: { age: number; juvenile: boolean };
 }
 
 export type LogKind = 'info' | 'good' | 'bad' | 'event' | 'milestone' | 'money' | 'death' | 'year';
