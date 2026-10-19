@@ -134,7 +134,8 @@ export interface Person {
   biological?: boolean;
   /**
    * The relative who makes them family: for a grandparent, the player's parent they are the parent of;
-   * for a grandchild, the player's child they are the child of.
+   * for a grandchild, the player's child they are the child of; for an aunt or uncle who took the player in
+   * (`relative`), the parent they are the brother or sister of.
    */
   viaId?: string;
   /** Coworkers: the job they share with the player (job definition id and employer). Gone when that job ends. */
@@ -143,6 +144,16 @@ export interface Person {
   growth?: ChildGrowth;
   /** Orphan scenario: a foster parent (kind stepmother/stepfather) or foster sibling, labelled "foster". */
   foster?: boolean;
+  /**
+   * An aunt or uncle who took the player in when their last parent died (kind stepmother/stepfather, so they
+   * act as a guardian: they pay for the child and take them to the doctor). Narrated "Aunt Rosa" / "Uncle Joe".
+   */
+  relative?: boolean;
+  /**
+   * Lives far away: a friend or grandparent who stayed behind when the family moved abroad. Only person
+   * selectors that ask for them ({ farAway: true }) bind them, so they never turn up in an in-person scene.
+   */
+  farAway?: boolean;
 }
 
 /** Milestones of one of the player's children. Every field is optional so older saves need no migration. */
@@ -158,6 +169,8 @@ export interface ChildGrowth {
   expecting?: number;
   /** A name promised for the next baby (named after the player). */
   babyName?: { firstName: string; gender: Gender };
+  /** Came out to the player as gay (lf_child_comes_out): whoever they marry is of their own gender. */
+  cameOut?: boolean;
 }
 
 export type EducationStage = 'none' | 'primary' | 'middle' | 'high' | 'university' | 'graduate' | 'done';

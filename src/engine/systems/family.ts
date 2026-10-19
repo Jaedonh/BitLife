@@ -61,21 +61,39 @@ function freshFirstName(rng: Rng, state: GameState, gender: Gender): string {
   return name;
 }
 
-/** Someone for a child to marry: usually of the other gender, with a name from the family's country. */
+/** The card where one of the player's children comes out to them as gay (love_and_family.ts). */
+export const COMING_OUT_EVENT = 'lf_child_comes_out';
+
+/**
+ * Whether one of the player's children has come out to them as gay. The card records it on the child
+ * (`childMilestone: 'cameOut'`); where it opened without doing so (older saves) its journal entry, which opens
+ * with the child's name, still tells who it was.
+ */
+export function hasComeOut(state: GameState, p: Person): boolean {
+  if (p.growth?.cameOut) return true;
+  const at = state.firedEvents[COMING_OUT_EVENT];
+  if (at === undefined) return false;
+  const opening = `${p.firstName} asked to talk`;
+  return state.log.some((l) => l.kind === 'event' && l.age === at && l.text.startsWith(opening) && l.text.includes(' is gay'));
+}
+
+/** Someone for a child to marry: usually of the other gender (always their own once they came out), with a name from the family's country. */
 function rollSpouse(rng: Rng, state: GameState, child: Person): { firstName: string; gender: Gender } {
-  const gender: Gender = rng.chance(0.9) ? (child.gender === 'male' ? 'female' : 'male') : child.gender;
+  const other = rng.chance(0.9);
+  const gender: Gender = other && !hasComeOut(state, child) ? (child.gender === 'male' ? 'female' : 'male') : child.gender;
   return { firstName: freshFirstName(rng, state, gender), gender };
 }
 
 /**
  * An event made one of these milestones happen (the event writes its own lines): the child moves out, marries,
- * or has a baby on the way, which is born the next year. Does nothing that would repeat a milestone or pass the
- * three-grandchildren limit.
+ * or has a baby on the way, which is born the next year, or comes out as gay (they then marry someone of their
+ * own gender). Does nothing that would repeat a milestone or pass the three-grandchildren limit.
  */
-export function markChildMilestone(state: GameState, rng: Rng, id: string, milestone: 'movedOut' | 'married' | 'expecting', opts: { namedAfterMe?: boolean } = {}): GameState {
+export function markChildMilestone(state: GameState, rng: Rng, id: string, milestone: 'movedOut' | 'married' | 'expecting' | 'cameOut', opts: { namedAfterMe?: boolean } = {}): GameState {
   const p = state.people[id];
   if (!p || p.kind !== 'child' || !p.alive) return state;
   if (milestone === 'movedOut') return hasMovedOut(p) ? state : withGrowth(state, id, { movedOut: true });
+  if (milestone === 'cameOut') return p.growth?.cameOut ? state : withGrowth(state, id, { cameOut: true });
   if (milestone === 'married') return isMarried(p) ? state : withGrowth(state, id, { spouse: rollSpouse(rng, state, p) });
   if (kidsCount(p) >= MAX_KIDS_PER_CHILD) return state;
   const me = state.character;
@@ -106,8 +124,8 @@ export function addGrandchild(state: GameState, rng: Rng, parentId: string): Gam
   const pp = pronouns(parent.gender);
   const spouse = parent.growth?.spouse;
   const partner = spouse ? `${pp.possessive} ${spouse.gender === 'male' ? 'husband' : 'wife'} ${spouse.firstName}` : `${pp.possessive} partner`;
-  // Two husbands or two wives adopt, as the player does.
-  const verb = spouse && spouse.gender === parent.gender ? 'adopted' : 'had';
+  // Two husbands or two wives adopt, as the player does (so does a child who came out, with a partner).
+  const verb = (spouse ? spouse.gender === parent.gender : hasComeOut(state, parent)) ? 'adopted' : 'had';
   const kid = gender === 'male' ? 'son' : 'daughter';
   const bp = pronouns(gender);
   const birth = promised

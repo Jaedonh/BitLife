@@ -17,42 +17,58 @@ function findKind(state: GameState, kind: Person['kind']): Person | undefined {
   return Object.values(state.people).find((p) => p.kind === kind && p.alive);
 }
 
+/** Who personRef can name: a person, or just enough of one (kind and first name). */
+type Named = Pick<Person, 'kind' | 'firstName'> & Partial<Pick<Person, 'id' | 'gender' | 'relative'>>;
+
+/**
+ * Two parents of the same kind (an heir of two fathers or two mothers): the first one in the family is "Dad" or
+ * "Mom" (an heir's late parent, the previous player, is created first), the other "Papa" or "Mama".
+ */
+function isSecondParent(p: Named, people: Readonly<Record<string, Person>> | undefined): boolean {
+  if (!people || !p.id || (p.kind !== 'mother' && p.kind !== 'father')) return false;
+  const first = Object.values(people).find((x) => x.kind === p.kind);
+  return !!first && first.id !== p.id;
+}
+
 /**
  * How the player names someone in first-person narration. A parent is "Mom" or "Dad" at any age (a toddler's
- * parents must not read as strangers), a grandparent "Grandma Rosa" or "Grandpa Joe"; step-parents and everyone
+ * parents must not read as strangers), and with two of the same kind the second is "Mama" or "Papa" (pass the
+ * family, `state.people`, so they can be told apart); a grandparent is "Grandma Rosa" or "Grandpa Joe", and an
+ * aunt or uncle who took the player in "Aunt Rosa" or "Uncle Joe". Step-parents, foster parents and everyone
  * else go by their first name. Always capitalized, so it works mid-sentence and at the start of one.
  * {{personFull}} keeps the full name for formal lines.
  */
-export function personRef(p: Pick<Person, 'kind' | 'firstName'> & { gender?: Person['gender'] }): string {
-  if (p.kind === 'mother') return 'Mom';
-  if (p.kind === 'father') return 'Dad';
+export function personRef(p: Named, people?: Readonly<Record<string, Person>>): string {
+  if (p.kind === 'mother') return isSecondParent(p, people) ? 'Mama' : 'Mom';
+  if (p.kind === 'father') return isSecondParent(p, people) ? 'Papa' : 'Dad';
   if (p.kind === 'grandparent') return `${p.gender === 'male' ? 'Grandpa' : 'Grandma'} ${p.firstName}`;
+  if (p.relative && (p.kind === 'stepmother' || p.kind === 'stepfather')) return `${p.gender === 'male' ? 'Uncle' : 'Aunt'} ${p.firstName}`;
   return p.firstName;
 }
 
 /**
- * The grown-ups at home, as a child says it: "Mom and Dad", "Mom", "Dad and Maria" (a step-parent by name),
- * or "my family" when no parent is alive. Content using {{parents}} keeps verbs that agree with one or two
- * people (past tense: "{{parents}} paid", not "{{parents}} were").
+ * The grown-ups at home, as a child says it: "Mom and Dad", "Mom", "Dad and Papa", "Dad and Maria" (a step-parent
+ * by name), "Aunt Rosa" (a relative who took the child in), or "my family" when no parent is alive. Content using
+ * {{parents}} keeps verbs that agree with one or two people (past tense: "{{parents}} paid", not "{{parents}} were").
  */
 export function parentsRef(state: GameState): string {
-  const mom = findKind(state, 'mother');
-  const dad = findKind(state, 'father');
+  const living = Object.values(state.people).filter((p) => p.alive);
+  const parents = [...living.filter((p) => p.kind === 'mother'), ...living.filter((p) => p.kind === 'father')];
   const step = [findKind(state, 'stepmother'), findKind(state, 'stepfather')].filter((x): x is Person => !!x);
-  const names = [...(mom ? ['Mom'] : []), ...(dad ? ['Dad'] : []), ...(mom && dad ? [] : step.map((x) => x.firstName))];
+  const names = [...parents, ...(parents.length >= 2 ? [] : step)].map((p) => personRef(p, state.people));
   if (!names.length) return 'my family';
   return names.length === 1 ? names[0]! : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
 }
 
 /**
  * The grandparent {{grandma}} or {{grandpa}} names: the bound person when they are one of that gender, else the
- * closest living one ("Grandma Rosa"), else just "Grandma" / "Grandpa".
+ * closest living one ("Grandma Rosa"), one nearby before one who lives far away, else just "Grandma" / "Grandpa".
  */
 function grandparentRef(state: GameState, gender: Person['gender'], bound: Person | undefined): string {
   if (bound?.kind === 'grandparent' && bound.alive && bound.gender === gender) return personRef(bound);
   const closest = Object.values(state.people)
     .filter((x) => x.kind === 'grandparent' && x.alive && x.gender === gender)
-    .sort((a, b) => b.relationship - a.relationship || a.id.localeCompare(b.id))[0];
+    .sort((a, b) => Number(a.farAway === true) - Number(b.farAway === true) || b.relationship - a.relationship || a.id.localeCompare(b.id))[0];
   return closest ? personRef(closest) : gender === 'male' ? 'Grandpa' : 'Grandma';
 }
 
@@ -86,6 +102,11 @@ export function renderText(template: string, state: GameState, ctx: TextContext 
     return startsSentence(whole, offset) ? capitalize(value) : value;
   });
 
+  function livingParentRef(kind: 'mother' | 'father'): string | undefined {
+    const parent = findKind(state, kind);
+    return parent && personRef(parent, state.people);
+  }
+
   function placeholder(key: string): string {
     if (ctx.vars && Object.prototype.hasOwnProperty.call(ctx.vars, key)) return ctx.vars[key]!;
     if (key.startsWith('$')) return formatMoney(scaleMoney(state, Number(key.slice(1))), c.countryCode);
@@ -97,7 +118,7 @@ export function renderText(template: string, state: GameState, ctx: TextContext 
       case 'demonym': return country.demonym;
       case 'age': return String(c.age);
       case 'year': return String(state.year);
-      case 'person': return p ? personRef(p) : 'someone';
+      case 'person': return p ? personRef(p, state.people) : 'someone';
       case 'personFull': return p ? `${p.firstName} ${p.lastName}` : 'someone';
       case 'they': return pp ? pp.subject : 'they';
       case 'They': return pp ? pp.Subject : 'They';
@@ -110,9 +131,9 @@ export function renderText(template: string, state: GameState, ctx: TextContext 
       case 'job': return job ?? 'my job';
       case 'company': return company;
       case 'spouse': return findKind(state, 'spouse')?.firstName ?? 'my spouse';
-      // A living parent is "Mom"/"Dad"; with none alive the line still reads ("my mother").
-      case 'mother': return findKind(state, 'mother') ? 'Mom' : 'my mother';
-      case 'father': return findKind(state, 'father') ? 'Dad' : 'my father';
+      // A living parent is "Mom"/"Dad" (or "Mama"/"Papa", the second of two); with none alive the line still reads ("my mother").
+      case 'mother': return livingParentRef('mother') ?? 'my mother';
+      case 'father': return livingParentRef('father') ?? 'my father';
       case 'parents': return parentsRef(state);
       case 'grandma': return grandparentRef(state, 'female', p);
       case 'grandpa': return grandparentRef(state, 'male', p);

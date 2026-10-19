@@ -228,3 +228,26 @@ describe('saves from before starting scenarios (S2)', () => {
     expect(migrateSave(withField(save, 'character.moveAbroad', { age: 9, countryCode: 'CA' }))).not.toBeNull();
   });
 });
+
+describe('saves from before guardians for orphans and far-away people', () => {
+  it('loads an orphaned child who was never taken in, and the next birthday finds them a guardian', () => {
+    // Saved by the old engine: a 10-year-old whose parents both died, with nobody looking after them and no new fields.
+    const g = createLife({ countryCode: 'US' }, 3, 1_700_000_000_000);
+    const people = Object.fromEntries(Object.entries(g.people).map(([id, p]) => [id, p.kind === 'mother' || p.kind === 'father' ? { ...p, alive: false, deathAge: p.age, deathCause: 'cancer' } : p]));
+    const old = JSON.parse(JSON.stringify({ ...g, year: g.character.birthYear + 10, character: { ...g.character, age: 10 }, people, log: [...g.log, { age: 9, year: g.character.birthYear + 9, text: 'With both my parents gone, I was taken in by relatives.', kind: 'bad' }] })) as GameState;
+    for (const p of Object.values(old.people)) expect(p.relative ?? p.farAway).toBeUndefined();
+    const loaded = migrateSave(old);
+    expect(loaded).toEqual(old);
+    const next = ageUp(loaded!);
+    const carers = Object.values(next.people).filter((p) => p.alive && (p.kind === 'stepmother' || p.kind === 'stepfather'));
+    expect(carers).toHaveLength(1);
+    expect(carers[0]!.relative).toBe(true);
+    // ...and the new fields survive a round trip, and are rejected when mistyped.
+    const saved = JSON.parse(JSON.stringify(next));
+    expect(migrateSave(saved)).toEqual(saved);
+    const id = carers[0]!.id;
+    expect(migrateSave(withField(saved, `people.${id}.relative`, 'aunt'))).toBeNull();
+    expect(migrateSave(withField(saved, `people.${id}.farAway`, 1))).toBeNull();
+    expect(migrateSave(withField(saved, `people.${id}.farAway`, true))).not.toBeNull();
+  });
+});

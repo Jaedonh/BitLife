@@ -14,12 +14,13 @@
  */
 import { CRIME_BY_ID } from '@/data/crimes';
 import type { EventDef, ParoleApproach, TrialPlea } from '../events/schema';
-import { personRef, scaleMoney } from '../events/text';
+import { parentsRef, personRef, scaleMoney } from '../events/text';
 import type { Rng } from '../rng';
 import type { GameState, QueuedEvent } from '../types';
-import { addKarma, addStats, bump, clamp, clampStat, log, money, plural, setResult } from '../util';
+import { addKarma, addStats, bump, capitalize, clamp, clampStat, log, money, plural, setResult } from '../util';
 import { returnToSchool } from './education';
 import { canPay, guardianFunds, spend } from './guardians';
+import { ageOutOfFosterCare } from './scenarios';
 
 export const TRIAL_EVENT_ID = 'sys_trial';
 export const PAROLE_EVENT_ID = 'sys_parole';
@@ -137,14 +138,15 @@ const ACQUITTED: Record<Exclude<TrialPlea, 'plea'>, string> = {
   self: 'I represented myself, objected to everything and somehow won. Not guilty.',
 };
 
-function convictedLine(plea: TrialPlea, term: string, minor: boolean): string {
+/** The verdict line. `reduced` is whether the plea or the lawyer really cut the time served (a 1-2 year charge rounds back to itself). */
+function convictedLine(plea: TrialPlea, term: string, minor: boolean, reduced: boolean): string {
   switch (plea) {
     case 'plea':
       return minor ? `I admitted it. The judge gave me ${term}.` : `I pleaded guilty. The judge gave me ${term}.`;
     case 'public':
       return `My public defender did what one tired person could. Guilty: ${term}.`;
     case 'lawyer':
-      return `My lawyer couldn't win it, but got the sentence down to ${term}.`;
+      return reduced ? `My lawyer couldn't win it, but got the sentence down to ${term}.` : `My lawyer couldn't win it. The judge gave me ${term}.`;
     case 'self':
       return `Representing myself went badly. The judge gave me ${term}.`;
   }
@@ -167,8 +169,10 @@ export function settleTrial(state: GameState, rng: Rng, plea: TrialPlea, vars: R
       return { ...s, eventQueue: [{ eventId: TRIAL_EVENT_ID, context: { ...vars, hide, opening } }, ...s.eventQueue] };
     }
     const parents = minor ? Math.min(fee, guardianFunds(s)) : 0;
+    // Whoever is at home pays ("Mom and Dad", "Aiden", "Aunt Rosa"), never "my parents" for a child.
+    const who = parentsRef(s);
     s = spend(s, fee);
-    s = log(s, parents >= fee ? `My parents paid ${money(s, fee)} for a lawyer.` : parents > 0 ? `My parents and I scraped together ${money(s, fee)} for a lawyer.` : `I paid a lawyer ${money(s, fee)}.`, 'money');
+    s = log(s, parents >= fee ? `${capitalize(who)} paid ${money(s, fee)} for a lawyer.` : parents > 0 ? `${withMe(who)} scraped together ${money(s, fee)} for a lawyer.` : `I paid a lawyer ${money(s, fee)}.`, 'money');
   }
   if (plea === 'plea') s = addKarma(s, 1);
   if (plea !== 'plea' && rng.chance(acquittalChance(s, plea, charge))) {
@@ -179,11 +183,17 @@ export function settleTrial(state: GameState, rng: Rng, plea: TrialPlea, vars: R
     return setResult(s, 'Not guilty. I walked out of court free.', 'good');
   }
   const sentence = convictedYears(plea, years);
-  const term = `${plural(stayLength(s, sentence), 'year')} ${facility(s)}`;
+  const served = stayLength(s, sentence);
+  const term = `${plural(served, 'year')} ${facility(s)}`;
   s = convict(s, sentence);
   s = addStats(s, { happiness: plea === 'plea' ? -12 : -15 });
-  s = log(s, convictedLine(plea, term, minor), 'bad');
+  s = log(s, convictedLine(plea, term, minor, served < years), 'bad');
   return setResult(s, `Guilty: ${term}.`, 'bad');
+}
+
+/** "Mom, Dad and I", "Aiden and I": the grown-ups at home and the player, chipping in together. */
+function withMe(who: string): string {
+  return `${capitalize(who.replace(/ and (?=[^,]*$)/, ', '))} and I`;
 }
 
 const numFlag = (s: GameState, key: string): number => {
@@ -254,7 +264,7 @@ function releaseLine(state: GameState, how: 'served' | 'parole', juvenile: boole
   if (juvenile) {
     const parent = Object.values(state.people).find((p) => p.alive && (p.kind === 'mother' || p.kind === 'father')) ?? Object.values(state.people).find((p) => p.alive && (p.kind === 'stepmother' || p.kind === 'stepfather'));
     return parent
-      ? `I walked out of juvenile detention with my things in a plastic bag. ${personRef(parent)} was waiting outside.`
+      ? `I walked out of juvenile detention with my things in a plastic bag. ${personRef(parent, state.people)} was waiting outside.`
       : 'I walked out of juvenile detention with my things in a plastic bag. Nobody came, so I took the bus.';
   }
   return how === 'parole'
@@ -280,6 +290,9 @@ export function releaseFromPrison(state: GameState, how: 'served' | 'parole'): G
   let s: GameState = { ...state, crime, flags };
   s = addStats(s, { happiness: 10 });
   s = log(s, releaseLine(s, how, juvenile), 'milestone');
+  // An orphan still in detention on their 18th birthday ages out of foster care on release day (once: juvenile
+  // detention always ends by 18, and the birthday line was skipped because they were inside).
+  if (juvenile && s.character.age >= 18) s = ageOutOfFosterCare(s);
   return returnToSchool(s);
 }
 

@@ -1,11 +1,17 @@
 import { ageUp } from '../ageUp';
 import { applyAction } from '../actions';
-import { scaleMoney } from '../events/text';
 import type { EventDef } from '../events/schema';
 import { makeRegistry, openNextEvent, resolveChoice } from '../events/select';
 import { Rng } from '../rng';
-import { driftStats } from '../systems/aging';
-import { createLife } from '../systems/character';
+import { ADULT_CAUSES_FROM, ageNpcs, driftStats, npcDeathCause, onNpcDeath } from '../systems/aging';
+import { createLife, makePerson } from '../systems/character';
+import { activityAvailability } from '../systems/activities';
+import { markDeath } from '../systems/death';
+import { fosterRelation } from '../systems/scenarios';
+import { parentsRef, personRef, renderText, scaleMoney } from '../events/text';
+import { ACTIVITY_BY_ID } from '@/data/activities';
+import { getCountry } from '@/data/countries';
+import { NAMES } from '@/data/names';
 import type { GameState, Person } from '../types';
 
 const base = { category: 'random', title: 'Test', text: 'Something happened.', minAge: 0, maxAge: 120, weight: 1 } as const;
@@ -142,7 +148,10 @@ describe('an event death runs the same handling as a natural death', () => {
     s = patch(s, mother.id, { money: 50_000 });
     const after = play(s, 'test_parent_falls', 'fine', mother.id);
     expect(after.finances.cash).toBe(0);
-    expect(after.log.some((l) => l.text === 'With both my parents gone, I was taken in by relatives.')).toBe(true);
+    const carer = guardiansOf(after)[0]!;
+    expect(carer.relative).toBe(true);
+    const line = after.log.at(-1)!.text;
+    expect(line).toMatch(new RegExp(`^With both my parents gone, I went to live with (Mom|Dad)'s (sister|brother), ${personRef(carer)}\\.$`));
   });
 
   it('handles a death once even if an event kills the same person twice', () => {
@@ -152,6 +161,177 @@ describe('an event death runs the same handling as a natural death', () => {
     const after = play(s, 'test_dies_twice', 'ok', mother.id);
     expect(after.log.filter((l) => l.text.startsWith('I inherited')).length).toBe(1);
     expect(after.log.filter((l) => l.text.startsWith('My mother')).length).toBe(0);
+  });
+});
+
+const GUARDIANS: readonly Person['kind'][] = ['mother', 'father', 'stepmother', 'stepfather'];
+const guardiansOf = (s: GameState) => Object.values(s.people).filter((p) => p.alive && GUARDIANS.includes(p.kind));
+const orphanLines = (s: GameState, from: number) => s.log.slice(from).map((l) => l.text).filter((t) => /^With .* gone,/.test(t));
+/** Every line that says who took the child in, with or without the loss. */
+const careLines = (s: GameState, from: number) => s.log.slice(from).map((l) => l.text).filter((t) => /went to live with|took me in|became my guardian|my caseworker/i.test(t));
+
+describe('a child who loses the last parent at home', () => {
+  it('goes to live with an aunt or uncle, a real guardian who pays, takes them to the doctor and is named in the journal', () => {
+    let s = lifeAt(9);
+    const mother = kin(s, 'mother');
+    const father = kin(s, 'father');
+    s = patch(s, father.id, { alive: false });
+    const from = s.log.length;
+    const dead = { ...s.people[mother.id]!, alive: false, deathAge: mother.age, deathCause: 'cancer' };
+    const after = onNpcDeath({ ...s, people: { ...s.people, [mother.id]: dead } }, dead, new Rng(4));
+    const carers = guardiansOf(after);
+    expect(carers).toHaveLength(1);
+    const carer = carers[0]!;
+    expect(['stepmother', 'stepfather']).toContain(carer.kind);
+    expect(carer.relative).toBe(true);
+    expect(carer.foster).toBeUndefined();
+    expect([mother.id, father.id]).toContain(carer.viaId);
+    expect(carer.age).toBeGreaterThanOrEqual(after.character.age + 18);
+    expect(carer.money).toBeGreaterThan(0);
+    // Narrated as Aunt Rosa / Uncle Joe everywhere a parent would be.
+    const ref = personRef(carer);
+    expect(ref).toBe(`${carer.gender === 'male' ? 'Uncle' : 'Aunt'} ${carer.firstName}`);
+    expect(fosterRelation(carer)).toBe(carer.gender === 'male' ? 'uncle' : 'aunt');
+    expect(parentsRef(after)).toBe(ref);
+    expect(renderText('{{parents}} paid.', after)).toBe(`${ref} paid.`);
+    expect(renderText('{{person}} waved.', after, { person: carer })).toBe(`${ref} waved.`);
+    const side = carer.viaId === mother.id ? 'Mom' : 'Dad';
+    expect(orphanLines(after, from)).toEqual([`With both my parents gone, I went to live with ${side}'s ${carer.gender === 'male' ? 'brother' : 'sister'}, ${ref}.`]);
+    // They pay for the doctor, and take the child there when they are ill.
+    expect(activityAvailability(after, ACTIVITY_BY_ID.doctor!).available).toBe(true);
+    const sick = { ...after, health: { ...after.health, illnesses: [{ defId: 'flu', name: 'the flu', severity: 2, chronic: false, yearsLeft: 3, treated: false }] } };
+    const next = ageUp(sick, noEvents);
+    const flu = next.health.illnesses.find((i) => i.defId === 'flu');
+    expect(!flu || flu.treated).toBe(true);
+    // An adult who loses a parent is nobody's ward.
+    const grown = lifeAt(30);
+    const mom = kin(grown, 'mother');
+    const gone = { ...mom, alive: false };
+    const adult = onNpcDeath({ ...patch(grown, kin(grown, 'father').id, { alive: false }), people: { ...patch(grown, kin(grown, 'father').id, { alive: false }).people, [mom.id]: gone } }, gone, new Rng(4));
+    expect(guardiansOf(adult)).toHaveLength(0);
+  });
+
+  it('names the parent a child only ever had, never "both my parents"', () => {
+    let s = lifeAt(7);
+    const mother = kin(s, 'mother');
+    s = { ...s, people: Object.fromEntries(Object.entries(s.people).filter(([id]) => id !== kin(s, 'father').id)) };
+    const from = s.log.length;
+    const dead = { ...s.people[mother.id]!, alive: false, deathAge: mother.age, deathCause: 'a car accident' };
+    const after = onNpcDeath({ ...s, people: { ...s.people, [mother.id]: dead } }, dead, new Rng(2));
+    const [line] = orphanLines(after, from);
+    // The parent just named is "her", not "Mom" twice.
+    expect(line).toMatch(/^With Mom gone, I went to live with her (sister|brother), (Aunt|Uncle) \S+\.$/);
+    // Locked up when it happens: the relative becomes the guardian.
+    const inside = onNpcDeath({ ...s, crime: { ...s.crime, inPrison: true, juvenile: true }, people: { ...s.people, [mother.id]: dead } }, dead, new Rng(2));
+    expect(orphanLines(inside, from)[0]).toMatch(/^With Mom gone, her (sister|brother), (Aunt|Uncle) \S+, became my guardian\.$/);
+    // A mother and a stepfather: the one who just died is named.
+    let t = lifeAt(12);
+    const step = { ...kin(t, 'father'), id: 'step_1', kind: 'stepfather' as const, firstName: 'Joe' };
+    t = { ...t, people: { ...Object.fromEntries(Object.entries(t.people).filter(([id]) => id !== kin(t, 'father').id)), [step.id]: step } };
+    t = patch(t, kin(t, 'mother').id, { alive: false });
+    const deadStep = { ...step, alive: false };
+    const after2 = onNpcDeath({ ...t, people: { ...t.people, [step.id]: deadStep } }, deadStep, new Rng(2));
+    expect(orphanLines(after2, t.log.length)[0]).toMatch(/^With Joe gone, I went to live with Mom's (sister|brother), (Aunt|Uncle) \S+\.$/);
+  });
+
+  it('writes one line after every death of the year when both parents die the same year', () => {
+    let s = lifeAt(14);
+    for (const k of ['mother', 'father'] as const) s = patch(s, kin(s, k).id, { age: 98, health: 1 });
+    let after: GameState | undefined;
+    for (let seed = 1; seed < 400 && !after; seed++) {
+      const t = ageNpcs({ ...s, log: [] }, new Rng(seed));
+      if (!t.people[kin(s, 'mother').id]!.alive && !t.people[kin(s, 'father').id]!.alive) after = t;
+    }
+    expect(after).toBeDefined();
+    const lines = after!.log.map((l) => l.text);
+    const deaths = lines.filter((t) => /^(Mom|Dad) died/.test(t));
+    expect(deaths).toHaveLength(2);
+    expect(orphanLines(after!, 0)).toHaveLength(1);
+    expect(lines.findIndex((t) => /^With /.test(t))).toBeGreaterThan(Math.max(...deaths.map((d) => lines.indexOf(d))));
+    expect(orphanLines(after!, 0)[0]).toMatch(/^With both my parents gone, /);
+    expect(guardiansOf(after!)).toHaveLength(1);
+  });
+
+  it('a minor left with no guardian at all (an heir, an older save) is taken in at the next birthday, once', () => {
+    let s = lifeAt(10);
+    for (const k of ['mother', 'father'] as const) s = patch(s, kin(s, k).id, { alive: false });
+    const from = s.log.length;
+    const next = ageUp(s, noEvents);
+    expect(guardiansOf(next)).toHaveLength(1);
+    // The loss was told when it happened (or in the heir's opening lines), so the line only says who took them in.
+    expect(orphanLines(next, from)).toEqual([]);
+    expect(careLines(next, from)).toHaveLength(1);
+    expect(careLines(next, from)[0]).toMatch(/^I went to live with (Mom|Dad)'s (sister|brother), (Aunt|Uncle) \S+\.$/);
+    const later = ageUp(ageUp(next, noEvents), noEvents);
+    expect(careLines(later, from)).toHaveLength(1);
+    // The heir of a single parent who died young.
+    const parent = createLife({ countryCode: 'US', gender: 'female' }, 8);
+    const kid = makePerson(new Rng(3), { kind: 'child', gender: 'male', age: 9, countryCode: 'US', lastName: parent.character.lastName, playerAge: 30 });
+    const prev = markDeath({ ...parent, character: { ...parent.character, age: 39 }, year: parent.character.birthYear + 39, people: { ...parent.people, [kid.id]: kid } }, 'a car accident');
+    const heir = ageUp(createLife({ heir: { childId: kid.id, previous: prev } }, 4), noEvents);
+    expect(guardiansOf(heir)).toHaveLength(1);
+    expect(careLines(heir, 0)).toHaveLength(1);
+    expect(careLines(heir, 0)[0]).toMatch(/^I went to live with Mom's (sister|brother), (Aunt|Uncle) \S+\.$/);
+  });
+
+  it("the aunt or uncle is about the age of the parent who just died, and a generation younger than that side's grandparents", () => {
+    let checked = 0;
+    for (let seed = 1; seed <= 60; seed++) {
+      let s = lifeAt(9);
+      const mother = kin(s, 'mother');
+      s = patch(s, kin(s, 'father').id, { alive: false });
+      s = patch(s, mother.id, { age: 34 });
+      // Mom's own mother, still alive at 56: her daughters are at most 38.
+      const nana = { ...makePerson(new Rng(seed), { kind: 'grandparent', gender: 'female', age: 56, countryCode: 'US', playerAge: 9 }), viaId: mother.id };
+      s = { ...s, people: { ...s.people, [nana.id]: nana } };
+      const dead = { ...s.people[mother.id]!, alive: false, deathAge: 34, deathCause: 'cancer' };
+      const after = onNpcDeath({ ...s, people: { ...s.people, [mother.id]: dead } }, dead, new Rng(seed));
+      const carer = guardiansOf(after)[0]!;
+      expect(carer.age).toBeGreaterThanOrEqual(9 + 18);
+      if (carer.viaId !== mother.id) continue;
+      checked++;
+      expect(Math.abs(carer.age - 34)).toBeLessThanOrEqual(8);
+      expect(nana.age - carer.age).toBeGreaterThanOrEqual(18);
+    }
+    expect(checked).toBeGreaterThan(10);
+  });
+
+  it("an immigrant child's aunt or uncle has a name from the old country, and pays in the new one's money", () => {
+    const pool = (code: string) => NAMES[getCountry(code).namePool];
+    for (let seed = 1; seed <= 20; seed++) {
+      let s: GameState = { ...lifeAt(10), flags: { immigrant: 'MX' } };
+      s = { ...s, character: { ...s.character, countryCode: 'JP', city: 'Osaka' } };
+      for (const k of ['mother', 'father'] as const) s = patch(s, kin(s, k).id, { alive: false });
+      const carer = guardiansOf(ageUp(s, noEvents))[0]!;
+      expect(carer.relative).toBe(true);
+      expect([...pool('MX').female, ...pool('MX').male]).toContain(carer.firstName);
+      expect(carer.money).toBeGreaterThanOrEqual(Math.round(2_000 * getCountry('JP').salaryMultiplier));
+    }
+  });
+
+  it('when the aunt or uncle dies too, another relative takes the child in', () => {
+    let s = lifeAt(8);
+    for (const k of ['mother', 'father'] as const) s = patch(s, kin(s, k).id, { alive: false });
+    s = ageUp(s, noEvents);
+    const aunt = guardiansOf(s)[0]!;
+    const dead = { ...aunt, alive: false, deathAge: aunt.age, deathCause: 'cancer' };
+    const from = s.log.length;
+    const after = onNpcDeath({ ...s, people: { ...s.people, [aunt.id]: dead } }, dead, new Rng(6));
+    expect(after.log.slice(from).map((l) => l.text)).toContain(`${personRef(aunt)} died of cancer at ${aunt.age}.`);
+    expect(orphanLines(after, from)[0]).toMatch(new RegExp(`^With ${personRef(aunt)} gone, I went to live with `));
+    expect(guardiansOf(after)).toHaveLength(1);
+    expect(guardiansOf(after)[0]!.id).not.toBe(aunt.id);
+  });
+});
+
+describe('what young people die of', () => {
+  it('children and young adults never die of a heart attack, a stroke or kidney failure; older adults can', () => {
+    const causes = (age: number) => new Set(Array.from({ length: 300 }, (_, i) => npcDeathCause(new Rng(i + 1), age)));
+    for (const age of [0, 3, 10, 17, 18, 25, ADULT_CAUSES_FROM - 1]) {
+      for (const c of causes(age)) expect(c).not.toMatch(/heart attack|stroke|kidney failure|natural causes/);
+    }
+    expect([...causes(70)].some((c) => /heart attack|stroke/.test(c))).toBe(true);
+    expect(causes(50).has('natural causes')).toBe(false);
   });
 });
 

@@ -1,7 +1,9 @@
+import { getCountry } from '@/data/countries';
 import { Rng } from '../rng';
-import type { GameState, Person } from '../types';
+import type { GameState, Gender, Person } from '../types';
 import { personRef } from '../events/text';
-import { addMoney, addStats, bump, clampStat, clearCoupleFlags, deathPhrase, fullName, log, money } from '../util';
+import { addMoney, addStats, bump, capitalize, clampStat, clearCoupleFlags, deathPhrase, fullName, log, money, pronouns } from '../util';
+import { makePerson, randomName } from './character';
 import { fosterRelation } from './scenarios';
 
 /** Yearly stat drift. Numbers are tuned so a passive life slowly declines. */
@@ -44,9 +46,15 @@ export function driftStats(state: GameState, rng: Rng): GameState {
 }
 
 const NPC_DEATH_CAUSES = ['a heart attack', 'cancer', 'a stroke', 'natural causes', 'pneumonia', 'a car accident', 'kidney failure', 'a long illness'];
+/** Children and young adults do not die of a heart attack, a stroke or kidney failure. */
+const CHILD_DEATH_CAUSES = ['a car accident', 'a sudden illness', 'pneumonia', 'meningitis', 'cancer'];
+const YOUNG_ADULT_DEATH_CAUSES = ['a car accident', 'cancer', 'pneumonia', 'a sudden illness', 'a long illness', 'a swimming accident'];
+/** From this age the adult causes apply. */
+export const ADULT_CAUSES_FROM = 35;
 
-/** "Natural causes" only reads right for the old; a younger death gets a sudden illness instead. */
-function npcCause(cause: string, age: number): string {
+/** What an NPC of `age` dies of. "Natural causes" only reads right for the old; a younger death gets a sudden illness instead. */
+export function npcDeathCause(rng: Rng, age: number): string {
+  const cause = rng.pick(age < 18 ? CHILD_DEATH_CAUSES : age < ADULT_CAUSES_FROM ? YOUNG_ADULT_DEATH_CAUSES : NPC_DEATH_CAUSES);
   return cause === 'natural causes' && age < 60 ? 'a sudden illness' : cause;
 }
 
@@ -83,24 +91,27 @@ export function ageNpcs(state: GameState, rng: Rng): GameState {
     if (rng.chance(next.kind === 'pet' ? (petOld ? 0.3 : 0.03) : npcDeathChance(next.age, next.health))) {
       next.alive = false;
       next.deathAge = next.age;
-      next.deathCause = next.kind === 'pet' ? (petOld ? 'old age' : 'a sudden illness') : npcCause(rng.pick(NPC_DEATH_CAUSES), next.age);
+      next.deathCause = next.kind === 'pet' ? (petOld ? 'old age' : 'a sudden illness') : npcDeathCause(rng, next.age);
       deaths.push(next);
     }
     people[p.id] = next;
   }
   s = { ...s, people };
-  for (const d of deaths) s = onNpcDeath(s, d, rng);
-  return s;
+  // Every death of the year is announced first; a child left with nobody at home is then taken in once.
+  for (const d of deaths) s = onNpcDeath(s, d, rng, { orphanCare: false });
+  return takeInOrphan(s, deaths, rng);
 }
 
 const GUARDIAN_KINDS: readonly Person['kind'][] = ['mother', 'father', 'stepmother', 'stepfather'];
+const isGuardian = (p: Person) => GUARDIAN_KINDS.includes(p.kind);
 
 /**
  * Everything an NPC's death sets off: the journal line, grief, inheritance and, for a child, being taken in
- * by relatives. `p` is already marked dead in `state`. Shared by natural deaths (ageNpcs) and event deaths
- * (the `personDies` effect), which pass announce: false because the event writes its own line and grief.
+ * (takeInOrphan). `p` is already marked dead in `state`. Shared by natural deaths (ageNpcs, which takes a child
+ * in itself once all of the year's deaths are announced: orphanCare false) and event deaths (the `personDies`
+ * effect), which pass announce: false because the event writes its own line and grief.
  */
-export function onNpcDeath(state: GameState, p: Person, rng: Rng, opts: { announce?: boolean } = {}): GameState {
+export function onNpcDeath(state: GameState, p: Person, rng: Rng, opts: { announce?: boolean; orphanCare?: boolean } = {}): GameState {
   let s = p.kind === 'lover' || p.kind === 'spouse' ? clearCoupleFlags(state) : state;
   const announce = opts.announce ?? true;
   const close = p.relationship >= 50;
@@ -111,7 +122,7 @@ export function onNpcDeath(state: GameState, p: Person, rng: Rng, opts: { announ
   if (announce) {
     // An event that kills someone writes its own line and grief instead.
     // Parents and grandparents go by what the player calls them (Mom, Grandma Rosa), as everywhere else in the journal.
-    const who = p.kind === 'mother' || p.kind === 'father' || p.kind === 'grandparent' ? personRef(p) : `My ${label} ${name}`;
+    const who = p.kind === 'mother' || p.kind === 'father' || p.kind === 'grandparent' || p.relative ? personRef(p, s.people) : `My ${label} ${name}`;
     s = log(s, `${who} ${deathPhrase(p.deathCause)} at ${p.age}.`, 'bad');
     // A grandparent's death is a smaller grief than a parent's; a grandchild's a deep one.
     const grief = p.kind === 'spouse' || p.kind === 'child' ? -25 : p.kind === 'mother' || p.kind === 'father' ? -15 : p.kind === 'grandchild' ? -12 : p.kind === 'grandparent' ? -8 : p.kind === 'pet' ? -8 : close ? -10 : -3;
@@ -122,16 +133,110 @@ export function onNpcDeath(state: GameState, p: Person, rng: Rng, opts: { announ
     const share = Math.round((p.money * (p.kind === 'spouse' ? 1 : 0.8)) / (p.kind === 'spouse' ? 1 : siblings + 1));
     if (share > 0 && (p.kind === 'spouse' || p.relationship >= 25 || rng.chance(0.3))) {
       s = addMoney(s, share);
-      s = log(s, `I inherited ${money(s, share)} from ${personRef(p)}'s estate.`, 'money');
+      s = log(s, `I inherited ${money(s, share)} from ${personRef(p, s.people)}'s estate.`, 'money');
     }
   }
   if (p.kind === 'grandparent' && p.money > 0) s = grandparentEstate(s, p, rng);
-  // A child who loses the last parent or step-parent at home goes to relatives, or a foster child to a new home.
-  if (GUARDIAN_KINDS.includes(p.kind) && s.character.age < 18) {
-    const guardianLeft = Object.values(s.people).some((x) => x.alive && GUARDIAN_KINDS.includes(x.kind));
-    if (!guardianLeft) s = log(s, p.foster ? `With ${p.firstName} gone, my caseworker placed me with another foster family.` : 'With both my parents gone, I was taken in by relatives.', 'bad');
+  return opts.orphanCare === false ? s : takeInOrphan(s, [p], rng);
+}
+
+const isParent = (p: Person) => p.kind === 'mother' || p.kind === 'father';
+
+/**
+ * "With Mom gone", "With both my parents gone": the guardians a child just lost, as the child says it. Only a
+ * child who had two parents, and lost the last of them, says "both my parents"; one who only ever had one parent
+ * names them, and so does one who just lost a step-parent.
+ */
+function lossPhrase(state: GameState, lost: readonly Person[]): string {
+  if (Object.values(state.people).filter(isParent).length === 2 && lost.every(isParent)) return 'With both my parents gone';
+  const ref = (x: Person) => personRef(x, state.people);
+  if (lost.length === 1) return `With ${ref(lost[0]!)} gone`;
+  if (lost.length === 2) return `With ${ref(lost[0]!)} and ${ref(lost[1]!)} both gone`;
+  return 'With no one left at home to raise me';
+}
+
+/**
+ * A first name and surname for someone joining the family, not shared with anyone already in it (a few draws),
+ * from the names of `countryCode`.
+ */
+function freshName(rng: Rng, state: GameState, p: Person, countryCode: string, surname?: string): void {
+  const taken = new Set([state.character.firstName, ...Object.values(state.people).map((x) => x.firstName)]);
+  for (let i = 0; i < 6 && taken.has(p.firstName); i++) p.firstName = randomName(rng, p.gender, countryCode).firstName;
+  if (surname) p.lastName = surname;
+  // A foster family is not the child's own: a shared surname would read as a relative.
+  else for (let i = 0; i < 6 && p.lastName === state.character.lastName; i++) p.lastName = randomName(rng, p.gender, countryCode).lastName;
+}
+
+/**
+ * How old the aunt or uncle on `side` is: within eight years of that parent when they died this year, else 22-44
+ * years older than the child; always 18+ years older than the child and 18+ years younger than their own parents
+ * (the grandparents on that side), and at most 55 years older than the child.
+ */
+function relativeAge(rng: Rng, state: GameState, side: Person | undefined, justLost: readonly Person[]): number {
+  const me = state.character;
+  const near = side && justLost.some((x) => x.id === side.id) ? side.age + rng.int(-8, 8) : me.age + rng.int(22, 44);
+  const ownParents = side ? Object.values(state.people).filter((x) => x.kind === 'grandparent' && x.alive && x.viaId === side.id) : [];
+  const ceiling = Math.min(me.age + 55, ...ownParents.map((g) => g.age - 18));
+  return Math.max(me.age + 18, Math.min(near, ceiling));
+}
+
+/** The surname of a parent's family: the father's own, or the mother's maiden name (her parents carry it). */
+function familyName(state: GameState, parent: Person): string | undefined {
+  if (parent.kind === 'father') return parent.lastName;
+  const ownParent = Object.values(state.people).find((x) => x.kind === 'grandparent' && x.viaId === parent.id);
+  if (ownParent) return ownParent.lastName;
+  return parent.lastName === state.character.lastName ? undefined : parent.lastName;
+}
+
+/**
+ * A child (under 18) left with no living parent, step-parent or guardian is taken in, once, with one journal line:
+ * a foster child by a new foster parent (`foster`), anyone else by an aunt or uncle, the brother or sister of a
+ * parent they lost (`relative`, linked by `viaId`). Both are kind stepmother/stepfather, so like any parent they
+ * pay for the child, take them to the doctor and are who {{parents}} names ("Aunt Rosa"). `lost` are the people
+ * who just died, and the line opens with them ("With Mom gone, I went to live with her sister, Aunt Rosa.").
+ * With none of them a guardian (an heir whose only parent was the last player, or an older save whose orphan was
+ * never taken in) the child is taken in now, and the line does not tell the loss again ("I went to live with
+ * Mom's sister, Aunt Rosa.").
+ */
+export function takeInOrphan(state: GameState, lost: readonly Person[], rng: Rng): GameState {
+  const me = state.character;
+  if (me.age >= 18 || Object.values(state.people).some((x) => x.alive && isGuardian(x))) return state;
+  const everyone = Object.values(state.people).filter(isGuardian);
+  if (!everyone.length) return state;
+  const justLost = lost.filter(isGuardian);
+  const loss = justLost.length ? lossPhrase(state, justLost) : undefined;
+  const foster = state.flags.foster_care === true || everyone.some((x) => x.foster);
+  const inside = state.crime.inPrison;
+  const gender: Gender = rng.chance(foster ? 0.7 : 0.6) ? 'female' : 'male';
+  const kind = gender === 'female' ? 'stepmother' : 'stepfather';
+  if (foster) {
+    const age = Math.max(me.age + 16, rng.int(30, 55));
+    const carer = makePerson(rng, { kind, gender, age, countryCode: me.countryCode, playerAge: me.age, relationship: rng.int(35, 65), money: Math.round(rng.int(0, 12_000) * getCountry(me.countryCode).salaryMultiplier) });
+    carer.foster = true;
+    freshName(rng, state, carer, me.countryCode);
+    const s: GameState = { ...state, people: { ...state.people, [carer.id]: carer } };
+    const placed = `my caseworker ${inside ? 'found me' : 'placed me with'} a new ${fosterRelation(carer)!}, ${fullName(carer)}.`;
+    return log(s, loss ? `${loss}, ${placed}` : capitalize(placed), 'bad');
   }
-  return s;
+  // The brother or sister of a parent the child lost: about that parent's age, with that side's surname and a
+  // name from the family's country of birth (an immigrant family's relatives are from the old country).
+  const parents = everyone.filter(isParent);
+  const side = parents.length ? rng.pick(parents) : undefined;
+  const origin = typeof state.flags.immigrant === 'string' ? getCountry(state.flags.immigrant).code : me.countryCode;
+  const age = relativeAge(rng, state, side, justLost);
+  const money = Math.round(rng.int(2_000, 120_000) * getCountry(me.countryCode).salaryMultiplier);
+  const carer = makePerson(rng, { kind, gender, age, countryCode: origin, playerAge: me.age, relationship: rng.int(45, 75), money });
+  carer.relative = true;
+  if (side) carer.viaId = side.id;
+  freshName(rng, state, carer, origin, side ? familyName(state, side) : undefined);
+  const s: GameState = { ...state, people: { ...state.people, [carer.id]: carer } };
+  const who = personRef(carer);
+  const sibling = gender === 'female' ? 'sister' : 'brother';
+  // "her sister" when the loss just named that parent ("With Mom gone"), else "Mom's sister".
+  const namedAlone = !!side && !!loss && justLost.length === 1 && justLost[0]!.id === side.id && !loss.startsWith('With both');
+  const whose = !side ? '' : namedAlone ? pronouns(side.gender).possessive : `${personRef(side, s.people)}'s`;
+  const clause = !side ? `${who} took me in.` : inside ? `${whose} ${sibling}, ${who}, became my guardian.` : `I went to live with ${whose} ${sibling}, ${who}.`;
+  return log(s, loss ? `${loss}, ${clause}` : capitalize(clause), 'bad');
 }
 
 /** Share of a grandparent's estate left to the grandchildren (the player and siblings); most goes to their own child. */

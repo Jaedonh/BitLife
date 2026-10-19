@@ -12,7 +12,7 @@ import { Rng } from '../rng';
 import { onNpcDeath } from '../systems/aging';
 import { createLife, emptyMemory, grandparentAliveChance, makePerson } from '../systems/character';
 import { markDeath } from '../systems/death';
-import { addGrandchild, hasMovedOut, kidsCount, MAX_KIDS_PER_CHILD, yearlyFamily } from '../systems/family';
+import { addGrandchild, hasComeOut, hasMovedOut, kidsCount, markChildMilestone, MAX_KIDS_PER_CHILD, yearlyFamily } from '../systems/family';
 import { availableInteractions } from '../systems/relationships';
 import type { GameState, Gender, Person, RelationshipKind } from '../types';
 
@@ -310,6 +310,66 @@ describe('children growing up', () => {
     const t = addGrandchild(addGrandchild(life(55, [son]), new Rng(3), son.id), new Rng(4), son.id);
     expect(texts(t)[0]).toMatch(/^My son Leo and his husband Tom adopted a (son|daughter), \S+\. I am a grandparent\.$/);
     expect(texts(t)[1]).toMatch(/I have two grandchildren now\.$/);
+  });
+});
+
+describe('a child who came out', () => {
+  /** Ages a lone child from 24 to 40 with the yearly milestones only. */
+  const grow = (s: GameState, id: string, seed: number) => {
+    let g = s;
+    for (let a = 24; a <= 40; a++) g = yearlyFamily({ ...g, people: { ...g.people, [id]: { ...g.people[id]!, age: a } } }, new Rng(seed * 1000 + a));
+    return g.people[id]!;
+  };
+
+  it('marries someone of their own gender, whether a milestone or a wedding card marries them', () => {
+    let married = 0;
+    for (let seed = 1; seed <= 200; seed++) {
+      const son = person('child', { firstName: 'Leo', gender: 'male', age: 23, growth: { movedOut: true, kids: MAX_KIDS_PER_CHILD } });
+      const s = markChildMilestone(life(50, [son]), new Rng(seed), son.id, 'cameOut');
+      expect(s.people[son.id]!.growth?.cameOut).toBe(true);
+      const grown = grow(s, son.id, seed);
+      if (grown.growth?.spouse) {
+        married++;
+        expect(grown.growth.spouse.gender).toBe('male');
+      }
+    }
+    // As often as anyone else.
+    expect(married / 200).toBeGreaterThan(0.3);
+    const def = EVENT('lf_child_wedding');
+    const reg = makeRegistry([def]);
+    const daughter = person('child', { firstName: 'Maya', gender: 'female', age: 30, relationship: 80, growth: { cameOut: true } });
+    for (let seed = 1; seed <= 20; seed++) {
+      let s = openNextEvent({ ...life(55, [daughter]), rng: { s: seed }, eventQueue: [{ eventId: def.id, context: {}, personId: daughter.id }] }, reg);
+      s = resolveChoice(s, 'speech', reg);
+      expect(s.people[daughter.id]!.growth?.spouse?.gender).toBe('female');
+    }
+  });
+
+  it('the coming-out card is respected: that child marries their own gender, a sibling as before', () => {
+    const def = EVENT('lf_child_comes_out');
+    const reg = makeRegistry([def]);
+    for (const choice of def.choices.map((c) => c.id)) {
+      let other = 0;
+      for (let seed = 1; seed <= 40; seed++) {
+        const out = person('child', { firstName: 'Sophie', gender: 'female', age: 23, relationship: 70, growth: { movedOut: true, kids: MAX_KIDS_PER_CHILD } });
+        const sib = person('child', { firstName: 'Ruby', gender: 'female', age: 23, relationship: 70, growth: { movedOut: true, kids: MAX_KIDS_PER_CHILD } });
+        let s = openNextEvent({ ...life(47, [out, sib]), eventQueue: [{ eventId: def.id, context: {}, personId: out.id }] }, reg);
+        expect(s.pendingEvent?.text.startsWith('Sophie asked to talk')).toBe(true);
+        s = resolveChoice(s, choice, reg);
+        expect(hasComeOut(s, s.people[out.id]!)).toBe(true);
+        expect(hasComeOut(s, s.people[sib.id]!)).toBe(false);
+        for (let a = 24; a <= 40; a++) s = yearlyFamily({ ...s, people: Object.fromEntries(Object.entries(s.people).map(([k, p]) => [k, { ...p, age: a }])) }, new Rng(seed * 1000 + a));
+        const spouse = s.people[out.id]!.growth?.spouse;
+        if (spouse) expect(spouse.gender).toBe('female');
+        if (s.people[sib.id]!.growth?.spouse?.gender === 'male') other++;
+      }
+      expect(other).toBeGreaterThan(0);
+    }
+  });
+
+  it('with a partner but no spouse, their children are adopted', () => {
+    const son = person('child', { firstName: 'Leo', gender: 'male', age: 30, growth: { cameOut: true } });
+    expect(texts(addGrandchild(life(55, [son]), new Rng(2), son.id))[0]).toMatch(/^My son Leo and his partner adopted a (son|daughter), \S+\. I am a grandparent\.$/);
   });
 });
 

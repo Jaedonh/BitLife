@@ -174,7 +174,41 @@ describe('court trial', () => {
     const s = answer(inCourt(rich, 2), 'lawyer');
     expect(s.people[parents[0]!.id]!.money).toBe(100_000 - lawyerFee(rich, 2));
     expect(s.finances.debt).toBe(0);
-    expect(s.log.some((l) => l.text.startsWith('My parents paid $'))).toBe(true);
+    expect(s.log.some((l) => l.text.startsWith('Mom and Dad paid $'))).toBe(true);
+  });
+
+  it("the lawyer's fee line names whoever is at home, never \"my parents\" for one parent or a foster parent", () => {
+    const teen = aged(16);
+    const [mom, dad] = [Object.values(teen.people).find((p) => p.kind === 'mother')!, Object.values(teen.people).find((p) => p.kind === 'father')!];
+    const feeLine = (s: GameState) => answer(inCourt(s, 2), 'lawyer').log.find((l) => /for a lawyer\.$/.test(l.text))?.text;
+    const fee = lawyerFeeText(teen, 2);
+    // One parent left, who can pay it all.
+    const single = { ...teen, people: { ...teen.people, [dad.id]: { ...dad, alive: false }, [mom.id]: { ...mom, money: 100_000 } } };
+    expect(feeLine(single)).toBe(`Mom paid ${fee} for a lawyer.`);
+    // A foster parent, with the teen's own savings making up the rest.
+    const foster = { ...dad, id: 'foster_1', kind: 'stepfather' as const, foster: true, firstName: 'Aiden', money: 1_000 };
+    const orphan = withCash({ ...teen, people: { ...teen.people, [mom.id]: { ...mom, alive: false }, [dad.id]: { ...dad, alive: false }, [foster.id]: foster } }, 50_000);
+    expect(feeLine(orphan)).toBe(`Aiden and I scraped together ${fee} for a lawyer.`);
+    // Both parents short of it: "Mom, Dad and I", not "Mom and Dad and I".
+    const poor = withCash({ ...teen, people: { ...teen.people, [mom.id]: { ...mom, money: 500 }, [dad.id]: { ...dad, money: 500 } } }, 50_000);
+    expect(feeLine(poor)).toBe(`Mom, Dad and I scraped together ${fee} for a lawyer.`);
+  });
+
+  it('the lawyer is only said to have got the sentence down when it really came down', () => {
+    const lost = (s: GameState, years: number) => {
+      for (let seed = 1; seed <= 200; seed++) {
+        const after = answer(inCourt(s, years), 'lawyer', seed * 7919);
+        if (after.crime.inPrison) return after.log.at(-1)!.text;
+      }
+      throw new Error('never convicted');
+    };
+    const adult = withCash({ ...aged(33), crime: { ...aged(33).crime, notoriety: 100 } }, 1_000_000);
+    expect(lost(adult, 1)).toBe("My lawyer couldn't win it. The judge gave me 1 year in prison.");
+    expect(lost(adult, 2)).toBe("My lawyer couldn't win it. The judge gave me 2 years in prison.");
+    expect(lost(adult, 5)).toBe("My lawyer couldn't win it, but got the sentence down to 4 years in prison.");
+    // Juvenile court asks for at most two years, which a lawyer's 0.8 never cuts.
+    const minor = withCash({ ...aged(16), crime: { ...aged(16).crime, notoriety: 100 } }, 1_000_000);
+    expect(lost(minor, 5)).toBe("My lawyer couldn't win it. The judge gave me 2 years in juvenile detention.");
   });
 
   it('a lawyer the player cannot afford refuses, and the card comes back without one', () => {

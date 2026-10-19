@@ -4,6 +4,8 @@ import type { Effect, EventDef } from '../events/schema';
 import { personRef, renderText } from '../events/text';
 import { Rng } from '../rng';
 import { createLife, makePerson } from '../systems/character';
+import { onNpcDeath } from '../systems/aging';
+import { markDeath } from '../systems/death';
 import type { GameState, Person, RelationshipKind } from '../types';
 
 /** A life with a living mother and father (and nobody else), plus a step-parent and a sibling to bind. */
@@ -100,6 +102,37 @@ describe('parents in first-person narration', () => {
     expect(renderText(line, dead(noStep, father))).toBe('Mom paid. Ask Mom first.');
     expect(renderText(line, dead(s, mother))).toBe('Dad and Gwen paid. Ask Dad and Gwen first.');
     expect(renderText(line, dead(dead(noStep, mother), father))).toBe('My family paid. Ask my family first.');
+  });
+
+  it('tells two fathers or two mothers apart: the second is Papa or Mama, everywhere', () => {
+    // An heir of two fathers: the late player (created first) is Dad, the surviving father Papa.
+    const base = createLife({ countryCode: 'IN', gender: 'male' }, 77);
+    const prev0 = { ...base, character: { ...base.character, age: 40 }, year: base.character.birthYear + 40 };
+    const rng = new Rng(3);
+    const spouse = { ...makePerson(rng, { kind: 'spouse', gender: 'male', age: 41, countryCode: 'IN', playerAge: 40 }), firstName: 'Sanjay' };
+    const kid = { ...makePerson(rng, { kind: 'child', gender: 'female', age: 12, countryCode: 'IN', playerAge: 28 }), otherParentId: spouse.id };
+    const heir = createLife({ heir: { childId: kid.id, previous: markDeath({ ...prev0, people: { ...prev0.people, [spouse.id]: spouse, [kid.id]: kid } }, 'a car accident') } }, 4);
+    const fathers = Object.values(heir.people).filter((p) => p.kind === 'father');
+    const late = fathers.find((p) => !p.alive)!;
+    const papa = fathers.find((p) => p.alive)!;
+    expect(late.firstName).toBe(base.character.firstName);
+    expect(papa.firstName).toBe('Sanjay');
+    expect(personRef(late, heir.people)).toBe('Dad');
+    expect(personRef(papa, heir.people)).toBe('Papa');
+    // Without the family to compare against, a father is still Dad.
+    expect(personRef(papa)).toBe('Dad');
+    expect(renderText('Another holiday without {{person}}.', heir, { person: late })).toBe('Another holiday without Dad.');
+    expect(renderText('I complimented {{person}}. {{They}} beamed.', heir, { person: papa })).toBe('I complimented Papa. He beamed.');
+    expect(renderText('{{father}} called. {{parents}} paid.', heir)).toBe('Papa called. Papa paid.');
+    // Both alive: "Dad and Papa"; two mothers: "Mom and Mama".
+    const both = { ...heir, people: { ...heir.people, [late.id]: { ...late, alive: true } } };
+    expect(renderText('{{parents}} paid. {{father}} smiled.', both)).toBe('Dad and Papa paid. Dad smiled.');
+    const moms = Object.fromEntries(Object.entries(both.people).map(([id, p]) => [id, p.kind === 'father' ? { ...p, kind: 'mother' as const, gender: 'female' as const } : p]));
+    expect(renderText('{{parents}} paid.', { ...both, people: moms })).toBe('Mom and Mama paid.');
+    // The death line names the right one.
+    const gone = { ...papa, alive: false, deathAge: papa.age, deathCause: 'pneumonia' };
+    const after = onNpcDeath({ ...heir, people: { ...heir.people, [papa.id]: gone } }, gone, new Rng(1));
+    expect(after.log.map((l) => l.text)).toContain(`Papa died of pneumonia at ${papa.age}.`);
   });
 
   it('a company name ending in a period does not double the period at the end of a sentence', () => {

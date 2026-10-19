@@ -149,9 +149,10 @@ export type Effect =
   /**
    * For an event bound to one of the player's children (person kind ['child']): a milestone the engine would
    * otherwise roll (systems/family.ts) happens now: they move out, marry, or have a baby on the way (born next
-   * year; namedAfterMe gives the baby the player's name).
+   * year; namedAfterMe gives the baby the player's name). 'cameOut' records that they came out as gay, so they
+   * marry someone of their own gender.
    */
-  | { childMilestone: 'movedOut' | 'married' | 'expecting'; namedAfterMe?: boolean };
+  | { childMilestone: 'movedOut' | 'married' | 'expecting' | 'cameOut'; namedAfterMe?: boolean };
 
 export type TrialPlea = 'plea' | 'public' | 'lawyer' | 'self';
 export const TRIAL_PLEAS: readonly TrialPlea[] = ['plea', 'public', 'lawyer', 'self'];
@@ -199,7 +200,17 @@ export interface PersonSelector {
   married?: boolean;
   /** The player's children only: their own children so far, counting babies on the way (at most 3). */
   kids?: Comparator;
+  /**
+   * People who live far away (friends, rivals and grandparents left behind by a move abroad, FAR_AWAY_KINDS) are
+   * never bound by default, so no in-person scene reaches them. `true` binds only them (a letter or a call from
+   * the old country); 'any' binds them or anyone nearby, for a card that works at any distance (a message, a
+   * group chat, a video call). The same rule holds for `hasPerson` and `noPerson`, which count people nearby.
+   */
+  farAway?: boolean | 'any';
 }
+
+/** The kinds of people who stay behind, far away, when the family moves abroad (systems/scenarios.ts). */
+export const FAR_AWAY_KINDS: readonly RelationshipKind[] = ['friend', 'bestFriend', 'enemy', 'grandparent'];
 
 export interface EventDef {
   id: string;
@@ -335,6 +346,9 @@ export function validateEvent(def: EventDef, knownIds: Set<string>): string[] {
   const childOnly = def.person?.kind.length === 1 && def.person.kind[0] === 'child';
   if (def.person && (def.person.movedOut !== undefined || def.person.married !== undefined || def.person.kids !== undefined) && !childOnly) {
     errors.push(`${where}: movedOut/married/kids in the person selector need person: { kind: ['child'] }`);
+  }
+  if (def.person?.farAway !== undefined && !def.person.kind.some((k) => FAR_AWAY_KINDS.includes(k))) {
+    errors.push(`${where}: farAway in the person selector only applies to ${FAR_AWAY_KINDS.join('/')} (who stay behind when the family moves abroad)`);
   }
   for (const list of effectLists(def.choices.flatMap((c) => [c.effects ?? []]))) {
     for (const e of list) {

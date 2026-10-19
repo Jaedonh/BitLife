@@ -24,8 +24,12 @@ export function alivePeople(state: GameState): Person[] {
   return Object.values(state.people).filter((p) => p.alive);
 }
 
+/**
+ * Whether someone of these kinds is alive and nearby (`hasPerson`, `noPerson`): a friend or grandparent left
+ * behind by a move abroad (`farAway`) is not someone a card can put in the room.
+ */
 export function hasPersonOfKind(state: GameState, kinds: readonly Person['kind'][]): boolean {
-  return alivePeople(state).some((p) => kinds.includes(p.kind));
+  return alivePeople(state).some((p) => kinds.includes(p.kind) && p.farAway !== true);
 }
 
 export function evaluateCondition(state: GameState, c: Condition): boolean {
@@ -121,6 +125,9 @@ export function candidatesFor(state: GameState, sel: PersonSelector): Person[] {
     if (sel.minAge !== undefined && p.age < sel.minAge) return false;
     if (sel.maxAge !== undefined && p.age > sel.maxAge) return false;
     if (sel.household && !livesWithPlayer(state, p)) return false;
+    // Friends and grandparents left behind by a move abroad only turn up when the card is written for distance:
+    // `farAway: true` binds only them, 'any' them or anyone nearby (the dead are remembered wherever they lived).
+    if (p.alive && sel.farAway !== 'any' && (p.farAway === true) !== (sel.farAway === true)) return false;
     // A coworker linked to a job is only a coworker while the player still holds that job (see coworkers.ts).
     if (p.kind === 'coworker' && p.workplace && !(state.career.job && p.workplace.jobId === state.career.job.defId && p.workplace.company === state.career.job.company)) return false;
     if (sel.gender !== undefined && p.gender !== sel.gender) return false;

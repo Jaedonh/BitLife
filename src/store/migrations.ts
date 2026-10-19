@@ -47,6 +47,8 @@ function isGameStateShape(s: Rec): boolean {
   // Family links and children's milestones (S1) are optional: saves from before them simply have none.
   if (!recordOf(s.people, (p) => isRec(p) && nullOr(p.viaId, isStr) && nullOr(p.growth, isRec) && nullOr(p.workplace, (w) => isRec(w) && isStr(w.jobId) && isStr(w.company)))) return false;
   if (!recordOf(s.people, (p) => isRec(p) && nullOr(p.foster, isBool))) return false;
+  // A relative who took the player in and people left behind by a move abroad are optional too (older saves have neither).
+  if (!recordOf(s.people, (p) => isRec(p) && nullOr(p.relative, isBool) && nullOr(p.farAway, isBool))) return false;
   if (!arrayOf(s.assets, (a) => isRec(a) && isStr(a.id) && isNum(a.value))) return false;
   if (!arrayOf(s.log, (l) => isRec(l) && isStr(l.text) && isStr(l.kind) && isNum(l.age))) return false;
   if (!arrayOf(s.eventQueue, (q) => isRec(q) && isStr(q.eventId))) return false;
