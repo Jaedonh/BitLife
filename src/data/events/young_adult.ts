@@ -1028,7 +1028,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 2 },
           {
             chance: 0.6,
-            then: [{ money: 400 }, { stat: 'happiness', delta: 3 }, { log: 'I did it myself and got a refund. Like finding money in a coat, except the coat was math.', kind: 'money' }],
+            then: [{ money: 400 }, { stat: 'happiness', delta: 3 }, { log: 'I did it myself and got a refund. Like finding money in old jeans, except the jeans were math.', kind: 'money' }],
             else: [{ money: -300 }, { stat: 'happiness', delta: -3 }, { log: 'I did it myself and owed money plus a small penalty for a box I checked with confidence.', kind: 'bad' }],
           },
         ],
@@ -1602,13 +1602,16 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     maxAge: 29,
     weight: 1.5,
     once: true,
-    conditions: [{ inPrison: false }, { hasLover: true }, { married: false }],
+    // Not a couple who already share a home (love_and_family's lf_move_in_together).
+    conditions: [{ inPrison: false }, { hasLover: true }, { married: false }, { flag: 'lf_living_together', exists: false }],
     person: { kind: ['lover'] },
     choices: [
       {
         id: 'yes',
         label: 'Move in together',
+        // We live together from now on (household selectors, the people screen), as with lf_move_in_together.
         effects: [
+          { flag: 'lf_living_together', set: true },
           { love: 10 },
           { relationship: 'person', delta: 5 },
           { stat: 'happiness', delta: 6 },
@@ -1620,7 +1623,8 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
       {
         id: 'trial',
         label: 'Suggest a trial month',
-        effects: [{ love: 3 }, { stat: 'happiness', delta: 2 }, { log: 'We tried a month. It mostly worked. The plant is named Gerald and is thriving.', kind: 'good' }],
+        // The trial month worked and we stayed: living together too, for less of a leap.
+        effects: [{ flag: 'lf_living_together', set: true }, { love: 3 }, { stat: 'happiness', delta: 2 }, { log: 'We tried a month. It mostly worked, so we stayed. The plant is named Gerald and is thriving.', kind: 'good' }],
       },
       {
         id: 'notyet',

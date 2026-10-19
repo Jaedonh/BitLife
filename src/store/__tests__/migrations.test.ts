@@ -355,3 +355,46 @@ describe('saves from before bankruptcies were counted and hustles kept a peak', 
     expect(migrateSave(withField(s, `people.${someone}.birthLastName`, 'Kelly'))).not.toBeNull();
   });
 });
+
+describe('when someone died, and the names held for the year (residual round 2)', () => {
+  /** A save from before either field: nobody's death is dated and no names are held. */
+  function before(): GameState {
+    const g = playedSave(45);
+    const people = Object.fromEntries(Object.entries(g.people).map(([id, p]) => {
+      const copy = { ...p };
+      delete copy.lostAtAge;
+      return [id, copy];
+    }));
+    const old: GameState = { ...g, people };
+    delete old.namesThisYear;
+    return JSON.parse(JSON.stringify(old)) as GameState;
+  }
+
+  it('a played save records both, and loads them unchanged', () => {
+    const g = playedSave(45);
+    expect(g.namesThisYear?.age).toBe(g.character.age);
+    expect(g.namesThisYear?.names).toContain(g.character.firstName);
+    expect(migrateSave(g)).toEqual(g);
+  });
+
+  it('loads an older save without them, and it plays on', () => {
+    const old = before();
+    const s = migrateSave(old)!;
+    expect(s).not.toBeNull();
+    expect(s.namesThisYear).toBeUndefined();
+    expect(Object.values(s.people).every((p) => p.lostAtAge === undefined)).toBe(true);
+    let g = ageUp(s);
+    while (g.pendingEvent) g = resolveChoice(g, g.pendingEvent.choices[0]!.id, EVENT_REGISTRY);
+    expect(g.namesThisYear?.age).toBe(s.character.age + 1);
+  });
+
+  it('rejects a mangled death age, and forgets a mangled list of held names', () => {
+    const old = before();
+    const someone = Object.keys(old.people)[0]!;
+    expect(migrateSave(withField(old, `people.${someone}.lostAtAge`, 'last year'))).toBeNull();
+    expect(migrateSave(withField(old, `people.${someone}.lostAtAge`, 40))).not.toBeNull();
+    const mangled = migrateSave(withField(old, 'namesThisYear', { age: 'x', names: [1, 2] }));
+    expect(mangled).not.toBeNull();
+    expect(mangled!.namesThisYear).toBeUndefined();
+  });
+});

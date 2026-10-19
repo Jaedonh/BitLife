@@ -981,7 +981,8 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 1.5,
     once: true,
-    conditions: [{ any: [{ eventFired: 'ad_jury_verdict' }, { eventFired: 'nc_jury_verdict' }] }, JURY_TRIALS],
+    // Any jury I sat on: the two deliberation rooms, and the trial where juror seven read the news (justice_and_reentry.ts).
+    conditions: [{ any: [{ eventFired: 'ad_jury_verdict' }, { eventFired: 'nc_jury_verdict' }, { eventFired: 'jr_jury_note' }] }, JURY_TRIALS],
     choices: [
       {
         id: 'talk',

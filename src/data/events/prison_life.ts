@@ -372,7 +372,8 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
     weight: 1.2,
     cooldown: 3,
     conditions: [{ inPrison: true }],
-    person: { kind: ['mother'], minRelationship: 25 },
+    // A letter comes from any distance.
+    person: { kind: ['mother'], minRelationship: 25, farAway: 'any' },
     choices: [
       {
         id: 'everything',
@@ -414,7 +415,8 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
     weight: 1,
     cooldown: 4,
     conditions: [{ inPrison: true }],
-    person: { kind: ['father'], minRelationship: 15 },
+    // A letter comes from any distance (and a far-away father can still make one visiting day).
+    person: { kind: ['father'], minRelationship: 15, farAway: 'any' },
     choices: [
       {
         id: 'four',
@@ -455,7 +457,8 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
     weight: 1.2,
     cooldown: 3,
     conditions: [{ inPrison: true }],
-    person: { kind: ['sibling'], minAge: 24, maxAge: 45, minRelationship: 20 },
+    // Mailed, so from any distance.
+    person: { kind: ['sibling'], minAge: 24, maxAge: 45, minRelationship: 20, farAway: 'any' },
     choices: [
       {
         id: 'draw',
@@ -503,7 +506,8 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
     weight: 0.6,
     once: true,
     conditions: [{ inPrison: true }],
-    person: { kind: ['sibling'], minAge: 20, maxAge: 70 },
+    // An invitation in the mail, from any distance.
+    person: { kind: ['sibling'], minAge: 20, maxAge: 70, farAway: 'any' },
     choices: [
       {
         id: 'toast',

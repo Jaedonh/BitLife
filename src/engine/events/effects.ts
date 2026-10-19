@@ -12,7 +12,7 @@ import { markDeath } from '../systems/death';
 import { ADULT_AGE, clampRange, griefFactor, markBereaved, partnerAgeRange, tooSoonLine } from '../systems/romance';
 import type { GameState, Illness, Person } from '../types';
 import { addKarma, addMoney, addStats, bump, clampStat, clearCoupleFlags, incFlag, log, setFlag, withFame } from '../util';
-import type { Effect } from './schema';
+import { MET_FAR_AWAY_KINDS, type Effect } from './schema';
 import { renderText, scaleMoney, type TextContext } from './text';
 
 export interface EffectContext extends TextContext {
@@ -67,7 +67,7 @@ export function giveIllness(state: GameState, defId: string): GameState {
 export function removeJob(state: GameState, reason: 'quit' | 'fired' | 'promoted' | 'retired' | 'left' | 'laidOff'): GameState {
   const job = state.career.job;
   if (!job) return state;
-  const entry = { title: job.title, company: job.company, fromAge: state.character.age - job.yearsHeld, toAge: state.character.age, salary: job.salary, reason };
+  const entry = { title: job.title, company: job.company, defId: job.defId, fromAge: state.character.age - job.yearsHeld, toAge: state.character.age, salary: job.salary, reason };
   let s: GameState = { ...state, career: { ...state.career, job: null, history: [...state.career.history, entry] } };
   if (reason === 'fired') s = bump(s, 'firings');
   return s;
@@ -117,6 +117,15 @@ export function applyEventMoney(state: GameState, amount: number, payer?: 'self'
 }
 
 type NewPersonSpec = Extract<Effect, { newPerson: unknown }>['newPerson'];
+
+/**
+ * The surname a partner has once they marry the player: mine when they take it (`takes`, an even chance), keeping the
+ * one they were born with as `birthLastName` (their brother or sister still carries it), else their own.
+ */
+export function takeSurname(person: Pick<Person, 'lastName' | 'birthLastName'>, takes: boolean, myLastName: string): Partial<Person> {
+  if (!takes || person.lastName === myLastName) return { lastName: person.lastName };
+  return { lastName: myLastName, birthLastName: person.birthLastName ?? person.lastName };
+}
 
 /** The player's current partner: a living spouse, else a living lover. */
 function currentPartner(state: GameState): Person | undefined {
@@ -223,20 +232,22 @@ export function applyEffect(state: GameState, rng: Rng, e: Effect, ctx: EffectCo
   }
   if ('removePerson' in e) {
     if (!person) return s;
-    if (person.kind === 'lover' || person.kind === 'spouse') return updatePerson(s, person.id, { kind: 'ex', love: 0 });
+    // A partner who leaves becomes an ex, and the couple's flags go with them (as with a break-up), so the next partner
+    // is not taken to be engaged to me or living with me.
+    if (person.kind === 'lover' || person.kind === 'spouse') return clearCoupleFlags(updatePerson(s, person.id, { kind: 'ex', love: 0 }));
     const people = { ...s.people };
     delete people[person.id];
     return { ...s, people };
   }
   if ('marry' in e) {
     if (!person?.alive || person.kind !== 'lover' || person.age < ADULT_AGE || state.character.age < ADULT_AGE || state.crime.inPrison) return s;
-    s = updatePerson(s, person.id, { kind: 'spouse', marriedAtAge: s.character.age, lastName: rng.chance(0.5) ? s.character.lastName : person.lastName });
+    s = updatePerson(s, person.id, { kind: 'spouse', marriedAtAge: s.character.age, ...takeSurname(person, rng.chance(0.5), s.character.lastName) });
     return clearCoupleFlags(bump(s, 'marriages'), ['lf_living_together']);
   }
   if ('personDies' in e) {
     if (!person?.alive) return s;
     // Inheritance and orphan care as for a natural death; the event's own lines announce and grieve it.
-    const dead: Person = { ...person, alive: false, deathAge: person.age, deathCause: e.cause ?? 'natural causes' };
+    const dead: Person = { ...person, alive: false, deathAge: person.age, deathCause: e.cause ?? 'natural causes', lostAtAge: s.character.age };
     s = onNpcDeath({ ...s, people: { ...s.people, [dead.id]: dead } }, dead, rng, { announce: false });
     // Losing a partner starts the grief window (romance.ts): no new partner by chance for a while.
     return dead.kind === 'lover' || dead.kind === 'spouse' ? markBereaved(s, dead.id) : s;
@@ -257,7 +268,7 @@ export function applyEffect(state: GameState, rng: Rng, e: Effect, ctx: EffectCo
     const boundPartner = person?.alive && (person.kind === 'lover' || person.kind === 'spouse') ? person : undefined;
     const otherParent = np.kind === 'child' ? (boundPartner ?? currentPartner(s)) : undefined;
     // A coworker an event introduces holds a post on the player's own career ladder, like the ones a hire brings.
-    const occupation = np.kind === 'coworker' && s.career.job ? coworkerTitle(rng, s.career.job) : np.occupation && age >= 18 ? np.occupation : undefined;
+    const occupation = np.kind === 'coworker' && s.career.job ? coworkerTitle(rng, s.career.job, s) : np.occupation && age >= 18 ? np.occupation : undefined;
     const p = makePerson(rng, {
       kind: np.kind, age, countryCode: s.character.countryCode, playerAge: s.character.age, relationship: np.relationship ?? rng.int(45, 80), gender: np.gender, species: np.species,
       // Nor a name this year's journal mentions: someone who left since the birthday is not met again under it.
@@ -272,6 +283,8 @@ export function applyEffect(state: GameState, rng: Rng, e: Effect, ctx: EffectCo
     // A coworker an event introduces works with the player at their current job, and goes when it ends.
     if (np.kind === 'coworker' && s.career.job) p.workplace = workplaceOf(s.career.job);
     if (np.kind === 'lover' || np.kind === 'spouse') p.love = rng.int(50, 85);
+    // Met far from home (a fellow traveler, a wedding guest from abroad): they live there, like a friend who moved away.
+    if (np.farAway && MET_FAR_AWAY_KINDS.includes(np.kind)) p.farAway = true;
     s = { ...s, people: { ...s.people, [p.id]: p } };
     if (np.kind === 'friend') s = bump(s, 'friendsMade');
     if (np.kind === 'lover') s = bump(s, 'lovers');
@@ -326,8 +339,15 @@ export function applyEffect(state: GameState, rng: Rng, e: Effect, ctx: EffectCo
   if ('asset' in e) {
     const pool = s.assets.filter((a) => !e.kind || a.kind === e.kind);
     if (!pool.length) return s;
-    const target = rng.pick(pool);
-    if (e.asset === 'lose') return { ...s, assets: s.assets.filter((a) => a.id !== target.id) };
+    const picked = rng.pick(pool);
+    // A house a card damages or takes is the one I live in (a storm, a burst pipe, a fire at home), not one rented out.
+    const target = e.kind === 'house' ? (pool.find((a) => a.primary && !a.rentedOut) ?? picked) : picked;
+    if (e.asset === 'lose') {
+      const assets = s.assets.filter((a) => a.id !== target.id);
+      // As when a home is sold (assets.ts): the next house becomes the one I live in.
+      const next = target.primary ? assets.find((a) => a.kind === 'house') : undefined;
+      return { ...s, assets: next ? assets.map((a) => (a.id === next.id ? { ...a, primary: true, rentedOut: false } : a)) : assets };
+    }
     const dmg = e.amount ?? 25;
     return {
       ...s,

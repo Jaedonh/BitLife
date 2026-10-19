@@ -1206,7 +1206,8 @@ export const HEALTH_EVENTS: EventDef[] = [
     weight: 0.8,
     cooldown: 8,
     conditions: [{ inPrison: false }],
-    person: { kind: ['mother', 'father', 'stepmother', 'stepfather', 'sibling'], minAge: 30 },
+    // A phone call, from wherever they live (going to them is a trip either way).
+    person: { kind: ['mother', 'father', 'stepmother', 'stepfather', 'sibling'], minAge: 30, farAway: 'any' },
     choices: [
       {
         id: 'visit',
@@ -1255,7 +1256,8 @@ export const HEALTH_EVENTS: EventDef[] = [
     weight: 1,
     followUpOnly: true,
     conditions: [{ inPrison: false }],
-    person: { kind: ['mother', 'father', 'stepmother', 'stepfather', 'sibling'] },
+    // The same relative as the call (hl_relative_diagnosis), near or far.
+    person: { kind: ['mother', 'father', 'stepmother', 'stepfather', 'sibling'], farAway: 'any' },
     choices: [
       {
         id: 'together',

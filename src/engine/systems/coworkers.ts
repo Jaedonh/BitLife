@@ -3,7 +3,7 @@
  * ends, the ones the player grew close to (relationship 70+) stay on as friends and the rest drop out of the
  * player's life. Pure: randomness comes from the Rng passed in.
  */
-import { JOB_BY_ID } from '@/data/jobs';
+import { JOB_BY_ID, rungTitle } from '@/data/jobs';
 import type { Rng } from '../rng';
 import type { GameState, Job, Person } from '../types';
 import { log } from '../util';
@@ -23,10 +23,14 @@ export function worksWithMe(state: GameState, p: Person): boolean {
   return !!job && !!p.workplace && p.workplace.jobId === job.defId && p.workplace.company === job.company;
 }
 
-/** A coworker's title: a rung of the player's own career ladder, at most one above theirs. */
-export function coworkerTitle(rng: Rng, job: Pick<Job, 'defId' | 'level' | 'title'>): string {
+/**
+ * A coworker's title: a rung of the player's own career ladder, at most one above theirs, named as the player's own
+ * rungs are for the country and the year (rungTitle: no Member of Parliament beside a US congressman, no food blogger
+ * before 2004).
+ */
+export function coworkerTitle(rng: Rng, job: Pick<Job, 'defId' | 'level' | 'title'>, state: Pick<GameState, 'character' | 'year'>): string {
   const def = JOB_BY_ID[job.defId];
-  return def ? def.ladder[rng.int(0, Math.min(def.ladder.length - 1, job.level + 1))]!.title : job.title;
+  return def ? rungTitle(def, rng.int(0, Math.min(def.ladder.length - 1, job.level + 1)), { countryCode: state.character.countryCode, year: state.year }) : job.title;
 }
 
 /** Two or three new coworkers for the job just taken: adults near the player's age, on the same career ladder. */
@@ -43,7 +47,7 @@ export function hireCoworkers(state: GameState, rng: Rng): GameState {
   const count = rng.int(2, 3);
   for (let i = 0; i < count; i++) {
     const age = Math.max(18, Math.min(70, me.age + rng.int(-6, 8)));
-    const title = coworkerTitle(rng, job);
+    const title = coworkerTitle(rng, job, state);
     const p = makePerson(rng, { kind: 'coworker', age, countryCode: me.countryCode, playerAge: me.age, relationship: rng.int(35, 60), occupation: title, taken, avoidSurnames });
     p.workplace = workplaceOf(job);
     people[p.id] = p;

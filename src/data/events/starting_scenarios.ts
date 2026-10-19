@@ -46,10 +46,11 @@ const RAISER: PersonSelector = { kind: ['mother', 'father', 'stepmother', 'stepf
 const PARENT_AT_HOME: PersonSelector = { kind: ['mother', 'father'], household: true };
 /**
  * A friend or a grandparent left behind by the move (GAME_DESIGN §4a): only a card written for distance binds
- * them (`farAway: true`), so these are letters, calls and parcels, never a visit.
+ * them (`farAway: true`), so these are letters, calls and parcels, never a visit. Known since before the move, so a
+ * friend met far away since (a tourist, a fellow traveler) is not the one writing from back home.
  */
-const FRIEND_BACK_HOME: PersonSelector = { kind: ['bestFriend', 'friend'], farAway: true };
-const GRANDPARENT_BACK_HOME: PersonSelector = { kind: ['grandparent'], farAway: true };
+const FRIEND_BACK_HOME: PersonSelector = { kind: ['bestFriend', 'friend'], farAway: true, metBeforeMoveAbroad: true };
+const GRANDPARENT_BACK_HOME: PersonSelector = { kind: ['grandparent'], farAway: true, metBeforeMoveAbroad: true };
 /** The one parent of a single-parent home, with no step-parent in the picture. */
 const NO_STEP_PARENT: Condition = { noPerson: ['stepmother', 'stepfather'] };
 

@@ -79,14 +79,15 @@ function mentionsName(text: string, name: string): boolean {
 }
 
 /**
- * The country's first names that this year's journal mentions (GAME_DESIGN §10). Someone who left the life since the
- * birthday (a coworker who stayed behind with the old job) keeps their name until the next one, so a coworker, baby
- * or anyone a card brings in that year is not taken for them, in the journal or on their page.
+ * The first names held for the rest of this year (GAME_DESIGN §10): the ones this year's journal mentions and the ones
+ * in the life at the birthday (`namesThisYear`). Someone who left the life since the birthday (a coworker who stayed
+ * behind with the old job, a friend who drifted off without a word) keeps their name until the next one, so a
+ * coworker, baby or anyone a card brings in that year is not taken for them, in the journal or on their page.
  */
-export function namesInJournalThisYear(state: Pick<GameState, 'character' | 'log'>): Set<string> {
+export function namesInJournalThisYear(state: Pick<GameState, 'character' | 'log' | 'namesThisYear'>): Set<string> {
   const lines: string[] = [];
   for (let i = state.log.length - 1; i >= 0 && state.log[i]!.age === state.character.age; i--) lines.push(state.log[i]!.text);
-  const out = new Set<string>();
+  const out = new Set<string>(state.namesThisYear?.age === state.character.age ? state.namesThisYear.names : []);
   if (!lines.length) return out;
   const pool = NAMES[getCountry(state.character.countryCode).namePool];
   for (const name of [...pool.male, ...pool.female]) if (lines.some((l) => mentionsName(l, name))) out.add(name);
@@ -372,7 +373,7 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
     // with, and the bond they had with this child.
     const deceased = makePerson(rng, { kind: parentKind(prevChar.gender), gender: prevChar.gender, age: prevChar.age, countryCode, lastName: prevChar.lastName, playerAge: startAge, relationship: heir?.relationship ?? rng.int(60, 95), money: 0 });
     Object.assign(deceased, {
-      firstName: prevChar.firstName, alive: false, deathAge: prevChar.age, deathCause: prev.death?.cause, metAtAge: 0,
+      firstName: prevChar.firstName, alive: false, deathAge: prevChar.age, deathCause: prev.death?.cause, metAtAge: 0, lostAtAge: startAge,
       looks: prevChar.stats.looks, smarts: prevChar.stats.smarts, health: prevChar.stats.health, occupation: lastOccupation(prev),
     });
     people[deceased.id] = deceased;
@@ -551,6 +552,8 @@ function carryOver(p: Person, was: Person): Person {
   });
   if (was.deathAge !== undefined) p.deathAge = was.deathAge;
   if (was.deathCause !== undefined) p.deathCause = was.deathCause;
+  // A surname taken at a wedding keeps the one they were born with (their own family's, for their brothers and sisters).
+  if (was.birthLastName !== undefined) p.birthLastName = was.birthLastName;
   return p;
 }
 
@@ -572,6 +575,8 @@ function heirFamily(rng: Rng, prev: GameState, heir: Person | undefined, decease
     carryOver(gp, p);
     gp.viaId = deceasedId;
     gp.metAtAge = 0;
+    // Parents the last player left behind in another city (`relocate`) still live there, far from the heir's home.
+    if (p.farAway) gp.farAway = true;
     out.push(gp);
   }
   if (!heir) return out;

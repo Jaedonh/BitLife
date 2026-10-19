@@ -1,4 +1,5 @@
 import { ASSETS } from '@/data/assets';
+import { JURY_TRIALS } from '@/data/events/justice_and_reentry';
 import type { Condition, EventDef } from '@/engine/events/schema';
 
 /**
@@ -21,11 +22,6 @@ const LIVES_IN_HOUSE_WITH_YARD: Condition[] = [
   { ownsAssetId: HOUSE_WITH_YARD },
   { not: { ownsAssetId: ASSETS.filter((a) => a.kind === 'house' && !HOUSE_WITH_YARD.includes(a.id)).map((a) => a.id) } },
 ];
-/**
- * Countries where a summons puts ordinary people on a twelve-person jury that can hang (the verdict card's 'eleven to
- * one'): not India, Mexico or Nigeria, which have no lay juries, nor the mixed lay-judge courts of Germany or Japan.
- */
-const JURY_TRIAL_COUNTRIES = ['US', 'GB', 'CA', 'AU'];
 
 export const ADULT_LIFE_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ home & money
@@ -1447,8 +1443,9 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 1,
     cooldown: 6,
-    // Not within a few years of neighbours_and_community's nc_jury_duty, the other summons.
-    conditions: [{ inPrison: false }, { criminalRecord: false }, { country: JURY_TRIAL_COUNTRIES }, { not: { sinceEvent: 'nc_jury_duty', lte: 6 } }],
+    // Not within a few years of neighbours_and_community's nc_jury_duty, the other summons. Only where and when
+    // ordinary people sit on juries (JURY_TRIALS, shared by every jury card).
+    conditions: [{ inPrison: false }, { criminalRecord: false }, JURY_TRIALS, { not: { sinceEvent: 'nc_jury_duty', lte: 6 } }],
     choices: [
       {
         id: 'serve',
@@ -1490,12 +1487,14 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     id: 'ad_jury_verdict',
     category: 'random',
     title: 'The deliberation room',
-    text: 'The trial ran three weeks. In the deliberation room the vote is eleven to one, and every head has turned toward the one. The one is me.',
+    // No juror count, no hung jury and no retrial: the jury rooms of JURY_TRIALS differ in size and in how a split
+    // ends (many outvote a lone holdout), so the holdout either brings the room round or loses.
+    text: 'The trial ran three weeks. In the deliberation room everyone has voted the same way except one, and every head has turned toward the one. The one is me.',
     minAge: 30,
     maxAge: 80,
     weight: 1,
     followUpOnly: true,
-    conditions: [{ inPrison: false }, { country: JURY_TRIAL_COUNTRIES }],
+    conditions: [{ inPrison: false }, JURY_TRIALS],
     choices: [
       {
         id: 'conscience',
@@ -1514,7 +1513,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.4,
             then: [{ karma: 4 }, { stat: 'happiness', delta: 6 }, { fame: 2 }, { log: 'By day three they came around. One juror sent me a card afterward.', kind: 'good' }],
-            else: [{ stat: 'happiness', delta: -6 }, { stat: 'health', delta: -2 }, { log: 'Hung jury. Three weeks for nothing and a lifelong dislike of fluorescent lights.', kind: 'bad' }],
+            else: [{ stat: 'happiness', delta: -6 }, { stat: 'health', delta: -2 }, { log: 'I held out to the end, and the verdict went their way anyway. Now I hate fluorescent lights.', kind: 'bad' }],
           },
         ],
       },

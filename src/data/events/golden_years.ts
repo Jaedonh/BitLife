@@ -1,5 +1,5 @@
 import { ASSETS } from '@/data/assets';
-import type { Condition, EventDef } from '@/engine/events/schema';
+import type { Condition, EventDef, PersonSelector } from '@/engine/events/schema';
 
 /** The real cars (not the bicycle or scooter, which also count as kind 'car'). */
 const REAL_CAR = ['old_hatchback', 'sedan', 'pickup', 'ev', 'luxury_sedan', 'sports_car', 'supercar', 'classic_car'];
@@ -26,6 +26,11 @@ const WIDOWED: Condition[] = [{ married: false }, { count: 'marriages', eq: 1 }]
  * window, the year of the loss and the next (GAME_DESIGN §10), never decades later. Weighted up, as a short window.
  */
 const NEWLY_WIDOWED: Condition[] = [...WIDOWED, { flag: 'grieving' }];
+/**
+ * The late spouse those first months are about: one who died within the grief window (the year of the loss and the
+ * next). The `grieving` flag alone would also hold after a later partner's death, years after the spouse's.
+ */
+const LATE_SPOUSE_JUST_LOST: PersonSelector = { kind: ['spouse'], alive: false, diedWithin: 1 };
 
 /**
  * Ages 60-110, told by the older person: old friends retiring, dying and moving
@@ -740,7 +745,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     weight: 3,
     once: true,
     conditions: [...NEWLY_WIDOWED, { hasLover: false }, { not: { flag: 'gy_lives_with_kids' } }],
-    person: { kind: ['spouse'], alive: false },
+    person: LATE_SPOUSE_JUST_LOST,
     choices: [
       {
         id: 'group',
@@ -784,7 +789,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     once: true,
     // The same closet as gu_widowed_closet, for a widow who did not get that card.
     conditions: [...NEWLY_WIDOWED, { hasLover: false }, { eventNotFired: 'gu_widowed_closet' }, { not: { flag: 'gy_assisted_living' } }, { not: { flag: 'gy_lives_with_kids' } }],
-    person: { kind: ['spouse'], alive: false },
+    person: LATE_SPOUSE_JUST_LOST,
     choices: [
       {
         id: 'donate',
@@ -819,7 +824,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     weight: 3,
     once: true,
     conditions: [...NEWLY_WIDOWED, { hasLover: false }, { not: { flag: 'gy_assisted_living' } }],
-    person: { kind: ['spouse'], alive: false },
+    person: LATE_SPOUSE_JUST_LOST,
     choices: [
       {
         id: 'exact',
@@ -1241,12 +1246,14 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     id: 'gy_holiday_elder',
     category: 'holiday',
     title: 'Head of the table',
-    text: "The family's holiday dinner is at my place again. I am the head of the family now, and I own the only table that seats fourteen. {{person}} wants to 'help', which means quietly taking over my kitchen.",
+    text: "The family's holiday dinner is at my place again. Everyone comes to me now, and I own the only table that seats fourteen. {{person}} wants to 'help', which means quietly taking over my kitchen.",
     minAge: 62,
     maxAge: 95,
     weight: 1.2,
     cooldown: 4,
-    // The table that seats fourteen is in a big home I live in, not one I rent out.
+    // The table that seats fourteen is in a big home I live in, not one I rent out. No parent nearby hosts it instead;
+    // one may still be alive in another city (noPerson counts only people nearby), so the text does not make me the
+    // head of the family.
     conditions: [{ noPerson: ['mother', 'father', 'stepmother', 'stepfather'] }, ...LIVES_IN_BIG_HOME, { not: { flag: 'gy_assisted_living' } }, { not: { flag: 'gy_lives_with_kids' } }],
     person: { kind: ['child'], minAge: 30 },
     choices: [
@@ -1294,7 +1301,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 6 },
           {
             random: [
-              { weight: 4, effects: [{ newPerson: { kind: 'friend', relationship: 55, minAge: 60, maxAge: 85, log: 'I shared a dinner table all week with {{person}}. We have already booked next year.' } }] },
+              { weight: 4, effects: [{ newPerson: { kind: 'friend', relationship: 55, minAge: 60, maxAge: 85, farAway: true, log: 'I shared a dinner table all week with {{person}}, who lives at the other end of the country. We have already booked next year.' } }] },
               { weight: 4, effects: [{ log: 'Seven days of sea air, ballroom dancing and shrimp. I came home tanned and two pounds heavier.', kind: 'good' }] },
               { weight: 2, effects: [{ stat: 'health', delta: -2 }, { stat: 'happiness', delta: -3 }, { log: 'I was seasick for four of the seven nights. The ship doctor and I are on first-name terms.', kind: 'bad' }] },
             ],

@@ -126,6 +126,11 @@ export interface Person {
   marriedAtAge?: number;
   deathAge?: number;
   deathCause?: string;
+  /**
+   * The player's age when they died (like metAtAge and marriedAtAge, an age of the player's), so a card can bind
+   * someone lost recently (`diedWithin`). Optional: older saves and people carried over from a previous life have none.
+   */
+  lostAtAge?: number;
   /** Pets only. */
   species?: string;
   /** Parent linkage for children (ids of the other parent). */
@@ -150,8 +155,9 @@ export interface Person {
    */
   relative?: boolean;
   /**
-   * Lives far away: a friend or grandparent who stayed behind when the family moved abroad. Only person
-   * selectors that ask for them ({ farAway: true }) bind them, so they never turn up in an in-person scene.
+   * Lives far away: a friend or grandparent who stayed behind when the family moved abroad, parents and siblings a
+   * grown-up left behind by moving to another city, a friend who moved away or one met far from home. Only person
+   * selectors that ask for them ({ farAway: true } or 'any') bind them, so they never turn up in an in-person scene.
    */
   farAway?: boolean;
   /** A lover or spouse who died: their death has started the grief window (systems/romance.ts). Older saves count every such death as mourned. */
@@ -235,6 +241,8 @@ export interface Job {
 export interface JobHistoryEntry {
   title: string;
   company: string;
+  /** The job definition (src/data/jobs.ts), so a title on two ladders is not guessed. Optional: older saves have none. */
+  defId?: string;
   fromAge: number;
   toAge: number;
   salary: number;
@@ -494,6 +502,12 @@ export interface GameState {
    * repeated within FLAVOR_RULES.repeatGap years. Optional: saves from before it start empty.
    */
   flavorSeen?: Record<string, number>;
+  /**
+   * The first names in the life at this year's birthday (ageUp): someone who left since (a coworker gone with the
+   * job, a friend who drifted off) keeps their name until the next birthday, so nobody new that year is given it.
+   * Optional: saves from before it, and a new life's first year, have none.
+   */
+  namesThisYear?: { age: number; names: string[] };
 }
 
 export interface NewLifeOptions {

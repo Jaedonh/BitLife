@@ -42,7 +42,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ money: -60 }, { stat: 'happiness', delta: 3 }, { log: 'Standby came through for a small fee and an airport sandwich. I felt like I had beaten the system.', kind: 'good' }],
-            else: [{ stat: 'happiness', delta: -6 }, { stat: 'health', delta: -2 }, { log: 'Standby did not come through. I slept on the terminal floor under a coat and a sense of injustice.', kind: 'bad' }],
+            else: [{ stat: 'happiness', delta: -6 }, { stat: 'health', delta: -2 }, { log: 'Standby did not come through. I slept on the terminal floor with my bag for a pillow and a sense of injustice.', kind: 'bad' }],
           },
         ],
       },
@@ -308,7 +308,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
         effects: [
           { stat: 'health', delta: -1 },
           { stat: 'happiness', delta: 5 },
-          { newPerson: { kind: 'friend', relationship: 60, log: 'I made a friend called {{person}} over instant noodles and a shared jar of peanut butter.' } },
+          { newPerson: { kind: 'friend', relationship: 60, farAway: true, log: 'I made a friend called {{person}} over instant noodles and a shared jar of peanut butter.' } },
           { log: 'We talked until four about everything and nothing. I will remember it longer than most of the year.', kind: 'good' },
         ],
       },
@@ -317,7 +317,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
         label: 'Swap addresses and sleep',
         effects: [
           { stat: 'health', delta: 1 },
-          { newPerson: { kind: 'friend', relationship: 40, log: '{{person}} from the hostel and I kept in touch, loosely.' } },
+          { newPerson: { kind: 'friend', relationship: 40, farAway: true, log: '{{person}} from the hostel and I kept in touch, loosely.' } },
           { log: 'We traded addresses and I slept. Sensible, slightly cowardly.' },
         ],
       },
@@ -620,7 +620,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
             chance: 0.4,
             then: [
               { stat: 'happiness', delta: 5 },
-              { newPerson: { kind: 'friend', relationship: 50, log: 'I traded life stories with {{person}} until dawn.' } },
+              { newPerson: { kind: 'friend', relationship: 50, farAway: true, log: 'I traded life stories with {{person}} until dawn, and addresses at the station.' } },
               { log: 'By the station we had a plan to meet again and, against all odds, we did. We still write.', kind: 'good' },
             ],
             else: [{ stat: 'happiness', delta: 2 }, { log: 'I told my story. It was shorter than theirs, with fewer boats. We parted at the station with a nod.' }],
@@ -922,7 +922,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 10 },
           { counter: 'vacations' },
           { log: 'Sand at the ceremony, sunburn at the reception, an unplanned speech. {{person}} cried. So did I.', kind: 'good' },
-          { chance: 0.2, then: [{ newPerson: { kind: 'friend', relationship: 50, log: 'I spent the reception talking to {{person}}, a guest who turned out to live near me. Friends now.' } }] },
+          { chance: 0.2, then: [{ newPerson: { kind: 'friend', relationship: 50, farAway: true, log: 'I spent the reception talking to {{person}}, a guest from the far side of the world. We still write.' } }] },
         ],
       },
       {
@@ -1213,7 +1213,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
             chance: 0.5,
             then: [
               { jobPerformance: 3 },
-              { newPerson: { kind: 'friend', relationship: 45, log: 'I met {{person}} at the conference dinner. {{They}} works across town, so we kept in touch.' } },
+              { newPerson: { kind: 'friend', relationship: 45, farAway: true, log: 'I met {{person}} at the conference dinner. {{They}} lives in that city, and we kept in touch.' } },
               { log: 'I shook forty hands and remembered three names. One of them turned out to matter.', kind: 'good' },
             ],
             else: [{ stat: 'happiness', delta: -2 }, { log: 'I networked so hard I ran out of words by dessert. Nobody followed up. The dessert was good.' }],
@@ -1247,7 +1247,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 1 },
           { counter: 'vacations' },
           { log: 'Two weeks of hammering, sunburn and the best meals of my life. The roof went on. I cried leaving.', kind: 'good' },
-          { chance: 0.4, then: [{ newPerson: { kind: 'friend', relationship: 60, log: 'I built a roof with {{person}}, who lives one town over. A friend for life now.' } }] },
+          { chance: 0.4, then: [{ newPerson: { kind: 'friend', relationship: 60, farAway: true, log: 'I built a roof with {{person}}, a volunteer from the far end of the country. A friend for life now.' } }] },
           { chance: 0.15, then: [{ illness: 'flu' }, { log: 'I also brought home a fever that lasted a week.', kind: 'bad' }] },
           { chance: 0.5, then: [{ queue: 'tr_volunteer_letter' }] },
         ],

@@ -26,6 +26,8 @@ export function ageUp(state: GameState, registry: EventRegistry = EVENT_REGISTRY
   if (!state.alive || state.pendingEvent) return state;
   const rng = new Rng(state.rng);
   let s = advanceYear(state);
+  // Names in the life at the birthday stay taken until the next one (namesInJournalThisYear), whoever leaves meanwhile.
+  s = { ...s, namesThisYear: { age: s.character.age, names: [...namesInLife(s)] } };
   const yearStart = s;
   const headerIndex = s.log.length;
   s = log(s, `${s.year}: Age ${s.character.age}`, 'year');

@@ -122,8 +122,12 @@ export type Effect =
   /** Marries the bound lover (both 18+): they become the spouse, as with a successful proposal. The content writes the wedding line. */
   | { marry: true }
   | { personDies: true; cause?: string }
-  /** occupation: what the text says they do ("a mechanic"); give an adult minAge with it, since a minor is a student. */
-  | { newPerson: { kind: RelationshipKind; relationship?: number; minAge?: number; maxAge?: number; gender?: Gender; species?: string; occupation?: string; log?: string } }
+  /**
+   * occupation: what the text says they do ("a mechanic"); give an adult minAge with it, since a minor is a student.
+   * farAway: someone met far from home (a fellow traveler, a wedding guest from another country) who lives there and
+   * keeps in touch from afar, like a friend who moved away; friends and rivals only (MET_FAR_AWAY_KINDS).
+   */
+  | { newPerson: { kind: RelationshipKind; relationship?: number; minAge?: number; maxAge?: number; gender?: Gender; species?: string; occupation?: string; log?: string; farAway?: boolean } }
   | { death: string }
   | { prison: number }
   | { arrest: true }
@@ -134,7 +138,10 @@ export type Effect =
   | { loseJob: true; reason?: 'fired' | 'left' | 'laidOff' }
   /** The bound person moves to another city or country: they become far away (only long-distance cards bind them). */
   | { moveAway: true }
-  /** I move to another city in the same country (friends and grandparents stay behind, far away); the card writes the lines. */
+  /**
+   * I move to another city in the same country; the card writes the lines. Friends, rivals and grandparents stay
+   * behind, far away, and so do the parents and siblings a grown-up no longer lives with (a child's family moves too).
+   */
   | { relocate: true }
   /** Up one rung of my job's ladder with the pay that goes with it (the engine writes the promotion line). */
   | { promotion: true }
@@ -209,12 +216,24 @@ export interface PersonSelector {
   /** The player's children only: their own children so far, counting babies on the way (at most 3). */
   kids?: Comparator;
   /**
-   * People who live far away (friends, rivals and grandparents left behind by a move abroad, FAR_AWAY_KINDS) are
-   * never bound by default, so no in-person scene reaches them. `true` binds only them (a letter or a call from
-   * the old country); 'any' binds them or anyone nearby, for a card that works at any distance (a message, a
-   * group chat, a video call). The same rule holds for `hasPerson` and `noPerson`, which count people nearby.
+   * People who live far away (friends, rivals and grandparents left behind by a move abroad, and parents and siblings
+   * a grown-up left behind by moving to another city: CAN_LIVE_FAR_AWAY) are never bound by default, so no
+   * in-person scene reaches them. `true` binds only them (a letter or a call from the old country); 'any' binds them
+   * or anyone nearby, for a card that works at any distance (a message, a group chat, a call, a video call). The same
+   * rule holds for `hasPerson` and `noPerson`, which count people nearby.
    */
   farAway?: boolean | 'any';
+  /**
+   * The dead only (alive: false): someone who died at most this many years ago (the player's age then is
+   * `Person.lostAtAge`), e.g. a late spouse lost within the grief window, { alive: false, diedWithin: 1 }. Someone
+   * whose death an older save did not date never matches.
+   */
+  diedWithin?: number;
+  /**
+   * Only people the player knew before the family's move abroad (the immigrant scenario, `character.moveAbroad`):
+   * the friends and grandparents back home, not someone met far away since (a tourist, a cousin's wedding guest).
+   */
+  metBeforeMoveAbroad?: boolean;
   /**
    * Pets only (kind ['pet']): bind a pet of one of these species, for a card that needs fur ('dog', 'cat',
    * 'hamster', 'rabbit') or a walk ('dog'). Names from PET_SPECIES.
@@ -224,6 +243,12 @@ export interface PersonSelector {
 
 /** The kinds of people who stay behind, far away, when the family moves abroad (systems/scenarios.ts). */
 export const FAR_AWAY_KINDS: readonly RelationshipKind[] = ['friend', 'bestFriend', 'enemy', 'grandparent'];
+/** Family a grown-up leaves behind, far away, by moving to another city without them (the `relocate` effect). */
+export const FAMILY_LEFT_BEHIND_KINDS: readonly RelationshipKind[] = ['mother', 'father', 'stepmother', 'stepfather', 'sibling'];
+/** Everyone who can live far away, so a person selector's `farAway` means something for them. */
+export const CAN_LIVE_FAR_AWAY: readonly RelationshipKind[] = [...FAR_AWAY_KINDS, ...FAMILY_LEFT_BEHIND_KINDS];
+/** Who a card can introduce as living far away (`newPerson: { farAway: true }`): a friend or a rival met on the road. */
+export const MET_FAR_AWAY_KINDS: readonly RelationshipKind[] = ['friend', 'bestFriend', 'enemy'];
 
 /** The species a pet can be (the ones content creates with newPerson, played with in relationships.ts). */
 export const PET_SPECIES: readonly string[] = ['dog', 'cat', 'hamster', 'rabbit', 'parrot', 'pigeon'];
@@ -373,15 +398,17 @@ export function validateEvent(def: EventDef, knownIds: Set<string>): string[] {
   if (def.person && (def.person.movedOut !== undefined || def.person.married !== undefined || def.person.kids !== undefined) && !childOnly) {
     errors.push(`${where}: movedOut/married/kids in the person selector need person: { kind: ['child'] }`);
   }
-  if (def.person?.farAway !== undefined && !def.person.kind.some((k) => FAR_AWAY_KINDS.includes(k))) {
-    errors.push(`${where}: farAway in the person selector only applies to ${FAR_AWAY_KINDS.join('/')} (who stay behind when the family moves abroad)`);
+  if (def.person?.farAway !== undefined && !def.person.kind.some((k) => CAN_LIVE_FAR_AWAY.includes(k))) {
+    errors.push(`${where}: farAway in the person selector only applies to ${CAN_LIVE_FAR_AWAY.join('/')} (who can live far away)`);
   }
+  if (def.person?.diedWithin !== undefined && def.person.alive !== false) errors.push(`${where}: diedWithin in the person selector needs alive: false`);
   for (const issue of speciesIssues(def.person)) errors.push(`${where}: ${issue}`);
   for (const list of effectLists(def.choices.flatMap((c) => [c.effects ?? []]))) {
     for (const e of list) {
       if ('childMilestone' in e && !childOnly) errors.push(`${where}: childMilestone needs the event bound to a child (person: { kind: ['child'] })`);
       // Grandparents and grandchildren are family by birth: the engine creates and links them (systems/family.ts).
       if ('newPerson' in e && (e.newPerson.kind === 'grandparent' || e.newPerson.kind === 'grandchild')) errors.push(`${where}: newPerson cannot create a ${e.newPerson.kind}; the engine adds them`);
+      if ('newPerson' in e && e.newPerson.farAway && !MET_FAR_AWAY_KINDS.includes(e.newPerson.kind)) errors.push(`${where}: newPerson farAway is for ${MET_FAR_AWAY_KINDS.join('/')} (someone met far from home)`);
     }
   }
   const usesPerson = /\{\{(person|personFull|they|them|their|They)\}\}/.test(def.text + def.choices.map((c) => c.label + (c.hint ?? '')).join(' '));

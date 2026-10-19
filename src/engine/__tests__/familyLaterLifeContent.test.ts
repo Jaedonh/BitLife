@@ -147,8 +147,9 @@ describe('retirement and widowhood cards open while it is still new', () => {
   });
 
   const FRESH_GRIEF = ['gu_widowed_casseroles', 'gu_widowed_old_number', 'gu_widowed_ring', 'gu_widowed_closet', 'gy_widow_two_cups', 'gy_widow_closet', 'gy_widow_recipe'];
-  const widow = (age: number, flags: GameState['flags'] = {}) => {
-    const late = person('spouse', { age: 40, alive: false, deathAge: 40, marriedAtAge: 28, gender: 'male', mourned: true });
+  /** A widow whose husband died at `lostAt` (the player's age then): the fresh-grief cards bind only a recent loss. */
+  const widow = (age: number, flags: GameState['flags'] = {}, lostAt = typeof flags.grieving === 'number' ? flags.grieving : age - 20) => {
+    const late = person('spouse', { age: 40, alive: false, deathAge: 40, marriedAtAge: 28, gender: 'male', mourned: true, lostAtAge: lostAt });
     const base = life(age, [late]);
     return life(age, [late], { patch: { counters: { ...base.counters, marriages: 1 }, career: { ...base.career, job: JOB }, flags } });
   };
@@ -158,6 +159,8 @@ describe('retirement and widowhood cards open while it is still new', () => {
       const age = Math.min(EVENT(id).maxAge, Math.max(EVENT(id).minAge, 62));
       expect([id, isEligible(widow(age), EVENT(id))]).toEqual([id, false]);
       expect([id, isEligible(widow(age, { grieving: age - 1 }), EVENT(id))]).toEqual([id, true]);
+      // A later partner's death sets the grieving flag again, but the spouse died years before: not their casseroles.
+      expect([id, isEligible(widow(age, { grieving: age - 1 }, age - 12), EVENT(id))]).toEqual([id, false]);
     }
   });
 
@@ -241,10 +244,14 @@ describe('dementia', () => {
 });
 
 describe('jury duty', () => {
-  it('a summons and a twelve-person deliberation only where ordinary people sit on such juries', () => {
-    for (const cc of ['IN', 'MX', 'NG', 'DE', 'JP', 'BR']) expect([cc, isEligible(life(40, [], { countryCode: cc }), EVENT('ad_jury_duty'))]).toEqual([cc, false]);
-    for (const cc of ['US', 'GB', 'CA', 'AU']) expect([cc, isEligible(life(40, [], { countryCode: cc }), EVENT('ad_jury_duty'))]).toEqual([cc, true]);
+  it('a summons only where ordinary people sit on juries (the shared JURY_TRIALS), and a deliberation that fits all of them', () => {
+    for (const cc of ['IN', 'MX', 'NG', 'DE']) expect([cc, isEligible(life(40, [], { countryCode: cc }), EVENT('ad_jury_duty'))]).toEqual([cc, false]);
+    for (const cc of ['US', 'GB', 'CA', 'AU', 'FR', 'IT', 'BR', 'ES', 'JP']) expect([cc, isEligible(life(40, [], { countryCode: cc }), EVENT('ad_jury_duty'))]).toEqual([cc, true]);
+    expect(isEligible(life(40, [], { countryCode: 'JP', patch: { year: 2005 } }), EVENT('ad_jury_duty'))).toBe(false);
     expect(open(life(40, [], { countryCode: 'IN' }), 'ad_jury_verdict').pendingEvent).toBeNull();
+    // Juries differ in size and in how a split ends: no juror count, no hung jury.
+    const words = [EVENT('ad_jury_verdict').text, ...EVENT('ad_jury_verdict').choices.flatMap((c) => JSON.stringify(c.effects))].join(' ');
+    expect(words).not.toMatch(/eleven|twelve|hung jury/i);
   });
 });
 

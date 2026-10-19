@@ -1,4 +1,5 @@
-import type { Condition, EventDef } from '@/engine/events/schema';
+import { JURY_TRIALS } from '@/data/events/justice_and_reentry';
+import type { EventDef } from '@/engine/events/schema';
 
 /**
  * Ages 10+: neighbours, the street and the town of {{city}}. Noise, floods,
@@ -9,19 +10,6 @@ import type { Condition, EventDef } from '@/engine/events/schema';
  * A card opens once or rests for more than half its age range, so the same
  * street scene never comes back a third time.
  */
-
-/**
- * Where a summons puts ordinary people on a jury (or, in Japan, beside the judges): the common-law countries, France,
- * Italy and Brazil, Spain since its jury law (trials from 1996) and Japan since 2009. India, Mexico, Nigeria and
- * Germany summon no jury. The same list as the jury cards in justice_and_reentry.ts.
- */
-const JURY_TRIALS: Condition = {
-  any: [
-    { country: ['US', 'GB', 'CA', 'AU', 'FR', 'IT', 'BR'] },
-    { all: [{ country: ['ES'] }, { year: { gte: 1996 } }] },
-    { all: [{ country: ['JP'] }, { year: { gte: 2009 } }] },
-  ],
-};
 
 export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ neighbours
@@ -1368,7 +1356,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     maxAge: 95,
     weight: 1,
     followUpOnly: true,
-    conditions: [{ inPrison: false }],
+    conditions: [{ inPrison: false }, JURY_TRIALS],
     choices: [
       {
         id: 'majority',

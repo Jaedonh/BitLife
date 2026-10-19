@@ -756,7 +756,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
     id: 'kd_tight_months',
     category: 'childhood',
     title: 'Tight months',
-    text: 'The next few months were tight. Brand-name cereal vanished from the cupboard. The lights went off earlier. {{person}} started applying for jobs at the kitchen table every morning.',
+    text: 'The next few months were tight. Brand-name cereal vanished from the pantry. The lights went off earlier. {{person}} started applying for jobs at the kitchen table every morning.',
     minAge: 6,
     maxAge: 13,
     weight: 1,

@@ -1535,7 +1535,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     id: 'yp_baby_night_shift',
     category: 'family',
     title: '3 a.m. again',
-    text: '{{person}} has decided that 3 a.m. is the best time of day: wide awake, delighted, ready to party. I have slept in ninety-minute pieces for weeks and just tried to put the milk in the cupboard.',
+    text: '{{person}} has decided that 3 a.m. is the best time of day: wide awake, delighted, ready to party. I have slept in ninety-minute pieces for weeks and just tried to put the milk in the cabinet.',
     minAge: 18,
     maxAge: 29,
     weight: 2,

@@ -1,7 +1,8 @@
 import { COUNTRIES, getCountry } from '@/data/countries';
 import { FARM_TOWNS, isScenarioId } from '@/data/scenarios';
 import type { Rng } from '../rng';
-import { FAR_AWAY_KINDS } from '../events/schema';
+import { livesWithPlayer } from '../events/conditions';
+import { FAMILY_LEFT_BEHIND_KINDS, FAR_AWAY_KINDS } from '../events/schema';
 import { personRef } from '../events/text';
 import type { GameState, NewLifeOptions, Person, ScenarioId } from '../types';
 import { addStats, capitalize, fullName, joinList, log } from '../util';
@@ -87,10 +88,13 @@ export const FRIENDS_KEPT_ABROAD = 2;
 
 const isFriend = (p: Person) => p.kind === 'friend' || p.kind === 'bestFriend';
 
-/** The living friends who keep in touch after a move, closest first (a best friend before any other). */
+/**
+ * The nearby friends who keep in touch after a move, closest first (a best friend before any other). Friends who
+ * already live far away (left behind by an earlier move, or met far from home) stay as they are and take no place.
+ */
 function friendsKept(state: GameState): Set<string> {
   const friends = Object.values(state.people)
-    .filter((p) => p.alive && isFriend(p))
+    .filter((p) => p.alive && isFriend(p) && p.farAway !== true)
     .sort((a, b) => Number(b.kind === 'bestFriend') - Number(a.kind === 'bestFriend') || b.relationship - a.relationship || a.id.localeCompare(b.id));
   return new Set(friends.slice(0, FRIENDS_KEPT_ABROAD).map((p) => p.id));
 }
@@ -123,7 +127,7 @@ function goodbyeLine(rng: Rng, behind: readonly Person[]): string | null {
  */
 function leaveBehind(state: GameState): { people: GameState['people']; behind: Person[] } {
   const kept = friendsKept(state);
-  const leaves = (p: Person) => p.kind === 'classmate' || (p.alive && isFriend(p) && !kept.has(p.id));
+  const leaves = (p: Person) => p.kind === 'classmate' || (p.alive && isFriend(p) && p.farAway !== true && !kept.has(p.id));
   const behind = Object.values(state.people).filter((p) => p.alive && STAY_BEHIND.includes(p.kind) && !leaves(p) && p.farAway !== true);
   const people = Object.fromEntries(
     Object.entries(state.people)
@@ -135,13 +139,17 @@ function leaveBehind(state: GameState): { people: GameState['people']; behind: P
 
 /**
  * A move to another city in the same country (an event's `relocate` effect: the family moves for work, I take a
- * job across the country). The city changes; friends, rivals and grandparents stay behind as for a move abroad.
- * Coworkers stay at the old workplace, so a job that moves with me gets new ones. The card writes its own lines.
+ * job across the country). The city changes; friends, rivals and grandparents stay behind as for a move abroad, and
+ * so do parents and siblings I no longer live with (a child's household moves with them; a grown-up moves alone, or
+ * with a spouse, a partner they live with and young children). Coworkers stay at the old workplace, so a job that
+ * moves with me gets new ones. The card writes its own lines.
  */
 export function relocateCity(state: GameState, rng: Rng): GameState {
   const others = getCountry(state.character.countryCode).cities.filter((c) => c !== state.character.city);
   if (state.crime.inPrison || others.length === 0) return state;
-  const { people } = leaveBehind(state);
+  const left = leaveBehind(state).people;
+  const family = (p: Person) => p.alive && FAMILY_LEFT_BEHIND_KINDS.includes(p.kind) && !livesWithPlayer(state, p);
+  const people = Object.fromEntries(Object.entries(left).map(([id, p]) => [id, family(p) ? { ...p, farAway: true } : p]));
   const job = state.career.job;
   const kept = job ? Object.fromEntries(Object.entries(people).filter(([, p]) => p.kind !== 'coworker')) : people;
   const s: GameState = { ...state, people: kept, character: { ...state.character, city: rng.pick(others) } };

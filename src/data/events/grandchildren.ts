@@ -784,7 +784,7 @@ export const GRANDCHILDREN_EVENTS: EventDef[] = [
         effects: [
           { stat: 'happiness', delta: 3 },
           { relationship: 'person', delta: 4 },
-          { log: 'I told {{person}} how I once hid behind a coat rack at a dance. {{They}} laughed and relaxed.', kind: 'good' },
+          { log: 'I told {{person}} how I once hid behind a potted palm at a dance. {{They}} laughed and relaxed.', kind: 'good' },
         ],
       },
       {

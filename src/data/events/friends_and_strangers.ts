@@ -351,7 +351,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
                 effects: [
                   { stat: 'happiness', delta: 4 },
                   { log: 'We broke down outside a town with one diner and made friends with the mechanic.' },
-                  { chance: 0.5, then: [{ newPerson: { kind: 'friend', relationship: 50, minAge: 25, maxAge: 65, occupation: 'Mechanic', log: '{{person}} the mechanic kept in touch after the road trip.' } }] },
+                  { chance: 0.5, then: [{ newPerson: { kind: 'friend', relationship: 50, minAge: 25, maxAge: 65, occupation: 'Mechanic', farAway: true, log: '{{person}} the mechanic kept in touch after the road trip.' } }] },
                 ],
               },
               { weight: 2, effects: [{ stat: 'happiness', delta: -2 }, { money: -200 }, { log: 'We got lost, argued about the map and paid for a motel that smelled of carpet.', kind: 'bad' }] },
@@ -1070,7 +1070,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 2 },
           { log: 'We found the street. It did exist, under a different name, in the other direction.', kind: 'good' },
           { chance: 0.3, then: [{ money: 20 }, { log: 'They insisted on buying me lunch. The lunch was excellent.', kind: 'money' }] },
-          { chance: 0.2, then: [{ newPerson: { kind: 'friend', relationship: 45, log: '{{person}}, the lost tourist, turned out to be great company. We stayed in touch.' } }] },
+          { chance: 0.2, then: [{ newPerson: { kind: 'friend', relationship: 45, farAway: true, log: '{{person}}, the lost tourist, turned out to be great company. We stayed in touch after {{they}} flew home.' } }] },
         ],
       },
       {

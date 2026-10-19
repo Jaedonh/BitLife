@@ -37,6 +37,8 @@ function isGameStateShape(s: Rec): boolean {
   if (!nullOr(e.parentsPay, isBool)) return false;
   const career = s.career;
   if (!isRec(career) || !nullOr(career.job, (j) => isRec(j) && isStr(j.title) && isNum(j.salary)) || !arrayOf(career.history, isRec) || !arrayOf(career.listings, isRec)) return false;
+  // Which job a history entry was (optional: older saves name only the title).
+  if (!arrayOf(career.history, (h) => isRec(h) && nullOr(h.defId, isStr))) return false;
   if (!isRec(career.experience) || !nullOr(career.hustle, isRec) || !isNum(career.totalYearsWorked) || !isBool(career.retired)) return false;
   // A hustle's highest level is optional (saves from before it count the level they are at).
   if (!nullOr(career.hustle, (hu) => isRec(hu) && nullOr(hu.peak, isNum))) return false;
@@ -56,6 +58,8 @@ function isGameStateShape(s: Rec): boolean {
   // A relative who took the player in and people left behind by a move abroad are optional too (older saves have neither).
   if (!recordOf(s.people, (p) => isRec(p) && nullOr(p.relative, isBool) && nullOr(p.farAway, isBool))) return false;
   if (!recordOf(s.people, (p) => isRec(p) && nullOr(p.mourned, isBool) && nullOr(p.birthLastName, isStr))) return false;
+  // When someone died, in the player's years (cards about a recent loss): optional, older saves have none.
+  if (!recordOf(s.people, (p) => isRec(p) && nullOr(p.lostAtAge, isNum))) return false;
   if (!arrayOf(s.assets, (a) => isRec(a) && isStr(a.id) && isNum(a.value))) return false;
   if (!arrayOf(s.log, (l) => isRec(l) && isStr(l.text) && isStr(l.kind) && isNum(l.age))) return false;
   if (!arrayOf(s.eventQueue, (q) => isRec(q) && isStr(q.eventId))) return false;
@@ -136,6 +140,12 @@ export function migrateSave(raw: unknown): GameState | null {
   if (s.flavorSeen !== undefined && !recordOf(s.flavorSeen, isNum)) {
     s = { ...s };
     delete s.flavorSeen;
+  }
+  // Optional names held for the year (namesInJournalThisYear): saves from before it have none, and a mangled list is
+  // just dropped (the next birthday writes a new one).
+  if (s.namesThisYear !== undefined && !(isRec(s.namesThisYear) && isNum(s.namesThisYear.age) && arrayOf(s.namesThisYear.names, isStr))) {
+    s = { ...s };
+    delete s.namesThisYear;
   }
   // The grief window (romance.ts) starts when a partner's death is first counted. A save from before it has
   // partners who died long ago and were never counted: they count as mourned, so loading starts no window.

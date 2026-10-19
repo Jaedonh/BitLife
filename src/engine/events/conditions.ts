@@ -120,14 +120,21 @@ export function candidatesFor(state: GameState, sel: PersonSelector): Person[] {
   return Object.values(state.people).filter((p) => {
     if (!sel.kind.includes(p.kind)) return false;
     if ((sel.alive ?? true) !== p.alive) return false;
+    // Someone lost recently: the player's age at the death is recorded (an older save's undated death never matches).
+    if (sel.diedWithin !== undefined && (p.lostAtAge === undefined || state.character.age - p.lostAtAge > sel.diedWithin)) return false;
     if (sel.minRelationship !== undefined && p.relationship < sel.minRelationship) return false;
     if (sel.maxRelationship !== undefined && p.relationship > sel.maxRelationship) return false;
     if (sel.minAge !== undefined && p.age < sel.minAge) return false;
     if (sel.maxAge !== undefined && p.age > sel.maxAge) return false;
     if (sel.household && !livesWithPlayer(state, p)) return false;
-    // Friends and grandparents left behind by a move abroad only turn up when the card is written for distance:
+    // People who live far away (left behind by a move, or met far from home) only turn up when the card is written for distance:
     // `farAway: true` binds only them, 'any' them or anyone nearby (the dead are remembered wherever they lived).
     if (p.alive && sel.farAway !== 'any' && (p.farAway === true) !== (sel.farAway === true)) return false;
+    // Back home: known before the move abroad, which happens at the birthday of that age (before anyone is met that year).
+    if (sel.metBeforeMoveAbroad !== undefined) {
+      const move = state.character.moveAbroad;
+      if ((!!move && state.flags.immigrant !== undefined && p.metAtAge < move.age) !== sel.metBeforeMoveAbroad) return false;
+    }
     // A coworker linked to a job is only a coworker while the player still holds that job (see coworkers.ts).
     if (p.kind === 'coworker' && p.workplace && !(state.career.job && p.workplace.jobId === state.career.job.defId && p.workplace.company === state.career.job.company)) return false;
     if (sel.gender !== undefined && p.gender !== sel.gender) return false;
@@ -150,7 +157,8 @@ export function livesAtHome(state: GameState): boolean {
   return age < 24 && !ownsHome && (state.career.job?.salary ?? 0) < scaleMoney(state, 20_000) && !hasPersonOfKind(state, ['spouse']);
 }
 
-function livesWithPlayer(state: GameState, p: Person): boolean {
+/** Whether the player lives with this person now (`household` selectors; who comes along on a move, scenarios.ts). */
+export function livesWithPlayer(state: GameState, p: Person): boolean {
   switch (p.kind) {
     case 'mother': case 'father': case 'stepmother': case 'stepfather': return livesAtHome(state);
     case 'sibling': return livesAtHome(state) && p.age < 24;

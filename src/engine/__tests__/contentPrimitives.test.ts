@@ -77,7 +77,23 @@ describe('moveAway, relocate and promotion', () => {
     expect(after.character.city).not.toBe(base.character.city);
     expect(after.people[f.id]!.farAway).toBe(true);
     for (const p of Object.values(after.people)) if (p.kind === 'grandparent' && p.alive) expect(p.farAway).toBe(true);
-    for (const p of Object.values(after.people)) if (p.kind === 'mother' || p.kind === 'father') expect(p.farAway).toBeUndefined();
+  });
+
+  it("a grown-up who moves leaves parents and siblings behind; a child's family moves with them", () => {
+    const parents = (s: GameState) => Object.values(s.people).filter((p) => p.alive && (p.kind === 'mother' || p.kind === 'father'));
+    const grown = at('US', 30, 2010);
+    expect(parents(grown).length).toBeGreaterThan(0);
+    const moved = applyEffects(grown, new Rng(2), [{ relocate: true }]);
+    for (const p of parents(moved)) expect(p.farAway).toBe(true);
+    const kid = at('US', 9, 2010);
+    const sib = makePerson(new Rng(6), { kind: 'sibling', countryCode: 'US', playerAge: 9, age: 12 });
+    const grownSib = makePerson(new Rng(7), { kind: 'sibling', countryCode: 'US', playerAge: 9, age: 30 });
+    const family: GameState = { ...kid, people: { ...kid.people, [sib.id]: sib, [grownSib.id]: grownSib } };
+    const kidMoved = applyEffects(family, new Rng(2), [{ relocate: true }]);
+    for (const p of parents(kidMoved)) expect(p.farAway).toBeUndefined();
+    expect(kidMoved.people[sib.id]!.farAway).toBeUndefined();
+    // A brother of 30 has a home of his own: he stays in the old city.
+    expect(kidMoved.people[grownSib.id]!.farAway).toBe(true);
   });
 
   it('promotion moves up one rung with a raise, and does nothing at the top', () => {

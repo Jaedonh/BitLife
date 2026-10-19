@@ -352,7 +352,10 @@ describe('immigrant', () => {
     const card = (person: EventDef['person']): EventDef => ({ id: 'tr_far_test', category: 'random', title: 'A letter', text: 'A letter came from {{person}}.', minAge: 8, maxAge: 90, weight: 1, person, choices: [{ id: 'read', label: 'Read it', effects: [{ log: 'I read it twice.' }] }, { id: 'keep', label: 'Keep it for later', effects: [{ log: 'I kept it for later.' }] }] });
     expect(validateEvent(card({ kind: ['friend', 'bestFriend'], farAway: true }), new Set(['tr_far_test']))).toEqual([]);
     expect(validateEvent(card({ kind: ['grandparent'], farAway: 'any' }), new Set(['tr_far_test']))).toEqual([]);
-    expect(validateEvent(card({ kind: ['sibling'], farAway: true }), new Set(['tr_far_test'])).join(' ')).toMatch(/farAway/);
+    // Parents and siblings a grown-up left behind with relocate can live far away too; a coworker or a child cannot.
+    expect(validateEvent(card({ kind: ['sibling'], farAway: 'any' }), new Set(['tr_far_test']))).toEqual([]);
+    expect(validateEvent(card({ kind: ['coworker'], farAway: true }), new Set(['tr_far_test'])).join(' ')).toMatch(/farAway/);
+    expect(validateEvent(card({ kind: ['child'], farAway: 'any' }), new Set(['tr_far_test'])).join(' ')).toMatch(/farAway/);
   });
 
   it('does not move a child with no parent left or one in detention', () => {

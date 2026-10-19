@@ -12,7 +12,7 @@ import { NAMES } from '@/data/names';
 import type { Rng } from '../rng';
 import type { ChildGrowth, GameState, Gender, Person } from '../types';
 import { addStats, incFlag, log, numberWord, pronouns, setFlag } from '../util';
-import { freshFirstName, makePerson, namesInLife } from './character';
+import { freshFirstName, makePerson, namesInJournalThisYear, namesInLife } from './character';
 
 /** Children move out at 19-26: an even chance over those years, certain by 26. */
 export const MOVE_OUT_FROM = 19;
@@ -108,7 +108,8 @@ export function markChildMilestone(state: GameState, rng: Rng, id: string, miles
   if (!p || p.kind !== 'child' || !p.alive) return state;
   if (milestone === 'movedOut') return hasMovedOut(p) ? state : withGrowth(state, id, { movedOut: true });
   if (milestone === 'cameOut') return p.growth?.cameOut ? state : withGrowth(state, id, { cameOut: true });
-  if (milestone === 'married') return isMarried(p) ? state : withGrowth(state, id, { spouse: rollSpouse(rng, state, p) });
+  // Not a name held this year either (namesInJournalThisYear), as for anyone else a card brings in.
+  if (milestone === 'married') return isMarried(p) ? state : withGrowth(state, id, { spouse: rollSpouse(rng, state, p, namesInJournalThisYear(state)) });
   if (kidsCount(p) >= MAX_KIDS_PER_CHILD) return state;
   const me = state.character;
   return withGrowth(state, id, {

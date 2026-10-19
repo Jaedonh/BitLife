@@ -210,7 +210,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     // There is only one soup song.
     once: true,
     conditions: [{ inPrison: false }, { year: { gte: 2010 } }],
-    person: { kind: ['sibling'], minAge: 13 },
+    // Posted online: it reaches a brother or sister in another city too.
+    person: { kind: ['sibling'], minAge: 13, farAway: 'any' },
     choices: [
       {
         id: 'embrace',
@@ -791,7 +792,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     id: 'tm_lost_phone',
     category: 'random',
     title: 'Lost phone',
-    text: 'My phone is gone. I have checked every pocket twice, including the pockets of a coat I was not wearing. The last place I remember having it is the back seat of a taxi.',
+    text: 'My phone is gone. I have checked every pocket twice, including the pockets of jeans I was not wearing. The last place I remember having it is the back seat of a taxi.',
     minAge: 13,
     maxAge: 90,
     weight: 1.5,

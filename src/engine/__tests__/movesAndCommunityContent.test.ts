@@ -168,11 +168,11 @@ describe('the family move changes the city and leaves my friends behind', () => 
     for (const l of lines(ev('tl_online_friend'))) expect(l).not.toMatch(/across the country|never met/i);
   });
 
-  it('a friend met at a faraway wedding, a conference or a volunteer trip turns out to live nearby, as newPerson makes them', () => {
+  it('a friend met at a faraway wedding, a conference or a volunteer trip lives far away, as the line says', () => {
     for (const id of ['tr_destination_wedding', 'tr_work_trip', 'tr_volunteer_trip']) {
-      const made = ev(id).choices.flatMap((c) => allEffects(c.effects)).flatMap((x) => ('newPerson' in x && x.newPerson.kind === 'friend' ? [x.newPerson.log ?? ''] : []));
+      const made = ev(id).choices.flatMap((c) => allEffects(c.effects)).flatMap((x) => ('newPerson' in x && x.newPerson.kind === 'friend' ? [x.newPerson] : []));
       expect(made.length).toBeGreaterThan(0);
-      for (const l of made) expect([id, l]).toEqual([id, expect.stringMatching(/live near me|across town|one town over/)]);
+      for (const np of made) expect([id, np.farAway, np.log]).toEqual([id, true, expect.stringMatching(/far side|far end|lives in that city/)]);
     }
   });
 });

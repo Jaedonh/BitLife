@@ -61,7 +61,8 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     maxAge: 60,
     weight: 1,
     cooldown: 6,
-    conditions: [{ inPrison: false }],
+    // Not a couple who already share a home (young_adult's ya_move_in_together, or this card before).
+    conditions: [{ inPrison: false }, { flag: 'lf_living_together', exists: false }],
     person: { kind: ['lover'], minRelationship: 50 },
     choices: [
       {

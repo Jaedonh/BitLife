@@ -1,4 +1,4 @@
-import { adjustRelationship, markContact, updatePerson } from '../events/effects';
+import { adjustRelationship, markContact, takeSurname, updatePerson } from '../events/effects';
 import { personRef, scaleMoney } from '../events/text';
 import type { Rng } from '../rng';
 import type { GameState, Person, RelationshipKind } from '../types';
@@ -321,7 +321,7 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
         s = log(s, text, 'bad');
         return setResult(s, text, 'bad');
       }
-      s = updatePerson(s, personId, { kind: 'spouse', marriedAtAge: s.character.age, lastName: rng.chance(0.5) ? s.character.lastName : person.lastName });
+      s = updatePerson(s, personId, { kind: 'spouse', marriedAtAge: s.character.age, ...takeSurname(person, rng.chance(0.5), s.character.lastName) });
       s = adjustRelationship(s, personId, 10);
       s = bump(s, 'marriages');
       s = addStats(s, { happiness: 15 });

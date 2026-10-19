@@ -130,22 +130,24 @@ export interface CareerSpan {
 
 /**
  * The work history as careers, in the order they last ended: two salons and two titles are one career as a stylist.
- * A title on two ladders ("Partner" for a lawyer or a consultant, "Lieutenant") goes with the line of work the rest
- * of the history, or the job held now (`currentDefId`), shows.
+ * An entry names its job (`defId`); in an older save, a title on two ladders ("Partner" for a lawyer or a consultant,
+ * "Lieutenant") goes with the line of work the rest of the history, or the job held now (`currentDefId`), shows.
  */
 export function careerSpans(history: readonly JobHistoryEntry[], currentDefId?: string): CareerSpan[] {
   const known = new Set<string>(currentDefId ? [currentDefId] : []);
   for (const h of history) {
     const defs = jobDefsForTitle(h.title);
-    if (defs.length === 1) known.add(defs[0]!.id);
+    if (h.defId) known.add(h.defId);
+    else if (defs.length === 1) known.add(defs[0]!.id);
   }
-  const keyOf = (title: string): string => {
-    const defs = jobDefsForTitle(title);
-    return (defs.find((d) => known.has(d.id)) ?? defs[0])?.id ?? title;
+  const keyOf = (h: JobHistoryEntry): string => {
+    if (h.defId) return h.defId;
+    const defs = jobDefsForTitle(h.title);
+    return (defs.find((d) => known.has(d.id)) ?? defs[0])?.id ?? h.title;
   };
   const spans = new Map<string, CareerSpan>();
   for (const h of history) {
-    const key = keyOf(h.title);
+    const key = keyOf(h);
     const span = spans.get(key) ?? { key, title: h.title, years: 0, retired: false, until: h.toAge };
     span.years += Math.max(0, h.toAge - h.fromAge);
     if (h.toAge >= span.until) {

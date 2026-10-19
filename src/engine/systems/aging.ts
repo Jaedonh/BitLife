@@ -91,6 +91,7 @@ export function ageNpcs(state: GameState, rng: Rng): GameState {
     if (rng.chance(next.kind === 'pet' ? (petOld ? 0.3 : 0.03) : npcDeathChance(next.age, next.health))) {
       next.alive = false;
       next.deathAge = next.age;
+      next.lostAtAge = s.character.age;
       next.deathCause = next.kind === 'pet' ? (petOld ? 'old age' : 'a sudden illness') : npcDeathCause(rng, next.age);
       deaths.push(next);
     }

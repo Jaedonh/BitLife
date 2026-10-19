@@ -140,7 +140,7 @@ describe('widowhood cards grieve the one marriage', () => {
   });
 
   it('a first-marriage widow still gets them, bound to that spouse', () => {
-    const late = person('spouse', { age: 61, alive: false, deathAge: 61, marriedAtAge: 30, gender: 'male' });
+    const late = person('spouse', { age: 61, alive: false, deathAge: 61, marriedAtAge: 30, gender: 'male', lostAtAge: 63 });
     // The year after the loss: still in the grief window the fresh-grief cards wait for.
     const s = life(64, [late], { patch: { counters: { ...life(64).counters, marriages: 1 }, flags: { grieving: 63 } } });
     expect(isEligible(s, EVENT('gy_widow_two_cups'))).toBe(true);
@@ -458,24 +458,30 @@ describe('people left in the old country', () => {
 
   it('an immigrant child hears from the friends and grandparents left behind, and only from them', () => {
     const IDS = { friend: ['ss_im_old_friend', 'ss_im_letter'], grandparent: ['ss_im_old_words', 'ss_im_parcel'] };
-    const old = far('bestFriend', { age: 12 });
-    const gran = far('grandparent', { age: 74, gender: 'female' });
-    const local = person('friend', { age: 12 });
-    const immigrant = { flags: { immigrant: 'MX' } };
-    const s = life(12, [old, gran, local], { patch: immigrant });
+    const old = far('bestFriend', { age: 12, metAtAge: 6 });
+    const gran = far('grandparent', { age: 74, gender: 'female', metAtAge: 0 });
+    const local = person('friend', { age: 12, metAtAge: 10 });
+    // A tourist met in the new country lives far away too, but is not someone from back home.
+    const tourist = far('friend', { age: 13, metAtAge: 11 });
+    const immigrant = (s: GameState): GameState => ({ ...s, flags: { ...s.flags, immigrant: 'MX' }, character: { ...s.character, moveAbroad: { age: 9, countryCode: 'US' } } });
+    const s = immigrant(life(12, [old, gran, local, tourist]));
     for (const id of IDS.friend) expect([id, isEligible(s, EVENT(id)), bound(s, id).map((p) => p.id)]).toEqual([id, true, [old.id]]);
     for (const id of IDS.grandparent) expect([id, isEligible(s, EVENT(id)), bound(s, id).map((p) => p.id)]).toEqual([id, true, [gran.id]]);
     // Nobody left behind (only friends made here), or not an immigrant at all: no news from back home.
     for (const id of [...IDS.friend, ...IDS.grandparent]) {
-      expect([id, isEligible(life(12, [local, person('grandparent', { age: 74 })], { patch: immigrant }), EVENT(id))]).toEqual([id, false]);
+      expect([id, isEligible(immigrant(life(12, [local, tourist, person('grandparent', { age: 74 })])), EVENT(id))]).toEqual([id, false]);
       expect([id, isEligible(life(12, [old, gran]), EVENT(id))]).toEqual([id, false]);
     }
   });
 
   it('the old words fade only for a family that changed languages', () => {
-    const gran = far('grandparent', { age: 74 });
-    expect(isEligible(life(12, [gran], { countryCode: 'ES', patch: { flags: { immigrant: 'MX' } } }), EVENT('ss_im_old_words'))).toBe(false);
-    expect(isEligible(life(12, [gran], { countryCode: 'ES', patch: { flags: { immigrant: 'MX' } } }), EVENT('ss_im_parcel'))).toBe(true);
+    const gran = far('grandparent', { age: 74, metAtAge: 0 });
+    const from = (code: string): GameState => {
+      const s = life(12, [gran], { countryCode: code });
+      return { ...s, flags: { ...s.flags, immigrant: 'MX' }, character: { ...s.character, moveAbroad: { age: 9, countryCode: code } } };
+    };
+    expect(isEligible(from('ES'), EVENT('ss_im_old_words'))).toBe(false);
+    expect(isEligible(from('ES'), EVENT('ss_im_parcel'))).toBe(true);
   });
 });
 

@@ -241,7 +241,8 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
     once: true,
     conditions: [...ON_PAROLE],
     // My side of the family (a spouse would simply come along).
-    person: { kind: ['mother', 'father', 'stepmother', 'stepfather', 'grandparent', 'sibling'], minAge: 12 },
+    // Asked by phone or letter, from wherever they live.
+    person: { kind: ['mother', 'father', 'stepmother', 'stepfather', 'grandparent', 'sibling'], minAge: 12, farAway: 'any' },
     choices: [
       {
         id: 'permit',
@@ -998,12 +999,13 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
         id: 'police',
         label: 'Tell the police the truth',
         effects: [
-          { relationship: 'person', delta: -15 },
+          // A deep cut, not silence: the lines leave room for the friendship to mend, since the bond may still be warm.
+          { relationship: 'person', delta: -25 },
           { karma: 3 },
           {
             chance: 0.5,
-            then: [{ stat: 'happiness', delta: 1 }, { log: 'I told the detective the truth. {{person}} found out within a day and stopped speaking to me.', kind: 'info' }],
-            else: [{ stat: 'happiness', delta: -4 }, { log: "I told the truth, and {{person}} was charged. {{They}} hasn't spoken to me since.", kind: 'bad' }],
+            then: [{ stat: 'happiness', delta: 1 }, { log: 'I told the detective the truth. {{person}} found out within a day, and it was a long time before {{they}} forgave me.', kind: 'info' }],
+            else: [{ stat: 'happiness', delta: -4 }, { log: "I told the truth, and {{person}} was charged. Whether {{they}} will ever forgive me, I don't know.", kind: 'bad' }],
           },
         ],
       },

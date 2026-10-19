@@ -1,5 +1,5 @@
 import { ASSETS } from '@/data/assets';
-import type { Condition, EventDef } from '@/engine/events/schema';
+import type { Condition, EventDef, PersonSelector } from '@/engine/events/schema';
 
 /**
  * Ages 25-64, the grown-up middle of a life: proposing, planning a wedding and
@@ -41,6 +41,11 @@ const WIDOWED: Condition[] = [{ married: false }, { count: 'marriages', eq: 1 }]
  * short window.
  */
 const NEWLY_WIDOWED: Condition[] = [...WIDOWED, { flag: 'grieving' }];
+/**
+ * The late spouse those first months are about: one who died within the grief window (the year of the loss and the
+ * next). The `grieving` flag alone would also hold after a later partner's death, years after the spouse's.
+ */
+const LATE_SPOUSE_JUST_LOST: PersonSelector = { kind: ['spouse'], alive: false, diedWithin: 1 };
 
 export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ the wedding chain
@@ -294,8 +299,9 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     maxAge: 64,
     weight: 2,
     once: true,
-    // lf_living_together outlives the partner it was set with. A spouse shares my home anyway; a lover only
-    // counts when I have no ex at all, so the lover is the one I moved in with.
+    // A spouse shares my home anyway. lf_living_together now goes with the partner who leaves or dies, but an older
+    // save may still hold it from a partner a card removed; so a lover only counts when I have no ex at all, and
+    // the lover is the one I moved in with.
     conditions: [{ flag: 'lf_living_together' }, { any: [{ married: true }, { noPerson: ['ex'] }] }],
     person: { kind: ['lover', 'spouse'] },
     choices: [
@@ -630,7 +636,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     weight: 3,
     once: true,
     conditions: [...NEWLY_WIDOWED, { hasLover: false }],
-    person: { kind: ['spouse'], alive: false },
+    person: LATE_SPOUSE_JUST_LOST,
     choices: [
       {
         id: 'group',
@@ -688,7 +694,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     once: true,
     // golden_years' gy_widow_closet is the same closet, later in life: one per life (it guards against this one too).
     conditions: [...NEWLY_WIDOWED, { hasLover: false }, { eventNotFired: 'gy_widow_closet' }],
-    person: { kind: ['spouse'], alive: false },
+    person: LATE_SPOUSE_JUST_LOST,
     choices: [
       {
         id: 'donate',
@@ -729,7 +735,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     weight: 3,
     once: true,
     conditions: [...NEWLY_WIDOWED, { hasLover: false }],
-    person: { kind: ['spouse'], alive: false },
+    person: LATE_SPOUSE_JUST_LOST,
     choices: [
       {
         id: 'pay',
@@ -804,7 +810,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     weight: 3,
     once: true,
     conditions: [{ hasJob: true }, ...NEWLY_WIDOWED, { hasLover: false }],
-    person: { kind: ['spouse'], alive: false },
+    person: LATE_SPOUSE_JUST_LOST,
     choices: [
       {
         id: 'truth',
@@ -1580,7 +1586,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 2 },
           { counter: 'vacations' },
           { log: 'A table for one at a beautiful restaurant, museums at my own pace. Great company, me.', kind: 'good' },
-          { chance: 0.3, then: [{ newPerson: { kind: 'friend', relationship: 45, log: 'On a walking tour I met {{person}}, also traveling alone, also lost.' } }] },
+          { chance: 0.3, then: [{ newPerson: { kind: 'friend', relationship: 45, farAway: true, log: 'On a walking tour I met {{person}}, also traveling alone, also lost. We still write.' } }] },
         ],
       },
       {

@@ -327,7 +327,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.5,
-            then: [{ stat: 'happiness', delta: 2 }, { log: 'I spent forty minutes in a closet with a stranger\'s coats. Nobody checked. I emerged a hero.' }],
+            then: [{ stat: 'happiness', delta: 2 }, { log: 'I spent forty minutes in a closet behind a stranger\'s vacuum cleaner. Nobody checked. I emerged a hero.' }],
             else: [{ relationship: 'mother', delta: -6 }, { relationship: 'father', delta: -6 }, { stat: 'happiness', delta: -4 }, { log: 'The closet was the first place they checked. My name went on a list.', kind: 'bad' }],
           },
         ],
