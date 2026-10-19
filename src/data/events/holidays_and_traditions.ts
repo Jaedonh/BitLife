@@ -119,7 +119,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { relationship: 'father', delta: 3 },
           { relationship: 'sibling', delta: 2 },
           { relationship: 'spouse', delta: 3 },
-          { log: 'A quiet dinner, the good plates, nobody on their phones for a full hour. Low-key, high quality.', kind: 'good' },
+          { log: 'A quiet dinner, the good plates and nobody in a hurry to leave. Low-key, high quality.', kind: 'good' },
         ],
       },
       {
@@ -153,7 +153,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     maxAge: 85,
     weight: 1,
     cooldown: 8,
-    conditions: [{ inPrison: false }],
+    // Not within a few years of later_life's ll_surprise_birthday, the other door opening on a shouting crowd.
+    conditions: [{ inPrison: false }, { not: { sinceEvent: 'll_surprise_birthday', lte: 5 } }],
     person: { kind: ['friend', 'bestFriend', 'sibling', 'spouse', 'lover'], minRelationship: 40 },
     choices: [
       {
@@ -303,7 +304,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
       },
       {
         id: 'deny',
-        label: 'Insist you are thirty-nine',
+        label: 'Insist I am thirty-nine',
         effects: [
           { stat: 'happiness', delta: 2 },
           { karma: -1 },
@@ -448,7 +449,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     choices: [
       {
         id: 'partner',
-        label: 'Find your partner at midnight',
+        label: 'Find my partner at midnight',
         conditions: [{ hasLover: true }],
         effects: [
           { stat: 'happiness', delta: 5 },
@@ -613,6 +614,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
       {
         id: 'sell',
         label: 'Sell it online',
+        conditions: [{ year: { gte: 2000 } }],
         effects: [
           { money: 40 },
           { karma: -2 },
@@ -698,7 +700,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { relationship: 'father', delta: -4 },
           { relationship: 'sibling', delta: -4 },
           { relationship: 'friend', delta: -3 },
-          { log: 'I texted everyone a vague excuse and spent the day in silence. Peaceful. The group chat was not.', kind: 'bad' },
+          { log: 'I called everyone with a vague excuse and spent the day in silence. Peaceful. The phone was not.', kind: 'bad' },
         ],
       },
     ],
@@ -837,7 +839,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 1,
     cooldown: 5,
-    conditions: [{ inPrison: false }],
+    // Not within a few years of adult_life's ad_sibling_feud, the same silence at a family gathering.
+    conditions: [{ inPrison: false }, { not: { sinceEvent: 'ad_sibling_feud', lte: 3 } }],
     person: { kind: ['sibling'], maxRelationship: 30, minAge: 16 },
     choices: [
       {
@@ -1388,7 +1391,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { relationship: 'spouse', delta: -3 },
           { relationship: 'child', delta: -4 },
           { relationship: 'friend', delta: -2 },
-          { log: 'I announced a no-gift year by text. Half the replies were supportive. The other half were pointed.' },
+          { log: 'I announced a no-gift year to the family. Half were relieved. The other half were pointed.' },
         ],
       },
     ],
@@ -1402,7 +1405,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1.5,
     cooldown: 4,
-    conditions: [{ hasJob: true }, { inPrison: false }],
+    // Not within a few years of work_life's wk_office_party, the same holiday party with an open bar.
+    conditions: [{ hasJob: true }, { inPrison: false }, { not: { sinceEvent: 'wk_office_party', lte: 3 } }],
     choices: [
       {
         id: 'network',
@@ -1474,7 +1478,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { relationship: 'father', delta: -2 },
           { relationship: 'spouse', delta: -3 },
           { relationship: 'child', delta: -3 },
-          { log: 'An empty building, a radio and a sad sandwich. The pay cleared. The family sent photos of the food.', kind: 'money' },
+          { log: 'An empty building, a radio and a sad sandwich. The pay cleared. The family saved me a plate.', kind: 'money' },
         ],
       },
       {
@@ -1565,7 +1569,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     id: 'hd_roast_disaster',
     category: 'holiday',
     title: 'The big roast',
-    text: 'This year I am in charge of the holiday roast. It is enormous, it is raw, and the internet has given me nine contradictory cooking times.',
+    text: 'This year I am in charge of the holiday roast. It is enormous, it is raw, and three cookbooks have given me nine contradictory cooking times.',
     minAge: 20,
     maxAge: 85,
     weight: 1.5,

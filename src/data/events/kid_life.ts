@@ -1100,7 +1100,8 @@ export const KID_LIFE_EVENTS: EventDef[] = [
     weight: 1,
     once: true,
     conditions: [{ enrolled: true }],
-    person: { kind: ['pet'] },
+    // Something that chews or shreds paper on the floor: not a hamster in its cage or a pigeon.
+    person: { kind: ['pet'], species: ['dog', 'cat', 'rabbit', 'parrot'] },
     choices: [
       {
         id: 'evidence',

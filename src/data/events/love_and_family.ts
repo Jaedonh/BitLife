@@ -10,7 +10,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     id: 'lf_jealous_of_friend',
     category: 'romance',
     title: 'A jealous streak',
-    text: "{{person}} went quiet after seeing how much I text my best friend. Later {{they}} asked, very casually, whether we were 'just friends'. The casual part was not convincing.",
+    text: "{{person}} went quiet after my third hour-long phone call with my best friend this week. Later {{they}} asked, very casually, whether we were 'just friends'. The casual part was not convincing.",
     minAge: 16,
     maxAge: 70,
     weight: 1,
@@ -36,8 +36,8 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
       },
       {
         id: 'cutback',
-        label: 'Text my friend less',
-        effects: [{ love: 6 }, { relationship: 'friend', delta: -4 }, { relationship: 'bestFriend', delta: -4 }, { stat: 'happiness', delta: -3 }, { log: 'I texted my friend less. Peace restored, at the cost of a slowly fading group chat.' }],
+        label: 'Call my friend less',
+        effects: [{ love: 6 }, { relationship: 'friend', delta: -4 }, { relationship: 'bestFriend', delta: -4 }, { stat: 'happiness', delta: -3 }, { log: 'I called my friend less. Peace restored, at the cost of a friendship gone a little quiet.' }],
       },
       {
         id: 'trust',
@@ -107,7 +107,8 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     maxAge: 50,
     weight: 1,
     cooldown: 4,
-    conditions: [{ inPrison: false }],
+    // The same Sunday-lunch scene as young_adult's ya_meet_the_parents and prison_life's pl_meet_parents: years apart.
+    conditions: [{ inPrison: false }, { not: { sinceEvent: 'ya_meet_the_parents', lte: 4 } }, { not: { sinceEvent: 'pl_meet_parents', lte: 5 } }],
     person: { kind: ['lover'] },
     choices: [
       {
@@ -217,7 +218,8 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 0.8,
     cooldown: 5,
-    conditions: [{ inPrison: false }],
+    // A guarded phone full of messages: mobile phones.
+    conditions: [{ inPrison: false }, { year: { gte: 2005 } }],
     person: { kind: ['lover', 'spouse'] },
     choices: [
       {
@@ -351,7 +353,8 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     maxAge: 80,
     weight: 1,
     cooldown: 4,
-    conditions: [{ inPrison: false }],
+    // The mirror of young_adult's ya_forgot_anniversary and adult_life's ad_anniversary_forgot: not a forgotten date two years running.
+    conditions: [{ inPrison: false }, { not: { sinceEvent: 'ya_forgot_anniversary', lte: 2 } }, { not: { sinceEvent: 'ad_anniversary_forgot', lte: 2 } }],
     person: { kind: ['spouse'] },
     choices: [
       {
@@ -434,7 +437,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
           { counter: 'vacations' },
           {
             chance: 0.45,
-            then: [{ love: 8 }, { relationship: 'person', delta: 6 }, { stat: 'happiness', delta: 6 }, { log: 'Sun, sleep, no phones. We remembered why we liked each other.', kind: 'good' }],
+            then: [{ love: 8 }, { relationship: 'person', delta: 6 }, { stat: 'happiness', delta: 6 }, { log: 'Sun, sleep and nowhere to be. We remembered why we liked each other.', kind: 'good' }],
             else: [{ love: -4 }, { stat: 'happiness', delta: -3 }, { log: 'We argued on the beach, which is at least a nicer place to argue.', kind: 'bad' }],
           },
         ],
@@ -563,7 +566,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     id: 'lf_old_flame',
     category: 'romance',
     title: 'An old flame',
-    text: "Someone I used to date messaged out of nowhere: 'Thinking of you. Coffee sometime?' I'm with {{person}} now, and happy, mostly. I read the message three times.",
+    text: "Someone I used to date left me a message out of nowhere: 'Thinking of you. Coffee sometime?' I'm with {{person}} now, and happy, mostly. I read the message three times.",
     minAge: 18,
     maxAge: 70,
     weight: 0.8,
@@ -630,7 +633,8 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     maxAge: 60,
     weight: 0.7,
     cooldown: 6,
-    conditions: [{ inPrison: false }],
+    // Not within two years of young_adult's ya_long_distance, a partner already posted away (it guards against this one too).
+    conditions: [{ inPrison: false }, { not: { sinceEvent: 'ya_long_distance', lte: 2 } }],
     person: { kind: ['lover', 'spouse'], minRelationship: 40 },
     choices: [
       {
@@ -1021,7 +1025,8 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     maxAge: 65,
     weight: 1,
     cooldown: 3,
-    conditions: [{ hasJob: true }, { hasLover: false }, { inPrison: false }],
+    // Not within a few years of work_life's wk_workplace_flirt, the other dinner invitation (it guards against this one too).
+    conditions: [{ hasJob: true }, { hasLover: false }, { inPrison: false }, { flag: 'grieving', exists: false }, { not: { sinceEvent: 'wk_workplace_flirt', lte: 6 } }],
     choices: [
       {
         id: 'yes',
@@ -1064,7 +1069,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1.2,
     cooldown: 4,
-    conditions: [{ hasLover: false }, { inPrison: false }, { not: { sinceEvent: 'ya_blind_date', lte: 4 } }],
+    conditions: [{ hasLover: false }, { inPrison: false }, { flag: 'grieving', exists: false }, { not: { sinceEvent: 'ya_blind_date', lte: 4 } }],
     person: { kind: ['friend', 'bestFriend'], minAge: 18 },
     choices: [
       {
@@ -1112,7 +1117,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     maxAge: 18,
     weight: 1.5,
     once: true,
-    conditions: [{ enrolled: true }, { stage: ['high'] }, { hasLover: false }, { inPrison: false }],
+    conditions: [{ enrolled: true }, { stage: ['high'] }, { hasLover: false }, { inPrison: false }, { flag: 'grieving', exists: false }],
     choices: [
       {
         id: 'yes',
@@ -1300,30 +1305,30 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     weight: 0.7,
     once: true,
     conditions: [{ inPrison: false }],
-    // A child who has not married yet. The engine reads this card's journal line (it opens with the child's
-    // name and says "is gay"), so whoever they marry later is of their own gender (systems/family.ts).
+    // A child who has not married yet. Every choice records the milestone, so whoever they marry later is of
+    // their own gender (systems/family.ts).
     person: { kind: ['child'], minAge: 14, married: false },
     choices: [
       {
         id: 'hug',
         label: 'Hug {{them}}',
-        effects: [{ relationship: 'person', delta: 15 }, { stat: 'happiness', delta: 6 }, { karma: 2 }, { log: 'I hugged {{them}} and said I love {{them}}, and that nothing changes. {{They}} cried with relief.', kind: 'good' }],
+        effects: [{ childMilestone: 'cameOut' }, { relationship: 'person', delta: 15 }, { stat: 'happiness', delta: 6 }, { karma: 2 }, { log: 'I hugged {{them}} and said I love {{them}}, and that nothing changes. {{They}} cried with relief.', kind: 'good' }],
       },
       {
         id: 'proud',
         label: "Tell {{them}} I'm proud",
-        effects: [{ relationship: 'person', delta: 12 }, { stat: 'happiness', delta: 5 }, { karma: 4 }, { log: "I told {{them}} I was proud of {{their}} courage. {{They}} said, 'That's it?' That's it.", kind: 'good' }],
+        effects: [{ childMilestone: 'cameOut' }, { relationship: 'person', delta: 12 }, { stat: 'happiness', delta: 5 }, { karma: 4 }, { log: "I told {{them}} I was proud of {{their}} courage. {{They}} said, 'That's it?' That's it.", kind: 'good' }],
       },
       {
         id: 'support',
         label: 'Ask how I can support {{them}}',
-        effects: [{ relationship: 'person', delta: 10 }, { stat: 'happiness', delta: 4 }, { karma: 5 }, { stat: 'smarts', delta: 1 }, { log: 'We talked for hours. {{They}} asked me to help tell the rest of the family. I will.', kind: 'good' }],
+        effects: [{ childMilestone: 'cameOut' }, { relationship: 'person', delta: 10 }, { stat: 'happiness', delta: 4 }, { karma: 5 }, { stat: 'smarts', delta: 1 }, { log: 'We talked for hours. {{They}} asked me to help tell the rest of the family. I will.', kind: 'good' }],
       },
       {
         id: 'dinner',
         label: 'Celebrate with dinner out',
         hint: '{{$150}}',
-        effects: [{ money: -150 }, { relationship: 'person', delta: 12 }, { stat: 'happiness', delta: 7 }, { karma: 2 }, { log: "Dinner at {{their}} favorite place. {{They}} ordered dessert first. Why not.", kind: 'good' }],
+        effects: [{ childMilestone: 'cameOut' }, { money: -150 }, { relationship: 'person', delta: 12 }, { stat: 'happiness', delta: 7 }, { karma: 2 }, { log: "Dinner at {{their}} favorite place. {{They}} ordered dessert first. Why not.", kind: 'good' }],
       },
     ],
   },
@@ -1488,7 +1493,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 2 },
           {
             chance: 0.3,
-            then: [{ log: 'Online tutorials and patience. {{They}} got genuinely good.', kind: 'good' }],
+            then: [{ log: 'Secondhand sheet music and a lot of patience. {{They}} got genuinely good.', kind: 'good' }],
             else: [{ log: 'Without lessons it stayed a hobby. A happy one.' }],
           },
         ],
@@ -1595,13 +1600,15 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     id: 'lf_sibling_loan',
     category: 'family',
     title: 'Family loan',
-    text: '{{person}} called with the voice {{they}} uses for favors. {{They}} needs {{$2000}} to cover rent and promises, hand on heart, to pay me back by spring.',
+    text: '{{person}} talked about the weather for twenty minutes before getting to the point: {{they}} is {{$2000}} short on rent and promises, hand on heart, to pay me back by spring.',
     minAge: 18,
     maxAge: 80,
     weight: 1,
     cooldown: 3,
-    conditions: [{ money: { gte: 2000 } }, { inPrison: false }],
-    person: { kind: ['sibling'] },
+    // Not within a few years of money_events' mn_friend_loan, the same rent money asked of a friend.
+    conditions: [{ money: { gte: 2000 } }, { inPrison: false }, { not: { sinceEvent: 'mn_friend_loan', lte: 3 } }],
+    // A grown sibling: a younger one can still be a child.
+    person: { kind: ['sibling'], minAge: 18 },
     choices: [
       {
         id: 'lend',
@@ -1731,7 +1738,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
       {
         id: 'skip',
         label: 'Skip it',
-        effects: [{ relationship: 'person', delta: -6 }, { stat: 'happiness', delta: 2 }, { karma: -1 }, { log: 'I stayed home. The group chat has photos and pointed captions.' }],
+        effects: [{ relationship: 'person', delta: -6 }, { stat: 'happiness', delta: 2 }, { karma: -1 }, { log: 'I stayed home. Word of who came, and who did not, got around fast.' }],
       },
       {
         id: 'host',

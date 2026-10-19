@@ -23,17 +23,18 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     weight: 1.5,
     cooldown: 15,
     conditions: [{ inPrison: false }],
-    person: { kind: ['friend', 'bestFriend'], minRelationship: 30 },
+    // A phone call: a friend left behind by a move abroad can make it too (their 3 a.m., my afternoon, or both).
+    person: { kind: ['friend', 'bestFriend'], minRelationship: 30, farAway: 'any' },
     choices: [
       {
         id: 'go',
-        label: 'Go over right now',
+        label: 'Stay on the line till dawn',
         effects: [
           { energy: -1 },
           { stat: 'happiness', delta: -2 },
           { relationship: 'person', delta: 10 },
           { karma: 3 },
-          { log: "I sat on {{their}} kitchen floor until sunrise. Nothing was fixed, but {{they}} wasn't alone.", kind: 'good' },
+          { log: "I stayed on the phone until the sky went pale. Nothing was fixed, but {{they}} wasn't alone.", kind: 'good' },
           { chance: 0.3, then: [{ stat: 'health', delta: -2 }, { log: 'I was a zombie the next day and did not regret a minute of it.' }] },
         ],
       },
@@ -44,7 +45,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 5 },
           { karma: 1 },
           { stat: 'happiness', delta: -1 },
-          { log: 'We talked until the birds started singing. {{They}} said thank you about forty times.', kind: 'good' },
+          { log: 'We made a plan for the morning, one small step at a time. {{They}} called at noon: step one worked.', kind: 'good' },
         ],
       },
       {
@@ -282,7 +283,8 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 1.2,
     cooldown: 10,
-    person: { kind: ['friend', 'bestFriend'], maxRelationship: 35 },
+    // Getting in touch works at any distance, so a friend left behind by a move abroad can be the one.
+    person: { kind: ['friend', 'bestFriend'], maxRelationship: 35, farAway: 'any' },
     choices: [
       {
         id: 'welcome',

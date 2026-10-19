@@ -167,7 +167,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     // One leaked surprise party is a story; the same mistake again is a rerun.
     once: true,
     conditions: [{ inPrison: false }, { year: { gte: 2010 } }, { not: { sinceEvent: 'ya_group_chat_drama', lte: 2 } }],
-    person: { kind: ['friend', 'bestFriend'] },
+    // A group chat reaches friends anywhere, those left behind by a move abroad included.
+    person: { kind: ['friend', 'bestFriend'], farAway: 'any' },
     choices: [
       {
         id: 'side',
@@ -188,7 +189,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
           { karma: 2 },
           { stat: 'happiness', delta: 2 },
           { relationship: 'person', delta: -2 },
-          { log: 'I said the secret was out and made it a regular party. {{person}} sulked until the cake came out.' },
+          { log: 'I said the secret was out and made it a regular party. {{person}} sulked in the chat all week.' },
         ],
       },
       {
@@ -362,7 +363,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     weight: 1.5,
     // A parent discovers social media once.
     once: true,
-    conditions: [{ inPrison: false }, { year: { gte: 2010 } }, { not: { sinceEvent: 'ad_parent_tech_support', lte: 2 } }],
+    conditions: [{ inPrison: false }, { year: { gte: 2010 } }, { not: { sinceEvent: 'ad_parent_tech_support', lte: 5 } }],
     person: { kind: ['mother', 'father', 'stepmother', 'stepfather'], minAge: 55 },
     choices: [
       {
@@ -586,7 +587,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 60,
     weight: 1.2,
     cooldown: 10,
-    conditions: [{ hasLover: false }, { inPrison: false }, { year: { gte: 2012 } }],
+    conditions: [{ hasLover: false }, { inPrison: false }, { year: { gte: 2012 } }, { flag: 'grieving', exists: false }],
     choices: [
       {
         id: 'send',

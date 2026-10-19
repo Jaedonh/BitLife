@@ -1701,7 +1701,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     maxAge: 17,
     weight: 1.5,
     cooldown: 2,
-    conditions: [{ enrolled: true }, { hasLover: false }],
+    conditions: [{ enrolled: true }, { hasLover: false }, { flag: 'grieving', exists: false }],
     choices: [
       {
         id: 'person',

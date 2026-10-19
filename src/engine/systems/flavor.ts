@@ -87,14 +87,35 @@ function recentlySeen(state: GameState): Record<string, number> {
 }
 
 /**
+ * A quiet line ("nothing happened") is chosen at the birthday, before the player has done anything that year. When
+ * the year brought news after all (a crime and its court card, a visit, a baby), the line no longer holds, so it is
+ * dropped from that year's journal once the year is over: at the next birthday, or wherever a life ends (the caller
+ * passes `end`, where that year's journal stops; by default the latest year). A quiet line that is still its year's
+ * only line stays, so no year is left empty. Quiet lines carry no placeholders, so their text finds them.
+ */
+export function settleQuietYear(state: GameState, end = state.log.length, lines: readonly FlavorLine[] = FLAVOR): GameState {
+  let header = end - 1;
+  while (header >= 0 && state.log[header]!.kind !== 'year') header--;
+  // Nothing to settle before the first birthday, or in a year whose one line is the quiet one.
+  if (header < 0 || end - header - 1 <= 1) return state;
+  const quiet = new Set(lines.filter((l) => l.quiet).map((l) => l.text));
+  const at = state.log.findIndex((e, i) => i > header && i < end && quiet.has(e.text));
+  if (at < 0) return state;
+  return { ...state, log: [...state.log.slice(0, at), ...state.log.slice(at + 1)] };
+}
+
+/**
  * The year's flavor line. A quiet year (no other journal lines) always gets one, so no year is empty; it is drawn from
  * the generic age lines and every situational line whose situation holds, situational ones weighted 3x. A busy year
  * sometimes gets a situational line too, unless it brought grave news. Lines marked `quiet` ("nothing happened") are
- * only written in a year with no other lines and no event card. No line repeats within ten years; a quiet year with
- * every candidate used recently takes the one written longest ago.
+ * only written in a year with no other lines and no event card, and taken back at the next birthday if the player's
+ * own doings filled the year after all (settleQuietYear). No line repeats within ten years; a quiet year with every
+ * candidate used recently takes the one written longest ago.
  */
-export function yearlyFlavor(now: GameState, year: FlavorYear, lines: readonly FlavorLine[] = FLAVOR): GameState {
+export function yearlyFlavor(before: GameState, year: FlavorYear, lines: readonly FlavorLine[] = FLAVOR): GameState {
   const { start } = year;
+  // Last year's journal ends where this year's header begins (start is the state just before it was written).
+  const now = settleQuietYear(before, start.log.length, lines);
   const quietYear = year.lines === 0;
   if (!quietYear && graveYear(start, now)) return now;
   const fits = lines.filter((l) => (quietYear || isSituational(l)) && (!l.quiet || (quietYear && !year.event)) && flavorFits(l, start, now));
@@ -171,6 +192,8 @@ export function validateFlavor(lines: readonly FlavorLine[] = FLAVOR): string[] 
     if (l.text.length > 100) errors.push(`${where}: ${l.text.length} characters; keep journal lines to 100`);
     if (!FIRST_PERSON.test(l.text)) errors.push(`${where}: journal lines are first person`);
     if (QUIET_WORDING.test(l.text) && !l.quiet) errors.push(`${where}: says the year was uneventful; mark it quiet: true so it never shares a year with other lines or an event`);
+    // The engine finds a quiet line again by its text, to take it back from a year that filled up (settleQuietYear).
+    if (l.quiet && /\{\{/.test(l.text)) errors.push(`${where}: a quiet line has no placeholders (the engine finds it again by its text)`);
     for (const issue of [...textIssues(l.text), ...placeholderIssues(l.text), ...conditionIssues(l.conditions)]) errors.push(`${where}: ${issue}`);
     if (PERSON_PLACEHOLDER.test(l.text) && !l.person) errors.push(`${where}: uses person placeholders but has no person selector`);
     if (l.person && !l.person.kind.length) errors.push(`${where}: person selector lists no kind`);

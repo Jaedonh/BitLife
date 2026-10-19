@@ -793,7 +793,8 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     maxAge: 29,
     weight: 2,
     cooldown: 3,
-    person: { kind: ['friend', 'bestFriend'] },
+    // A group chat reaches friends anywhere, those left behind by a move abroad included.
+    person: { kind: ['friend', 'bestFriend'], farAway: 'any' },
     conditions: [{ inPrison: false }, { year: { gte: 2010 } }, { not: { sinceEvent: 'tm_group_chat_drama', lte: 2 } }],
     choices: [
       {
@@ -1743,7 +1744,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     maxAge: 29,
     weight: 2,
     cooldown: 3,
-    conditions: [{ inPrison: false }, { hasLover: false }, { not: { sinceEvent: 'lf_blind_date', lte: 2 } }],
+    conditions: [{ inPrison: false }, { hasLover: false }, { flag: 'grieving', exists: false }, { not: { sinceEvent: 'lf_blind_date', lte: 4 } }],
     // A grown-up with coworkers of {{their}} own.
     person: { kind: ['friend', 'bestFriend', 'sibling'], minAge: 18 },
     choices: [

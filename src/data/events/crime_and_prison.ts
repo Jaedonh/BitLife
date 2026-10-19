@@ -518,7 +518,8 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
     maxAge: 80,
     weight: 1,
     cooldown: 5,
-    conditions: [{ inPrison: false }],
+    // Not within two years of young_adult's ya_scam_call, the other scam call.
+    conditions: [{ inPrison: false }, { not: { sinceEvent: 'ya_scam_call', lte: 2 } }],
     choices: [
       {
         id: 'run_it',
@@ -538,7 +539,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
       {
         id: 'waste',
         label: 'Waste their time',
-        effects: [{ karma: 1 }, { stat: 'happiness', delta: 4 }, { log: 'I read them my library card number, slowly, twice, then asked for a supervisor. They hung up.', kind: 'good' }],
+        effects: [{ karma: 1 }, { stat: 'happiness', delta: 4 }, { log: 'I read them my library card number, slowly, twice, then tried to sell them a car warranty. Click.', kind: 'good' }],
       },
       {
         id: 'report',

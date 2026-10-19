@@ -12,7 +12,8 @@ import type { Condition, EventDef, PersonSelector } from '@/engine/events/schema
  *   say when the move changed the language or the culture, so a family that moved from Canada to the United States
  *   is never handed a dictionary, and RICHER when it moved somewhere that pays better (money sent home). There is
  *   no placeholder for the old country, so the text says "back home". Nothing records how long ago the move was,
- *   so the arrival cards carry a high weight to land soon after it.
+ *   so the arrival cards carry a high weight to land soon after it. Friends and grandparents left behind live far
+ *   away and are bound only by FRIEND_BACK_HOME and GRANDPARENT_BACK_HOME: a call, a letter or a parcel.
  * - Farm kid (`farm`), big family (`scenario:big_family`), single parent (`scenario:single_parent`) and
  *   prodigy (`prodigy`). Scenario cards reach only one life in eight, so their weights sit at the top of the
  *   range (a few once-only milestones in short windows go above it) or most of those lives would never see them.
@@ -43,6 +44,12 @@ const FOSTER_PARENT: PersonSelector = { kind: ['stepmother', 'stepfather'], hous
 const RAISER: PersonSelector = { kind: ['mother', 'father', 'stepmother', 'stepfather'], household: true };
 /** A mother or father the player still lives with ("Mom", "Dad"). */
 const PARENT_AT_HOME: PersonSelector = { kind: ['mother', 'father'], household: true };
+/**
+ * A friend or a grandparent left behind by the move (GAME_DESIGN §4a): only a card written for distance binds
+ * them (`farAway: true`), so these are letters, calls and parcels, never a visit.
+ */
+const FRIEND_BACK_HOME: PersonSelector = { kind: ['bestFriend', 'friend'], farAway: true };
+const GRANDPARENT_BACK_HOME: PersonSelector = { kind: ['grandparent'], farAway: true };
 /** The one parent of a single-parent home, with no step-parent in the picture. */
 const NO_STEP_PARENT: Condition = { noPerson: ['stepmother', 'stepfather'] };
 
@@ -497,7 +504,7 @@ export const STARTING_SCENARIOS_EVENTS: EventDef[] = [
     id: 'ss_fc_sibling_ages_out',
     category: 'family',
     title: 'Eighteen',
-    text: '{{person}} is aging out of foster care, which means that any day now {{they}} will be on {{their}} own. {{They}} has a bus pass, a phone and a plan written on {{their}} arm in pen.',
+    text: '{{person}} is aging out of foster care, which means that any day now {{they}} will be on {{their}} own. {{They}} has a bus pass, a duffel bag and a plan written on {{their}} arm in pen.',
     minAge: 6,
     maxAge: 16,
     // A foster sibling is 17 or 18 for only two of my years.
@@ -823,22 +830,23 @@ export const STARTING_SCENARIOS_EVENTS: EventDef[] = [
     id: 'ss_im_old_friend',
     category: 'friends',
     title: 'Long distance',
-    text: 'My best friend from back home called long distance. Ten minutes in, I realized there are new jokes and new friends there, and I have been gone long enough to miss the reasons.',
+    text: '{{person}} called from back home, long distance. Ten minutes in, I realized there are new jokes and new friends there, and I have been gone long enough to miss the reasons.',
     minAge: 7,
     maxAge: 16,
     weight: 2,
     once: true,
     conditions: [IMMIGRANT],
+    person: FRIEND_BACK_HOME,
     choices: [
       {
         id: 'weekly',
         label: 'Promise to call every week',
-        effects: [{ stat: 'happiness', delta: 2 }, { energy: -1 }, { log: 'We set a weekly call. We made it eight weeks, which is a record for that distance.' }],
+        effects: [{ stat: 'happiness', delta: 2 }, { energy: -1 }, { relationship: 'person', delta: 6 }, { log: 'We set a weekly call. We made it eight weeks, which is a record for that distance.' }],
       },
       {
         id: 'here',
         label: 'Focus on friends here',
-        effects: [{ stat: 'happiness', delta: 3 }, { karma: -1 }, { log: 'I let the calls slip and said yes to a sleepover here instead. It felt like cheating. It was fun.' }],
+        effects: [{ stat: 'happiness', delta: 3 }, { karma: -1 }, { relationship: 'person', delta: -4 }, { log: 'I let the calls slip and said yes to a sleepover here instead. It felt like cheating. It was fun.' }],
       },
       {
         id: 'family',
@@ -849,6 +857,100 @@ export const STARTING_SCENARIOS_EVENTS: EventDef[] = [
           { relationship: 'father', delta: 2 },
           { log: 'I told {{parents}} I missed home. We made the old Sunday soup and ate it on the floor.' },
         ],
+      },
+    ],
+  },
+  {
+    id: 'ss_im_letter',
+    category: 'friends',
+    title: 'News from the old street',
+    text: 'A thick envelope came from {{person}}, back home: two pages of news, a drawing of our old street and a list of everything that has changed since I left. The list is longer than I expected.',
+    minAge: 7,
+    maxAge: 17,
+    weight: 2,
+    once: true,
+    conditions: [IMMIGRANT],
+    person: FRIEND_BACK_HOME,
+    choices: [
+      {
+        id: 'write',
+        label: 'Write back a long letter',
+        effects: [{ energy: -1 }, { stat: 'smarts', delta: 1 }, { stat: 'happiness', delta: 2 }, { relationship: 'person', delta: 8 }, { log: 'I wrote back five pages about my new street. {{person}} said it read like a travel book.', kind: 'good' }],
+      },
+      {
+        id: 'candy',
+        label: 'Mail some candy from here',
+        hint: '{{$30}}',
+        effects: [{ money: -30 }, { stat: 'happiness', delta: 3 }, { relationship: 'person', delta: 6 }, { log: "I mailed {{person}} the strangest candy I could find here. The reply was one word: 'MORE.'" }],
+      },
+      {
+        id: 'later',
+        label: 'Answer it later',
+        effects: [{ stat: 'happiness', delta: 1 }, { relationship: 'person', delta: -5 }, { log: 'I kept the letter on my desk to answer properly. It is still there, under three other things.' }],
+      },
+    ],
+  },
+  {
+    id: 'ss_im_old_words',
+    category: 'family',
+    title: 'The old words',
+    text: '{{person}} called from back home and spoke only in our old language, the way {{they}} always does. Halfway through I reached for a word I used to know and found nothing there. {{They}} noticed.',
+    minAge: 8,
+    maxAge: 25,
+    weight: 2,
+    once: true,
+    conditions: [IMMIGRANT, NEW_LANGUAGE],
+    person: GRANDPARENT_BACK_HOME,
+    choices: [
+      {
+        id: 'lessons',
+        label: 'Ask {{them}} to teach me again',
+        effects: [{ energy: -1 }, { stat: 'smarts', delta: 2 }, { relationship: 'person', delta: 8 }, { log: 'Every call now ends with five new words and starts with a quiz on the old ones.', kind: 'good' }],
+      },
+      {
+        id: 'switch',
+        label: 'Answer in the new language',
+        effects: [{ stat: 'happiness', delta: 1 }, { relationship: 'person', delta: -5 }, { log: '{{person}} went quiet, then said my new language sounds very nice. It was not praise.' }],
+      },
+      {
+        id: 'laugh',
+        label: 'Laugh it off',
+        effects: [
+          {
+            chance: 0.5,
+            then: [{ stat: 'happiness', delta: 2 }, { relationship: 'person', delta: 3 }, { log: 'We laughed until {{person}} forgot what we had been talking about, which helped.' }],
+            else: [{ stat: 'happiness', delta: -2 }, { relationship: 'person', delta: -2 }, { log: '{{person}} laughed too, then asked to speak to someone who still remembers.', kind: 'bad' }],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'ss_im_parcel',
+    category: 'family',
+    title: 'A box from back home',
+    text: 'A parcel came from {{person}}, back home, taped on every side: the sweets I loved when I was small, a jar of something that leaked a little and a hand-knitted sweater in the size I was when we left.',
+    minAge: 8,
+    maxAge: 18,
+    weight: 2,
+    once: true,
+    conditions: [IMMIGRANT],
+    person: GRANDPARENT_BACK_HOME,
+    choices: [
+      {
+        id: 'wear',
+        label: 'Squeeze into the sweater',
+        effects: [{ stat: 'looks', delta: -1 }, { stat: 'happiness', delta: 3 }, { relationship: 'person', delta: 6 }, { log: 'I squeezed into it for a photo to send back. {{person}} says I have not changed a bit.' }],
+      },
+      {
+        id: 'thanks',
+        label: 'Call to say thank you',
+        effects: [{ energy: -1 }, { stat: 'happiness', delta: 2 }, { relationship: 'person', delta: 8 }, { log: 'I called to say thank you. {{person}} wanted my opinion on every item, one at a time.', kind: 'good' }],
+      },
+      {
+        id: 'ration',
+        label: 'Make the sweets last',
+        effects: [{ stat: 'happiness', delta: 4 }, { stat: 'health', delta: -1 }, { log: 'I rationed the sweets to one a day. They lasted until spring and tasted like our old kitchen.' }],
       },
     ],
   },

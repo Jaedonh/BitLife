@@ -17,12 +17,13 @@ export const PET_EVENTS: EventDef[] = [
     id: 'pt_stray_cat_rain',
     category: 'family',
     title: 'The rainy stray',
-    text: 'It rained all evening and a soaked tabby cat followed me the whole way home, then sat on the front step staring at the door as if I were the one who was late. No collar. Very loud.',
+    text: 'It rained all evening and a soaked tabby cat followed me the whole way home, then sat on the front step staring at the door as if it had a reservation. No collar. Very loud.',
     minAge: 6,
     maxAge: 75,
     weight: 1,
     once: true,
-    conditions: [{ noPerson: ['pet'] }, { inPrison: false }],
+    // Not soon after kid_years' kd_stray_cat or friends_and_strangers' fs_lost_dog, the other animals that followed me home.
+    conditions: [{ noPerson: ['pet'] }, { inPrison: false }, { not: { sinceEvent: 'kd_stray_cat', lte: 6 } }, { not: { sinceEvent: 'fs_lost_dog', lte: 3 } }],
     choices: [
       {
         id: 'let_in',
@@ -99,7 +100,7 @@ export const PET_EVENTS: EventDef[] = [
       {
         id: 'decline',
         label: 'Say no',
-        effects: [{ relationship: 'person', delta: -6 }, { stat: 'happiness', delta: -2 }, { log: '{{person}} said {{they}} understood. {{They}} did not text for a while.' }],
+        effects: [{ relationship: 'person', delta: -6 }, { stat: 'happiness', delta: -2 }, { log: '{{person}} said {{they}} understood. {{They}} did not call for a while.' }],
       },
     ],
   },
@@ -213,18 +214,19 @@ export const PET_EVENTS: EventDef[] = [
     id: 'pt_inherit_parrot',
     category: 'family',
     title: 'The will',
-    text: 'A great-aunt I met twice has died and, for reasons known only to her, left me her parrot. It arrived by courier in a cage with a blanket over it, muttering.',
+    text: 'An old neighbor from the street I grew up on has died and, for reasons known only to her, left me her parrot. It arrived by courier in a cage with a blanket over it, muttering.',
     minAge: 16,
     maxAge: 75,
     weight: 0.5,
     once: true,
-    conditions: [{ noPerson: ['pet'] }, { inPrison: false }],
+    // Not within a few years of money_events' mn_distant_inheritance, the other will.
+    conditions: [{ noPerson: ['pet'] }, { inPrison: false }, { not: { sinceEvent: 'mn_distant_inheritance', lte: 3 } }],
     choices: [
       {
         id: 'keep',
         label: 'Keep the parrot',
         effects: [
-          { newPerson: { kind: 'pet', species: 'parrot', relationship: 45, log: 'The parrot is called {{person}} and looks at me the way my great-aunt did. I feel judged by a bird.' } },
+          { newPerson: { kind: 'pet', species: 'parrot', relationship: 45, log: 'The parrot is called {{person}} and looks at me the way its old owner did. I feel judged by a bird.' } },
           { stat: 'happiness', delta: 3 },
           { flag: 'pt_parrot', set: true },
           { log: 'The cage went in the corner of the living room. The muttering did not stop.' },
@@ -817,7 +819,7 @@ export const PET_EVENTS: EventDef[] = [
       {
         id: 'rehome',
         label: 'Rehome {{person}}',
-        effects: [{ log: 'A friend with a big yard took {{person}}. I get photos. I cannot look at them yet.', kind: 'bad' }, { removePerson: true }, { stat: 'happiness', delta: -10 }, { stat: 'health', delta: 4 }],
+        effects: [{ log: 'A friend with no allergies took {{person}}. I get photos. I cannot look at them yet.', kind: 'bad' }, { removePerson: true }, { stat: 'happiness', delta: -10 }, { stat: 'health', delta: 4 }],
       },
       {
         id: 'tough',
@@ -970,7 +972,7 @@ export const PET_EVENTS: EventDef[] = [
       {
         id: 'headphones',
         label: 'Keep my headphones in',
-        effects: [{ relationship: 'person', delta: 3 }, { stat: 'happiness', delta: 1 }, { log: 'Just me, {{person}} and a podcast. The greyhound man nods. I nod. This is enough.' }],
+        effects: [{ relationship: 'person', delta: 3 }, { stat: 'happiness', delta: 1 }, { log: 'Just me, {{person}} and my music. The greyhound man nods. I nod. This is enough.' }],
       },
       {
         id: 'picnic',
@@ -1033,6 +1035,8 @@ export const PET_EVENTS: EventDef[] = [
         id: 'camera',
         label: 'Install a pet camera',
         hint: '{{$60}}',
+        // Watching from my desk: a camera that streams to my phone.
+        conditions: [{ year: { gte: 2014 } }],
         effects: [{ money: -60 }, { stat: 'happiness', delta: -1 }, { stat: 'smarts', delta: 1 }, { log: 'I now watch {{person}} wait for me from my desk. It has made nothing better and everything clearer.' }],
       },
     ],
@@ -1103,7 +1107,7 @@ export const PET_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 3 },
           {
             chance: 0.3,
-            then: [{ fame: 1 }, { money: 100 }, { log: 'One photo went viral. A magazine paid for it. Now my kid wants an agent.', kind: 'money' }],
+            then: [{ fame: 1 }, { money: 100 }, { log: 'One photo won a magazine contest, prize money and all. Now my kid wants an agent.', kind: 'money' }],
             else: [{ log: 'A thousand photos, four of them in focus. Those four are on every wall in the house.' }],
           },
         ],

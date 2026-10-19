@@ -243,7 +243,8 @@ export const MONEY_EVENTS: EventDef[] = [
     maxAge: 80,
     weight: 1.5,
     cooldown: 8,
-    conditions: [{ inPrison: false }, { ownsAssetId: ['old_hatchback', 'sedan', 'pickup', 'ev', 'luxury_sedan', 'sports_car', 'supercar', 'classic_car'] }],
+    // Not within two years of young_adult's ya_car_breakdown, the other dead car.
+    conditions: [{ inPrison: false }, { ownsAssetId: ['old_hatchback', 'sedan', 'pickup', 'ev', 'luxury_sedan', 'sports_car', 'supercar', 'classic_car'] }, { not: { sinceEvent: 'ya_car_breakdown', lte: 2 } }],
     choices: [
       {
         id: 'full',
@@ -748,7 +749,7 @@ export const MONEY_EVENTS: EventDef[] = [
     weight: 1.2,
     cooldown: 4,
     // One pyramid pitch per life: adult_life's ad_friend_mlm is the same scene.
-    conditions: [{ inPrison: false }, { money: { gte: 200 } }, { eventNotFired: 'ad_friend_mlm' }],
+    conditions: [{ inPrison: false }, { money: { gte: 200 } }, { eventNotFired: 'ad_friend_mlm' }, { not: { sinceEvent: 'fs_powder_pitch', lte: 2 } }],
     person: { kind: ['friend', 'bestFriend', 'coworker', 'sibling'], minAge: 18, minRelationship: 25 },
     choices: [
       {
@@ -798,7 +799,8 @@ export const MONEY_EVENTS: EventDef[] = [
     weight: 1.5,
     cooldown: 10,
     conditions: [{ inPrison: false }, { money: { gte: 500 } }],
-    person: { kind: ['friend', 'bestFriend'], minAge: 18, minRelationship: 30 },
+    // Asked and sent by phone, so a friend left behind by a move abroad can ask too (the follow-up binds them the same way).
+    person: { kind: ['friend', 'bestFriend'], minAge: 18, minRelationship: 30, farAway: 'any' },
     choices: [
       {
         id: 'lend',
@@ -841,7 +843,7 @@ export const MONEY_EVENTS: EventDef[] = [
     weight: 1,
     followUpOnly: true,
     conditions: [{ inPrison: false }],
-    person: { kind: ['friend', 'bestFriend'] },
+    person: { kind: ['friend', 'bestFriend'], farAway: 'any' },
     choices: [
       {
         id: 'ask',

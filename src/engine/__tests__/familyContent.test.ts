@@ -1,13 +1,16 @@
 /**
  * Family and later-life content agrees with the state it opens in (love_and_family, grown_up_life, golden_years,
- * later_life, adult_life, holidays_and_traditions, pet_events, grandparents, grandchildren): the people a card talks
- * about exist, the timing and the home fit, the pet is the right animal, and no choice beats every other one.
+ * later_life, adult_life, holidays_and_traditions, pet_events, grandparents, grandchildren, and the immigrant cards
+ * of starting_scenarios): the people a card talks about exist, the timing, the era and the home fit, the pet is the
+ * right animal, nobody new is offered while I mourn a partner, people left in the old country still call and
+ * write, and no choice beats every other one.
  */
 import { EVENTS } from '@/data/events';
 import { candidatesFor } from '../events/conditions';
-import type { Effect, EventDef } from '../events/schema';
+import { EVENT_REGISTRY } from '../events/registry';
+import type { ChoiceDef, Condition, Effect, EventDef } from '../events/schema';
 import { validateEvent } from '../events/schema';
-import { isEligible } from '../events/select';
+import { isEligible, openNextEvent, resolveChoice } from '../events/select';
 import { Rng } from '../rng';
 import { createLife, emptyMemory, makePerson } from '../systems/character';
 import type { Asset, GameState, Person, RelationshipKind } from '../types';
@@ -308,6 +311,203 @@ describe('twins and repeats', () => {
     for (const id of ['hd_winter_gathering', 'hd_resolution', 'hd_terrible_gift', 'hd_gift_budget', 'hd_birthday_plans', 'hd_midnight_countdown', 'hd_charity_drive', 'hd_costume_party', 'hd_roast_disaster', 'll_scam_call']) {
       expect([id, (EVENT(id).cooldown ?? 2) >= 6]).toEqual([id, true]);
     }
+  });
+});
+
+describe('twin guards go both ways', () => {
+  // Each of these cards tells the same scene as a card in another file, which guards against it in turn
+  // (or, for ya_forgot_anniversary at 18-29, always comes first), so neither opens within a few years of the other.
+  it.each([
+    ['lf_partner_job_far', 'ya_long_distance', 2],
+    ['lf_blind_date', 'ya_blind_date', 4],
+    ['lf_coworker_asks_out', 'wk_workplace_flirt', 6],
+    ['lf_meet_their_parents', 'ya_meet_the_parents', 4],
+    ['lf_meet_their_parents', 'pl_meet_parents', 5],
+    ['ad_anniversary_forgot', 'ya_forgot_anniversary', 2],
+    ['ad_parent_tech_support', 'tm_parent_tech_help', 5],
+    ['ad_friend_mlm', 'mn_mlm_pitch', 3],
+    ['ad_burnout', 'wk_burnout', 5],
+    ['ad_anniversary_forgot', 'lf_anniversary_slip', 2],
+    ['lf_anniversary_slip', 'ya_forgot_anniversary', 2],
+    ['lf_anniversary_slip', 'ad_anniversary_forgot', 2],
+    ['lf_sibling_loan', 'mn_friend_loan', 3],
+    ['ad_sibling_feud', 'hd_estranged_sibling', 3],
+    ['hd_estranged_sibling', 'ad_sibling_feud', 3],
+    ['hd_surprise_party', 'll_surprise_birthday', 5],
+    ['ll_surprise_birthday', 'hd_surprise_party', 5],
+    ['hd_office_party', 'wk_office_party', 3],
+    ['ad_neighbour_noise', 'nc_noisy_neighbour', 3],
+    ['ad_jury_duty', 'nc_jury_duty', 6],
+    ['ad_surprise_inheritance', 'mn_distant_inheritance', 10],
+    ['gu_cereal_aisle', 'yp_cereal_aisle', 6],
+    ['gu_daycare_bill', 'yp_daycare_math', 4],
+    ['gu_baby_three_am', 'yp_baby_night_shift', 3],
+    ['pt_stray_cat_rain', 'kd_stray_cat', 6],
+    ['pt_stray_cat_rain', 'fs_lost_dog', 3],
+    ['pt_inherit_parrot', 'mn_distant_inheritance', 3],
+  ] as const)('%s waits for %s (%i years)', (id, twin, years) => {
+    expect(EVENT(id).conditions).toContainEqual({ not: { sinceEvent: twin, lte: years } });
+  });
+
+  it('the marker mural on the hallway wall happens once per life', () => {
+    expect(EVENT('gu_hallway_mural').conditions).toContainEqual({ eventNotFired: 'yp_hallway_mural' });
+  });
+
+  it('only a grown sibling asks to borrow rent money', () => {
+    const little = person('sibling', { age: 9 });
+    const grown = person('sibling', { age: 27 });
+    expect(bound(life(30, [little, grown]), 'lf_sibling_loan').map((p) => p.id)).toEqual([grown.id]);
+  });
+
+  it('the commuter on the 8:10 does not ask me out within six years of the flirt at work', () => {
+    const def = EVENT('lf_coworker_asks_out');
+    const job = { defId: 'accountant', title: 'Accountant', company: 'Granite & Sons', salary: 60_000, level: 1, performance: 70, yearsHeld: 4, yearsAtLevel: 2, category: 'finance' as const, partTime: false, askedThisYear: false, workedHarderThisYear: false };
+    const base = life(40, [], { patch: { career: { ...life(40).career, job } } });
+    expect(isEligible(base, def)).toBe(true);
+    expect(isEligible({ ...base, firedEvents: { wk_workplace_flirt: 34 } }, def)).toBe(false);
+    expect(isEligible({ ...base, firedEvents: { wk_workplace_flirt: 33 } }, def)).toBe(true);
+  });
+});
+
+describe('era', () => {
+  /** Every player-facing line of an event, with the conditions in force when it shows (the event's plus its choice's). */
+  function shownLines(def: EventDef): { text: string; conds: Condition[] }[] {
+    const ev = def.conditions ?? [];
+    const out = [{ text: def.title, conds: ev }, { text: def.text, conds: ev }];
+    for (const c of def.choices) {
+      const conds = [...ev, ...(c.conditions ?? [])];
+      out.push({ text: c.label, conds }, { text: c.hint ?? '', conds });
+      const walk = (effects: readonly Effect[]): void => {
+        for (const e of effects) {
+          if ('log' in e) out.push({ text: e.log, conds });
+          if ('newPerson' in e && e.newPerson.log) out.push({ text: e.newPerson.log, conds });
+          if ('chance' in e) { walk(e.then); walk(e.else ?? []); }
+          if ('random' in e) for (const o of e.random) walk(o.effects);
+        }
+      };
+      walk(c.effects);
+    }
+    return out;
+  }
+  /** Players are born 1975-2010, so a line can show from 1975 + minAge unless a { year: { gte } } gate lifts it. */
+  const earliest = (def: EventDef, conds: readonly Condition[]) => Math.max(1975 + def.minAge, ...conds.flatMap((c) => ('year' in c && c.year.gte !== undefined ? [c.year.gte] : [])));
+
+  it('phones, texts, group chats, video calls, streaming and the internet only once they existed', () => {
+    const ERA: [RegExp, number][] = [
+      [/\bcrypto/i, 2013],
+      [/streaming|still logged in|DNA test|genealogy site|pet camera/i, 2010],
+      [/\bapps?\b|group chat|video[- ]?call|emoji|screenshot|selfie|podcast|\bviral\b|\bon read\b|\bscroll|phone wallpaper|on (?:my|their|\{\{their\}\}) phones?\b|\bno phones\b|\btutorials?\b|\bvideos\b|a video and/i, 2008],
+      [/\btext(s|ed|ing)?\b|guarding \{\{their\}\} phone|checked my phone/i, 2003],
+      [/\bonline\b|internet|website|\bemails?\b|\bforum\b|\binbox\b|voicemail|\bmessaged\b/i, 1998],
+    ];
+    const bad = EVENTS.filter((e) => MINE.test(e.id) || e.id.startsWith('ss_')).flatMap((def) =>
+      shownLines(def).flatMap((l) => ERA.filter(([re, year]) => re.test(l.text) && earliest(def, l.conds) < year).map(([, year]) => `${def.id} (from ${earliest(def, l.conds)}, needs ${year}): ${l.text}`)),
+    );
+    expect(bad).toEqual([]);
+  });
+
+  it('a suspicious phone, a streaming account and a DNA match wait for their decade', () => {
+    for (const [id, year] of [['lf_cheating_suspicion', 2005], ['gu_ex_still_logged_in', 2013], ['ad_long_lost_sibling', 2012]] as const) {
+      expect([id, EVENT(id).conditions]).toEqual([id, expect.arrayContaining([{ year: { gte: year } }])]);
+    }
+  });
+});
+
+describe('the grief window', () => {
+  /** Whether an effects list (or any branch of it) brings a new lover or spouse into the life. */
+  const bringsPartner = (effects: readonly Effect[]): boolean =>
+    effects.some((e) => ('newPerson' in e && (e.newPerson.kind === 'lover' || e.newPerson.kind === 'spouse')) || ('chance' in e && (bringsPartner(e.then) || bringsPartner(e.else ?? []))) || ('random' in e && e.random.some((o) => bringsPartner(o.effects))));
+  const GRIEF: Condition = { flag: 'grieving', exists: false };
+  const waits = (def: EventDef, c: ChoiceDef) => [...(def.conditions ?? []), ...(c.conditions ?? [])].some((x) => JSON.stringify(x) === JSON.stringify(GRIEF));
+  /** Dates that rekindle someone already in the life rather than bring a new person. */
+  const DATES: [string, string][] = [['ll_old_flame_coffee', 'rekindle']];
+
+  it('no card in these files offers a new partner or a date while I mourn one', () => {
+    const offers = EVENTS.filter((e) => MINE.test(e.id) || e.id.startsWith('ss_')).flatMap((def) => def.choices.filter((c) => bringsPartner(c.effects) || DATES.some(([id, cid]) => id === def.id && cid === c.id)).map((c) => ({ def, c })));
+    expect(offers.length).toBeGreaterThan(10);
+    expect(offers.filter(({ def, c }) => !waits(def, c)).map(({ def, c }) => `${def.id}.${c.id}`)).toEqual([]);
+  });
+
+  it("a widow's dinner invitation waits until the grief window has closed", () => {
+    const late = person('spouse', { age: 61, alive: false, deathAge: 61, marriedAtAge: 30, gender: 'male', mourned: true });
+    const s = life(62, [late], { patch: { counters: { ...life(62).counters, marriages: 1 } } });
+    const def = EVENT('gu_widowed_dinner_invite');
+    expect(isEligible({ ...s, flags: { grieving: 61 } }, def)).toBe(false);
+    expect(isEligible(s, def)).toBe(true);
+  });
+});
+
+describe('people left in the old country', () => {
+  const far = (kind: RelationshipKind, patch: Partial<Person> = {}) => person(kind, { farAway: true, ...patch });
+
+  it('calls, video calls and a scam call reach a grandparent who lives far away; a visit does not', () => {
+    const gran = far('grandparent', { age: 80, gender: 'female' });
+    const s = life(20, [gran]);
+    for (const id of ['gp_birthday_song', 'gp_video_lesson', 'gp_scam_call']) {
+      expect(EVENT(id).person?.farAway).toBe('any');
+      expect([id, bound(s, id).map((p) => p.id)]).toEqual([id, [gran.id]]);
+    }
+    expect(bound(s, 'gp_meets_my_date')).toEqual([]);
+  });
+
+  it('a video call in old age can be to a friend abroad', () => {
+    const friend = far('friend', { age: 70 });
+    expect(bound(life(70, [friend]), 'gy_video_call').map((p) => p.id)).toEqual([friend.id]);
+  });
+
+  it('an immigrant child hears from the friends and grandparents left behind, and only from them', () => {
+    const IDS = { friend: ['ss_im_old_friend', 'ss_im_letter'], grandparent: ['ss_im_old_words', 'ss_im_parcel'] };
+    const old = far('bestFriend', { age: 12 });
+    const gran = far('grandparent', { age: 74, gender: 'female' });
+    const local = person('friend', { age: 12 });
+    const immigrant = { flags: { immigrant: 'MX' } };
+    const s = life(12, [old, gran, local], { patch: immigrant });
+    for (const id of IDS.friend) expect([id, isEligible(s, EVENT(id)), bound(s, id).map((p) => p.id)]).toEqual([id, true, [old.id]]);
+    for (const id of IDS.grandparent) expect([id, isEligible(s, EVENT(id)), bound(s, id).map((p) => p.id)]).toEqual([id, true, [gran.id]]);
+    // Nobody left behind (only friends made here), or not an immigrant at all: no news from back home.
+    for (const id of [...IDS.friend, ...IDS.grandparent]) {
+      expect([id, isEligible(life(12, [local, person('grandparent', { age: 74 })], { patch: immigrant }), EVENT(id))]).toEqual([id, false]);
+      expect([id, isEligible(life(12, [old, gran]), EVENT(id))]).toEqual([id, false]);
+    }
+  });
+
+  it('the old words fade only for a family that changed languages', () => {
+    const gran = far('grandparent', { age: 74 });
+    expect(isEligible(life(12, [gran], { countryCode: 'ES', patch: { flags: { immigrant: 'MX' } } }), EVENT('ss_im_old_words'))).toBe(false);
+    expect(isEligible(life(12, [gran], { countryCode: 'ES', patch: { flags: { immigrant: 'MX' } } }), EVENT('ss_im_parcel'))).toBe(true);
+  });
+});
+
+describe("my children's milestones", () => {
+  const open = (s: GameState, eventId: string, personId: string) => openNextEvent({ ...s, pendingEvent: null, eventQueue: [{ eventId, context: {}, personId }] }, EVENT_REGISTRY);
+
+  it('a child who comes out is recorded as having come out, whatever I answer', () => {
+    const child = person('child', { age: 28, gender: 'female', growth: { movedOut: true } });
+    for (const choice of EVENT('lf_child_comes_out').choices) {
+      const opened = open(life(55, [child]), 'lf_child_comes_out', child.id);
+      expect(opened.pendingEvent?.eventId).toBe('lf_child_comes_out');
+      const s = resolveChoice(opened, choice.id, EVENT_REGISTRY);
+      expect([choice.id, s.people[child.id]!.growth?.cameOut]).toEqual([choice.id, true]);
+    }
+  });
+
+  it('only one grandchild is ever promised my name', () => {
+    const child = person('child', { age: 34, growth: { movedOut: true } });
+    const choices = (s: GameState) => open(s, 'll_grandchild_born', child.id).pendingEvent?.choices.map((c) => c.id);
+    expect(choices(life(66, [child]))).toEqual(['knit', 'money', 'name']);
+    expect(choices(life(66, [child], { patch: { flags: { ll_namesake: true } } }))).toEqual(['knit', 'money', 'name_again']);
+    let promised = 0;
+    for (let seed = 1; seed <= 20; seed++) {
+      const opened = open(life(66, [child], { patch: { rng: new Rng(seed).snapshot() } }), 'll_grandchild_born', child.id);
+      const s = resolveChoice(opened, 'name', EVENT_REGISTRY);
+      const named = s.people[child.id]!.growth?.babyName !== undefined;
+      if (named) promised++;
+      expect(s.flags.ll_namesake === true).toBe(named);
+    }
+    expect(promised).toBeGreaterThan(0);
+    // No other card promises my name, so the flag covers every namesake.
+    const promises = EVENTS.filter((e) => JSON.stringify(e.choices).includes('namedAfterMe')).map((e) => e.id);
+    expect(promises).toEqual(['ll_grandchild_born']);
   });
 });
 

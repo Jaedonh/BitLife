@@ -1149,7 +1149,8 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 1,
     cooldown: 6,
-    conditions: [{ inPrison: false }],
+    // Not right after another friend's move (teen_years' tn_friend_moving).
+    conditions: [{ inPrison: false }, { not: { sinceEvent: 'tn_friend_moving', lte: 2 } }],
     person: { kind: ['friend', 'bestFriend'], minRelationship: 30 },
     choices: [
       {
@@ -1387,7 +1388,8 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     maxAge: 95,
     weight: 0.8,
     cooldown: 6,
-    conditions: [{ inPrison: false }],
+    // My own windows, insurer and party: a place of my own (rented or owned), not my parents' house.
+    conditions: [{ inPrison: false }, { atHome: false }],
     choices: [
       {
         id: 'prepare',
@@ -1412,7 +1414,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
             random: [
               { weight: 5, effects: [{ log: 'It was a lot of wind. I slept through it.' }, { stat: 'happiness', delta: 1 }] },
               { weight: 3, effects: [{ log: "A branch came through the window at 3 a.m. My insurer was unimpressed by 'I ignored the warnings.'", kind: 'bad' }, { money: -400 }, { asset: 'damage', kind: 'house', amount: 20 }, { stat: 'happiness', delta: -5 }] },
-              { weight: 2, effects: [{ log: 'My roof lost a dozen shingles and my fence lost everything.', kind: 'bad' }, { asset: 'damage', kind: 'house', amount: 30 }, { money: -600 }, { stat: 'happiness', delta: -4 }] },
+              { weight: 2, effects: [{ log: 'Water came in under the door overnight. The rug is gone, and the couch smells like a pond.', kind: 'bad' }, { asset: 'damage', kind: 'house', amount: 30 }, { money: -600 }, { stat: 'happiness', delta: -4 }] },
             ],
           },
         ],

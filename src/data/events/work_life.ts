@@ -570,7 +570,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 40,
     weight: 1,
     once: true,
-    conditions: [{ hasJob: true }],
+    conditions: [{ hasJob: true }, { not: { sinceEvent: 'ya_mentor_offer', lte: 2 } }],
     person: { kind: ['coworker'], minAge: 38 },
     choices: [
       {
@@ -599,7 +599,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 0.8,
     cooldown: 5,
-    conditions: [{ hasJob: true }],
+    // Not within two years of coworkers' cw_retiring_box, the other coworker's retirement (it guards back).
+    conditions: [{ hasJob: true }, { not: { sinceEvent: 'cw_retiring_box', lte: 2 } }],
     person: { kind: ['coworker'], minAge: 55 },
     choices: [
       {
@@ -629,7 +630,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     weight: 1,
     cooldown: 4,
     // Not within a few years of love_and_family's lf_coworker_asks_out, the same dinner invitation.
-    conditions: [{ inPrison: false }, { hasJob: true }, { partTime: false }, { hasLover: false }, { not: { sinceEvent: 'lf_coworker_asks_out', lte: 6 } }],
+    conditions: [{ inPrison: false }, { hasJob: true }, { partTime: false }, { hasLover: false }, { flag: 'grieving', exists: false }, { not: { sinceEvent: 'lf_coworker_asks_out', lte: 6 } }],
     choices: [
       {
         id: 'date',
@@ -1055,7 +1056,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     weight: 0.8,
     cooldown: 5,
     // Not within a few years of adult_life's ad_burnout, the same burnout from another file.
-    conditions: [{ hasJob: true }, { partTime: false }, { any: [{ stat: 'happiness', lte: 50 }, { stat: 'health', lte: 55 }] }, { not: { sinceEvent: 'ad_burnout', lte: 4 } }],
+    conditions: [{ hasJob: true }, { partTime: false }, { any: [{ stat: 'happiness', lte: 50 }, { stat: 'health', lte: 55 }] }, { not: { sinceEvent: 'ad_burnout', lte: 5 } }],
     choices: [
       {
         id: 'leave',
@@ -1492,10 +1493,12 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     weight: 0.7,
     cooldown: 8,
     // A rival employer exists: not the Army, a city's own services, courts, library or university, or its one team.
+    // Nobody headhunts the bottom rung of a service job with a signing bonus.
     conditions: [
       { hasJob: true },
       { partTime: false },
       { not: { jobId: ['military', 'police', 'firefighter', 'paramedic', 'mail_carrier', 'civil_servant', 'politician', 'judge', 'professor', 'librarian', 'athlete', 'coach'] } },
+      { not: { all: [{ jobCategory: ['service'] }, { jobLevel: { lte: 0 } }] } },
       NOT_AN_OWNER,
     ],
     choices: [
@@ -1506,14 +1509,12 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
           { flag: 'wk_jumped_ship', set: true },
           {
             chance: 0.8,
-            // switchEmployer leaves the old coworkers behind and brings none, so the new place gets two (newPerson works at the current job).
+            // switchEmployer leaves the old coworkers behind and hires me into a new team (two or three of them).
             then: [
               { switchEmployer: true, raise: 0.15 },
               { money: 5000 },
               { stat: 'happiness', delta: 4 },
               { log: 'I gave notice, banked the signing bonus and started at the rival on Monday. Same job, better pay.', kind: 'money' },
-              { newPerson: { kind: 'coworker', relationship: 45 } },
-              { newPerson: { kind: 'coworker', relationship: 50, log: 'On my first day, {{person}} showed me where everything was and who actually knows things.' } },
             ],
             else: [{ loseJob: true, reason: 'left' }, { money: 1500 }, { stat: 'happiness', delta: -5 }, { log: 'The rival "restructured" before my start date. I had already quit. A small bonus, no desk.', kind: 'bad' }],
           },

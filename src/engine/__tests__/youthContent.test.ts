@@ -165,12 +165,15 @@ describe('twins: my copy reads as its own scene and never opens within two years
     const e = youth(mine);
     const guard = (e.conditions ?? []).find((c): c is { not: Condition } => 'not' in c && 'sinceEvent' in c.not && c.not.sinceEvent === other);
     expect(guard).toBeDefined();
-    // The guard holds while the other card is two years old or less, and lets go after.
+    // The guard holds while the other card is two years old or less (or as long as the other card's own guard
+    // against this one, so the pair keeps one distance both ways), and lets go after.
+    const years = 'sinceEvent' in guard!.not ? (guard!.not.lte ?? 0) : 0;
+    expect(years).toBeGreaterThanOrEqual(2);
     const s = createLife({}, 11);
     const fired = (yearsAgo: number): GameState => ({ ...s, character: { ...s.character, age: 25 }, firedEvents: { ...s.firedEvents, [other]: 25 - yearsAgo } });
     expect(evaluateCondition(fired(1), guard!)).toBe(false);
-    expect(evaluateCondition(fired(2), guard!)).toBe(false);
-    expect(evaluateCondition(fired(3), guard!)).toBe(true);
+    expect(evaluateCondition(fired(years), guard!)).toBe(false);
+    expect(evaluateCondition(fired(years + 1), guard!)).toBe(true);
     expect(evaluateCondition(s, guard!)).toBe(true);
     const shared = [...runs(e)].filter((r) => runs(BY_ID[other]!).has(r));
     expect(shared).toEqual([]);

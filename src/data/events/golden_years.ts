@@ -851,7 +851,8 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     maxAge: 95,
     weight: 0.8,
     once: true,
-    conditions: [...WIDOWED, { hasLover: false }, { eventNotFired: 'gu_widowed_dinner_invite' }],
+    // A date: not in the first two years after the loss (the grief window, GAME_DESIGN §10).
+    conditions: [...WIDOWED, { hasLover: false }, { flag: 'grieving', exists: false }, { eventNotFired: 'gu_widowed_dinner_invite' }],
     person: { kind: ['spouse'], alive: false },
     choices: [
       {
@@ -1129,13 +1130,14 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     id: 'gy_video_call',
     category: 'random',
     title: 'On mute',
-    text: "I made my first video call to {{person}}. It lasted twenty minutes, and I was on mute for all of it. {{They}} watched me act out my news and guessed 'gallbladder'. It was about the garden.",
+    text: "I video-called {{person}} on my new phone. It lasted twenty minutes, and I was on mute for all of it. {{They}} watched me act out my news and guessed 'gallbladder'. It was about the garden.",
     minAge: 65,
     maxAge: 100,
     weight: 1.2,
     once: true,
     conditions: [{ not: { jobCategory: ['tech'] } }],
-    person: { kind: ['child', 'sibling', 'friend', 'bestFriend'], minAge: 18 },
+    // A call works at any distance, so a friend left in the old country can be on the other end.
+    person: { kind: ['child', 'sibling', 'friend', 'bestFriend'], minAge: 18, farAway: 'any' },
     choices: [
       {
         id: 'practice',

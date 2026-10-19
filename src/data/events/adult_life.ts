@@ -154,12 +154,13 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     id: 'ad_neighbour_noise',
     category: 'random',
     title: 'Next-door drums',
-    text: 'New people moved in next door and their teenager has discovered the drums. The enthusiasm is loud. The talent, so far, is not.',
+    text: 'The teenager next door has discovered the drums. The enthusiasm is loud. The talent, so far, is not.',
     minAge: 30,
     maxAge: 59,
     weight: 1.5,
     cooldown: 4,
-    conditions: [{ inPrison: false }],
+    // Not within a few years of neighbours_and_community's nc_noisy_neighbour, the other noise through the wall.
+    conditions: [{ inPrison: false }, { not: { sinceEvent: 'nc_noisy_neighbour', lte: 3 } }],
     choices: [
       {
         id: 'ask',
@@ -318,7 +319,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           { energy: -1 },
           {
             chance: 0.5,
-            then: [{ stat: 'happiness', delta: 6 }, { log: 'Videos, swearing, three weekends. It works, and I did it.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 6 }, { log: 'Three weekends, a borrowed toolbox and a lot of swearing. It works, and I did it.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -5 }, { injury: 4 }, { asset: 'damage', kind: 'house', amount: 20 }, { log: 'I flooded the downstairs and learned which breaker the whole house is on.', kind: 'bad' }],
           },
         ],
@@ -410,6 +411,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 0.3,
     once: true,
+    // Not within ten years of money_events' mn_distant_inheritance, the other will from a relative I barely knew.
+    conditions: [{ not: { sinceEvent: 'mn_distant_inheritance', lte: 10 } }],
     choices: [
       {
         id: 'accept',
@@ -741,7 +744,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
       {
         id: 'flame',
         label: 'Find the old flame',
-        conditions: [{ hasLover: false }],
+        // Not while I mourn a partner (the grief window, GAME_DESIGN §10).
+        conditions: [{ hasLover: false }, { flag: 'grieving', exists: false }],
         effects: [
           {
             chance: 0.4,
@@ -823,7 +827,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 0.5,
     once: true,
-    conditions: [{ inPrison: false }],
+    // Mail-order DNA tests and genealogy sites.
+    conditions: [{ inPrison: false }, { year: { gte: 2012 } }],
     choices: [
       {
         id: 'meet',
@@ -924,7 +929,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 1,
     cooldown: 6,
-    conditions: [{ inPrison: false }],
+    // Not within a few years of holidays_and_traditions' hd_estranged_sibling, the same silence at a family gathering.
+    conditions: [{ inPrison: false }, { not: { sinceEvent: 'hd_estranged_sibling', lte: 3 } }],
     person: { kind: ['sibling'], maxRelationship: 40 },
     choices: [
       {
@@ -960,7 +966,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 1,
     once: true,
-    conditions: [{ inPrison: false }],
+    // A friend signing me up for something: not within a few years of money_events' wellness-oil pitch.
+    conditions: [{ inPrison: false }, { not: { sinceEvent: 'mn_mlm_pitch', lte: 3 } }],
     person: { kind: ['friend', 'bestFriend', 'sibling'] },
     choices: [
       {
@@ -1306,7 +1313,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 1,
     cooldown: 4,
-    conditions: [{ inPrison: false }],
+    // Not within two years of young_adult's ya_forgot_anniversary, the same forgotten date (it guards against this one too).
+    conditions: [{ inPrison: false }, { not: { sinceEvent: 'ya_forgot_anniversary', lte: 2 } }, { not: { sinceEvent: 'lf_anniversary_slip', lte: 2 } }],
     person: { kind: ['spouse'] },
     choices: [
       {
@@ -1346,7 +1354,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 8 },
           { stat: 'happiness', delta: 5 },
           { karma: -1 },
-          { log: 'A weekend away, booked in the bathroom on my phone. It was, in the end, wonderful.', kind: 'good' },
+          { log: 'A weekend away, booked by phone from the bathroom. It was, in the end, wonderful.', kind: 'good' },
         ],
       },
     ],
@@ -1417,7 +1425,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 1,
     cooldown: 6,
-    conditions: [{ inPrison: false }, { criminalRecord: false }],
+    // Not within a few years of neighbours_and_community's nc_jury_duty, the other summons.
+    conditions: [{ inPrison: false }, { criminalRecord: false }, { not: { sinceEvent: 'nc_jury_duty', lte: 6 } }],
     choices: [
       {
         id: 'serve',
@@ -1459,7 +1468,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     id: 'ad_jury_verdict',
     category: 'random',
     title: 'The deliberation room',
-    text: 'The trial ran three weeks. In the deliberation room, eleven jurors want to go home. The twelfth is not sure, and the twelfth is me.',
+    text: 'The trial ran three weeks. In the deliberation room the vote is eleven to one, and every head has turned toward the one. The one is me.',
     minAge: 30,
     maxAge: 80,
     weight: 1,
@@ -1659,7 +1668,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
       {
         id: 'drive',
         label: 'Take the long detour',
-        effects: [{ stat: 'happiness', delta: -4 }, { money: -600 }, { stat: 'health', delta: -1 }, { log: 'Forty minutes each way, in traffic. I have finished every podcast ever made.' }],
+        effects: [{ stat: 'happiness', delta: -4 }, { money: -600 }, { stat: 'health', delta: -1 }, { log: 'Forty minutes each way, in traffic. I now know every song the radio station owns.' }],
       },
       {
         id: 'remote',

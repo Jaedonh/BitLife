@@ -630,7 +630,8 @@ export const GRANDPARENTS_EVENTS: EventDef[] = [
     maxAge: 45,
     weight: 1,
     cooldown: 5,
-    person: { kind: ['grandparent'], minAge: 55 },
+    // A phone call: a grandparent left behind in the old country calls too.
+    person: { kind: ['grandparent'], minAge: 55, farAway: 'any' },
     choices: [
       {
         id: 'sing',
@@ -639,8 +640,8 @@ export const GRANDPARENTS_EVENTS: EventDef[] = [
       },
       {
         id: 'voicemail',
-        label: 'Let it go to voicemail',
-        effects: [{ stat: 'health', delta: 1 }, { stat: 'happiness', delta: 1 }, { relationship: 'person', delta: -2 }, { log: 'I slept through it. The voicemail is four minutes long. I have kept it.' }],
+        label: 'Let it ring',
+        effects: [{ stat: 'health', delta: 1 }, { stat: 'happiness', delta: 1 }, { relationship: 'person', delta: -2 }, { log: 'I slept through it. {{person}} sang all four minutes as a message. I have kept it.' }],
       },
       {
         id: 'later',
@@ -668,7 +669,8 @@ export const GRANDPARENTS_EVENTS: EventDef[] = [
     once: true,
     // Video calls on a phone.
     conditions: [{ year: { gte: 2012 } }],
-    person: { kind: ['grandparent'], minAge: 60 },
+    // A video call reaches a grandparent in the old country just as well.
+    person: { kind: ['grandparent'], minAge: 60, farAway: 'any' },
     choices: [
       {
         id: 'teach',
@@ -686,7 +688,7 @@ export const GRANDPARENTS_EVENTS: EventDef[] = [
       {
         id: 'card',
         label: 'Write the steps on a card',
-        effects: [{ stat: 'smarts', delta: 1 }, { relationship: 'person', delta: 3 }, { log: 'I wrote five steps on a card. {{person}} laminated it and still calls me on speaker.' }],
+        effects: [{ stat: 'smarts', delta: 1 }, { relationship: 'person', delta: 3 }, { log: 'I sent {{person}} five steps on a card. {{They}} laminated it and still calls me on speaker.' }],
       },
       {
         id: 'old',
@@ -905,8 +907,8 @@ export const GRANDPARENTS_EVENTS: EventDef[] = [
     maxAge: 40,
     weight: 1,
     cooldown: 5,
-    // Never married: a divorced or widowed grandchild would not be asked "when" like this.
-    conditions: [{ hasLover: false }, { count: 'marriages', eq: 0 }],
+    // Never married: a divorced or widowed grandchild would not be asked "when" like this, nor one mourning a partner.
+    conditions: [{ hasLover: false }, { count: 'marriages', eq: 0 }, { flag: 'grieving', exists: false }],
     person: { kind: ['grandparent'], minAge: 65 },
     choices: [
       {
@@ -1098,7 +1100,7 @@ export const GRANDPARENTS_EVENTS: EventDef[] = [
           { money: -150 },
           {
             chance: 0.5,
-            then: [{ stat: 'smarts', delta: 2 }, { relationship: 'person', delta: 6 }, { log: 'Two videos and one bruised knuckle later, the heat came on. {{person}} told the whole street.', kind: 'good' }],
+            then: [{ stat: 'smarts', delta: 2 }, { relationship: 'person', delta: 6 }, { log: 'One old manual and a bruised knuckle later, the heat came on. {{person}} told the whole street.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -3 }, { money: -900 }, { log: 'I made it worse. A repairman came anyway and charged extra for whatever I had done.', kind: 'bad' }],
           },
         ],
@@ -1120,7 +1122,8 @@ export const GRANDPARENTS_EVENTS: EventDef[] = [
     maxAge: 45,
     weight: 1,
     once: true,
-    person: { kind: ['grandparent'], minAge: 70 },
+    // All by phone and the bank, so it reaches a grandparent who lives far away too.
+    person: { kind: ['grandparent'], minAge: 70, farAway: 'any' },
     choices: [
       {
         id: 'bank',

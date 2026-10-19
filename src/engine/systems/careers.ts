@@ -126,7 +126,9 @@ const EMPLOYERS: Record<string, (base: string, city: string) => string> = {
 
 /**
  * The same job and rung at a rival employer for a raise (an event's switchEmployer effect). The old job goes into
- * the history as left; coworkers from it stay behind (settleCoworkers). The Army has no rival.
+ * the history as left; coworkers from it stay behind (settleCoworkers), and the new place brings two or three new
+ * ones, as any full-time hire does. The Army has no rival, and neither has a job only the city offers (its police,
+ * library or courts): when no other employer turns up, nothing changes.
  */
 export function switchEmployer(state: GameState, rng: Rng, raise = 0.1): GameState {
   const job = state.career.job;
@@ -134,8 +136,9 @@ export function switchEmployer(state: GameState, rng: Rng, raise = 0.1): GameSta
   if (!job || !def || def.id === 'military') return state;
   let company = employerFor(def, rng, state.character.city);
   for (let i = 0; i < 4 && company === job.company; i++) company = employerFor(def, rng, state.character.city);
+  if (company === job.company) return state;
   const s = removeJob(state, 'left');
-  return { ...s, career: { ...s.career, job: { ...job, company, salary: Math.round(job.salary * (1 + raise)), yearsHeld: 0 } } };
+  return hireCoworkers({ ...s, career: { ...s.career, job: { ...job, company, salary: Math.round(job.salary * (1 + raise)), yearsHeld: 0 } } }, rng);
 }
 
 function employerFor(def: JobDef, rng: Rng, city: string): string {

@@ -482,7 +482,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
     maxAge: 22,
     weight: 2,
     cooldown: 2,
-    conditions: [{ enrolled: true }, { stage: ['middle', 'high', 'university', 'graduate'] }],
+    conditions: [{ enrolled: true }, { stage: ['middle', 'high', 'university', 'graduate'] }, { not: { sinceEvent: 'ya_group_project', lte: 2 } }],
     person: { kind: ['friend', 'bestFriend', 'classmate'] },
     choices: [
       {
@@ -1485,7 +1485,8 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
     maxAge: 22,
     weight: 1.2,
     cooldown: 2,
-    conditions: [{ enrolled: true }, { stage: ['university', 'graduate'] }],
+    // Not within two years of young_adult's ya_roommate_food, the other roommate who eats my food.
+    conditions: [{ enrolled: true }, { stage: ['university', 'graduate'] }, { not: { sinceEvent: 'ya_roommate_food', lte: 2 } }],
     choices: [
       {
         id: 'confront',

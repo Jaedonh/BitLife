@@ -176,8 +176,8 @@ export const JUVENILE_DETENTION_EVENTS: EventDef[] = [
     weight: 1.5,
     cooldown: 2,
     conditions: [...INSIDE],
-    // Someone old enough to write two pages, not a toddler sibling.
-    person: { kind: ['friend', 'bestFriend', 'sibling'], minAge: 8 },
+    // Someone old enough to write two pages, not a toddler sibling; a letter can come from a friend left behind abroad.
+    person: { kind: ['friend', 'bestFriend', 'sibling'], minAge: 8, farAway: 'any' },
     choices: [
       {
         id: 'reply',

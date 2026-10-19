@@ -130,7 +130,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
           { love: 4 },
           { stat: 'happiness', delta: 3 },
           { log: 'Thirty guests, a rented garden and folding chairs. Even the guest list fights were small.' },
-          { chance: 0.3, then: [{ stat: 'happiness', delta: -2 }, { log: 'An aunt who did not make the thirty has stopped answering my texts.', kind: 'bad' }] },
+          { chance: 0.3, then: [{ stat: 'happiness', delta: -2 }, { log: 'An aunt who did not make the thirty has stopped returning my calls.', kind: 'bad' }] },
           { queue: 'gu_wedding_day' },
         ],
       },
@@ -168,7 +168,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     id: 'gu_wedding_day',
     category: 'romance',
     title: 'The wedding day',
-    text: 'Our wedding day. I woke at dawn with my heart going like a drum. {{person}} texted me a photo of {{their}} shoes and one line: "Are we really doing this?" We are.',
+    text: 'Our wedding day. I woke at dawn with my heart going like a drum. {{person}} called before seven with one question: "Are we really doing this?" We are.',
     minAge: 22,
     maxAge: 64,
     weight: 1,
@@ -521,6 +521,8 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     maxAge: 64,
     weight: 1,
     once: true,
+    // A streaming account with profiles.
+    conditions: [{ year: { gte: 2013 } }],
     person: { kind: ['ex'], minAge: 22 },
     choices: [
       {
@@ -739,7 +741,8 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     maxAge: 64,
     weight: 1,
     once: true,
-    conditions: [...WIDOWED, { hasLover: false }],
+    // A date: not in the first two years after the loss (the grief window, GAME_DESIGN §10).
+    conditions: [...WIDOWED, { hasLover: false }, { flag: 'grieving', exists: false }],
     person: { kind: ['spouse'], alive: false },
     choices: [
       {
@@ -831,6 +834,8 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     maxAge: 64,
     weight: 2,
     cooldown: 2,
+    // Not within a few years of young_adult_paths' yp_baby_night_shift, the same wide-awake baby at 3 a.m.
+    conditions: [{ not: { sinceEvent: 'yp_baby_night_shift', lte: 3 } }],
     person: { kind: ['child'], maxAge: 1 },
     choices: [
       {
@@ -906,12 +911,13 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     id: 'gu_daycare_bill',
     category: 'money',
     title: 'The daycare bill',
-    text: 'The daycare with a spot for {{person}} sent its fees. A year costs about what a used car does, for a place where {{they}} will mostly nap and bite someone named Theo.',
+    text: 'The daycare with a spot for {{person}} sent its fees. I read the yearly total twice and sat down. All that, for a place where {{they}} will mostly nap and bite someone named Theo.',
     minAge: 25,
     maxAge: 64,
     weight: 1.5,
     cooldown: 3,
-    conditions: [{ hasJob: true }],
+    // Not within a few years of young_adult_paths' yp_daycare_math, the same bill.
+    conditions: [{ hasJob: true }, { not: { sinceEvent: 'yp_daycare_math', lte: 4 } }],
     person: { kind: ['child'], maxAge: 2 },
     choices: [
       {
@@ -963,6 +969,8 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     maxAge: 64,
     weight: 1.5,
     once: true,
+    // Not within a few years of young_adult_paths' yp_cereal_aisle, the same tantrum in the same aisle.
+    conditions: [{ not: { sinceEvent: 'yp_cereal_aisle', lte: 6 } }],
     person: { kind: ['child'], minAge: 2, maxAge: 4 },
     choices: [
       {
@@ -1008,6 +1016,8 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     maxAge: 64,
     weight: 1.2,
     once: true,
+    // young_adult_paths' yp_hallway_mural tells the same marker on the same wall: one per life.
+    conditions: [{ eventNotFired: 'yp_hallway_mural' }],
     person: { kind: ['child'], minAge: 2, maxAge: 5 },
     choices: [
       {
@@ -1037,7 +1047,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
         id: 'photo',
         label: 'Take a photo, then paint',
         hint: '{{$80}}',
-        effects: [{ money: -80 }, { relationship: 'person', delta: 1 }, { stat: 'happiness', delta: 1 }, { log: 'I took a photo before I painted. The mural is my phone wallpaper now.' }],
+        effects: [{ money: -80 }, { relationship: 'person', delta: 1 }, { stat: 'happiness', delta: 1 }, { log: 'I took a photo before I painted. The before picture hangs right beside the after.' }],
       },
     ],
   },
@@ -1399,7 +1409,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 1.2,
     cooldown: 5,
-    conditions: [{ married: false }, { hasLover: false }],
+    conditions: [{ married: false }, { hasLover: false }, { flag: 'grieving', exists: false }],
     choices: [
       {
         id: 'honest',
@@ -1452,7 +1462,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 1.2,
     cooldown: 8,
-    conditions: [{ hasLover: false }],
+    conditions: [{ hasLover: false }, { flag: 'grieving', exists: false }],
     person: { kind: ['friend', 'bestFriend'], minAge: 25 },
     choices: [
       {
@@ -1586,7 +1596,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     id: 'gu_friends_had_babies',
     category: 'friends',
     title: 'Everyone had a baby',
-    text: 'All of my close friends have had babies in the same eighteen months. The group chat is nothing but tiny socks, and every plan gets canceled for a nap that is not even mine.',
+    text: 'All of my close friends have had babies in the same eighteen months. Every conversation is about tiny socks, and every plan gets canceled for a nap that is not even mine.',
     minAge: 30,
     maxAge: 42,
     weight: 1.2,
@@ -1811,7 +1821,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 3 },
           {
             chance: 0.5,
-            then: [{ stat: 'happiness', delta: 6 }, { log: 'Videos, knee pads and swearing. It is a little crooked, and it is mine.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 6 }, { log: 'A how-to book, knee pads and swearing. It is a little crooked, and it is mine.', kind: 'good' }],
             else: [{ injury: 3 }, { money: -3000 }, { asset: 'damage', kind: 'house', amount: 10 }, { stat: 'happiness', delta: -5 }, { log: 'I put my foot through the floor. A contractor finished it, laughing the whole time.', kind: 'bad' }],
           },
         ],
@@ -1899,7 +1909,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 2 },
           {
             chance: 0.5,
-            then: [{ stat: 'happiness', delta: 4 }, { log: 'I found the shutoff valve, a video and a wrench. Fixed. I am unstoppable.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 4 }, { log: 'I found the shutoff valve, a wrench and the diagram in the manual. Fixed. I am unstoppable.', kind: 'good' }],
             else: [{ money: -2000 }, { asset: 'damage', kind: 'house', amount: 15 }, { stat: 'happiness', delta: -4 }, { log: 'My fix held for a day. The second flood was bigger and had opinions.', kind: 'bad' }],
           },
         ],

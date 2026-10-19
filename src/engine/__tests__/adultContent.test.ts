@@ -103,8 +103,11 @@ describe('the rival offer', () => {
         expect(s.career.job).toMatchObject({ defId: 'accountant', level: 1, salary: 69_000, yearsHeld: 0 });
         expect(s.career.job.company).not.toBe('Granite & Sons');
         expect(s.career.history.at(-1)).toMatchObject({ company: 'Granite & Sons', reason: 'left' });
-        // The new place has coworkers, so the workplace cards (which bind only current coworkers) still open there.
-        expect(Object.values(s.people).filter((p) => p.kind === 'coworker' && worksWithMe(s, p))).toHaveLength(2);
+        // The new place hires me into a team like any full-time job (switchEmployer), so the workplace cards (which
+        // bind only current coworkers) still open there; the card itself adds nobody on top.
+        const team = Object.values(s.people).filter((p) => p.kind === 'coworker' && worksWithMe(s, p)).length;
+        expect(team).toBeGreaterThanOrEqual(2);
+        expect(team).toBeLessThanOrEqual(3);
       } else {
         fellThrough++;
         expect(s.log.some((l) => l.text.includes('restructured'))).toBe(true);
@@ -316,7 +319,7 @@ describe('twins', () => {
 
   it.each([
     ['wk_workplace_flirt', 'lf_coworker_asks_out', 6],
-    ['wk_burnout', 'ad_burnout', 4],
+    ['wk_burnout', 'ad_burnout', 5],
     ['pl_meet_parents', 'lf_meet_their_parents', 5],
   ] as const)('%s stays away from its twin %s for %i years', (id, twin, years) => {
     const def = byId(id);

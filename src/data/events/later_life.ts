@@ -165,12 +165,29 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
       {
         id: 'name',
         label: 'Ask about the name',
+        // One namesake per life: two grandchildren with my name (siblings or cousins) would be one too many.
+        conditions: [{ flag: 'll_namesake', exists: false }],
         effects: [
           { stat: 'happiness', delta: 4 },
           {
             chance: 0.5,
-            then: [{ childMilestone: 'expecting', namedAfterMe: true }, { relationship: 'person', delta: 3 }, { stat: 'happiness', delta: 5 }, { log: 'They are naming the baby after me. I pretended to be casual about it for nearly a full second.', kind: 'milestone' }],
+            then: [{ childMilestone: 'expecting', namedAfterMe: true }, { flag: 'll_namesake', set: true }, { relationship: 'person', delta: 3 }, { stat: 'happiness', delta: 5 }, { log: 'They are naming the baby after me. I pretended to be casual about it for nearly a full second.', kind: 'milestone' }],
             else: [{ childMilestone: 'expecting' }, { relationship: 'person', delta: -3 }, { log: 'I asked if they were sure about the name. {{person}} was very sure. We moved on.', kind: 'milestone' }],
+          },
+        ],
+      },
+      {
+        id: 'name_again',
+        label: 'Ask about the name',
+        // A grandchild already carries my name, so this baby gets one of its own.
+        conditions: [{ flag: 'll_namesake', exists: true }],
+        effects: [
+          { childMilestone: 'expecting' },
+          { stat: 'happiness', delta: 4 },
+          {
+            chance: 0.5,
+            then: [{ relationship: 'person', delta: 3 }, { stat: 'happiness', delta: 5 }, { log: 'One grandchild named after me is plenty, they said. This one gets my old cradle instead.', kind: 'milestone' }],
+            else: [{ relationship: 'person', delta: -3 }, { log: 'I suggested a few names. {{person}} wrote none of them down. We moved on.', kind: 'milestone' }],
           },
         ],
       },
@@ -770,7 +787,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
       {
         id: 'rekindle',
         label: 'See where it goes',
-        conditions: [{ hasLover: false }],
+        conditions: [{ hasLover: false }, { flag: 'grieving', exists: false }],
         effects: [
           {
             chance: 0.6,
@@ -803,7 +820,8 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 1.5,
     cooldown: 3,
-    conditions: [{ inPrison: false }, { hasLover: false }],
+    // Not while I mourn a partner (the grief window, GAME_DESIGN §10).
+    conditions: [{ inPrison: false }, { hasLover: false }, { flag: 'grieving', exists: false }],
     choices: [
       {
         id: 'ask',
@@ -876,7 +894,8 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     maxAge: 95,
     weight: 1,
     cooldown: 5,
-    conditions: [{ inPrison: false }],
+    // Not within a few years of holidays_and_traditions' hd_surprise_party, the other surprise party.
+    conditions: [{ inPrison: false }, { not: { sinceEvent: 'hd_surprise_party', lte: 5 } }],
     person: { kind: ['child', 'friend', 'bestFriend', 'sibling', 'spouse'] },
     choices: [
       {

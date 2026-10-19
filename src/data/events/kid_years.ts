@@ -936,6 +936,8 @@ export const KID_YEARS_EVENTS: EventDef[] = [
     maxAge: 12,
     weight: 1,
     once: true,
+    // One found wallet per life: the teen and adult wallets (cp_, nc_, mn_) check this one too.
+    conditions: [{ eventNotFired: 'cp_found_wallet' }, { eventNotFired: 'nc_found_wallet' }, { eventNotFired: 'mn_lucky_find' }],
     choices: [
       {
         id: 'handin',

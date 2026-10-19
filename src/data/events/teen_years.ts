@@ -598,8 +598,10 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 17,
     weight: 2,
-    cooldown: 3,
-    conditions: [{ enrolled: true }, { year: { gte: 2010 } }],
+    // The same cafeteria slip twice is a rerun; and not right after another fifteen minutes of fame
+    // (friends_and_strangers' fs_viral_moment, which guards back).
+    once: true,
+    conditions: [{ enrolled: true }, { year: { gte: 2010 } }, { not: { sinceEvent: 'fs_viral_moment', lte: 2 } }],
     choices: [
       {
         id: 'laugh',
@@ -1226,7 +1228,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     id: 'tn_meet_parents',
     category: 'school',
     title: 'The wobbly chair',
-    text: 'I invited {{person}} over for dinner with {{parents}}. {{They}} arrived early, with flowers, and sat on the one chair that wobbles. Mom opened with "So."',
+    text: 'I invited {{person}} over for dinner with {{parents}}. {{They}} arrived early, with flowers, and sat on the one chair that wobbles. {{mother}} opened with "So."',
     minAge: 16,
     maxAge: 17,
     weight: 2,
@@ -1240,8 +1242,8 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
         effects: [
           {
             random: [
-              { weight: 60, effects: [{ relationship: 'person', delta: 6 }, { love: 5 }, { relationship: 'mother', delta: 3 }, { stat: 'happiness', delta: 5 }, { log: 'By dessert, {{person}} was doing dishes and my mom had the baby photos out. Mortifying. Wonderful.', kind: 'good' }] },
-              { weight: 40, effects: [{ stat: 'happiness', delta: -3 }, { relationship: 'person', delta: -3 }, { love: -3 }, { log: 'My mom asked about {{their}} "prospects." {{person}} laughed at the wrong moment. We left early.', kind: 'bad' }] },
+              { weight: 60, effects: [{ relationship: 'person', delta: 6 }, { love: 5 }, { relationship: 'mother', delta: 3 }, { stat: 'happiness', delta: 5 }, { log: 'By dessert, {{person}} was doing dishes and {{mother}} had the baby photos out. Mortifying. Wonderful.', kind: 'good' }] },
+              { weight: 40, effects: [{ stat: 'happiness', delta: -3 }, { relationship: 'person', delta: -3 }, { love: -3 }, { log: '{{mother}} asked about {{their}} "prospects." {{person}} laughed at the wrong moment. We left early.', kind: 'bad' }] },
             ],
           },
         ],
