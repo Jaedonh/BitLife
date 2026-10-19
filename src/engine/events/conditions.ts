@@ -131,6 +131,8 @@ export function candidatesFor(state: GameState, sel: PersonSelector): Person[] {
     // A coworker linked to a job is only a coworker while the player still holds that job (see coworkers.ts).
     if (p.kind === 'coworker' && p.workplace && !(state.career.job && p.workplace.jobId === state.career.job.defId && p.workplace.company === state.career.job.company)) return false;
     if (sel.gender !== undefined && p.gender !== sel.gender) return false;
+    // A pet of the species the card needs (fur to shed, a dog to walk).
+    if (sel.species && !sel.species.includes(p.species ?? '')) return false;
     // A grown child's milestones (systems/family.ts).
     if (sel.movedOut !== undefined && hasMovedOut(p) !== sel.movedOut) return false;
     if (sel.married !== undefined && isMarried(p) !== sel.married) return false;

@@ -188,7 +188,8 @@ export function applyEffect(state: GameState, rng: Rng, e: Effect, ctx: EffectCo
   }
   if ('relationship' in e) {
     if (e.relationship === 'person') return person ? adjustRelationship(s, person.id, e.delta) : s;
-    for (const p of Object.values(s.people)) if (p.kind === e.relationship && p.alive) s = adjustRelationship(s, p.id, e.delta);
+    // Everyone of that kind the moment touches: people nearby, not friends or grandparents far away.
+    for (const p of Object.values(s.people)) if (p.kind === e.relationship && p.alive && !p.farAway) s = adjustRelationship(s, p.id, e.delta);
     return s;
   }
   if ('love' in e) {

@@ -197,8 +197,12 @@ function familyName(state: GameState, parent: Person): string | undefined {
  * With none of them a guardian (an heir whose only parent was the last player, or an older save whose orphan was
  * never taken in) the child is taken in now, and the line does not tell the loss again ("I went to live with
  * Mom's sister, Aunt Rosa.").
+ *
+ * `relative` is a real brother or sister of a lost parent, ready to step in (an heir's aunt or uncle: the last
+ * player's own sibling, kind stepmother/stepfather marked `relative` and linked by `viaId`); without one, an aunt
+ * or uncle is found here.
  */
-export function takeInOrphan(state: GameState, lost: readonly Person[], rng: Rng): GameState {
+export function takeInOrphan(state: GameState, lost: readonly Person[], rng: Rng, relative?: Person): GameState {
   const me = state.character;
   if (me.age >= 18 || Object.values(state.people).some((x) => x.alive && isGuardian(x))) return state;
   const everyone = Object.values(state.people).filter(isGuardian);
@@ -207,6 +211,7 @@ export function takeInOrphan(state: GameState, lost: readonly Person[], rng: Rng
   const loss = justLost.length ? lossPhrase(state, justLost) : undefined;
   const foster = state.flags.foster_care === true || everyone.some((x) => x.foster);
   const inside = state.crime.inPrison;
+  if (relative && !foster) return relativeTakesIn(state, relative, relative.viaId ? state.people[relative.viaId] : undefined, justLost, loss);
   const gender: Gender = rng.chance(foster ? 0.7 : 0.6) ? 'female' : 'male';
   const kind = gender === 'female' ? 'stepmother' : 'stepfather';
   if (foster) {
@@ -229,13 +234,21 @@ export function takeInOrphan(state: GameState, lost: readonly Person[], rng: Rng
   carer.relative = true;
   if (side) carer.viaId = side.id;
   freshName(rng, state, carer, origin, side ? familyName(state, side) : undefined);
+  return relativeTakesIn(state, carer, side, justLost, loss);
+}
+
+/**
+ * The aunt or uncle `carer` (the brother or sister of `side`, a parent the child lost) joins the family as the
+ * child's guardian, with the line that says so: "With Mom gone, I went to live with her sister, Aunt Rosa."
+ */
+function relativeTakesIn(state: GameState, carer: Person, side: Person | undefined, justLost: readonly Person[], loss: string | undefined): GameState {
   const s: GameState = { ...state, people: { ...state.people, [carer.id]: carer } };
   const who = personRef(carer);
-  const sibling = gender === 'female' ? 'sister' : 'brother';
+  const sibling = carer.gender === 'female' ? 'sister' : 'brother';
   // "her sister" when the loss just named that parent ("With Mom gone"), else "Mom's sister".
   const namedAlone = !!side && !!loss && justLost.length === 1 && justLost[0]!.id === side.id && !loss.startsWith('With both');
   const whose = !side ? '' : namedAlone ? pronouns(side.gender).possessive : `${personRef(side, s.people)}'s`;
-  const clause = !side ? `${who} took me in.` : inside ? `${whose} ${sibling}, ${who}, became my guardian.` : `I went to live with ${whose} ${sibling}, ${who}.`;
+  const clause = !side ? `${who} took me in.` : state.crime.inPrison ? `${whose} ${sibling}, ${who}, became my guardian.` : `I went to live with ${whose} ${sibling}, ${who}.`;
   return log(s, loss ? `${loss}, ${clause}` : capitalize(clause), 'bad');
 }
 

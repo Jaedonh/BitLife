@@ -1,6 +1,6 @@
 import { FLAVOR, type FlavorLine } from '@/data/flavor';
 import { candidatesFor, evaluateAll } from '../events/conditions';
-import { conditionIssues, placeholderIssues, textIssues, type Condition, type PersonSelector } from '../events/schema';
+import { conditionIssues, placeholderIssues, speciesIssues, textIssues, type Condition, type PersonSelector } from '../events/schema';
 import { renderText } from '../events/text';
 import { Rng } from '../rng';
 import type { GameState, Gender, Person, RelationshipKind } from '../types';
@@ -185,6 +185,7 @@ export function validateFlavor(lines: readonly FlavorLine[] = FLAVOR): string[] 
     if (writtenForPrison(l.conditions) && l.minAge < 18 && CLASSROOM_WORDS.test(l.text) && !(l.conditions ?? []).some((c) => 'enrolled' in c && c.enrolled)) {
       errors.push(`${where}: a classroom line behind bars needs { enrolled: true } (a dropout does no homework)`);
     }
+    for (const issue of speciesIssues(l.person)) errors.push(`${where}: ${issue}`);
     for (const k of ['mother', 'father'] as const) {
       const required = (l.conditions ?? []).some((c) => 'hasPerson' in c && c.hasPerson.length === 1 && c.hasPerson[0] === k);
       if (l.text.includes(`{{${k}}}`) && !required) errors.push(`${where}: uses {{${k}}} but does not require a living ${k} ({ hasPerson: ['${k}'] })`);

@@ -4,6 +4,7 @@ import { Rng } from './rng';
 import { advanceYear, ageNpcs, driftStats } from './systems/aging';
 import { yearlyAssets } from './systems/assets';
 import { rollListings, yearlyCareer } from './systems/careers';
+import { namesInLife } from './systems/character';
 import { settleCoworkers } from './systems/coworkers';
 import { yearlyPrison } from './systems/crime';
 import { yearlyEducation } from './systems/education';
@@ -41,8 +42,11 @@ export function ageUp(state: GameState, registry: EventRegistry = EVENT_REGISTRY
   s = yearlyFinance(s, rng);
   s = yearlyHealth(s, rng);
   s = ageNpcs(s, rng);
-  s = yearlyRelationships(s, rng);
-  s = yearlyFamily(s, rng);
+  // Names in the life when the year began stay taken for the whole age-up: a coworker who left with the job, or a
+  // friend who drifted apart, does not hand their name to a new friend, partner, grandchild or child's spouse.
+  const yearNames = namesInLife(yearStart);
+  s = yearlyRelationships(s, rng, yearNames);
+  s = yearlyFamily(s, rng, yearNames);
   if (s.character.age >= 14) s = rollListings(s, rng);
   s = rollMortality(s, rng);
   if (!s.alive) return { ...s, rng: rng.snapshot() };

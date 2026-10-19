@@ -1,5 +1,6 @@
 import { getCountry } from '@/data/countries';
 import { HUSTLES } from '@/data/hustles';
+import { personRef } from '@/engine/events/text';
 import type { GameState } from '@/engine/types';
 
 export type EarlyStage = { emoji: string; title: string; body: string };
@@ -11,12 +12,14 @@ const FULL_TIME_AGE = 18;
 const PRESCHOOL_AGE = 4;
 const DAYCARE_AGE = 2;
 
-/** Who a baby is at home with: Mom, else Dad, else "family". */
+/**
+ * Who a baby is at home with, as the journal names them: Mom, else Dad (a second mother or father is Mama or Papa,
+ * so an heir whose late parent was Dad is at home with Papa), else the aunt or uncle who took them in, else "family".
+ */
 function caregiver(state: GameState): string {
-  const parents = Object.values(state.people).filter((p) => p.alive && (p.kind === 'mother' || p.kind === 'father'));
-  if (parents.some((p) => p.kind === 'mother')) return 'Mom';
-  if (parents.some((p) => p.kind === 'father')) return 'Dad';
-  return 'family';
+  const living = Object.values(state.people).filter((p) => p.alive);
+  const who = living.find((p) => p.kind === 'mother') ?? living.find((p) => p.kind === 'father') ?? living.find((p) => p.relative && (p.kind === 'stepmother' || p.kind === 'stepfather'));
+  return who ? personRef(who, state.people) : 'family';
 }
 
 /**

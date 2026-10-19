@@ -17,7 +17,7 @@ import type {
 import { SCHEMA_VERSION } from '../types';
 import { personRef } from '../events/text';
 import { article, capitalize, clampStat, daysInMonth, deathPhrase, fullName, joinList, log, lowerTitle, money, numberWord, withArticle, zodiacFor } from '../util';
-import { energyMaxFor } from './aging';
+import { energyMaxFor, takeInOrphan } from './aging';
 import { rollListings } from './careers';
 import { farmTown, fosterRelation, MOVE_ABROAD_AGES, pickDestination, scenarioFlags, startingScenario } from './scenarios';
 
@@ -292,6 +292,8 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
   const poor = !prev && !wealthy && (scenario === 'big_family' || (rollsWealth && rng.chance(0.2)));
   const parentMoney = () => (wealthy ? rng.int(400_000, 3_000_000) : poor ? rng.int(0, 8_000) : rng.int(5_000, 150_000)) * country.salaryMultiplier;
 
+  // The previous player, as a dead parent in an heir's family tree.
+  let deceasedId: string | undefined;
   if (prev) {
     // Family tree carried over from the previous generation (GAME_DESIGN §16): everyone stays who they were, and
     // only how they are related changes. The heir has known their parents and older siblings since birth.
@@ -306,6 +308,7 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
       looks: prevChar.stats.looks, smarts: prevChar.stats.smarts, health: prevChar.stats.health, occupation: lastOccupation(prev),
     });
     people[deceased.id] = deceased;
+    deceasedId = deceased.id;
     // The other parent carries over as they were (two mothers or two fathers included). A child with no
     // recorded other parent gets none: nobody is invented.
     if (otherParent) {
@@ -413,10 +416,42 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
   };
 
   if (!prev) return writeBirthLog(state);
-  const begun = writeHeirLog(state, prev, inheritance);
+  let begun = writeHeirLog(state, prev, inheritance);
+  // A minor heir whose only parent was the previous player is taken in from the first day (GAME_DESIGN §10, orphan
+  // care): by that player's own grown brother or sister when one is alive, otherwise by an aunt or uncle found as
+  // for any orphan. With a parent still at home this does nothing.
+  const atHome = Object.values(people).some((p) => p.alive && (p.kind === 'mother' || p.kind === 'father' || p.kind === 'stepmother' || p.kind === 'stepfather'));
+  if (startAge < 18 && deceasedId && !atHome) {
+    begun = takeInOrphan(begun, [], rng, heirGuardian(rng, prev, deceasedId, countryCode, startAge));
+    begun = { ...begun, rng: rng.snapshot() };
+  }
   // An heir old enough to work can apply right away rather than wait a year for the listings ageUp rolls from 14.
   if (startAge < 14) return begun;
   return { ...rollListings(begun, rng), rng: rng.snapshot() };
+}
+
+/** How old the previous player's brother or sister can be to take a minor heir in: grown, and not past raising a child. */
+const HEIR_GUARDIAN_AGES = { min: 18, max: 75 } as const;
+/** ...and at least this much older than the heir. */
+const HEIR_GUARDIAN_GAP = 10;
+
+/**
+ * The previous player's own brother or sister who would take in a minor heir left with no parent (GAME_DESIGN
+ * §10): the closest one to that player who is alive and grown (not a foster sibling), carried over as they were
+ * and known since the heir's birth, as the heir's aunt or uncle (kind stepmother/stepfather marked `relative`,
+ * linked to the dead parent). None when there is no such sibling.
+ */
+function heirGuardian(rng: Rng, prev: GameState, deceasedId: string, countryCode: string, startAge: number): Person | undefined {
+  const sib = Object.values(prev.people)
+    .filter((p) => p.kind === 'sibling' && p.alive && !p.foster && p.age >= Math.max(HEIR_GUARDIAN_AGES.min, startAge + HEIR_GUARDIAN_GAP) && p.age <= HEIR_GUARDIAN_AGES.max)
+    .sort((a, b) => b.relationship - a.relationship || a.id.localeCompare(b.id))[0];
+  if (!sib) return undefined;
+  const carer = makePerson(rng, { kind: sib.gender === 'female' ? 'stepmother' : 'stepfather', gender: sib.gender, age: sib.age, countryCode, lastName: sib.lastName, playerAge: startAge, relationship: rng.int(45, 75), money: sib.money });
+  carryOver(carer, sib);
+  carer.relative = true;
+  carer.viaId = deceasedId;
+  carer.metAtAge = 0;
+  return carer;
 }
 
 /**

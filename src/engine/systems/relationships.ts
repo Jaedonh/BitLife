@@ -59,6 +59,11 @@ export const INTERACTIONS: readonly InteractionDef[] = [
 
 /** What still works from a cell: a phone call or the visiting room. */
 const PRISON_INTERACTIONS: ReadonlySet<InteractionId> = new Set(['conversation', 'compliment', 'insult', 'breakUp']);
+/**
+ * What only works in the same room. Someone who lives far away (a friend or grandparent left behind by a move
+ * abroad, `farAway`) is not offered these; everything else reaches them by phone, mail or a bank transfer.
+ */
+const IN_PERSON: ReadonlySet<InteractionId> = new Set(['spendTime', 'visit', 'date', 'playWith', 'walk']);
 /** Romantic acts, gated on both ages (see romance.ts); marriage and children need two adults. */
 const ROMANTIC: ReadonlySet<InteractionId> = new Set(['date', 'propose', 'haveChild']);
 
@@ -67,6 +72,7 @@ function unavailableReason(state: GameState, person: Person, def: InteractionDef
   const me = state.character;
   if (me.age < (def.minAgeFor?.[person.kind] ?? def.minAge)) return "I'm too young for that.";
   if (state.crime.inPrison && !PRISON_INTERACTIONS.has(def.id)) return "Not while I'm behind bars.";
+  if (person.farAway && IN_PERSON.has(def.id)) return 'They live far away now.';
   if (ROMANTIC.has(def.id) && (!romanceAllowed(me.age, person.age) || (def.id !== 'date' && person.age < ADULT_AGE))) {
     return person.age < ADULT_AGE && person.age <= me.age
       ? `${person.firstName} is only ${person.age}. That will have to wait.`
@@ -157,10 +163,14 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
   let s = countAction(state, key);
   s = { ...s, character: { ...s.character, energy: s.character.energy - def.energy } };
   if (cost) s = addMoney(s, -cost);
-  // Parents are Mom and Dad in narration, as in event text; everyone else goes by their first name.
-  const who = personRef(person);
+  // Parents are Mom and Dad in narration, as in event text (a second father or mother Papa or Mama); everyone
+  // else goes by their first name.
+  const who = personRef(person, state.people);
   const withWho = who === person.firstName ? `${relLabel(person)}, ${who}` : who;
   const charming = s.character.traits.includes('charming') ? 3 : 0;
+  // Someone far away is reached by phone, mail or a transfer: the lines say so (in-person acts are refused above).
+  const far = person.farAway === true;
+  const pp = pronouns(person.gender);
 
   switch (def.id) {
     case 'spendTime': {
@@ -182,15 +192,21 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
         s = adjustRelationship(s, personId, -rng.int(3, 8));
         s = touch(s, s.people[personId]!, { fights: person.memory.fights + 1 });
         s = addStats(s, { happiness: -2 });
-        const text = rng.pick([`My conversation with ${who} turned into an argument.`, `${who} and I got into it over nothing.`]);
+        const text = far
+          ? rng.pick([`My call with ${who} turned into an argument.`, `${who} and I got into it over the phone, about nothing.`])
+          : rng.pick([`My conversation with ${who} turned into an argument.`, `${who} and I got into it over nothing.`]);
         s = log(s, text, 'bad');
         return setResult(s, text, 'bad');
       }
       s = adjustRelationship(s, personId, rng.int(2, 5) + charming);
       s = touch(s, s.people[personId]!);
-      const text = rng.pick(s.character.age < 8
-        ? [`${who} and I had a good talk.`, `I told ${who} all about my day, and ${person.gender === 'male' ? 'he' : 'she'} listened to every word.`]
-        : [`${who} and I had a good talk.`, `I caught up with ${who}. We talked for hours.`]);
+      const text = far
+        ? rng.pick(person.kind === 'grandparent'
+          ? [`I called ${who}, who had saved up a whole year of stories for me.`, `I called ${who}. ${pp.Subject} wanted to hear everything twice.`]
+          : [`I called ${who}. We talked until the phone was warm.`, `${who} and I talked on the phone for hours.`])
+        : rng.pick(s.character.age < 8
+          ? [`${who} and I had a good talk.`, `I told ${who} all about my day, and ${pp.subject} listened to every word.`]
+          : [`${who} and I had a good talk.`, `I caught up with ${who}. We talked for hours.`]);
       s = log(s, text);
       return setResult(s, text, 'good');
     }
@@ -200,7 +216,9 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
       const liked = rng.chance(0.8 + charming / 20);
       s = adjustRelationship(s, personId, liked ? rng.int(2, 6) + charming : -2);
       s = touch(s, s.people[personId]!, { compliments: person.memory.compliments + 1 });
-      const text = liked ? `I complimented ${who}. ${person.gender === 'male' ? 'He' : 'She'} beamed.` : `I complimented ${who}, who assumed I wanted something.`;
+      const text = far
+        ? liked ? `I paid ${who} a compliment over the phone. I could hear ${pp.object} smiling.` : `I paid ${who} a compliment over the phone. ${pp.Subject} asked what I wanted.`
+        : liked ? `I complimented ${who}. ${pp.Subject} beamed.` : `I complimented ${who}, who assumed I wanted something.`;
       s = log(s, text, liked ? 'good' : 'info');
       return setResult(s, text, liked ? 'good' : 'info');
     }
@@ -212,7 +230,9 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
       s = touch(s, s.people[personId]!, { insults: person.memory.insults + 1, fights: person.memory.fights + (retaliates ? 1 : 0) });
       if (retaliates) s = addStats(s, { happiness: -4 });
       else s = addStats(s, { happiness: s.character.traits.includes('hot_headed') ? 2 : -1 });
-      const text = retaliates ? `I insulted ${who}, who fired back twice as hard.` : `I insulted ${who}. ${person.gender === 'male' ? 'He' : 'She'} walked away without a word.`;
+      const text = far
+        ? retaliates ? `I insulted ${who} over the phone. ${pp.Subject} fired back twice as hard.` : `I insulted ${who} over the phone. ${pp.Subject} hung up without a word.`
+        : retaliates ? `I insulted ${who}, who fired back twice as hard.` : `I insulted ${who}. ${pp.Subject} walked away without a word.`;
       s = log(s, text, 'bad');
       return setResult(s, text, 'bad');
     }
@@ -223,7 +243,9 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
       s = adjustRelationship(s, personId, loved ? rng.int(5, 12) : rng.int(0, 2));
       s = touch(s, s.people[personId]!, { gifts: person.memory.gifts + 1 });
       if (person.love !== undefined) s = updatePerson(s, personId, { love: clampStat((s.people[personId]!.love ?? 0) + 5) });
-      const text = loved ? `${who} loved the gift.` : `${who} said "you shouldn't have" and seemed to mean it.`;
+      const text = far
+        ? loved ? `I mailed ${who} a gift. ${pp.Subject} called the day it arrived.` : `I mailed ${who} a gift. ${pp.Subject} wrote back "you shouldn't have" and seemed to mean it.`
+        : loved ? `${who} loved the gift.` : `${who} said "you shouldn't have" and seemed to mean it.`;
       s = log(s, text, loved ? 'good' : 'info');
       return setResult(s, text, loved ? 'good' : 'info', { moneyDelta: -cost });
     }
@@ -233,7 +255,8 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
       const willing = person.relationship >= (grand ? 40 : 50) && person.money > 0 && rng.chance((grand ? 0.45 : 0.3) + person.relationship / 200);
       if (!willing) {
         s = adjustRelationship(s, personId, -3);
-        const text = grand ? `I asked ${who} for money and got a story about what bread cost in the old days.` : `I asked ${who} for money and got a lecture instead.`;
+        const how = far ? ' over the phone' : '';
+        const text = grand ? `I asked ${who} for money${how} and got a story about what bread cost in the old days.` : `I asked ${who} for money${how} and got a lecture instead.`;
         s = log(s, text, 'bad');
         return setResult(s, text, 'bad');
       }
@@ -241,7 +264,7 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
       s = addMoney(s, amount);
       s = updatePerson(s, personId, { money: person.money - amount });
       s = adjustRelationship(s, personId, -1);
-      const text = `${who} slipped me ${money(s, amount)}.`;
+      const text = far ? `${who} sent me ${money(s, amount)}.` : `${who} slipped me ${money(s, amount)}.`;
       s = log(s, text, 'money');
       return setResult(s, text, 'good', { moneyDelta: amount });
     }
@@ -251,7 +274,9 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
       s = updatePerson(s, personId, { money: person.money + cost });
       s = touch(s, s.people[personId]!);
       // A young grandchild has no use for cash yet: it goes into savings for later.
-      const text = person.kind === 'grandchild' && person.age < 16 ? `I put some money into a savings account for ${who}.` : `I gave ${who} some money. It meant a lot.`;
+      const text = person.kind === 'grandchild' && person.age < 16
+        ? `I put some money into a savings account for ${who}.`
+        : far ? `I sent ${who} some money. It meant a lot.` : `I gave ${who} some money. It meant a lot.`;
       s = log(s, text, 'good');
       return setResult(s, text, 'good', { moneyDelta: -cost });
     }
@@ -336,17 +361,16 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
       s = adjustRelationship(s, personId, gain);
       s = addStats(s, { happiness: 4 });
       s = touch(s, s.people[personId]!);
-      const pp = person.gender === 'male' ? { s: 'He', o: 'him' } : { s: 'She', o: 'her' };
       const kid = s.character.age < 18;
       let text = rng.pick(kid
-        ? [`I visited ${who}. ${pp.s} fed me until I couldn't move.`, `I spent the weekend at ${who}'s. We did a puzzle with three pieces missing.`, `I visited ${who}, who had saved up a whole year of stories for me.`]
-        : [`I went to see ${who}. ${pp.s} showed me every plant in the garden, twice.`, `I visited ${who} and stayed for dinner, then dessert, then a second dinner.`, `I dropped in on ${who}. We looked at old photos until it got dark.`]);
+        ? [`I visited ${who}. ${pp.Subject} fed me until I couldn't move.`, `I spent the weekend at ${who}'s. We did a puzzle with three pieces missing.`, `I visited ${who}, who had saved up a whole year of stories for me.`]
+        : [`I went to see ${who}. ${pp.Subject} showed me every plant in the garden, twice.`, `I visited ${who} and stayed for dinner, then dessert, then a second dinner.`, `I dropped in on ${who}. We looked at old photos until it got dark.`]);
       // Grandparents send a grandchild home with a little something.
       const treat = kid && person.money > 0 && rng.chance(0.4) ? Math.round(Math.min(person.money, scaleMoney(s, rng.int(10, 60)))) : 0;
       if (treat > 0) {
         s = addMoney(s, treat);
         s = updatePerson(s, personId, { money: person.money - treat });
-        text += ` ${pp.s} pressed ${money(s, treat)} into my hand on the way out.`;
+        text += ` ${pp.Subject} pressed ${money(s, treat)} into my hand on the way out.`;
       }
       s = log(s, text, 'good');
       return setResult(s, text, 'good', { statDeltas: { happiness: 4 }, ...(treat > 0 ? { moneyDelta: treat } : {}) });
@@ -365,12 +389,16 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
   }
 }
 
-/** Relationship-driven yearly events that are too systemic for the event tables. */
-export function yearlyRelationships(state: GameState, rng: Rng): GameState {
+/**
+ * Relationship-driven yearly events that are too systemic for the event tables. `reserved` are names that stay
+ * taken this year although their owner may have left the life during it (ageUp passes the names at the start of
+ * the year, so a coworker who left with the job does not hand their name to a new friend the same year).
+ */
+export function yearlyRelationships(state: GameState, rng: Rng, reserved: ReadonlySet<string> = new Set()): GameState {
   let s = state;
   const age = s.character.age;
   // Names stay reserved all year: a friend who drifts apart is not replaced by a new one of the same name.
-  const taken = namesInLife(state);
+  const taken = new Set([...reserved, ...namesInLife(state)]);
   // A partner who died this year (ageNpcs runs just before) starts the grief window (an event death already has),
   // and a window that has run its course closes.
   s = yearlyGrief(s);
@@ -390,8 +418,8 @@ export function yearlyRelationships(state: GameState, rng: Rng): GameState {
       s = log(s, `${p.firstName} and I drifted apart for good.`);
     }
   }
-  // Meeting people.
-  const friends = Object.values(s.people).filter((p) => p.alive && (p.kind === 'friend' || p.kind === 'bestFriend')).length;
+  // Meeting people. Friends left behind far away keep in touch, but leave room for friends nearby.
+  const friends = Object.values(s.people).filter((p) => p.alive && (p.kind === 'friend' || p.kind === 'bestFriend') && !p.farAway).length;
   if (age >= 4 && age < 80 && friends < 4 && rng.chance(age < 25 ? 0.4 : 0.2)) {
     const [youngest, oldest] = friendAgeRange(age);
     const f = makePerson(rng, { kind: 'friend', age: rng.int(youngest, oldest), countryCode: s.character.countryCode, playerAge: age, relationship: rng.int(45, 70), taken });

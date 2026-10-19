@@ -1,4 +1,4 @@
-import { Redirect, router, useLocalSearchParams } from 'expo-router';
+import { Redirect, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -12,16 +12,14 @@ import {
   CONFIRM_INTERACTIONS,
   deathLine,
   divorceSettlement,
-  familyFacts,
   interactionTiles,
   kindLabel,
   loveWord,
-  neglectLine,
   occupationLabel,
+  personFacts,
   personMemories,
   personName,
   personRef,
-  sinceLine,
   type InteractionTile,
 } from '@/components/game/people';
 import { ScreenHeader } from '@/components/game/ScreenHeader';
@@ -75,12 +73,9 @@ export default function PersonScreen() {
   const friendly = tiles.filter((t) => !t.risky);
   const risky = tiles.filter((t) => t.risky);
   const memories = personMemories(game, person);
-  const facts = [
-    sinceLine(person, game.character.age),
-    ...familyFacts(person, game),
-    neglectLine(person, game.character.age),
-    person.marriedAtAge !== undefined ? `Married when you were ${person.marriedAtAge}.` : null,
-  ].filter(Boolean);
+  const facts = personFacts(person, game);
+  // What the player calls them: "Mom", "Papa" (a second father), "Grandma Rosa", "Kai".
+  const called = personRef(person, game.people);
 
   async function run(tile: InteractionTile) {
     if (CONFIRM_INTERACTIONS.has(tile.def.id)) {
@@ -95,8 +90,9 @@ export default function PersonScreen() {
 
   return (
     <Screen>
-      {/* Titled with what the player calls them ("Mom", "Kai"); the card below carries the full name and relation. */}
-      <ScreenHeader title={personRef(person)} subtitle={person.alive ? undefined : 'In memoriam'} onBack={() => router.back()} />
+      {/* Titled with what the player calls them ("Mom", "Kai"); the card below carries the full name and relation.
+          Back is the header's own: the previous screen, or the life screen after a reload or a deep link. */}
+      <ScreenHeader title={called} subtitle={person.alive ? undefined : 'In memoriam'} />
       <ScrollView contentContainerStyle={styles.content}>
         <Card style={styles.card} testID="person-card">
           <View style={styles.headTop}>
@@ -151,12 +147,12 @@ export default function PersonScreen() {
                 <PeopleInteractionGrid tiles={risky} countryCode={cc} onPress={run} />
               </>
             ) : null}
-            {!tiles.length ? <T kind="small">{`There is nothing you can do with ${personRef(person)} yet.`}</T> : null}
+            {!tiles.length ? <T kind="small">{`There is nothing you can do with ${called} yet.`}</T> : null}
           </Section>
         ) : null}
 
         <Section title="Memories">
-          <PeopleMemories memories={memories} emptyText={person.alive ? `No memories with ${personRef(person)} yet. Spend some time together.` : 'No memories recorded.'} />
+          <PeopleMemories memories={memories} emptyText={person.alive ? `No memories with ${called} yet. ${person.farAway ? `Give ${person.gender === 'male' ? 'him' : 'her'} a call.` : 'Spend some time together.'}` : 'No memories recorded.'} />
         </Section>
       </ScrollView>
     </Screen>

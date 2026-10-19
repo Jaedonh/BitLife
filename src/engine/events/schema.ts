@@ -113,6 +113,7 @@ export type Effect =
   | { fame: number }
   | { log: string; kind?: LogKind }
   | { flag: string; set?: number | boolean | string; inc?: number }
+  /** The bound person's bond, or that of everyone of a kind nearby (people who live far away are not in the scene). */
   | { relationship: 'person' | RelationshipKind; delta: number }
   | { love: number }
   | { removePerson: true }
@@ -207,10 +208,28 @@ export interface PersonSelector {
    * group chat, a video call). The same rule holds for `hasPerson` and `noPerson`, which count people nearby.
    */
   farAway?: boolean | 'any';
+  /**
+   * Pets only (kind ['pet']): bind a pet of one of these species, for a card that needs fur ('dog', 'cat',
+   * 'hamster', 'rabbit') or a walk ('dog'). Names from PET_SPECIES.
+   */
+  species?: string[];
 }
 
 /** The kinds of people who stay behind, far away, when the family moves abroad (systems/scenarios.ts). */
 export const FAR_AWAY_KINDS: readonly RelationshipKind[] = ['friend', 'bestFriend', 'enemy', 'grandparent'];
+
+/** The species a pet can be (the ones content creates with newPerson, played with in relationships.ts). */
+export const PET_SPECIES: readonly string[] = ['dog', 'cat', 'hamster', 'rabbit', 'parrot', 'pigeon'];
+
+/** Problems with a selector's `species` (events and flavor lines): pets only, and species that exist. */
+export function speciesIssues(sel: PersonSelector | undefined): string[] {
+  if (sel?.species === undefined) return [];
+  const out: string[] = [];
+  if (!(sel.kind.length === 1 && sel.kind[0] === 'pet')) out.push("species in the person selector needs person: { kind: ['pet'] }");
+  if (!sel.species.length) out.push('species in the person selector lists no species');
+  for (const sp of sel.species) if (!PET_SPECIES.includes(sp)) out.push(`unknown pet species ${sp} (one of ${PET_SPECIES.join('/')})`);
+  return out;
+}
 
 export interface EventDef {
   id: string;
@@ -350,6 +369,7 @@ export function validateEvent(def: EventDef, knownIds: Set<string>): string[] {
   if (def.person?.farAway !== undefined && !def.person.kind.some((k) => FAR_AWAY_KINDS.includes(k))) {
     errors.push(`${where}: farAway in the person selector only applies to ${FAR_AWAY_KINDS.join('/')} (who stay behind when the family moves abroad)`);
   }
+  for (const issue of speciesIssues(def.person)) errors.push(`${where}: ${issue}`);
   for (const list of effectLists(def.choices.flatMap((c) => [c.effects ?? []]))) {
     for (const e of list) {
       if ('childMilestone' in e && !childOnly) errors.push(`${where}: childMilestone needs the event bound to a child (person: { kind: ['child'] })`);

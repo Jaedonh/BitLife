@@ -8,10 +8,11 @@
  * twice. Pure: all randomness comes from the Rng passed in.
  */
 import { getCountry } from '@/data/countries';
+import { NAMES } from '@/data/names';
 import type { Rng } from '../rng';
 import type { ChildGrowth, GameState, Gender, Person } from '../types';
 import { addStats, incFlag, log, numberWord, pronouns, setFlag } from '../util';
-import { makePerson, randomName } from './character';
+import { freshFirstName, makePerson, namesInLife } from './character';
 
 /** Children move out at 19-26: an even chance over those years, certain by 26. */
 export const MOVE_OUT_FROM = 19;
@@ -53,12 +54,22 @@ function myChild(p: Person): string {
   return `My ${p.gender === 'male' ? 'son' : 'daughter'} ${p.firstName}`;
 }
 
-/** A first name no one else in the family has, when one turns up within a few draws. */
-function freshFirstName(rng: Rng, state: GameState, gender: Gender): string {
-  const taken = new Set([state.character.firstName, ...Object.values(state.people).map((p) => p.firstName)]);
-  let name = randomName(rng, gender, state.character.countryCode).firstName;
-  for (let i = 0; i < 4 && taken.has(name); i++) name = randomName(rng, gender, state.character.countryCode).firstName;
-  return name;
+/**
+ * The names a new member of one of my children's households must not take (GAME_DESIGN §10): every name in the
+ * life (namesInLife: the living and the dead, and my children's spouses) and the names `reserved` for the year (an
+ * age-up passes the names at its start, so a friend who drifted apart in it keeps theirs) while the country's pool
+ * still has one free for that gender; once it has none, at least not my own name or those of that household (the
+ * child, their spouse and their own children), so a spouse is never named like a stepchild and a baby never like a
+ * parent, a sibling or me (a baby named after me is the one deliberate exception, see addGrandchild).
+ */
+function namesToAvoid(state: GameState, child: Person, gender: Gender, reserved: ReadonlySet<string> = new Set()): Set<string> {
+  const all = new Set([...reserved, ...namesInLife(state)]);
+  const pool = NAMES[getCountry(state.character.countryCode).namePool];
+  if ((gender === 'male' ? pool.male : pool.female).some((n) => !all.has(n))) return all;
+  const household = new Set([state.character.firstName, child.firstName]);
+  if (child.growth?.spouse) household.add(child.growth.spouse.firstName);
+  for (const p of Object.values(state.people)) if (p.kind === 'grandchild' && p.viaId === child.id) household.add(p.firstName);
+  return household;
 }
 
 /** The card where one of the player's children comes out to them as gay (love_and_family.ts). */
@@ -77,11 +88,14 @@ export function hasComeOut(state: GameState, p: Person): boolean {
   return state.log.some((l) => l.kind === 'event' && l.age === at && l.text.startsWith(opening) && l.text.includes(' is gay'));
 }
 
-/** Someone for a child to marry: usually of the other gender (always their own once they came out), with a name from the family's country. */
-function rollSpouse(rng: Rng, state: GameState, child: Person): { firstName: string; gender: Gender } {
+/**
+ * Someone for a child to marry: usually of the other gender (always their own once they came out), with a name from
+ * the family's country that nobody in the life has (`reserved`: see namesToAvoid).
+ */
+function rollSpouse(rng: Rng, state: GameState, child: Person, reserved?: ReadonlySet<string>): { firstName: string; gender: Gender } {
   const other = rng.chance(0.9);
   const gender: Gender = other && !hasComeOut(state, child) ? (child.gender === 'male' ? 'female' : 'male') : child.gender;
-  return { firstName: freshFirstName(rng, state, gender), gender };
+  return { firstName: freshFirstName(rng, gender, state.character.countryCode, namesToAvoid(state, child, gender, reserved)), gender };
 }
 
 /**
@@ -103,15 +117,19 @@ export function markChildMilestone(state: GameState, rng: Rng, id: string, miles
   });
 }
 
-/** A grandchild is born to one of the player's children: the person, the journal line and the grandparent flag. */
-export function addGrandchild(state: GameState, rng: Rng, parentId: string): GameState {
+/**
+ * A grandchild is born to one of the player's children: the person, the journal line and the grandparent flag. Their
+ * name is one nobody in the life has (`reserved`: see namesToAvoid), unless the parents promised to name them after me.
+ */
+export function addGrandchild(state: GameState, rng: Rng, parentId: string, reserved?: ReadonlySet<string>): GameState {
   const parent = state.people[parentId];
   if (!parent || parent.kind !== 'child' || !parent.alive) return state;
   const me = state.character;
   const promised = parent.growth?.babyName;
   const gender: Gender = promised?.gender ?? rng.pick<Gender>(['male', 'female']);
   const baby = makePerson(rng, { kind: 'grandchild', gender, age: 0, countryCode: me.countryCode, lastName: parent.lastName, playerAge: me.age, relationship: rng.int(55, 85), occupation: 'Baby', money: 0 });
-  baby.firstName = promised?.firstName ?? freshFirstName(rng, state, gender);
+  // A name nobody in the life has (the shared helper, one draw); a baby named after me is the one deliberate exception.
+  baby.firstName = promised?.firstName ?? freshFirstName(rng, gender, me.countryCode, namesToAvoid(state, parent, gender, reserved));
   baby.viaId = parent.id;
   const growth: ChildGrowth = { ...parent.growth, kids: (parent.growth?.kids ?? 0) + 1, expecting: Math.max(0, (parent.growth?.expecting ?? 0) - 1) };
   delete growth.babyName;
@@ -136,8 +154,11 @@ export function addGrandchild(state: GameState, rng: Rng, parentId: string): Gam
   return log(s, `${birth}${after}`, 'milestone');
 }
 
-/** Yearly milestones for each of the player's living children (ageUp, after NPCs have aged). */
-export function yearlyFamily(state: GameState, rng: Rng): GameState {
+/**
+ * Yearly milestones for each of the player's living children (ageUp, after NPCs have aged). `reserved` are names that
+ * stay taken this year although their owner may have left the life during it (ageUp passes the names at its start).
+ */
+export function yearlyFamily(state: GameState, rng: Rng, reserved: ReadonlySet<string> = new Set()): GameState {
   let s = state;
   const country = getCountry(s.character.countryCode);
   const inPrison = s.crime.inPrison;
@@ -174,7 +195,7 @@ export function yearlyFamily(state: GameState, rng: Rng): GameState {
     // Marriage.
     c = s.people[id]!;
     if (!isMarried(c) && c.age >= MARRY_FROM && c.age <= MARRY_UNTIL && rng.chance(MARRY_CHANCE)) {
-      const spouse = rollSpouse(rng, s, c);
+      const spouse = rollSpouse(rng, s, c, reserved);
       s = withGrowth(s, id, { spouse });
       s = addStats(s, { happiness: 4 });
       s = log(
@@ -188,9 +209,9 @@ export function yearlyFamily(state: GameState, rng: Rng): GameState {
     // Children of their own: a baby announced last year arrives; otherwise a yearly chance while 22-42.
     c = s.people[id]!;
     if ((c.growth?.expecting ?? 0) > 0) {
-      s = addGrandchild(s, rng, id);
+      s = addGrandchild(s, rng, id, reserved);
     } else if (c.age >= KIDS_FROM && c.age <= KIDS_UNTIL && kidsCount(c) < MAX_KIDS_PER_CHILD && rng.chance(isMarried(c) ? KID_CHANCE_MARRIED : KID_CHANCE_SINGLE)) {
-      s = addGrandchild(s, rng, id);
+      s = addGrandchild(s, rng, id, reserved);
     }
   }
   return s;

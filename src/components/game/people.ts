@@ -83,7 +83,7 @@ export function personName(p: Person): string {
   return p.kind === 'pet' ? p.firstName : `${p.firstName} ${p.lastName}`;
 }
 
-/** What the player calls them in the journal ("Mom", "Dad", or the first name). */
+/** What the player calls them in the journal ("Mom", "Dad", or the first name); pass the family so a second father reads "Papa". */
 export { personRef };
 
 /**
@@ -123,22 +123,42 @@ export function sinceLine(p: Person, playerAge?: number): string {
   return `Known since you were ${p.metAtAge}.`;
 }
 
+/** "Mom's", "Papa's" (a second father, told apart with the family), "Maya's": whose relative someone is. */
+function whoseLabel(via: Person, people: GameState['people']): string {
+  return `${via.kind === 'mother' || via.kind === 'father' ? personRef(via, people) : via.firstName}'s`;
+}
+
+/** An aunt or uncle who took the player in (`relative`): when, or, for one known since birth, after whose death. */
+function tookInLine(p: Person, via: Person | undefined, people: GameState['people']): string {
+  if (p.metAtAge > 0) return `Took you in when you were ${p.metAtAge}.`;
+  return via && !via.alive ? `Took you in when ${personRef(via, people)} died.` : 'Took you in as a baby.';
+}
+
+/** Whether someone is an aunt or uncle who took the player in (kind stepmother/stepfather marked `relative`). */
+const isRelativeGuardian = (p: Person) => !!p.relative && (p.kind === 'stepmother' || p.kind === 'stepfather');
+
 /**
  * What the family tree says about someone, for the person screen: whose parent a grandparent is, whose child a
- * grandchild is, how one of your children is getting on, and where a coworker works with you.
+ * grandchild is, whose brother or sister an aunt or uncle who took you in is (and when), that a friend or
+ * grandparent left behind lives far away, how one of your children is getting on, and where a coworker works with you.
  */
 export function familyFacts(p: Person, state: Pick<GameState, 'people' | 'career'>): string[] {
   const via = p.viaId ? state.people[p.viaId] : undefined;
-  if (p.kind === 'grandparent' && via) return [`${via.kind === 'mother' ? "Mom's" : via.kind === 'father' ? "Dad's" : `${via.firstName}'s`} ${p.gender === 'male' ? 'father' : 'mother'}.`];
-  if (p.kind === 'grandchild' && via) return [`${via.firstName}'s ${p.gender === 'male' ? 'son' : 'daughter'}.`];
+  const out: string[] = [];
+  if (p.kind === 'grandparent' && via) out.push(`${whoseLabel(via, state.people)} ${p.gender === 'male' ? 'father' : 'mother'}.`);
+  if (p.kind === 'grandchild' && via) out.push(`${via.firstName}'s ${p.gender === 'male' ? 'son' : 'daughter'}.`);
+  if (isRelativeGuardian(p)) {
+    if (via) out.push(`${whoseLabel(via, state.people)} ${p.gender === 'male' ? 'brother' : 'sister'}.`);
+    out.push(tookInLine(p, via, state.people));
+  }
+  if (p.farAway && p.alive) out.push('Lives far away.');
   if (p.kind === 'coworker' && p.workplace && state.career.job?.defId === p.workplace.jobId && state.career.job.company === p.workplace.company) {
     // Prose, so the employer keeps its article ("at the Ember Grill"); the Army is served in, not worked at.
     const company = p.workplace.company;
-    return [company === 'the Army' ? 'Serves with you in the Army.' : `Works with you at ${company}.`];
+    out.push(company === 'the Army' ? 'Serves with you in the Army.' : `Works with you at ${company}.`);
   }
-  if (p.kind !== 'child' || !p.growth) return [];
+  if (p.kind !== 'child' || !p.growth) return out;
   const g = p.growth;
-  const out: string[] = [];
   if (g.school === 'graduated') out.push('Finished high school.');
   if (g.school === 'droppedOut') out.push('Left high school without a diploma.');
   if (g.movedOut) out.push('Has moved out.');
@@ -148,6 +168,17 @@ export function familyFacts(p: Person, state: Pick<GameState, 'people' | 'career
   if (kids) out.push(kids === 1 ? `Has a child of ${own} own.` : `Has ${kids} children of ${own} own.`);
   if (g.expecting) out.push('Has a baby on the way.');
   return out;
+}
+
+/**
+ * Everything the person screen says about someone, in order: how long you have known them (left out for an aunt or
+ * uncle who took you in later, whose line already says when), the family facts, any silence, and the wedding.
+ */
+export function personFacts(p: Person, state: Pick<GameState, 'people' | 'career' | 'character'>): string[] {
+  const age = state.character.age;
+  const since = isRelativeGuardian(p) && p.metAtAge > 0 ? null : sinceLine(p, age);
+  const married = p.marriedAtAge !== undefined ? `Married when you were ${p.marriedAtAge}.` : null;
+  return [since, ...familyFacts(p, state), neglectLine(p, age), married].filter((x): x is string => !!x);
 }
 
 /** "Died of cancer at 71", "Died in a car accident at 40". */
@@ -301,15 +332,18 @@ function mentions(text: string, word: string): boolean {
   return false;
 }
 
-/** The words that identify this person in the journal: full name, unique first name, and "Mom"/"Dad" for parents. */
+/**
+ * The words that identify this person in the journal: full name, unique first name, what you call a parent ("Mom",
+ * or "Papa" for a second father), "Grandma Rosa" and "Aunt Rosa".
+ */
 function memoryTerms(p: Person, state: Pick<GameState, 'people' | 'character'>): string[] {
   const terms = [`${p.firstName} ${p.lastName}`];
   const shared = p.firstName === state.character.firstName || Object.values(state.people).some((o) => o.id !== p.id && o.firstName === p.firstName);
   if (!shared) terms.push(p.firstName);
-  if (p.kind === 'mother') terms.push('Mom', 'my mother', 'My mother');
-  if (p.kind === 'father') terms.push('Dad', 'my father', 'My father');
-  // "Grandma Rosa" even when another Rosa in the family keeps the first name out of the terms.
-  if (p.kind === 'grandparent') terms.push(personRef(p));
+  if (p.kind === 'mother') terms.push(personRef(p, state.people), 'my mother', 'My mother');
+  if (p.kind === 'father') terms.push(personRef(p, state.people), 'my father', 'My father');
+  // "Grandma Rosa" (or "Aunt Rosa") even when another Rosa in the family keeps the first name out of the terms.
+  if (p.kind === 'grandparent' || isRelativeGuardian(p)) terms.push(personRef(p));
   return terms;
 }
 
