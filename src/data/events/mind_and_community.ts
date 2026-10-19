@@ -43,6 +43,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
         id: 'one',
         label: 'Ask about just one thing',
         effects: [
+          { energy: -1 },
           {
             chance: 0.6,
             then: [{ stat: 'happiness', delta: 3 }, { grade: 3 }, { log: 'I asked about my grades, which was easier. The counselor fixed my schedule, then asked about me.', kind: 'good' }],
@@ -83,6 +84,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
           { money: -150 },
           { stat: 'happiness', delta: 4 },
           { stat: 'smarts', delta: 1 },
+          { energy: -1 },
           { log: "I talked for fifty minutes and cried for five. The therapist said, 'Same time next week?'", kind: 'good' },
           { queue: 'mc_therapy_followup' },
         ],
@@ -103,7 +105,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
         label: 'Cancel at the door',
         effects: [
           { stat: 'happiness', delta: -2 },
-          { log: 'I got as far as the fern, then texted that I was sick. The fern knew.' },
+          { log: 'I got as far as the fern, then called to say I was sick. The fern knew.' },
           { chance: 0.5, then: [{ money: -50 }, { log: 'The clinic charged me a late-cancellation fee anyway.', kind: 'money' }] },
         ],
       },
@@ -127,6 +129,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
           { money: -150 },
           { stat: 'happiness', delta: 7 },
           { stat: 'health', delta: 2 },
+          { energy: -1 },
           { log: 'I answered. It came out sideways and wet, but it came out. Something shifted.', kind: 'good' },
         ],
       },
@@ -144,6 +147,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
           { money: -150 },
           { stat: 'smarts', delta: 2 },
           { stat: 'happiness', delta: 3 },
+          { energy: -1 },
           { counter: 'meditations' },
           { log: 'I left with breathing exercises and a journal. Four pages in, I am nosy about myself.' },
         ],
@@ -259,7 +263,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 5 },
           { stat: 'health', delta: 2 },
           { jobPerformance: -2 },
-          { log: 'I keep turning my phone off at eight and saying no more often. The world has not ended.', kind: 'good' },
+          { log: 'I keep my evenings to myself and say no more often. The world has not ended.', kind: 'good' },
         ],
       },
       {
@@ -411,7 +415,8 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
           { relationship: 'sibling', delta: 6 },
           { karma: 1 },
           { stat: 'happiness', delta: 2 },
-          { log: 'I mailed a few things to family. The group chat filled with photos and old stories.', kind: 'good' },
+          { money: -20 },
+          { log: 'I mailed a few things to family. The phone rang all week with old stories.', kind: 'good' },
         ],
       },
       {
@@ -430,15 +435,19 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 1,
     once: true,
+    conditions: [{ year: { gte: 2014 } }],
     person: { kind: ['friend', 'bestFriend'], alive: false },
     choices: [
       {
         id: 'share',
         label: 'Share it with old friends',
         effects: [
-          { stat: 'happiness', delta: 3 },
           { relationship: 'friend', delta: 2 },
-          { log: 'I posted it. Old friends filled the comments with every story I had forgotten.', kind: 'good' },
+          {
+            chance: 0.8,
+            then: [{ stat: 'happiness', delta: 3 }, { log: 'I posted it. Old friends filled the comments with every story I had forgotten.', kind: 'good' }],
+            else: [{ stat: 'happiness', delta: -2 }, { log: "I posted it. Someone commented 'who is that?' and I took it down." }],
+          },
         ],
       },
       {
@@ -482,11 +491,11 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     choices: [
       {
         id: 'alarm',
-        label: 'Set alarms on my phone',
+        label: 'Set an alarm for every dose',
         effects: [
           { stat: 'health', delta: 4 },
           { stat: 'happiness', delta: -1 },
-          { log: 'Three alarms a day now. My phone nags me like a parent, and the box empties on schedule.', kind: 'good' },
+          { log: 'Three alarms a day now. They nag me like a parent, and the box empties on schedule.', kind: 'good' },
         ],
       },
       {
@@ -593,7 +602,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     id: 'mc_unsolicited_advice',
     category: 'family',
     title: 'The cure',
-    text: '{{person}} has read an article about what I have and now knows how to cure it: a special tea, cold showers, and a man online with remarkably white teeth. {{They}} has printed it out.',
+    text: '{{person}} has read an article about what I have and now knows how to cure it: a special tea, cold showers, and a man on late-night television with remarkably white teeth. {{They}} has taken notes.',
     minAge: 18,
     maxAge: 90,
     weight: 1,
@@ -789,7 +798,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
           { log: 'I thanked them and said I would manage alone.' },
           {
             chance: 0.5,
-            then: [{ stat: 'happiness', delta: -4 }, { log: 'Some weeks I manage. Some weeks I sit in the car outside the meeting and do not go in.', kind: 'bad' }],
+            then: [{ stat: 'happiness', delta: -4 }, { log: 'Some weeks I manage. Some weeks I sit outside the meeting and do not go in.', kind: 'bad' }],
             else: [{ log: 'So far, I have. One day at a time, as they say on the posters.', kind: 'good' }],
           },
         ],
@@ -814,7 +823,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     maxAge: 65,
     weight: 1.5,
     cooldown: 4,
-    conditions: [{ addiction: 'drugs' }, { inPrison: false }],
+    conditions: [{ addiction: 'drugs' }, { inPrison: false }, { year: { gte: 2005 } }],
     choices: [
       {
         id: 'block',
@@ -951,7 +960,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
           { relationship: 'friend', delta: 3 },
           { relationship: 'bestFriend', delta: 3 },
           { karma: 1 },
-          { log: 'I dragged along a friend who had never voted either. We took a sticker selfie outside.', kind: 'good' },
+          { log: 'I dragged along a friend who had never voted either. We wore our stickers all day like medals.', kind: 'good' },
         ],
       },
       {
@@ -1068,7 +1077,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
           { fame: 2 },
           {
             chance: 0.7,
-            then: [{ stat: 'smarts', delta: 1 }, { log: 'I made one clear point about the meters. A cousin texted that I looked "very official".', kind: 'good' }],
+            then: [{ stat: 'smarts', delta: 1 }, { log: 'I made one clear point about the meters. A cousin called to say I looked "very official".', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -2 }, { log: "They aired only the part where I said 'um' for four seconds. My point was cut for time." }],
           },
         ],
@@ -1079,7 +1088,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
         effects: [
           {
             random: [
-              { weight: 4, effects: [{ fame: 5 }, { stat: 'happiness', delta: 5 }, { log: 'My joke made the evening news and then the internet. Strangers quote it back to me.', kind: 'good' }] },
+              { weight: 4, effects: [{ fame: 5 }, { stat: 'happiness', delta: 5 }, { log: 'My joke made the evening news and then the morning shows. Strangers quote it back to me.', kind: 'good' }] },
               { weight: 6, effects: [{ fame: 1 }, { stat: 'happiness', delta: -3 }, { log: 'The joke did not land. They aired it anyway, right before the weather.', kind: 'bad' }] },
             ],
           },
@@ -1199,7 +1208,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 90,
     weight: 1,
-    cooldown: 5,
+    cooldown: 10,
     choices: [
       {
         id: 'serve',
@@ -1237,7 +1246,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
   {
     id: 'mc_friend_celebration',
     category: 'friends',
-    title: 'An invitation',
+    title: 'When to stand',
     text: "{{person}} invited me to {{their}} family's big religious celebration. I do not know the songs, the food, or when to stand, and {{they}} says that is exactly why I should come.",
     minAge: 14,
     maxAge: 90,
@@ -1262,6 +1271,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
         effects: [
           { relationship: 'person', delta: 5 },
           { stat: 'smarts', delta: 3 },
+          { energy: -1 },
           { log: '{{person}} walked me through every part beforehand. I knew more than some of the cousins did.', kind: 'good' },
         ],
       },
@@ -1304,7 +1314,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
         id: 'home',
         label: 'Tough it out at home',
         effects: [
-          { stat: 'happiness', delta: 2 },
+          { stat: 'happiness', delta: 3 },
           {
             chance: 0.3,
             then: [{ stat: 'health', delta: -8 }, { log: 'On day eleven I got dizzy and sat on the kitchen floor. A neighbor found me and called a doctor.', kind: 'bad' }],
@@ -1334,7 +1344,8 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 1,
-    cooldown: 6,
+    cooldown: 10,
+    // Not the US: its cities include Miami, Phoenix and Los Angeles. A big storm once in years fits mild GB and FR.
     conditions: [{ country: ['CA', 'DE', 'GB', 'FR', 'JP'] }],
     choices: [
       {
@@ -1354,7 +1365,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
       {
         id: 'snowday',
         label: 'Declare a snow day',
-        effects: [{ stat: 'happiness', delta: 5 }, { jobPerformance: -2 }, { log: 'I made pancakes, ignored my email, and watched the snow like it was a show.' }],
+        effects: [{ stat: 'happiness', delta: 5 }, { jobPerformance: -2 }, { log: 'I made pancakes, ignored the phone, and watched the snow like it was a show.' }],
       },
       {
         id: 'work',
@@ -1427,7 +1438,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     id: 'mc_long_outage',
     category: 'random',
     title: 'Day three',
-    text: "Day three without power after a fire at the substation. The fridge has given up, phones charge at the library, and the whole street smells faintly of everyone's barbecue.",
+    text: "Day three without power after a fire at the substation. The fridge has given up, the library is the only place with lights, and the whole street smells faintly of everyone's barbecue.",
     minAge: 18,
     maxAge: 90,
     weight: 1,
@@ -1743,7 +1754,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
       {
         id: 'notmine',
         label: 'Decide it is not my place',
-        effects: [{ karma: -2 }, { stat: 'happiness', delta: -2 }, { jobPerformance: 1 }, { log: 'I let them leave and finished my paperwork. I have thought about that doorway ever since.', kind: 'bad' }],
+        effects: [{ karma: -2 }, { stat: 'happiness', delta: -2 }, { jobPerformance: 3 }, { log: 'I let them leave and finished my paperwork. I have thought about that doorway ever since.', kind: 'bad' }],
       },
     ],
   },

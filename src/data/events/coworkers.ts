@@ -185,7 +185,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
     choices: [
       {
         id: 'editor',
-        label: 'Email the editor a correction',
+        label: 'Send the editor a correction',
         effects: [
           {
             chance: 0.6,
@@ -335,7 +335,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
     id: 'cw_carpool_passenger',
     category: 'work',
     title: 'A ride to work',
-    text: '{{person}} saw me waiting for the bus in the rain and pulled over. Now {{they}} offers me a ride every morning, on one condition: I listen to {{their}} podcasts about ancient history.',
+    text: '{{person}} saw me waiting for the bus in the rain and pulled over. Now {{they}} offers me a ride every morning, on one condition: I listen to {{their}} audiobooks about ancient history.',
     minAge: 18,
     maxAge: 75,
     weight: 1,
@@ -590,7 +590,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
     maxAge: 75,
     weight: 1,
     cooldown: 4,
-    conditions: [...FULL_TIME, DESK_WORK, HAS_A_BOSS],
+    conditions: [...FULL_TIME, DESK_WORK, HAS_A_BOSS, { year: { gte: 2000 } }],
     person: { kind: ['coworker'] },
     choices: [
       {
@@ -623,7 +623,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
   {
     id: 'cw_umbrella_rumor',
     category: 'work',
-    title: 'The rumor',
+    title: 'One umbrella',
     text: 'Someone saw {{person}} and me sharing an umbrella to the parking lot, and by lunch everyone at work had us secretly dating. {{person}} heard it too and turned the color of a stop sign.',
     minAge: 18,
     maxAge: 75,

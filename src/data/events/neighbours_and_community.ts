@@ -16,7 +16,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 90,
     weight: 2,
-    cooldown: 4,
+    cooldown: 15,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -77,7 +77,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 10,
     maxAge: 85,
     weight: 2,
-    cooldown: 3,
+    once: true,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -97,7 +97,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
       {
         id: 'share',
         label: 'Share the poster around',
-        effects: [{ karma: 2 }, { stat: 'happiness', delta: 2 }, { log: 'I shared a photo of the poster with everyone I knew. Biscuit was home by the weekend, apparently.', kind: 'good' }],
+        effects: [{ karma: 2 }, { stat: 'happiness', delta: 2 }, { energy: -1 }, { log: 'I copied the poster and taped it up all over the neighborhood. Biscuit was home by the weekend.', kind: 'good' }],
       },
       {
         id: 'walk',
@@ -114,7 +114,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 12,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 4,
+    cooldown: 10,
     conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend', 'sibling', 'lover', 'spouse'] },
     choices: [
@@ -171,7 +171,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 15,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -225,7 +225,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 85,
     weight: 1.5,
-    cooldown: 4,
+    cooldown: 12,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -233,6 +233,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         label: 'Help all day',
         effects: [
           { karma: 4 },
+          { energy: -1 },
           { stat: 'health', delta: -2 },
           { stat: 'happiness', delta: 2 },
           {
@@ -247,7 +248,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
       {
         id: 'hour',
         label: 'Help for an hour',
-        effects: [{ karma: 2 }, { stat: 'happiness', delta: 1 }, { log: 'I carried boxes for an hour and then remembered an appointment that did not exist.' }],
+        effects: [{ karma: 2 }, { stat: 'happiness', delta: 1 }, { energy: -1 }, { log: 'I carried boxes for an hour and then remembered an appointment that did not exist.' }],
       },
       {
         id: 'busy',
@@ -287,6 +288,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         effects: [
           { karma: 2 },
           { stat: 'happiness', delta: 2 },
+          { energy: -1 },
           {
             random: [
               { weight: 6, effects: [{ log: 'I carried the bags. He told me the street in 1960 was all fields, and better.' }, { stat: 'smarts', delta: 1 }] },
@@ -310,8 +312,8 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
       },
       {
         id: 'phone',
-        label: 'Pretend to be on the phone',
-        effects: [{ karma: -2 }, { stat: 'happiness', delta: -1 }, { log: "I said 'uh huh, uh huh' into a silent phone and walked past. The oranges rolled into the road." }],
+        label: "Pretend I didn't see him",
+        effects: [{ karma: -2 }, { stat: 'happiness', delta: -1 }, { log: 'I found my shoes very interesting and walked past. The oranges rolled into the road.' }],
       },
     ],
   },
@@ -364,6 +366,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         conditions: [{ flag: 'nc_old_neighbour_friend', exists: true }],
         effects: [
           { karma: 3 },
+          { energy: -1 },
           { fame: 1 },
           { stat: 'happiness', delta: 6 },
           { log: 'I spoke at the funeral about Thursdays and oranges, and kept the kettle.', kind: 'milestone' },
@@ -388,7 +391,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 90,
     weight: 1,
-    cooldown: 4,
+    cooldown: 8,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -398,7 +401,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
           {
             random: [
               { weight: 6, effects: [{ log: 'Knee-deep, freezing, and something soft touched my ankle. I made it, on time. My shoes did not.' }, { money: -40 }, { stat: 'happiness', delta: 1 }] },
-              { weight: 3, effects: [{ log: 'I slipped on something invisible and went under. Dignity: gone. Phone: also gone.', kind: 'bad' }, { injury: 3 }, { money: -200 }] },
+              { weight: 3, effects: [{ log: 'I slipped on something invisible and went under. Dignity: gone. Keys: also gone.', kind: 'bad' }, { injury: 3 }, { money: -200 }] },
               { weight: 1, effects: [{ log: 'I waded across like an explorer and someone applauded from a window.', kind: 'good' }, { stat: 'happiness', delta: 3 }, { fame: 1 }] },
             ],
           },
@@ -426,7 +429,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         effects: [
           {
             random: [
-              { weight: 6, effects: [{ log: 'My car coughed, spluttered and made it. The engine has never sounded the same.' }, { asset: 'damage', kind: 'car', amount: 20 }] },
+              { weight: 6, effects: [{ log: 'My car coughed, spluttered and made it, which was thrilling. The engine has never sounded the same.' }, { stat: 'happiness', delta: 2 }, { asset: 'damage', kind: 'car', amount: 20 }] },
               { weight: 4, effects: [{ log: 'The car died mid-lake. I was towed out in front of everyone, including the duck.', kind: 'bad' }, { asset: 'damage', kind: 'car', amount: 40 }, { money: -300 }, { stat: 'happiness', delta: -5 }] },
             ],
           },
@@ -447,7 +450,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 10,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 6,
     conditions: [{ inPrison: false }],
     person: { kind: ['mother', 'father', 'stepmother', 'stepfather', 'sibling', 'spouse', 'lover', 'child'], minAge: 5, household: true },
     choices: [
@@ -461,6 +464,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         label: 'Check on the old folks',
         effects: [
           { karma: 3 },
+          { energy: -1 },
           { stat: 'happiness', delta: 2 },
           { log: 'I checked on the older neighbors. One fed me cookies in the dark until the lights came back.', kind: 'good' },
           { chance: 0.3, then: [{ money: 30 }, { log: 'She insisted I take {{$30}} for my trouble.', kind: 'money' }] },
@@ -494,7 +498,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 90,
     weight: 1.2,
-    cooldown: 6,
+    cooldown: 12,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -502,6 +506,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         label: 'Report it relentlessly',
         effects: [
           { stat: 'smarts', delta: 1 },
+          { energy: -1 },
           {
             chance: 0.5,
             then: [{ log: 'My eleventh report did the trick. A crew arrived, filled it, and left a smaller pothole beside it.', kind: 'good' }, { stat: 'happiness', delta: 3 }, { queue: 'nc_council_reply' }],
@@ -529,7 +534,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.4,
-            then: [{ log: 'My pothole daffodil went viral all over {{city}}. Within a week the hole was filled, out of shame.', kind: 'good' }, { fame: 3 }, { stat: 'happiness', delta: 5 }],
+            then: [{ log: 'My pothole daffodil was the talk of {{city}}. Within a week the hole was filled, out of shame.', kind: 'good' }, { fame: 3 }, { stat: 'happiness', delta: 5 }],
             else: [{ log: 'My daffodil lasted two days before a van flattened it. The pothole remains.' }, { stat: 'happiness', delta: -1 }],
           },
         ],
@@ -583,7 +588,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 10,
     maxAge: 90,
     weight: 1.2,
-    cooldown: 3,
+    cooldown: 15,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -591,6 +596,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         label: 'Join in',
         effects: [
           { karma: 2 },
+          { energy: -1 },
           { stat: 'health', delta: 1 },
           { stat: 'happiness', delta: 2 },
           {
@@ -626,12 +632,14 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     id: 'nc_found_wallet',
     category: 'random',
     title: 'A wallet',
-    text: 'A wallet lay on the sidewalk outside the pharmacy: credit cards, a library card, a photo of two kids and, folded behind them, more cash than I expected.',
-    minAge: 10,
+    text: "A wallet lay on the sidewalk outside the pharmacy: credit cards, a library card, a child's drawing of a horse and, folded behind them, more cash than I expected.",
+    minAge: 13,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 3,
-    conditions: [{ inPrison: false }],
+    once: true,
+    // One found wallet per life: kd_found_wallet, cp_found_wallet and mn_lucky_find are the same scene. From 13, after
+    // kid_years' kd_found_wallet (6-12), which does not check for these.
+    conditions: [{ inPrison: false }, { eventNotFired: 'kd_found_wallet' }, { eventNotFired: 'cp_found_wallet' }, { eventNotFired: 'mn_lucky_find' }],
     choices: [
       {
         id: 'return',
@@ -662,7 +670,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
           {
             chance: 0.15,
             then: [{ log: 'The pharmacy had a camera. The owner had a temper. I gave the money back in front of everyone.', kind: 'bad' }, { money: -140 }, { stat: 'happiness', delta: -6 }],
-            else: [{ log: 'I kept {{$140}} and dropped the wallet in a mailbox. The photo of the kids stayed with me longer.' }, { stat: 'happiness', delta: -2 }],
+            else: [{ log: 'I kept {{$140}} and dropped the wallet in a mailbox. The drawing of the horse stayed with me longer.' }, { stat: 'happiness', delta: -2 }],
           },
         ],
       },
@@ -695,6 +703,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
       {
         id: 'sell',
         label: 'Sell it online',
+        conditions: [{ year: { gte: 2000 } }],
         effects: [
           { karma: -1 },
           {
@@ -719,8 +728,9 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 95,
     weight: 1,
-    cooldown: 5,
-    conditions: [{ inPrison: false }],
+    cooldown: 10,
+    // My own roof: not my parents' house or a landlord's.
+    conditions: [{ inPrison: false }, { ownsAsset: 'house' }],
     choices: [
       {
         id: 'deposit',
@@ -778,7 +788,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 90,
     weight: 1,
-    cooldown: 5,
+    cooldown: 10,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -803,6 +813,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         label: 'Volunteer on the shared beds',
         effects: [
           { karma: 2 },
+          { energy: -1 },
           { stat: 'health', delta: 1 },
           { stat: 'happiness', delta: 2 },
           { log: 'I weeded on Saturdays and learned the names of plants and people. Both are useful.', kind: 'good' },
@@ -824,7 +835,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 10,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 10,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -855,7 +866,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
       {
         id: 'stall',
         label: 'Help run a booth',
-        effects: [{ karma: 2 }, { money: 40 }, { stat: 'happiness', delta: 1 }, { log: 'Six hours pouring lemonade for the youth center. They paid me {{$40}} and all I could drink.', kind: 'money' }],
+        effects: [{ karma: 2 }, { money: 40 }, { stat: 'happiness', delta: 1 }, { energy: -1 }, { log: 'Six hours pouring lemonade for the youth center. They paid me {{$40}} and all I could drink.', kind: 'money' }],
       },
       {
         id: 'avoid',
@@ -872,7 +883,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 12,
     maxAge: 90,
     weight: 1,
-    cooldown: 4,
+    cooldown: 8,
     conditions: [{ inPrison: false }],
     person: { kind: ['mother', 'father', 'sibling', 'friend', 'bestFriend', 'spouse'] },
     choices: [
@@ -922,7 +933,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 90,
     weight: 1,
-    cooldown: 4,
+    cooldown: 10,
     conditions: [{ inPrison: false }],
     person: { kind: ['mother', 'father', 'spouse', 'friend', 'bestFriend', 'sibling'] },
     choices: [
@@ -975,7 +986,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     id: 'nc_neighbourhood_watch',
     category: 'random',
     title: 'Neighborhood watch',
-    text: 'A retired man with a lanyard asked me to join the neighborhood watch after a string of shed break-ins. There is a schedule, a group chat and, he hinted, a flashlight.',
+    text: 'A retired man with a lanyard asked me to join the neighborhood watch after a string of shed break-ins. There is a schedule, a phone tree and, he hinted, a flashlight.',
     minAge: 18,
     maxAge: 85,
     weight: 1,
@@ -1073,7 +1084,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 12,
     maxAge: 90,
     weight: 1.2,
-    cooldown: 4,
+    cooldown: 8,
     conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend', 'sibling', 'coworker', 'classmate'] },
     choices: [
@@ -1132,12 +1143,12 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
   {
     id: 'nc_friend_moving_away',
     category: 'random',
-    title: 'Moving away',
+    title: 'Far enough away',
     text: "{{person}} told me about the move: away from {{city}}, far enough that 'dropping by' stops being a thing. {{They}} said it brightly, the way people say things that are not bright.",
     minAge: 12,
     maxAge: 90,
     weight: 1,
-    cooldown: 4,
+    cooldown: 6,
     conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend'], minRelationship: 30 },
     choices: [
@@ -1212,7 +1223,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
       {
         id: 'freeze',
         label: 'Freeze',
-        effects: [{ stat: 'happiness', delta: -4 }, { log: 'I froze. Someone else did the saving. I thought about it for weeks.', kind: 'bad' }],
+        effects: [{ stat: 'happiness', delta: -4 }, { stat: 'smarts', delta: 1 }, { log: 'I froze. Someone else did the saving. The next month I took a first-aid class.', kind: 'bad' }],
       },
     ],
   },
@@ -1244,7 +1255,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
       {
         id: 'call',
         label: 'Call for help from a distance',
-        effects: [{ karma: 2 }, { stat: 'happiness', delta: -1 }, { log: 'I called an ambulance and waited across the road until it came. Someone else held his hand.' }],
+        effects: [{ karma: 2 }, { stat: 'happiness', delta: -1 }, { energy: -1 }, { log: 'I called an ambulance and waited across the road until it came. Someone else held his hand.' }],
       },
       {
         id: 'walk',
@@ -1375,7 +1386,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 95,
     weight: 0.8,
-    cooldown: 5,
+    cooldown: 6,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -1436,7 +1447,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     id: 'nc_wildfire_evacuation',
     category: 'random',
     title: 'Evacuation order',
-    text: 'Sirens, then a text alert: wildfire approaching {{city}}, leave now. The sky over the hills had gone the color of a bruise and the air tasted of smoke.',
+    text: 'Sirens, then an alert on every radio: wildfire approaching {{city}}, leave now. The sky over the hills had gone the color of a bruise and the air tasted of smoke.',
     minAge: 18,
     maxAge: 95,
     weight: 0.3,
@@ -1485,7 +1496,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
           {
             chance: 0.2,
             then: [{ injury: 4 }, { log: 'I got the old couple at number nine out with minutes to spare and a burn on my arm.', kind: 'good' }],
-            else: [{ log: 'I drove the old couple at number nine out with minutes to spare. Their cat rode on my lap.', kind: 'good' }],
+            else: [{ log: 'I got the old couple at number nine onto the last bus out. Their cat rode on my lap.', kind: 'good' }],
           },
           { chance: 0.5, then: [{ log: 'Our own place took the worst of it. I would do it again.', kind: 'bad' }, { asset: 'damage', kind: 'house', amount: 35 }, { money: -800 }] },
         ],

@@ -237,7 +237,7 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
           {
             chance: 0.6,
             then: [{ money: -400 }, { relationship: 'person', delta: 6 }, { stat: 'happiness', delta: 5 }, { log: 'The permit came through two days before the wedding. {{person}} cried at the vows. So did I.', kind: 'good' }],
-            else: [{ relationship: 'person', delta: -2 }, { stat: 'happiness', delta: -4 }, { log: "Permit denied: too early in my parole. I watched the wedding on {{person}}'s phone.", kind: 'bad' }],
+            else: [{ relationship: 'person', delta: -2 }, { stat: 'happiness', delta: -4 }, { log: "Permit denied: too early in my parole. {{person}} mailed me photos of every table.", kind: 'bad' }],
           },
         ],
       },
@@ -259,6 +259,7 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
       {
         id: 'video',
         label: 'Watch on a video call',
+        conditions: [{ year: { gte: 2010 } }],
         effects: [{ relationship: 'person', delta: -3 }, { stat: 'happiness', delta: -2 }, { log: 'I watched the vows on a cracked phone screen. {{person}} turned the camera toward the cake for me.', kind: 'info' }],
       },
     ],
@@ -358,7 +359,7 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
     id: 'jr_parole_moving_job',
     category: 'crime',
     title: 'Moving furniture',
-    text: 'Someone from the old days texted: a moving job tonight, cash, a truck and a storage unit across town. He swore it was just furniture. Nobody has ever been that specific about furniture.',
+    text: 'Someone from the old days left a message: a moving job tonight, cash, a truck and a storage unit across town. He swore it was just furniture. Nobody has ever been that specific about furniture.',
     minAge: 18,
     maxAge: 80,
     weight: 1.5,
@@ -367,8 +368,8 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
     choices: [
       {
         id: 'delete',
-        label: 'Delete the text',
-        effects: [{ karma: 2 }, { stat: 'happiness', delta: -1 }, { log: 'I deleted the text, then the number, then sat on my hands for an hour. Boring is my whole plan.', kind: 'good' }],
+        label: 'Erase the message',
+        effects: [{ karma: 2 }, { stat: 'happiness', delta: -1 }, { log: 'I erased the message, then the number, then sat on my hands for an hour. Boring is my whole plan.', kind: 'good' }],
       },
       {
         id: 'go',
@@ -392,7 +393,7 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
           { karma: 3 },
           {
             chance: 0.7,
-            then: [{ stat: 'happiness', delta: 2 }, { flag: 'jr_po_rapport', set: true }, { log: 'I showed my parole officer the text. She said I had made her whole week.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 2 }, { flag: 'jr_po_rapport', set: true }, { log: 'I told my parole officer about the message. She said I had made her whole week.', kind: 'good' }],
             else: [
               { stat: 'happiness', delta: -5 },
               { newPerson: { kind: 'enemy', relationship: 10, minAge: 20, maxAge: 55, log: 'Word got around that I talked to my parole officer. {{person}} made sure I knew it.' } },
@@ -407,7 +408,7 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
   {
     id: 'jr_out_pay_stub',
     category: 'work',
-    title: 'Pay stub',
+    title: 'Proof of something',
     text: 'Payday at {{company}}. Since I got out, every pay stub with my name on it has felt like proof of something. I keep them all in a shoebox, like love letters from the outside.',
     minAge: 18,
     maxAge: 80,
@@ -492,8 +493,8 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
       },
       {
         id: 'texts',
-        label: 'Keep it to texts for now',
-        effects: [{ stat: 'happiness', delta: 1 }, { log: "I texted back but kept my distance. I'm still learning who I am out here.", kind: 'info' }],
+        label: 'Keep it to phone calls',
+        effects: [{ stat: 'happiness', delta: 1 }, { log: "I called back but kept my distance. I'm still learning who I am out here.", kind: 'info' }],
       },
       {
         id: 'why',
@@ -515,13 +516,13 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
     id: 'jr_out_landlord',
     category: 'money',
     title: 'A note under the door',
-    text: "My landlord searched my name online and found my record. She slid a note under my door: she'd like to talk today, and she had been \"meaning to raise the rent anyway.\"",
+    text: "My landlord ran a background check and found my record. She slid a note under my door: she'd like to talk today, and she had been \"meaning to raise the rent anyway.\"",
     // 24+: younger adults without a home may still live with their parents (conditions.ts livesAtHome).
     minAge: 24,
     maxAge: 85,
     weight: 0.8,
     once: true,
-    conditions: [{ inPrison: false }, { flag: 'released' }, { criminalRecord: true }, { noAsset: 'house' }],
+    conditions: [{ inPrison: false }, { atHome: false }, { flag: 'released' }, { criminalRecord: true }, { noAsset: 'house' }],
     choices: [
       {
         id: 'talk',
@@ -563,7 +564,7 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
     maxAge: 75,
     weight: 1,
     once: true,
-    conditions: [{ inPrison: false }, { flag: 'released' }, { criminalRecord: true }, { hasJob: true }],
+    conditions: [{ inPrison: false }, { flag: 'released' }, { criminalRecord: true }, { hasJob: true }, { year: { gte: 2010 } }],
     person: { kind: ['coworker'] },
     choices: [
       {
@@ -611,7 +612,7 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 2,
     once: true,
-    conditions: [...RECENTLY_OUT, { count: 'yearsInPrison', gte: 4 }],
+    conditions: [...RECENTLY_OUT, { count: 'yearsInPrison', gte: 4 }, { year: { gte: 2012 } }],
     choices: [
       {
         id: 'class',
@@ -741,7 +742,7 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
       {
         id: 'dodge',
         label: 'Change the subject',
-        effects: [{ karma: -1 }, { stat: 'happiness', delta: -2 }, { log: 'I said I was a boring kid and changed the subject. {{person}} believed me, which was worse.', kind: 'info' }],
+        effects: [{ karma: -1 }, { stat: 'happiness', delta: 2 }, { log: 'I said I was a boring kid and changed the subject. Relief, mostly. {{person}} believed me.', kind: 'info' }],
       },
     ],
   },
@@ -903,7 +904,7 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
       {
         id: 'letter',
         label: 'Write a letter instead',
-        effects: [{ karma: 1 }, { relationship: 'person', delta: 4 }, { log: 'I wrote the judge two pages about {{person}}. Easier than a courtroom, and less than {{they}} hoped.', kind: 'info' }],
+        effects: [{ karma: 1 }, { relationship: 'person', delta: 4 }, { energy: -1 }, { log: 'I wrote the judge two pages about {{person}}. Easier than a courtroom, and less than {{they}} hoped.', kind: 'info' }],
       },
       {
         id: 'decline',
@@ -915,7 +916,7 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
   {
     id: 'jr_witness_crash',
     category: 'random',
-    title: 'What I saw',
+    title: 'The red light',
     text: "I saw a delivery van run a red light and clip a cyclist. Now the van company's lawyer wants my statement, and hinted that a \"consulting fee\" is available if I'm less sure about the light.",
     minAge: 18,
     maxAge: 80,
@@ -944,7 +945,7 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
       {
         id: 'nothing',
         label: 'Say I saw nothing',
-        effects: [{ karma: -2 }, { stat: 'happiness', delta: -1 }, { log: 'I told them I was looking at my phone. I was not. I think about that cyclist sometimes.', kind: 'info' }],
+        effects: [{ karma: -2 }, { stat: 'happiness', delta: -1 }, { log: 'I told them I had not been paying attention. I had. I think about that cyclist sometimes.', kind: 'info' }],
       },
     ],
   },
@@ -1009,7 +1010,7 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
       {
         id: 'thank',
         label: 'Thank her and mean it',
-        effects: [{ grade: 5 }, { stat: 'happiness', delta: 4 }, { log: 'I thanked her and meant it. My next essay came back with an A and a note: "Told you."', kind: 'good' }],
+        effects: [{ grade: 5 }, { stat: 'happiness', delta: 4 }, { energy: -1 }, { log: 'I thanked her and meant it. She gave me extra reading. My next essay got an A: "Told you."', kind: 'good' }],
       },
       {
         id: 'shrug',
@@ -1191,7 +1192,7 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
     id: 'jr_prison_shakedown',
     category: 'prison',
     title: 'Shakedown',
-    text: "The guards tossed our cell at dawn and found a phone charger taped under the sink. Contraband. It's my cellmate's, and my cellmate is staring at the floor, waiting to see what I say.",
+    text: "The guards tossed our cell at dawn and found a roll of cash taped under the sink. Contraband. It's my cellmate's, and my cellmate is staring at the floor, waiting to see what I say.",
     minAge: 18,
     maxAge: 90,
     weight: 1,
@@ -1401,7 +1402,7 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
           {
             chance: 0.3,
             then: [{ flag: 'cp_prison_infraction', inc: 1 }, { log: 'A guard found forty soups and a price list in my locker. Unauthorized business. Written up.', kind: 'bad' }],
-            else: [{ log: 'I drew thirty cards and ate well all winter. Somewhere, thirty kids have a truck with flames.', kind: 'good' }],
+            else: [{ log: 'I drew thirty cards and ate well for months. Somewhere, thirty kids have a truck with flames.', kind: 'good' }],
           },
         ],
       },
@@ -1524,7 +1525,15 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
       {
         id: 'sorry',
         label: "Tell him I'm sorry",
-        effects: [{ grade: 2 }, { karma: 1 }, { stat: 'happiness', delta: 3 }, { log: 'I said sorry. Mr. Okafor said to save it for the person I would be at twenty-five.', kind: 'good' }],
+        effects: [
+          { grade: 2 },
+          { karma: 1 },
+          {
+            chance: 0.7,
+            then: [{ stat: 'happiness', delta: 3 }, { log: 'I said sorry. Mr. Okafor said to save it for the person I would be at twenty-five.', kind: 'good' }],
+            else: [{ stat: 'happiness', delta: -2 }, { log: 'I said sorry. Mr. Okafor just nodded and looked tired, which was worse than yelling.' }],
+          },
+        ],
       },
       {
         id: 'back',

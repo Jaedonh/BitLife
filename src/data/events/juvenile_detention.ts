@@ -67,7 +67,15 @@ export const JUVENILE_DETENTION_EVENTS: EventDef[] = [
       {
         id: 'read',
         label: 'Read it properly',
-        effects: [{ grade: 6 }, { stat: 'smarts', delta: 1 }, { stat: 'happiness', delta: 1 }, { log: "I read the whole page without stumbling. Mr. Okafor nodded like I'd won something.", kind: 'good' }],
+        effects: [
+          { grade: 6 },
+          { stat: 'smarts', delta: 1 },
+          {
+            chance: 0.75,
+            then: [{ stat: 'happiness', delta: 1 }, { log: "I read the whole page without stumbling. Mr. Okafor nodded like I'd won something.", kind: 'good' }],
+            else: [{ stat: 'happiness', delta: -4 }, { log: "I tripped over 'necessary' twice and someone snickered. I finished anyway.", kind: 'bad' }],
+          },
+        ],
       },
       {
         id: 'mumble',
@@ -95,7 +103,15 @@ export const JUVENILE_DETENTION_EVENTS: EventDef[] = [
       {
         id: 'truth',
         label: 'Tell her the truth',
-        effects: [{ stat: 'happiness', delta: 5 }, { karma: 2 }, { log: 'I told her the truth. It took an hour and most of a box of tissues. I slept well that night.', kind: 'good' }],
+        effects: [
+          { karma: 2 },
+          { energy: -1 },
+          {
+            chance: 0.75,
+            then: [{ stat: 'happiness', delta: 5 }, { log: 'I told her the truth. It took an hour and most of a box of tissues. I slept well that night.', kind: 'good' }],
+            else: [{ stat: 'happiness', delta: -3 }, { log: 'I told her the truth. Saying it out loud made it real, and I lay awake all night.', kind: 'bad' }],
+          },
+        ],
       },
       {
         id: 'short',
@@ -105,14 +121,14 @@ export const JUVENILE_DETENTION_EVENTS: EventDef[] = [
       {
         id: 'stare',
         label: 'Stare at the wall',
-        effects: [{ stat: 'happiness', delta: -2 }, { log: "I stared at the wall until she gave up. The wall won. I'm not sure I did.", kind: 'bad' }],
+        effects: [{ stat: 'happiness', delta: 2 }, { karma: -1 }, { log: 'I stared at the wall until she gave up. It felt like winning, for about an hour.', kind: 'info' }],
       },
     ],
   },
   {
     id: 'jd_visiting_day',
     category: 'prison',
-    title: 'Visiting day',
+    title: 'The plastic table',
     text: "{{person}} came on visiting day and sat across a plastic table from me. {{They}} brought a sandwich I wasn't allowed to keep and a look I won't forget.",
     minAge: 12,
     maxAge: 17,
@@ -124,21 +140,28 @@ export const JUVENILE_DETENTION_EVENTS: EventDef[] = [
       {
         id: 'sorry',
         label: "Say I'm sorry",
-        effects: [{ relationship: 'person', delta: 8 }, { stat: 'happiness', delta: 4 }, { log: '{{person}} held my hand across the table until the guard called time.', kind: 'good' }],
+        effects: [
+          { relationship: 'person', delta: 8 },
+          {
+            chance: 0.75,
+            then: [{ stat: 'happiness', delta: 4 }, { log: '{{person}} held my hand across the table until the guard called time.', kind: 'good' }],
+            else: [{ stat: 'happiness', delta: -2 }, { log: 'I said sorry and then could not stop crying, in front of the whole room. {{person}} stayed.' }],
+          },
+        ],
       },
       {
         id: 'fine',
         label: "Pretend I'm fine",
-        effects: [{ relationship: 'person', delta: 2 }, { stat: 'happiness', delta: -1 }, { log: 'I told {{person}} the food was great and everyone was nice. Neither of us believed it.', kind: 'info' }],
+        effects: [{ relationship: 'person', delta: 2 }, { stat: 'happiness', delta: -1 }, { karma: 1 }, { log: 'I told {{person}} the food was great and everyone was nice. {{They}} left a little less worried.', kind: 'info' }],
       },
       {
         id: 'blame',
         label: 'Blame {{them}}',
         effects: [
           { relationship: 'person', delta: -8 },
-          { stat: 'happiness', delta: -3 },
-          { karma: -1 },
-          { log: 'I said it was {{their}} fault I ended up here. {{person}} left early. I wanted to take it back.', kind: 'bad' },
+          { stat: 'happiness', delta: 3 },
+          { karma: -2 },
+          { log: 'I said it was {{their}} fault I ended up here. It felt true for a minute. {{person}} left early.', kind: 'bad' },
         ],
       },
     ],
@@ -159,7 +182,7 @@ export const JUVENILE_DETENTION_EVENTS: EventDef[] = [
       {
         id: 'reply',
         label: 'Write back right away',
-        effects: [{ relationship: 'person', delta: 6 }, { stat: 'happiness', delta: 3 }, { log: 'I wrote back four pages about nothing. {{person}} said it was the best letter {{they}} ever got.', kind: 'good' }],
+        effects: [{ relationship: 'person', delta: 6 }, { stat: 'happiness', delta: 3 }, { energy: -1 }, { log: 'I wrote back four pages about nothing. {{person}} said it was the best letter {{they}} ever got.', kind: 'good' }],
       },
       {
         id: 'keep',
@@ -169,7 +192,7 @@ export const JUVENILE_DETENTION_EVENTS: EventDef[] = [
       {
         id: 'stop',
         label: 'Tell {{them}} not to write',
-        effects: [{ relationship: 'person', delta: -10 }, { stat: 'happiness', delta: -2 }, { log: "I sent one line: don't write here. I didn't want anyone I knew to see this place, even on paper.", kind: 'bad' }],
+        effects: [{ relationship: 'person', delta: -10 }, { stat: 'happiness', delta: 3 }, { log: "I sent one line: don't write here. Not waiting for the mail made the days easier.", kind: 'bad' }],
       },
     ],
   },
@@ -255,7 +278,7 @@ export const JUVENILE_DETENTION_EVENTS: EventDef[] = [
   {
     id: 'jd_hallway',
     category: 'prison',
-    title: 'Hallway trouble',
+    title: 'Shoulder check',
     text: "A kid twice my size shoulder-checked me in the hallway and stood there, waiting to see what I'd do. The staff member on duty was busy with a clipboard.",
     minAge: 12,
     maxAge: 17,
@@ -359,7 +382,7 @@ export const JUVENILE_DETENTION_EVENTS: EventDef[] = [
       {
         id: 'normal',
         label: "Pretend it's a normal day",
-        effects: [{ stat: 'happiness', delta: -2 }, { log: 'I told everyone it was just a normal Tuesday. It was a Thursday. Nobody corrected me.', kind: 'info' }],
+        effects: [{ stat: 'happiness', delta: -1 }, { stat: 'health', delta: 2 }, { log: 'I called it a normal Tuesday and did my push-ups like always. It was a Thursday.', kind: 'info' }],
       },
     ],
   },
@@ -377,7 +400,7 @@ export const JUVENILE_DETENTION_EVENTS: EventDef[] = [
       {
         id: 'add',
         label: "Add what I've learned",
-        effects: [{ stat: 'happiness', delta: 3 }, { karma: 1 }, { log: "I added a paragraph about what I'd learned. She kept it word for word. I felt heard.", kind: 'good' }],
+        effects: [{ stat: 'happiness', delta: 3 }, { karma: 1 }, { energy: -1 }, { log: "I added a paragraph about what I'd learned. She kept it word for word. I felt heard.", kind: 'good' }],
       },
       {
         id: 'fine',

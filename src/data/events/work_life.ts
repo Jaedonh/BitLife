@@ -1,9 +1,17 @@
-import type { EventDef } from '@/engine/events/schema';
+import { JOBS } from '@/data/jobs';
+import type { Condition, EventDef } from '@/engine/events/schema';
 
 /**
  * Working-life events: bosses, coworkers, clients, ethics, and the long slow
  * negotiation between a paycheck and a life. Every event requires a job.
  */
+
+/** Not on an Owner or Contractor rung: someone who runs their own salon, shop or practice is not poached for a desk. */
+const NOT_AN_OWNER: Condition = {
+  not: {
+    any: JOBS.flatMap((d) => d.ladder.flatMap((r, i): Condition[] => (/\b(Owner|Contractor)$/.test(r.title) ? [{ all: [{ jobId: [d.id] }, { jobLevel: { gte: i } }] }] : []))),
+  },
+};
 export const WORK_LIFE_EVENTS: EventDef[] = [
   // ───────────────────────────────── bosses & ethics ─────────────────────────────────
   {
@@ -27,7 +35,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
             then: [{ jobPerformance: 5 }, { log: 'The client bought it. My boss called me a team player, which did not feel like a compliment.', kind: 'info' }],
             else: [
               { jobPerformance: -12 },
-              { log: 'The client found out and called the owner. My name was on the email.', kind: 'bad' },
+              { log: 'The client found out and called the owner. My name was on the order.', kind: 'bad' },
               { chance: 0.7, then: [], else: [{ loseJob: true, reason: 'fired' }, { log: 'I was let go for lying to a client. The boss who told me to is still there.', kind: 'bad' }] },
             ],
           },
@@ -67,7 +75,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     minAge: 17,
     maxAge: 70,
     weight: 1,
-    cooldown: 4,
+    cooldown: 6,
     conditions: [{ hasJob: true }, { partTime: false }],
     choices: [
       {
@@ -236,7 +244,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
       {
         id: 'blow',
         label: 'Blow the whistle',
-        effects: [{ karma: 8 }, { fame: 4 }, { flag: 'wk_whistle', set: 'public' }, { queue: 'wk_whistle_fallout' }, { log: 'I handed the documents to a regulator and a journalist. There is no un-ringing that bell.', kind: 'milestone' }],
+        effects: [{ karma: 8 }, { fame: 4 }, { stat: 'happiness', delta: -3 }, { flag: 'wk_whistle', set: 'public' }, { queue: 'wk_whistle_fallout' }, { log: 'I gave the documents to a regulator and a journalist. No un-ringing that bell. I stopped sleeping.', kind: 'milestone' }],
       },
       {
         id: 'anon',
@@ -308,7 +316,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 70,
     weight: 1.5,
-    cooldown: 4,
+    cooldown: 6,
     conditions: [{ hasJob: true }],
     choices: [
       {
@@ -332,7 +340,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
         effects: [
           { karma: -2 },
           { stat: 'happiness', delta: 2 },
-          { newPerson: { kind: 'coworker', relationship: 30, log: '{{person}} took forty minutes to figure it out. {{They}} did not find it funny.' } },
+          { newPerson: { kind: 'coworker', relationship: 30, log: '{{person}} took forty minutes to figure it out and still brings it up at lunch.' } },
           { chance: 0.7, then: [], else: [{ jobPerformance: -2 }, { log: 'My manager heard about the stapler. "Grow up" was the whole conversation.', kind: 'bad' }] },
         ],
       },
@@ -348,7 +356,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     weight: 1.2,
     cooldown: 4,
     conditions: [{ hasJob: true }, { partTime: false }],
-    person: { kind: ['coworker', 'friend', 'bestFriend'] },
+    person: { kind: ['coworker'] },
     choices: [
       {
         id: 'confront',
@@ -383,14 +391,14 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
   {
     id: 'wk_harassment_witness',
     category: 'work',
-    title: 'What I saw',
+    title: 'By the printers',
     text: 'I watched a senior manager corner {{person}} by the printers and make remarks that made {{them}} shrink, then laugh when {{they}} tried to leave. {{person}} saw me watching.',
     minAge: 18,
     maxAge: 70,
     weight: 0.8,
     cooldown: 6,
     conditions: [{ hasJob: true }],
-    person: { kind: ['coworker', 'friend', 'bestFriend'], minAge: 18 },
+    person: { kind: ['coworker'], minAge: 18 },
     choices: [
       {
         id: 'report',
@@ -408,7 +416,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
       {
         id: 'support',
         label: 'Check on {{person}}',
-        effects: [{ karma: 2 }, { relationship: 'person', delta: 6 }, { stat: 'happiness', delta: 1 }, { log: '{{person}} said {{they}} was fine, then said {{they}} was not. We talked for an hour.', kind: 'good' }],
+        effects: [{ karma: 2 }, { relationship: 'person', delta: 6 }, { stat: 'happiness', delta: 1 }, { energy: -1 }, { log: '{{person}} said {{they}} was fine, then said {{they}} was not. We talked for an hour.', kind: 'good' }],
       },
       {
         id: 'nothing',
@@ -425,9 +433,9 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 70,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 6,
     conditions: [{ hasJob: true }],
-    person: { kind: ['coworker', 'friend', 'bestFriend'] },
+    person: { kind: ['coworker'] },
     choices: [
       {
         id: 'chip',
@@ -454,9 +462,9 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 70,
     weight: 1.2,
-    cooldown: 3,
+    cooldown: 6,
     conditions: [{ hasJob: true }],
-    person: { kind: ['coworker', 'friend', 'bestFriend'] },
+    person: { kind: ['coworker'] },
     choices: [
       {
         id: 'talk',
@@ -489,9 +497,9 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 70,
     weight: 2,
-    cooldown: 2,
+    cooldown: 6,
     conditions: [{ hasJob: true }],
-    person: { kind: ['coworker', 'friend', 'bestFriend'] },
+    person: { kind: ['coworker'] },
     choices: [
       {
         id: 'cover',
@@ -518,9 +526,9 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 70,
     weight: 1,
-    cooldown: 4,
+    cooldown: 6,
     conditions: [{ hasJob: true }],
-    person: { kind: ['coworker', 'friend', 'bestFriend'] },
+    person: { kind: ['coworker'] },
     choices: [
       {
         id: 'proof',
@@ -556,14 +564,14 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
   {
     id: 'wk_mentor_offer',
     category: 'work',
-    title: 'A mentor',
+    title: 'The old hand',
     text: '{{person}}, who has been at this longer than anyone can remember, offered to mentor me. "Nobody did it for me," {{they}} said, "and look how I turned out."',
     minAge: 18,
     maxAge: 40,
     weight: 1,
     once: true,
     conditions: [{ hasJob: true }],
-    person: { kind: ['coworker', 'friend', 'bestFriend'], minAge: 38 },
+    person: { kind: ['coworker'], minAge: 38 },
     choices: [
       {
         id: 'accept',
@@ -578,26 +586,26 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
       {
         id: 'lunch',
         label: 'Just do the occasional lunch',
-        effects: [{ relationship: 'person', delta: 4 }, { stat: 'smarts', delta: 1 }, { jobPerformance: 2 }, { log: 'We do lunch once a month. {{They}} tells stories; I take notes.', kind: 'info' }],
+        effects: [{ relationship: 'person', delta: 4 }, { stat: 'smarts', delta: 1 }, { jobPerformance: 2 }, { money: -100 }, { log: 'We do lunch once a month, my treat. {{They}} tells stories; I take notes.', kind: 'info' }],
       },
     ],
   },
   {
     id: 'wk_retiring_colleague',
     category: 'work',
-    title: 'The retirement party',
+    title: 'The door-sized card',
     text: 'After decades at {{company}}, {{person}} is retiring. There is a cake, a card the size of a door, and a speech from a manager who had to check {{their}} last name.',
     minAge: 20,
     maxAge: 70,
     weight: 0.8,
     cooldown: 5,
     conditions: [{ hasJob: true }],
-    person: { kind: ['coworker', 'friend', 'bestFriend'], minAge: 55 },
+    person: { kind: ['coworker'], minAge: 55 },
     choices: [
       {
         id: 'speech',
         label: 'Give a proper speech',
-        effects: [{ relationship: 'person', delta: 10 }, { stat: 'happiness', delta: 4 }, { relationship: 'coworker', delta: 3 }, { log: 'I told the story of {{person}} and the fire alarm. The room roared. {{They}} hugged me.', kind: 'good' }, { coworkerLeaves: true }],
+        effects: [{ relationship: 'person', delta: 10 }, { stat: 'happiness', delta: 4 }, { relationship: 'coworker', delta: 3 }, { energy: -1 }, { log: 'I told the story of {{person}} and the fire alarm. The room roared. {{They}} hugged me.', kind: 'good' }, { coworkerLeaves: true }],
       },
       {
         id: 'gift',
@@ -620,7 +628,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 60,
     weight: 1,
     cooldown: 4,
-    conditions: [{ inPrison: false }, { hasJob: true }, { partTime: false }, { hasLover: false }],
+    // Not within a few years of love_and_family's lf_coworker_asks_out, the same dinner invitation.
+    conditions: [{ inPrison: false }, { hasJob: true }, { partTime: false }, { hasLover: false }, { not: { sinceEvent: 'lf_coworker_asks_out', lte: 6 } }],
     choices: [
       {
         id: 'date',
@@ -629,7 +638,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.6,
             then: [{ newPerson: { kind: 'lover', relationship: 65, log: 'Dinner became a second dinner. I am now dating {{personFull}}, which HR will have thoughts about.' } }, { stat: 'happiness', delta: 8 }],
-            else: [{ stat: 'happiness', delta: -3 }, { log: 'Dinner was fine. The second one never happened. Walking past my desk got awkward for both of us.', kind: 'bad' }],
+            else: [{ stat: 'happiness', delta: -3 }, { log: 'We ran out of things to say before the bread arrived. Now they take the long way around my desk.', kind: 'bad' }],
           },
         ],
       },
@@ -651,7 +660,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     id: 'wk_overtime_vs_family',
     category: 'work',
     title: 'Late again',
-    text: 'The team needed someone to stay late for the third night in a row. At home, dinner was going cold and my phone kept lighting up with one word: "Where?"',
+    text: 'The team needed someone to stay late for the third night in a row. At home, dinner was going cold, and every call from home was one word: "Where?"',
     minAge: 20,
     maxAge: 70,
     weight: 1.5,
@@ -696,7 +705,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 70,
     weight: 2,
-    cooldown: 2,
+    cooldown: 6,
     conditions: [{ hasJob: true }],
     choices: [
       {
@@ -833,7 +842,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.45,
             then: [{ money: 2500 }, { stat: 'happiness', delta: 6 }, { jobPerformance: 2 }, { log: 'I made my case. My boss "found room in the budget" within a week.', kind: 'money' }],
-            else: [{ stat: 'happiness', delta: -5 }, { jobPerformance: -2 }, { log: 'My boss said pay is confidential and I should not have been listening. I was in an elevator.', kind: 'bad' }],
+            else: [{ stat: 'happiness', delta: -7 }, { jobPerformance: -3 }, { log: 'My boss said pay is confidential and I should not have been listening. I was in an elevator.', kind: 'bad' }],
           },
         ],
       },
@@ -851,7 +860,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ jobPerformance: 3 }, { log: 'They told me exactly how they negotiated. I took notes.', kind: 'good' }],
-            else: [{ log: 'They got cagey. Fair enough; I was eavesdropping.', kind: 'info' }],
+            else: [{ relationship: 'coworker', delta: -6 }, { stat: 'happiness', delta: -4 }, { log: 'They got cagey and told the others I had been eavesdropping. Fair enough; I had.', kind: 'bad' }],
           },
         ],
       },
@@ -861,7 +870,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     id: 'wk_performance_review',
     category: 'work',
     title: 'Annual review',
-    text: 'My annual review at {{company}} landed on the calendar with a cheerful icon. My boss had a folder, a pen, and the expression of someone about to deliver "feedback."',
+    text: 'My annual review at {{company}} landed on the calendar, circled twice. My boss had a folder, a pen, and the expression of someone about to deliver "feedback."',
     minAge: 18,
     maxAge: 70,
     weight: 1.5,
@@ -1039,13 +1048,14 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
   {
     id: 'wk_burnout',
     category: 'work',
-    title: 'Running on empty',
+    title: 'Tired all the time',
     text: 'I have been waking up tired, working tired, and going home tired. Work at {{company}} used to feel like a job. Now it feels like weather. Something has to change.',
     minAge: 22,
     maxAge: 70,
     weight: 0.8,
     cooldown: 5,
-    conditions: [{ hasJob: true }, { partTime: false }, { any: [{ stat: 'happiness', lte: 50 }, { stat: 'health', lte: 55 }] }],
+    // Not within a few years of adult_life's ad_burnout, the same burnout from another file.
+    conditions: [{ hasJob: true }, { partTime: false }, { any: [{ stat: 'happiness', lte: 50 }, { stat: 'health', lte: 55 }] }, { not: { sinceEvent: 'ad_burnout', lte: 4 } }],
     choices: [
       {
         id: 'leave',
@@ -1128,7 +1138,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 70,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 6,
     conditions: [{ hasJob: true }],
     choices: [
       {
@@ -1136,6 +1146,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
         label: 'Work the room',
         effects: [
           { relationship: 'coworker', delta: 5 },
+          { energy: -1 },
           { stat: 'happiness', delta: 3 },
           {
             chance: 0.3,
@@ -1186,6 +1197,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
         label: 'Go all in',
         effects: [
           { relationship: 'coworker', delta: 6 },
+          { energy: -1 },
           { stat: 'happiness', delta: 4 },
           {
             chance: 0.25,
@@ -1449,7 +1461,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
           { relationship: 'bestFriend', delta: -6 },
           { relationship: 'mother', delta: -3 },
           { relationship: 'father', delta: -3 },
-          { log: 'I took the promotion and the moving van. New title, new apartment, a lot of video calls.', kind: 'milestone' },
+          { log: 'I took the promotion and the moving van. New title, new apartment, a lot of long phone calls.', kind: 'milestone' },
         ],
       },
       {
@@ -1479,18 +1491,31 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 62,
     weight: 0.7,
     cooldown: 8,
-    conditions: [{ hasJob: true }, { partTime: false }],
+    // A rival employer exists: not the Army, a city's own services, courts, library or university, or its one team.
+    conditions: [
+      { hasJob: true },
+      { partTime: false },
+      { not: { jobId: ['military', 'police', 'firefighter', 'paramedic', 'mail_carrier', 'civil_servant', 'politician', 'judge', 'professor', 'librarian', 'athlete', 'coach'] } },
+      NOT_AN_OWNER,
+    ],
     choices: [
       {
         id: 'take',
         label: 'Take the rival offer',
         effects: [
-          { loseJob: true, reason: 'left' },
           { flag: 'wk_jumped_ship', set: true },
           {
             chance: 0.8,
-            then: [{ money: 5000 }, { stat: 'happiness', delta: 4 }, { log: 'I gave notice and banked the signing bonus. Now I just need to start somewhere new.', kind: 'money' }],
-            else: [{ money: 1500 }, { stat: 'happiness', delta: -5 }, { log: 'The rival "restructured" before my start date. I had already quit. A small bonus, no desk.', kind: 'bad' }],
+            // switchEmployer leaves the old coworkers behind and brings none, so the new place gets two (newPerson works at the current job).
+            then: [
+              { switchEmployer: true, raise: 0.15 },
+              { money: 5000 },
+              { stat: 'happiness', delta: 4 },
+              { log: 'I gave notice, banked the signing bonus and started at the rival on Monday. Same job, better pay.', kind: 'money' },
+              { newPerson: { kind: 'coworker', relationship: 45 } },
+              { newPerson: { kind: 'coworker', relationship: 50, log: 'On my first day, {{person}} showed me where everything was and who actually knows things.' } },
+            ],
+            else: [{ loseJob: true, reason: 'left' }, { money: 1500 }, { stat: 'happiness', delta: -5 }, { log: 'The rival "restructured" before my start date. I had already quit. A small bonus, no desk.', kind: 'bad' }],
           },
         ],
       },
@@ -1565,7 +1590,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1.2,
     cooldown: 3,
-    conditions: [{ hasJob: true }, { jobCategory: ['tech'] }],
+    conditions: [{ hasJob: true }, { jobCategory: ['tech'] }, { year: { gte: 2012 } }],
     choices: [
       {
         id: 'fix',
@@ -1629,7 +1654,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
       {
         id: 'card',
         label: 'Take only the card',
-        effects: [{ karma: 2 }, { stat: 'happiness', delta: 3 }, { log: 'I kept the card and gave back the money. The card is on my fridge.', kind: 'good' }],
+        effects: [{ karma: 2 }, { stat: 'happiness', delta: 5 }, { log: 'I kept the card and gave back the money. The card is on my fridge, and I read it on bad days.', kind: 'good' }],
       },
     ],
   },
@@ -1637,7 +1662,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     id: 'wk_hero_call',
     category: 'work',
     title: 'The call',
-    text: 'Driving home from a shift, I came across a crash: a car on fire with someone still inside. Help was minutes away. The smoke was not waiting for anyone.',
+    text: 'On my way home from a shift, I came across a crash: a car on fire with someone still inside. Help was minutes away. The smoke was not waiting for anyone.',
     minAge: 18,
     maxAge: 60,
     weight: 0.8,
@@ -1671,7 +1696,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ stat: 'happiness', delta: 4 }, { log: 'I broke the window and kept them talking until the crew got there. Enough.', kind: 'good' }],
-            else: [{ stat: 'happiness', delta: -4 }, { log: 'I kept them talking. It was not enough. I went home and sat in the car for an hour.', kind: 'bad' }],
+            else: [{ stat: 'happiness', delta: -4 }, { log: 'I kept them talking. It was not enough. I went home and sat on the stairs for an hour.', kind: 'bad' }],
           },
         ],
       },

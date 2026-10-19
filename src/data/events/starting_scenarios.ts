@@ -212,9 +212,9 @@ export const STARTING_SCENARIOS_EVENTS: EventDef[] = [
         id: 'line',
         label: 'Tape a line down the couch',
         effects: [
-          { stat: 'happiness', delta: 2 },
+          { stat: 'happiness', delta: 4 },
           { relationship: 'person', delta: -3 },
-          { log: 'I taped a line down the middle of the couch. {{person}} built a toll booth on it.' },
+          { log: 'I taped a line down the middle of the couch. Half a couch, all mine. {{person}} built a toll booth.' },
         ],
       },
     ],
@@ -309,7 +309,7 @@ export const STARTING_SCENARIOS_EVENTS: EventDef[] = [
   {
     id: 'ss_fc_card_craft',
     category: 'school',
-    title: 'The card',
+    title: 'Glitter and a name',
     text: "Our class is making Mother's Day cards. Everyone else knows exactly who theirs is for. I never knew my birth mother, but I do have {{person}}, and a lot of glitter.",
     minAge: 5,
     maxAge: 9,
@@ -531,9 +531,9 @@ export const STARTING_SCENARIOS_EVENTS: EventDef[] = [
         id: 'mad',
         label: 'Be mad that {{they}} is leaving',
         effects: [
-          { stat: 'happiness', delta: -3 },
+          { stat: 'happiness', delta: -1 },
           { relationship: 'person', delta: -4 },
-          { log: 'I was mad at {{person}} for leaving, which was not fair. I knew it as the door shut.', kind: 'bad' },
+          { log: 'I was mad at {{person}} for leaving, which was not fair. Mad was easier than sad.', kind: 'bad' },
         ],
       },
     ],
@@ -554,7 +554,7 @@ export const STARTING_SCENARIOS_EVENTS: EventDef[] = [
       {
         id: 'sell',
         label: 'Sell something I love',
-        effects: [{ stat: 'happiness', delta: -4 }, { log: 'I sold the nicest thing I own to a stranger online. Rent is paid. My shelf looks wrong.', kind: 'bad' }],
+        effects: [{ stat: 'happiness', delta: -4 }, { log: 'I sold the nicest thing I own to a stranger in a parking lot. Rent is paid. My shelf looks wrong.', kind: 'bad' }],
       },
       {
         id: 'late',
@@ -573,7 +573,7 @@ export const STARTING_SCENARIOS_EVENTS: EventDef[] = [
     id: 'ss_fc_holidays_alone',
     category: 'holiday',
     title: 'Holidays, alone',
-    text: 'Most people I know went home to their families for the holidays. When you grow up in foster care, home is a complicated word, so I stayed put. My phone is quiet and the whole day is mine to fill.',
+    text: 'Most people I know went home to their families for the holidays. When you grow up in foster care, home is a complicated word, so I stayed put. The phone is quiet and the whole day is mine to fill.',
     minAge: 18,
     maxAge: 25,
     weight: 2,
@@ -645,12 +645,12 @@ export const STARTING_SCENARIOS_EVENTS: EventDef[] = [
         id: 'teacher',
         label: 'Write down my old teacher',
         conditions: [{ flag: 'ss_fc_mentor' }],
-        effects: [{ stat: 'happiness', delta: 4 }, { log: 'I wrote down my old teacher, the one with the books. She still answers on the first ring.', kind: 'good' }],
+        effects: [{ stat: 'happiness', delta: 3 }, { karma: 2 }, { log: 'I wrote down my old teacher, the one with the books. She still answers on the first ring.', kind: 'good' }],
       },
       {
         id: 'self',
         label: 'Write my own number',
-        effects: [{ stat: 'happiness', delta: 1 }, { log: 'I wrote my own number in the emergency box. The nurse gave me a look. I gave one back.' }],
+        effects: [{ stat: 'happiness', delta: 4 }, { log: 'I wrote my own number in the emergency box. The nurse gave me a look. I gave one back, proudly.' }],
       },
     ],
   },
@@ -714,7 +714,7 @@ export const STARTING_SCENARIOS_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.7,
-            then: [{ stat: 'happiness', delta: 3 }, { stat: 'smarts', delta: 1 }, { log: 'I corrected every teacher, every time. By winter they all said {{name}} right.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 3 }, { stat: 'smarts', delta: 1 }, { log: 'I corrected every teacher, every time. By the end of term they all said {{name}} right.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -2 }, { log: 'I corrected the substitute and the class went "ooh." She still got it wrong.', kind: 'bad' }],
           },
         ],
@@ -810,7 +810,7 @@ export const STARTING_SCENARIOS_EVENTS: EventDef[] = [
       {
         id: 'sandwich',
         label: 'Ask for sandwiches instead',
-        effects: [{ stat: 'happiness', delta: 1 }, { relationship: 'person', delta: -3 }, { log: 'I asked {{person}} for plain sandwiches. {{They}} made them, and looked a little sad doing it.' }],
+        effects: [{ stat: 'happiness', delta: 3 }, { relationship: 'person', delta: -3 }, { log: 'I asked {{person}} for plain sandwiches. Lunch got easier. {{They}} looked a little sad.' }],
       },
       {
         id: 'proud',
@@ -822,7 +822,7 @@ export const STARTING_SCENARIOS_EVENTS: EventDef[] = [
   {
     id: 'ss_im_old_friend',
     category: 'friends',
-    title: 'Back home',
+    title: 'Long distance',
     text: 'My best friend from back home called long distance. Ten minutes in, I realized there are new jokes and new friends there, and I have been gone long enough to miss the reasons.',
     minAge: 7,
     maxAge: 16,
@@ -1656,7 +1656,7 @@ export const STARTING_SCENARIOS_EVENTS: EventDef[] = [
       {
         id: 'full',
         label: 'Pretend I am full',
-        effects: [{ karma: 1 }, { stat: 'health', delta: -1 }, { relationship: 'person', delta: 1 }, { log: 'I said I was full. I was not. Later I found a cracker behind the toaster.' }],
+        effects: [{ karma: 3 }, { stat: 'health', delta: -1 }, { relationship: 'person', delta: 1 }, { log: 'I said I was full. I was not. Later I found a cracker behind the toaster.' }],
       },
     ],
   },
@@ -1953,7 +1953,7 @@ export const STARTING_SCENARIOS_EVENTS: EventDef[] = [
   {
     id: 'ss_pd_burnout',
     category: 'school',
-    title: 'Running on empty',
+    title: 'Gifted and tired',
     text: 'Everyone says I am gifted. Lately the gift feels like a job: extra classes, competitions, a schedule on the fridge. This morning I stared at a math problem and felt nothing.',
     minAge: 13,
     maxAge: 17,
@@ -2200,7 +2200,7 @@ export const STARTING_SCENARIOS_EVENTS: EventDef[] = [
   {
     id: 'ss_tc_story_time',
     category: 'childhood',
-    title: 'Story time',
+    title: 'The whale rug',
     text: '{{person}} took me to story time at the library. Twenty kids sit on a rug shaped like a whale, and the librarian does all the voices. I have never wanted to sit still more.',
     minAge: 3,
     maxAge: 5,

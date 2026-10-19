@@ -68,13 +68,15 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
   {
     id: 'cp_found_wallet',
     category: 'crime',
-    title: 'The wallet',
+    title: 'By the bus stop',
     text: "A wallet was lying on the sidewalk by the bus stop. Cash, cards, a photo of two kids and a driver's license with an address ten minutes away.",
-    minAge: 12,
+    minAge: 13,
     maxAge: 85,
     weight: 1.5,
-    cooldown: 4,
-    conditions: [{ inPrison: false }],
+    once: true,
+    // One found wallet per life: kd_found_wallet, mn_lucky_find and nc_found_wallet are the same scene. From 13, after
+    // kid_years' kd_found_wallet (6-12), which does not check for these.
+    conditions: [{ inPrison: false }, { eventNotFired: 'kd_found_wallet' }, { eventNotFired: 'mn_lucky_find' }, { eventNotFired: 'nc_found_wallet' }],
     choices: [
       {
         id: 'keep',
@@ -155,6 +157,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
         id: 'ask',
         label: "Ask what's in the back",
         effects: [
+          { stat: 'smarts', delta: 1 },
           {
             chance: 0.5,
             then: [{ karma: 1 }, { log: 'He laughed, said never mind, and walked off. I think I failed a test I did not want to pass.', kind: 'info' }],
@@ -172,7 +175,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 75,
     weight: 1,
-    cooldown: 4,
+    cooldown: 8,
     conditions: [{ inPrison: false }, { money: { gte: 120 } }],
     choices: [
       {
@@ -222,7 +225,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 85,
     weight: 1,
-    cooldown: 4,
+    cooldown: 12,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -318,7 +321,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
     minAge: 15,
     maxAge: 80,
     weight: 1,
-    cooldown: 3,
+    cooldown: 6,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -375,7 +378,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 80,
     weight: 0.8,
-    cooldown: 5,
+    cooldown: 10,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -455,7 +458,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 80,
     weight: 1,
-    cooldown: 4,
+    cooldown: 8,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -525,7 +528,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
           { counter: 'crimes' },
           {
             random: [
-              { weight: 5, effects: [{ money: 1500 }, { stat: 'happiness', delta: -2 }, { log: 'Three frightened strangers paid a "tax debt" into my account. I could not look at my bank app.', kind: 'money' }] },
+              { weight: 5, effects: [{ money: 1500 }, { stat: 'happiness', delta: -2 }, { log: 'Three frightened strangers paid a "tax debt" into my account. I could not look at my bank statement.', kind: 'money' }] },
               { weight: 3, effects: [{ money: -40 }, { stat: 'happiness', delta: -3 }, { log: 'Everyone hung up on me. One man laughed. I quit after an afternoon, out of pocket for the calls.', kind: 'info' }] },
               { weight: 2, effects: [{ prison: 2 }, { stat: 'happiness', delta: -15 }, { log: 'One of my "customers" was a retired fraud investigator. Two years for fraud.', kind: 'bad' }] },
             ],
@@ -535,7 +538,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
       {
         id: 'waste',
         label: 'Waste their time',
-        effects: [{ karma: 1 }, { stat: 'happiness', delta: 4 }, { log: 'I kept them on the line for forty minutes pretending to look for my card. Public service.', kind: 'good' }],
+        effects: [{ karma: 1 }, { stat: 'happiness', delta: 4 }, { log: 'I read them my library card number, slowly, twice, then asked for a supervisor. They hung up.', kind: 'good' }],
       },
       {
         id: 'report',
@@ -606,7 +609,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 85,
     weight: 1,
-    cooldown: 4,
+    cooldown: 8,
     conditions: [{ inPrison: false }, { money: { gte: 60 } }],
     choices: [
       {
@@ -837,7 +840,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
   {
     id: 'cp_prison_visitor',
     category: 'prison',
-    title: 'Visiting hours',
+    title: 'An hour at the table',
     text: '{{person}} came to see me. An hour at a bolted-down table, a vending machine between us, and a guard counting the minutes. {{They}} looked older than I remembered.',
     minAge: 16,
     maxAge: 90,
@@ -1189,7 +1192,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
   {
     id: 'cp_prison_letter_home',
     category: 'prison',
-    title: 'Mail call',
+    title: 'Three pages from home',
     text: 'Mail call. A letter from {{person}}, three pages, the handwriting getting smaller toward the end. News about home, a question about when I will be out, and no mention of why I am here.',
     minAge: 16,
     maxAge: 90,

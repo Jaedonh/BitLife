@@ -69,7 +69,7 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 2,
-    cooldown: 2,
+    cooldown: 15,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -82,6 +82,7 @@ export const MONEY_EVENTS: EventDef[] = [
         id: 'dispute',
         label: 'Dispute the charges',
         effects: [
+          { energy: -1 },
           {
             chance: 0.45,
             then: [{ money: -300 }, { stat: 'happiness', delta: 3 }, { log: 'After three phone calls and one hold-music playlist, they knocked it down to {{$300}}.', kind: 'good' }],
@@ -111,7 +112,7 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 85,
     weight: 1,
-    cooldown: 4,
+    cooldown: 8,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -125,6 +126,7 @@ export const MONEY_EVENTS: EventDef[] = [
         label: 'Demand proof in writing',
         effects: [
           { stat: 'smarts', delta: 2 },
+          { energy: -1 },
           {
             chance: 0.6,
             then: [{ stat: 'happiness', delta: 4 }, { log: 'The paperwork never came. A scam, or they lost the file. Either way, {{$640}} stayed mine.', kind: 'good' }],
@@ -134,7 +136,7 @@ export const MONEY_EVENTS: EventDef[] = [
       },
       {
         id: 'block',
-        label: 'Hang up and block them',
+        label: 'Hang up on them',
         effects: [
           { karma: -1 },
           {
@@ -154,7 +156,7 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 1.5,
-    cooldown: 2,
+    cooldown: 6,
     conditions: [{ inPrison: false }, { ownsAssetId: ['old_hatchback', 'sedan', 'pickup', 'ev', 'luxury_sedan', 'sports_car', 'supercar', 'classic_car'] }],
     choices: [
       {
@@ -167,6 +169,7 @@ export const MONEY_EVENTS: EventDef[] = [
         id: 'appeal',
         label: 'Appeal with photos of the tree',
         effects: [
+          { energy: -1 },
           {
             chance: 0.5,
             then: [{ stat: 'happiness', delta: 5 }, { stat: 'smarts', delta: 1 }, { log: 'My photo essay on the tree won the appeal. I have never felt more alive.', kind: 'good' }],
@@ -196,8 +199,8 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 1.5,
-    cooldown: 3,
-    conditions: [{ inPrison: false }, { noAsset: 'house' }],
+    cooldown: 10,
+    conditions: [{ inPrison: false }, { atHome: false }, { noAsset: 'house' }],
     choices: [
       {
         id: 'pay',
@@ -209,6 +212,7 @@ export const MONEY_EVENTS: EventDef[] = [
         id: 'negotiate',
         label: 'Negotiate',
         effects: [
+          { energy: -1 },
           {
             chance: 0.5,
             then: [{ money: -1000 }, { stat: 'happiness', delta: 2 }, { log: 'I pointed out the rattling radiator and the missing tiles. We settled on half the increase.', kind: 'good' }],
@@ -238,7 +242,7 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 80,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 8,
     conditions: [{ inPrison: false }, { ownsAssetId: ['old_hatchback', 'sedan', 'pickup', 'ev', 'luxury_sedan', 'sports_car', 'supercar', 'classic_car'] }],
     choices: [
       {
@@ -273,12 +277,13 @@ export const MONEY_EVENTS: EventDef[] = [
     id: 'mn_lucky_find',
     category: 'money',
     title: 'Lucky find',
-    text: 'I found a wallet on the bus seat next to me. Inside: {{$260}} in cash, a library card, and a photo of a very old dog.',
+    text: 'I found a wallet on the bus seat next to me. Inside: {{$260}} in cash, a bus pass, and a photo of a very old cat in a sweater.',
     minAge: 18,
     maxAge: 85,
     weight: 1,
-    cooldown: 4,
-    conditions: [{ inPrison: false }],
+    once: true,
+    // One found wallet per life: kd_found_wallet, cp_found_wallet and nc_found_wallet are the same scene.
+    conditions: [{ inPrison: false }, { eventNotFired: 'kd_found_wallet' }, { eventNotFired: 'cp_found_wallet' }, { eventNotFired: 'nc_found_wallet' }],
     choices: [
       {
         id: 'return',
@@ -286,9 +291,10 @@ export const MONEY_EVENTS: EventDef[] = [
         effects: [
           { karma: 3 },
           { stat: 'happiness', delta: 3 },
+          { energy: -1 },
           {
             chance: 0.4,
-            then: [{ money: 50 }, { log: "The owner cried a little and insisted I take {{$50}}. The dog, I learned, is called Biscuit.", kind: 'good' }],
+            then: [{ money: 50 }, { log: "The owner cried a little and insisted I take {{$50}}. The cat, I learned, is called Pickles.", kind: 'good' }],
             else: [{ log: 'The owner shook my hand for a full minute. No reward, but I slept well.', kind: 'good' }],
           },
         ],
@@ -302,7 +308,7 @@ export const MONEY_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 2 },
           {
             chance: 0.15,
-            then: [{ stat: 'happiness', delta: -6 }, { log: 'I kept it. The library card had an address two doors from mine. Awkward does not begin to cover it.', kind: 'bad' }],
+            then: [{ stat: 'happiness', delta: -6 }, { log: 'I kept it. The face on the bus pass lives two doors from me. Awkward does not begin to cover it.', kind: 'bad' }],
             else: [{ log: "I kept the cash and dropped the wallet in a mailbox. Finder's fee, I told myself.", kind: 'money' }],
           },
         ],
@@ -310,7 +316,7 @@ export const MONEY_EVENTS: EventDef[] = [
       {
         id: 'driver',
         label: 'Hand it to the driver',
-        effects: [{ karma: 1 }, { log: "I gave it to the driver, who put it in a drawer marked LOST. I hope Biscuit's owner finds it.", kind: 'info' }],
+        effects: [{ karma: 1 }, { log: "I gave it to the driver, who put it in a drawer marked LOST. I hope the cat's person finds it.", kind: 'info' }],
       },
     ],
   },
@@ -376,7 +382,7 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 0.8,
-    cooldown: 3,
+    cooldown: 8,
     conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend', 'sibling', 'lover', 'spouse', 'mother', 'father', 'child'], minAge: 16 },
     choices: [
@@ -402,7 +408,7 @@ export const MONEY_EVENTS: EventDef[] = [
           {
             chance: 0.7,
             then: [{ relationship: 'person', delta: 4 }, { stat: 'happiness', delta: 3 }, { log: 'Returned on {{their}} birthday, rewrapped. {{They}} laughed for a full minute. A tradition was born.', kind: 'good' }],
-            else: [{ relationship: 'person', delta: -3 }, { stat: 'happiness', delta: -1 }, { log: '{{They}} did not find it funny. Apparently the socks were "a whole thing." I did not ask.', kind: 'bad' }],
+            else: [{ relationship: 'person', delta: -3 }, { stat: 'happiness', delta: -1 }, { log: '{{They}} did not laugh. Apparently the socks were "a whole thing." I did not ask.', kind: 'bad' }],
           },
         ],
       },
@@ -421,8 +427,8 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 2,
-    cooldown: 2,
-    conditions: [{ inPrison: false }],
+    cooldown: 20,
+    conditions: [{ inPrison: false }, { year: { gte: 2000 } }],
     choices: [
       {
         id: 'delete',
@@ -461,7 +467,7 @@ export const MONEY_EVENTS: EventDef[] = [
     id: 'mn_identity_theft',
     category: 'money',
     title: 'Identity theft',
-    text: 'My bank texted about a purchase in a city I have never visited: {{$2400}} of patio furniture. Someone out there is living my life, and they have a patio.',
+    text: 'My bank called about a purchase in a city I have never visited: {{$2400}} of patio furniture. Someone out there is living my life, and they have a patio.',
     minAge: 18,
     maxAge: 85,
     weight: 0.8,
@@ -484,7 +490,7 @@ export const MONEY_EVENTS: EventDef[] = [
         id: 'specialist',
         label: 'Hire a fraud specialist',
         hint: '{{$400}}',
-        effects: [{ money: -400 }, { stat: 'happiness', delta: -1 }, { stat: 'smarts', delta: 1 }, { log: 'The specialist untangled it in days. Every purchase now pings my phone, which is its own punishment.', kind: 'good' }],
+        effects: [{ money: -400 }, { stat: 'happiness', delta: -1 }, { stat: 'smarts', delta: 1 }, { log: 'The specialist untangled it in days. The bank now calls about every purchase, its own punishment.', kind: 'good' }],
       },
       {
         id: 'later',
@@ -509,7 +515,7 @@ export const MONEY_EVENTS: EventDef[] = [
     maxAge: 75,
     weight: 1,
     cooldown: 5,
-    conditions: [{ inPrison: false }, { money: { gte: 1000 } }],
+    conditions: [{ inPrison: false }, { money: { gte: 1000 } }, { year: { gte: 2014 } }],
     choices: [
       {
         id: 'small',
@@ -669,7 +675,7 @@ export const MONEY_EVENTS: EventDef[] = [
     weight: 1,
     cooldown: 3,
     conditions: [{ inPrison: false }, { hasJob: true }, { partTime: false }],
-    person: { kind: ['friend', 'bestFriend', 'coworker', 'sibling'], minAge: 18, minRelationship: 40 },
+    person: { kind: ['coworker'], minAge: 18, minRelationship: 40 },
     choices: [
       {
         id: 'ask',
@@ -689,6 +695,7 @@ export const MONEY_EVENTS: EventDef[] = [
         effects: [
           { relationship: 'person', delta: 3 },
           { stat: 'smarts', delta: 2 },
+          { energy: -1 },
           {
             chance: 0.7,
             then: [{ money: 1200 }, { stat: 'happiness', delta: 5 }, { log: 'I brought numbers. Numbers worked. A modest bump, properly argued.', kind: 'good' }],
@@ -711,7 +718,7 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 70,
     weight: 1.2,
-    cooldown: 4,
+    cooldown: 6,
     conditions: [{ inPrison: false }, { hasJob: true }, { hustle: false }],
     choices: [
       {
@@ -734,13 +741,14 @@ export const MONEY_EVENTS: EventDef[] = [
   {
     id: 'mn_mlm_pitch',
     category: 'money',
-    title: 'A business opportunity',
+    title: 'Wellness oils',
     text: '{{person}} invited me to coffee and then unveiled a presentation about "wellness oils." There is a starter kit. There is a "downline." There is no coffee.',
     minAge: 18,
     maxAge: 70,
     weight: 1.2,
     cooldown: 4,
-    conditions: [{ inPrison: false }, { money: { gte: 200 } }],
+    // One pyramid pitch per life: adult_life's ad_friend_mlm is the same scene.
+    conditions: [{ inPrison: false }, { money: { gte: 200 } }, { eventNotFired: 'ad_friend_mlm' }],
     person: { kind: ['friend', 'bestFriend', 'coworker', 'sibling'], minAge: 18, minRelationship: 25 },
     choices: [
       {
@@ -754,7 +762,7 @@ export const MONEY_EVENTS: EventDef[] = [
           {
             random: [
               { weight: 15, effects: [{ money: 600 }, { log: 'Astonishingly, I sold enough oil to come out {{$200}} ahead. Two friends no longer answer my calls.', kind: 'money' }] },
-              { weight: 85, effects: [{ stat: 'happiness', delta: -5 }, { log: 'I own {{$400}} of oil and a group chat I cannot leave. {{person}} calls me a "rising star." Untrue.', kind: 'bad' }] },
+              { weight: 85, effects: [{ stat: 'happiness', delta: -5 }, { log: 'I own {{$400}} of oil and a downline I cannot leave. {{person}} calls me a "rising star." Untrue.', kind: 'bad' }] },
             ],
           },
         ],
@@ -788,7 +796,7 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 80,
     weight: 1.5,
-    cooldown: 4,
+    cooldown: 10,
     conditions: [{ inPrison: false }, { money: { gte: 500 } }],
     person: { kind: ['friend', 'bestFriend'], minAge: 18, minRelationship: 30 },
     choices: [
@@ -854,6 +862,7 @@ export const MONEY_EVENTS: EventDef[] = [
       {
         id: 'text',
         label: 'Send a passive-aggressive text',
+        conditions: [{ year: { gte: 2010 } }],
         effects: [
           { relationship: 'person', delta: -6 },
           { stat: 'happiness', delta: -2 },
@@ -874,7 +883,7 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 80,
     weight: 1.2,
-    cooldown: 3,
+    cooldown: 6,
     conditions: [{ inPrison: false }, { money: { gte: 100 } }],
     person: { kind: ['friend', 'bestFriend', 'sibling', 'coworker'], minAge: 20, minRelationship: 30 },
     choices: [
@@ -918,7 +927,7 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 1.5,
-    cooldown: 2,
+    cooldown: 8,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -944,14 +953,14 @@ export const MONEY_EVENTS: EventDef[] = [
       {
         id: 'walk',
         label: 'Keep walking',
-        effects: [{ stat: 'happiness', delta: -1 }, { karma: -1 }, { log: 'I did the thing where you look at your phone until you are past. She did not judge me. I did.', kind: 'info' }],
+        effects: [{ stat: 'happiness', delta: -1 }, { karma: -1 }, { log: 'I did the thing where you study your shoes until you are past. She did not judge me. I did.', kind: 'info' }],
       },
     ],
   },
   {
     id: 'mn_broke_week',
     category: 'money',
-    title: 'Running on empty',
+    title: 'Nine days to payday',
     text: 'There is {{$12}} in my account and nothing coming in for nine days. The fridge holds mustard, half a lemon and a sense of foreboding.',
     minAge: 18,
     maxAge: 70,

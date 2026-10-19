@@ -121,7 +121,8 @@ describe('migrateSave', () => {
   });
 
   it('loads a save from before flavor lines were remembered, and forgets a mangled memory instead of failing', () => {
-    const played = playedSave();
+    // Saved mid-life, so there are years left to play on.
+    const played = playedSave(20);
     expect(played.flavorSeen).toBeDefined();
     // The old shape: no flavorSeen at all.
     const old = JSON.parse(JSON.stringify(played)) as Record<string, unknown>;
@@ -129,9 +130,9 @@ describe('migrateSave', () => {
     const loaded = migrateSave(old);
     expect(loaded).not.toBeNull();
     expect(loaded!.flavorSeen).toBeUndefined();
-    // It plays on: the next years write flavor lines and start remembering them.
+    // It plays on: the next years write flavor lines and start remembering them (flavor lines are rare, so up to 30 years).
     let g = loaded!;
-    for (let i = 0; i < 10 && g.alive; i++) {
+    for (let i = 0; i < 30 && g.alive && !Object.keys(g.flavorSeen ?? {}).length; i++) {
       g = ageUp(g);
       while (g.pendingEvent) g = resolveChoice(g, g.pendingEvent.choices[0]!.id, EVENT_REGISTRY);
     }

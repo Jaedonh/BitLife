@@ -979,17 +979,18 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
         label: 'Write the letter',
         effects: [
           { karma: 5 },
+          { energy: -1 },
           {
             chance: 0.35,
             then: [{ stat: 'happiness', delta: 8 }, { log: 'Months later, a reply came through the office. Two lines. I read them every day.', kind: 'good' }],
-            else: [{ stat: 'happiness', delta: 2 }, { log: 'The letter went out. No reply came. The counselor said that was their right. It is.', kind: 'info' }],
+            else: [{ stat: 'happiness', delta: -2 }, { log: 'The letter went out. No reply came. The counselor said that was their right. It is.', kind: 'info' }],
           },
         ],
       },
       {
         id: 'tear',
         label: 'Write it, then tear it up',
-        effects: [{ karma: 1 }, { stat: 'happiness', delta: 1 }, { log: 'I wrote it four times and tore it up four times. The fifth one I kept, for me.', kind: 'info' }],
+        effects: [{ karma: 1 }, { stat: 'happiness', delta: 1 }, { energy: -1 }, { log: 'I wrote it four times and tore it up four times. The fifth one I kept, for me.', kind: 'info' }],
       },
       {
         id: 'not_ready',
@@ -1001,7 +1002,7 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
   {
     id: 'pl_talent_show',
     category: 'prison',
-    title: 'Talent night',
+    title: 'Showtime in the gym',
     text: "The rec office announced a talent show in the gym. Last year's winner juggled oranges from the kitchen. There is a sign-up sheet and a microphone that mostly works.",
     minAge: 18,
     maxAge: 110,
@@ -1062,6 +1063,7 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
         label: 'Ask how to do it right',
         effects: [
           { stat: 'smarts', delta: 2 },
+          { energy: -1 },
           { stat: 'happiness', delta: 3 },
           { log: 'Do the time, do not let the time do you. I wrote it on the wall above my bunk.', kind: 'good' },
           { newPerson: { kind: 'friend', relationship: 55, minAge: 62, maxAge: 85, gender: 'male', log: '{{person}}, the old-timer, became a friend. One day, one task, one letter at a time, {{they}} says.' } },
@@ -1073,6 +1075,7 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
         label: 'Ask how to do it right',
         effects: [
           { stat: 'smarts', delta: 2 },
+          { energy: -1 },
           { stat: 'happiness', delta: 3 },
           { log: 'Do the time, do not let the time do you. I wrote it on the wall above my bunk.', kind: 'good' },
           { newPerson: { kind: 'friend', relationship: 55, minAge: 62, maxAge: 85, gender: 'female', log: '{{person}}, the old-timer, became a friend. One day, one task, one letter at a time, {{they}} says.' } },
@@ -1089,7 +1092,7 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.5,
-            then: [{ stat: 'smarts', delta: 1 }, { stat: 'happiness', delta: 2 }, { log: 'The old-timer told me, plainly. I stopped complaining about my own sentence after that.', kind: 'good' }],
+            then: [{ stat: 'smarts', delta: 3 }, { stat: 'happiness', delta: 2 }, { log: 'The old-timer told me, plainly. I stopped complaining about my own sentence after that.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -3 }, { log: 'The old-timer stood up without a word and never sat next to me again.', kind: 'bad' }],
           },
         ],
@@ -1149,7 +1152,7 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.6,
-            then: [{ stat: 'happiness', delta: 10 }, { karma: 3 }, { flag: 'cp_prison_good_conduct', inc: 1 }, { log: 'For a year, a puppy named Biscuit slept by my bunk. Giving her up was my best and worst day.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 10 }, { karma: 3 }, { flag: 'cp_prison_good_conduct', inc: 1 }, { log: 'For a year, a puppy named Juniper slept by my bunk. Giving her up was my best and worst day.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -2 }, { log: 'Waiting list. I walked past the puppy room every day and waved through the glass.', kind: 'info' }],
           },
         ],
@@ -1157,7 +1160,7 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
       {
         id: 'kennels',
         label: 'Volunteer to clean kennels',
-        effects: [{ stat: 'happiness', delta: 4 }, { stat: 'health', delta: 1 }, { karma: 1 }, { log: 'I scooped kennels every morning and got licked for it. In here, that is a fair wage.', kind: 'good' }],
+        effects: [{ stat: 'happiness', delta: 4 }, { stat: 'health', delta: 1 }, { karma: 1 }, { energy: -1 }, { log: 'I scooped kennels every morning and got licked for it. In here, that is a fair wage.', kind: 'good' }],
       },
       {
         id: 'pass',
@@ -1170,7 +1173,7 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
     id: 'pl_old_school',
     category: 'prison',
     title: 'Old School',
-    text: 'At my age the top bunk is a mountain, and every winter the cold settles into my knees. The young ones on the block call me Old School, mostly with respect.',
+    text: 'At my age the top bunk is a mountain, and every cold night settles into my knees. The young ones on the block call me Old School, mostly with respect.',
     minAge: 60,
     maxAge: 110,
     weight: 1.2,
@@ -1532,14 +1535,15 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
   {
     id: 'pl_meet_parents',
     category: 'romance',
-    title: 'Meeting the parents',
-    text: '{{person}} invited me to Sunday lunch with {{their}} parents. They know nothing about my record, and {{person}} asked me, very gently, to keep it that way for the first visit.',
-    // From 30, after young_adult's ya_meet_the_parents (18-29), so one life does not meet the parents twice in a decade.
+    title: 'Sunday lunch',
+    text: '{{person}} wants me to meet {{their}} parents over Sunday lunch. They know nothing about my record, and {{person}} asked me, very gently, to keep it that way for the first visit.',
+    // From 30, after young_adult's ya_meet_the_parents (18-29), and not within a few years of love_and_family's
+    // lf_meet_their_parents, so one life does not meet the parents twice in a decade.
     minAge: 30,
     maxAge: 55,
     weight: 1,
     once: true,
-    conditions: [{ criminalRecord: true }, { inPrison: false }, { married: false }],
+    conditions: [{ criminalRecord: true }, { inPrison: false }, { married: false }, { not: { sinceEvent: 'lf_meet_their_parents', lte: 5 } }],
     person: { kind: ['lover'], minAge: 25, maxAge: 50 },
     choices: [
       {
@@ -1582,7 +1586,7 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
   {
     id: 'pl_kid_asks',
     category: 'family',
-    title: 'The question',
+    title: 'On a long walk',
     text: '{{person}} asked me about prison on a long walk today. Really asked, for the first time: why I went, what it was like, and whether I was scared.',
     minAge: 18,
     maxAge: 90,
@@ -1637,6 +1641,7 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
         label: 'Tell it straight',
         effects: [
           { karma: 4 },
+          { energy: -1 },
           {
             chance: 0.5,
             then: [{ stat: 'happiness', delta: 6 }, { log: 'One kid hung back afterward to ask how I stayed out. I am still answering that one.', kind: 'good' }],
@@ -1649,6 +1654,7 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
         label: 'Make it a scary story',
         effects: [
           { karma: 2 },
+          { energy: -1 },
           {
             chance: 0.7,
             then: [{ stat: 'happiness', delta: 2 }, { log: 'I laid it on thick. The youth worker called it effective. I felt like a haunted house.', kind: 'info' }],

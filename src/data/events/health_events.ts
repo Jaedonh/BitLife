@@ -1,5 +1,8 @@
 import type { EventDef } from '@/engine/events/schema';
 
+/** Real cars: the 'car' asset kind also covers the bicycle and the scooter. */
+const REAL_CARS = ['old_hatchback', 'sedan', 'pickup', 'ev', 'luxury_sedan', 'sports_car', 'supercar', 'classic_car'];
+
 /**
  * Health events for every age: sports injuries, food poisoning, a mystery
  * rash, a scare that needs tests, the dentist, insomnia, a fitness challenge with a
@@ -19,7 +22,7 @@ export const HEALTH_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 45,
     weight: 1.5,
-    cooldown: 4,
+    cooldown: 6,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -54,7 +57,7 @@ export const HEALTH_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 4,
+    cooldown: 15,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -78,6 +81,7 @@ export const HEALTH_EVENTS: EventDef[] = [
       {
         id: 'review',
         label: 'Post a furious review',
+        conditions: [{ year: { gte: 2008 } }],
         effects: [
           { illness: 'food_poisoning' },
           { karma: -2 },
@@ -99,7 +103,7 @@ export const HEALTH_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 85,
     weight: 1,
-    cooldown: 5,
+    cooldown: 10,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -131,6 +135,7 @@ export const HEALTH_EVENTS: EventDef[] = [
       {
         id: 'internet',
         label: 'Try an internet remedy',
+        conditions: [{ year: { gte: 2000 } }],
         effects: [
           {
             random: [
@@ -151,7 +156,7 @@ export const HEALTH_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 4,
+    cooldown: 12,
     choices: [
       {
         id: 'dentist',
@@ -216,7 +221,7 @@ export const HEALTH_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 1 },
           {
             chance: 0.35,
-            then: [{ illness: 'back_pain' }, { stat: 'health', delta: -4 }, { log: 'The creak became a spasm. I spent a week on the floor, reading emails on a phone held above my face.', kind: 'bad' }],
+            then: [{ illness: 'back_pain' }, { stat: 'health', delta: -4 }, { log: 'The creak became a spasm. I spent a week on the floor, holding meetings with the ceiling.', kind: 'bad' }],
             else: [{ log: 'The creak remains. We have an understanding.' }],
           },
         ],
@@ -231,7 +236,7 @@ export const HEALTH_EVENTS: EventDef[] = [
     minAge: 65,
     maxAge: 100,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 6,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -470,6 +475,7 @@ export const HEALTH_EVENTS: EventDef[] = [
         effects: [
           { money: -900 },
           { stat: 'smarts', delta: 1 },
+          { stat: 'health', delta: 2 },
           {
             random: [
               { weight: 8, effects: [{ stat: 'happiness', delta: 2 }, { log: 'All clear. "Panic attack," the doctor said, kindly. "Very common. Very horrible." Then a pamphlet.' }] },
@@ -486,7 +492,7 @@ export const HEALTH_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: -2 },
           {
             chance: 0.6,
-            then: [{ stat: 'health', delta: 1 }, { log: 'I counted breaths until the registers came back into focus, paid, then sat in the car for a while.' }],
+            then: [{ stat: 'health', delta: 1 }, { log: 'I counted breaths until the registers came back into focus, paid, then sat on a bench for a while.' }],
             else: [{ illness: 'anxiety' }, { log: 'It happened again the next week, and the one after. It has a name now, and I am learning to cope.', kind: 'bad' }],
           },
         ],
@@ -566,7 +572,7 @@ export const HEALTH_EVENTS: EventDef[] = [
     minAge: 15,
     maxAge: 90,
     weight: 1.2,
-    cooldown: 5,
+    cooldown: 6,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -610,7 +616,7 @@ export const HEALTH_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 80,
     weight: 1.2,
-    cooldown: 3,
+    cooldown: 6,
     conditions: [{ inPrison: false }, { any: [{ stat: 'happiness', lte: 60 }, { hasJob: true }] }],
     person: { kind: ['friend', 'bestFriend', 'coworker', 'sibling'], minAge: 18 },
     choices: [
@@ -660,7 +666,7 @@ export const HEALTH_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 70,
     weight: 1.2,
-    cooldown: 4,
+    cooldown: 6,
     conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend', 'sibling', 'coworker'], minAge: 13, minRelationship: 30 },
     choices: [
@@ -668,6 +674,7 @@ export const HEALTH_EVENTS: EventDef[] = [
         id: 'accept',
         label: 'Accept the challenge',
         effects: [
+          { energy: -1 },
           { counter: 'workouts', by: 3 },
           { stat: 'health', delta: 6 },
           { relationship: 'person', delta: 6 },
@@ -709,7 +716,7 @@ export const HEALTH_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 1,
     cooldown: 6,
-    conditions: [{ inPrison: false }],
+    conditions: [{ inPrison: false }, { year: { gte: 2010 } }],
     choices: [
       {
         id: 'starter',
@@ -731,11 +738,12 @@ export const HEALTH_EVENTS: EventDef[] = [
         hint: '{{$2500}}',
         effects: [
           { money: -2500 },
-          { stat: 'happiness', delta: -5 },
           {
-            chance: 0.3,
-            then: [{ stat: 'health', delta: -5 }, { log: 'The "proprietary blend" gave me a rash and a lighter bank account. The founder has since vanished.', kind: 'bad' }],
-            else: [{ log: 'Nothing happened, at a premium price. I kept the branded water bottle out of spite.', kind: 'bad' }],
+            random: [
+              { weight: 3, effects: [{ stat: 'happiness', delta: 6 }, { log: 'Placebo, but a premium placebo. I felt incredible for a whole season, then the patches ran out.' }] },
+              { weight: 4, effects: [{ stat: 'happiness', delta: -5 }, { log: 'Nothing happened, at a premium price. I kept the branded water bottle out of spite.', kind: 'bad' }] },
+              { weight: 3, effects: [{ stat: 'happiness', delta: -5 }, { stat: 'health', delta: -5 }, { log: 'The "proprietary blend" gave me a rash and a lighter bank account. The founder has since vanished.', kind: 'bad' }] },
+            ],
           },
         ],
       },
@@ -807,7 +815,7 @@ export const HEALTH_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 80,
     weight: 1.5,
-    cooldown: 5,
+    cooldown: 12,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -852,7 +860,7 @@ export const HEALTH_EVENTS: EventDef[] = [
     id: 'hl_flu_year',
     category: 'health',
     title: 'The flu year',
-    text: 'A nasty flu is sweeping through {{city}} this winter. Schools are half empty, the pharmacy has a line out the door, and everyone on the bus sounds like a broken accordion.',
+    text: 'A nasty flu is sweeping through {{city}} this season. Schools are half empty, the pharmacy has a line out the door, and everyone on the bus sounds like a broken accordion.',
     minAge: 13,
     maxAge: 100,
     weight: 0.7,
@@ -906,7 +914,7 @@ export const HEALTH_EVENTS: EventDef[] = [
     minAge: 8,
     maxAge: 90,
     weight: 1,
-    cooldown: 4,
+    cooldown: 8,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -1058,8 +1066,8 @@ export const HEALTH_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 90,
     weight: 1.2,
-    cooldown: 4,
-    conditions: [{ inPrison: false }],
+    cooldown: 8,
+    conditions: [{ inPrison: false }, { ownsAssetId: REAL_CARS }],
     choices: [
       {
         id: 'breathe',
@@ -1111,7 +1119,7 @@ export const HEALTH_EVENTS: EventDef[] = [
           {
             chance: 0.15,
             then: [{ stat: 'happiness', delta: -2 }, { log: 'I fainted slightly on the way to the cookies. The nurse said it happens. Still counts.' }],
-            else: [{ log: 'A pint out, a cookie in, and a text later saying my blood had gone to a hospital in {{city}}.', kind: 'good' }],
+            else: [{ log: 'A pint out, a cookie in, and a letter later saying my blood had gone to a hospital in {{city}}.', kind: 'good' }],
           },
         ],
       },
@@ -1131,7 +1139,7 @@ export const HEALTH_EVENTS: EventDef[] = [
     id: 'hl_child_fever',
     category: 'health',
     title: 'Fever in the night',
-    text: '{{person}} woke up at two in the morning burning hot and crying. The thermometer says a number I do not like. Every website says something different.',
+    text: '{{person}} woke up at two in the morning burning hot and crying. The thermometer says a number I do not like, and every parenting book in the house says something different.',
     minAge: 18,
     maxAge: 60,
     weight: 1.2,
@@ -1149,7 +1157,7 @@ export const HEALTH_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: -2 },
           {
             random: [
-              { weight: 7, effects: [{ log: 'A virus. Fluids, rest, a sticker for {{person}} and a lecture for me about websites. Home by dawn.' }] },
+              { weight: 7, effects: [{ log: 'A virus. Fluids, rest, a sticker for {{person}} and a lecture about parenting books. Home by dawn.' }] },
               { weight: 3, effects: [{ money: -1500 }, { relationship: 'person', delta: 4 }, { log: 'An infection, caught in time. The doctor said coming in was the right call. I barely slept for days.' }] },
             ],
           },
@@ -1220,11 +1228,13 @@ export const HEALTH_EVENTS: EventDef[] = [
       {
         id: 'avoid',
         label: 'Bury myself in work',
+        conditions: [{ hasJob: true }],
         effects: [
           { relationship: 'person', delta: -8 },
+          { jobPerformance: 4 },
           { stat: 'happiness', delta: -5 },
           { karma: -2 },
-          { log: 'I could not face it, so I faced a spreadsheet instead. {{person}} noticed.', kind: 'bad' },
+          { log: 'I could not face it, so I worked late every night instead. {{person}} noticed.', kind: 'bad' },
           { queue: 'hl_relative_prognosis' },
         ],
       },

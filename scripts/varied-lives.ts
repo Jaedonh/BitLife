@@ -3,7 +3,7 @@
  * in the validator and the text audit: graduate school after a bachelor's degree, a side hustle, a marriage the
  * player tends every year (so it can last 40 years), a habit that has taken hold (event choices alone rarely push an
  * addiction past the level where it starts to grow), a baby raised alone, a younger sibling at 3, losing both parents
- * young and a stay in juvenile detention. Deterministic per seed and state.
+ * young, a stay in juvenile detention and a grandparent in prison. Deterministic per seed and state.
  */
 import { applyAction } from '../src/engine/actions';
 import { applyEffects } from '../src/engine/events/effects';
@@ -26,6 +26,10 @@ export function varyLife(state: GameState, seed: number): GameState {
   if (seed % 11 === 4 && age === 15) s = applyEffects(s, new Rng(seed + 15), [{ prison: 2 }]);
   // ...and some teens go back a second time, so content for a repeat stay is sampled too.
   if (seed % 11 === 4 && seed % 2 === 0 && age === 13) s = applyEffects(s, new Rng(seed + 13), [{ prison: 1 }]);
+  // A grandparent behind bars while a grandchild is small, so prison visits from grandchildren are sampled.
+  if (seed % 5 === 3 && age >= 50 && age <= 75 && s.crime.prisonYearsTotal === 0 && Object.values(s.people).some((p) => p.alive && p.kind === 'grandchild' && p.age >= 4 && p.age <= 8)) {
+    s = applyEffects(s, new Rng(seed + age), [{ prison: 2 }]);
+  }
   if (seed % 3 === 1 && age >= 22 && age <= 30 && !s.education.enrolled) {
     const program = enrollOptions(s).find((o) => o.kind === 'graduate' && o.eligible);
     if (program) s = applyAction(s, { type: 'enroll', major: program.id });
