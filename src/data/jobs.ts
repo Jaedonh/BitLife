@@ -31,6 +31,8 @@ export interface JobDef {
   fame?: number;
   hoursPerWeek: number;
   emoji: string;
+  /** First year it is hired for (util.inEra): data scientists from 2008, web designers once there is a web. */
+  minYear?: number;
 }
 
 const j = (id: string, category: JobCategory, emoji: string, ladder: [string, number][], requirements: JobRequirements, extra: Partial<JobDef> = {}): JobDef => ({
@@ -94,8 +96,8 @@ export const JOBS: readonly JobDef[] = [
   // Tech
   j('it_support', 'tech', '🖥️', [['Help Desk Technician', 38000], ['IT Specialist', 55000], ['Systems Administrator', 78000], ['IT Director', 130000]], { education: 'high_school', minSmarts: 45 }, { stress: 30 }),
   j('software_dev', 'tech', '💻', [['Junior Developer', 68000], ['Software Developer', 98000], ['Senior Developer', 140000], ['Staff Engineer', 190000], ['CTO', 300000]], { education: 'bachelor', majors: ['computer_science', 'engineering', 'mathematics', 'physics'], minSmarts: 60 }, { stress: 40 }),
-  j('data_scientist', 'tech', '🧮', [['Data Analyst', 65000], ['Data Scientist', 110000], ['Lead Data Scientist', 160000], ['Head of Data', 230000]], { education: 'bachelor', majors: ['computer_science', 'mathematics', 'physics', 'economics', 'engineering'], minSmarts: 70 }, { stress: 40 }),
-  j('web_designer', 'tech', '🎨', [['Junior Web Designer', 42000], ['Web Designer', 60000], ['UX Lead', 95000], ['Design Director', 140000]], { education: 'high_school', majors: [], minSmarts: 40, minLooks: 0 }, { stress: 30 }),
+  j('data_scientist', 'tech', '🧮', [['Data Analyst', 65000], ['Data Scientist', 110000], ['Lead Data Scientist', 160000], ['Head of Data', 230000]], { education: 'bachelor', majors: ['computer_science', 'mathematics', 'physics', 'economics', 'engineering'], minSmarts: 70 }, { stress: 40, minYear: 2008 }),
+  j('web_designer', 'tech', '🎨', [['Junior Web Designer', 42000], ['Web Designer', 60000], ['UX Lead', 95000], ['Design Director', 140000]], { education: 'high_school', majors: [], minSmarts: 40, minLooks: 0 }, { stress: 30, minYear: 1995 }),
   // Health
   j('caregiver', 'health', '🩺', [['Caregiver', 27000], ['Senior Caregiver', 34000], ['Nursing Home Manager', 55000]], { education: 'high_school' }, { stress: 40 }),
   j('paramedic', 'health', '🚑', [['EMT', 36000], ['Paramedic', 52000], ['Senior Paramedic', 66000], ['EMS Supervisor', 85000]], { education: 'high_school', minHealth: 55, minSmarts: 45 }, { stress: 55, danger: 15 }),
@@ -133,3 +135,63 @@ export const JOBS: readonly JobDef[] = [
 ];
 
 export const JOB_BY_ID: Record<string, JobDef> = Object.fromEntries(JOBS.map((x) => [x.id, x]));
+
+/**
+ * The national offices on the politician's ladder (rungs 3 and 4) where they are not a member of Parliament and a
+ * minister: Congress and the Senate in the United States, the Chamber of Deputies and the Senate in Mexico and
+ * Brazil, the House of Representatives and the Senate in Nigeria, the Diet in Japan and the Bundestag in Germany.
+ */
+export const NATIONAL_OFFICES: Record<string, readonly [string, string]> = {
+  US: ['Member of Congress', 'Senator'],
+  MX: ['Federal Deputy', 'Senator'],
+  BR: ['Federal Deputy', 'Senator'],
+  NG: ['Representative', 'Senator'],
+  JP: ['Member of the Diet', 'Minister'],
+  DE: ['Member of the Bundestag', 'Minister'],
+};
+
+/** Rung titles from before their era, by job and rung: a food blogger before blogs wrote a newspaper column. */
+const EARLIER_TITLES: Record<string, { until: number; level: number; title: string }[]> = {
+  chef_tv: [{ until: 2003, level: 0, title: 'Food Columnist' }],
+};
+
+/** Where and when a title is held: the country and the year. */
+export interface TitleSetting {
+  countryCode: string;
+  year: number;
+}
+
+/** The title of a rung as it is called in this country and year ("Member of Congress" in the US, "Food Columnist" in 1995). */
+export function rungTitle(def: JobDef, level: number, where: TitleSetting): string {
+  const rung = Math.min(level, def.ladder.length - 1);
+  if (def.id === 'politician' && rung >= 3) {
+    const offices = NATIONAL_OFFICES[where.countryCode];
+    if (offices) return offices[rung - 3]!;
+  }
+  const earlier = EARLIER_TITLES[def.id]?.find((t) => t.level === rung && where.year <= t.until);
+  return earlier?.title ?? def.ladder[rung]!.title;
+}
+
+/** Every title a job can carry (its ladder plus the national and earlier variants), to find a job by title. */
+const DEFS_BY_TITLE: Record<string, JobDef[]> = (() => {
+  const out: Record<string, JobDef[]> = {};
+  const add = (title: string, def: JobDef) => {
+    const defs = (out[title] ??= []);
+    if (!defs.includes(def)) defs.push(def);
+  };
+  for (const def of JOBS) for (const r of def.ladder) add(r.title, def);
+  const politician = JOB_BY_ID.politician!;
+  for (const offices of Object.values(NATIONAL_OFFICES)) for (const t of offices) add(t, politician);
+  for (const [id, titles] of Object.entries(EARLIER_TITLES)) for (const t of titles) add(t.title, JOB_BY_ID[id]!);
+  return out;
+})();
+
+/** Every job a title can belong to: one, or two for the few titles on two ladders ("Partner", "Lieutenant"). */
+export function jobDefsForTitle(title: string): readonly JobDef[] {
+  return DEFS_BY_TITLE[title] ?? [];
+}
+
+/** The job a title belongs to (the first ladder that has it; a few titles, like Lieutenant, are on two: jobDefsForTitle). */
+export function jobDefForTitle(title: string): JobDef | undefined {
+  return jobDefsForTitle(title)[0];
+}

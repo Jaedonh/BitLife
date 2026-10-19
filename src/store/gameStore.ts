@@ -75,9 +75,10 @@ const HIGHLIGHT_RANK: Partial<Record<LogKind, number>> = { milestone: 4, bad: 2,
 
 /**
  * The year's most notable new line, skipping any line that also happened last year (a debt
- * reminder or a recurring chore would otherwise be the headline every single year). Once the
- * year's cards are closed it covers their outcomes too, so the recap never contradicts them
- * ("Another year behind bars" in the year parole was granted). Lines from `cardsFrom` on were
+ * reminder or a recurring chore would otherwise be the headline every single year). A milestone
+ * is news every time, though: a parole granted two years running is still this year's release.
+ * Once the year's cards are closed it covers their outcomes too, so the recap never contradicts
+ * them ("Another year behind bars" in the year parole was granted). Lines from `cardsFrom` on were
  * written by the year's cards: they are its latest news, so they win a tie with what the year
  * wrote before them ("1 year to go" from a card that then added a year to the sentence).
  */
@@ -87,7 +88,7 @@ export function yearHighlight(before: GameState, after: GameState, cardsFrom = a
   for (let i = before.log.length; i < after.log.length; i++) {
     const l = after.log[i]!;
     const rank = HIGHLIGHT_RANK[l.kind] ?? 0;
-    if (!rank || lastYear.has(l.text)) continue;
+    if (!rank || (l.kind !== 'milestone' && lastYear.has(l.text))) continue;
     const card = i >= cardsFrom;
     if (!best || rank > best.rank || (rank === best.rank && card && !best.card)) best = { text: l.text, rank, card };
   }

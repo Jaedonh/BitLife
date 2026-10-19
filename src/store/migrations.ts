@@ -1,4 +1,4 @@
-import { DEBT_CALLS } from '@/engine/systems/finance';
+import { BANKRUPTCY_LINES, DEBT_CALLS } from '@/engine/systems/finance';
 import { upgradeJusticeState } from '@/engine/systems/justice';
 import { SCHEMA_VERSION, STAT_IDS, type GameState } from '@/engine/types';
 import { capitalize } from '@/engine/util';
@@ -38,6 +38,8 @@ function isGameStateShape(s: Rec): boolean {
   const career = s.career;
   if (!isRec(career) || !nullOr(career.job, (j) => isRec(j) && isStr(j.title) && isNum(j.salary)) || !arrayOf(career.history, isRec) || !arrayOf(career.listings, isRec)) return false;
   if (!isRec(career.experience) || !nullOr(career.hustle, isRec) || !isNum(career.totalYearsWorked) || !isBool(career.retired)) return false;
+  // A hustle's highest level is optional (saves from before it count the level they are at).
+  if (!nullOr(career.hustle, (hu) => isRec(hu) && nullOr(hu.peak, isNum))) return false;
   const f = s.finances;
   if (!isRec(f) || !isNum(f.cash) || !isNum(f.debt) || !arrayOf(f.investments, isRec) || !isRec(f.lastYear) || !isNum(f.incomeBoostYears) || !isBool(f.bankrupt)) return false;
   const h = s.health;
@@ -53,7 +55,7 @@ function isGameStateShape(s: Rec): boolean {
   if (!recordOf(s.people, (p) => isRec(p) && nullOr(p.foster, isBool))) return false;
   // A relative who took the player in and people left behind by a move abroad are optional too (older saves have neither).
   if (!recordOf(s.people, (p) => isRec(p) && nullOr(p.relative, isBool) && nullOr(p.farAway, isBool))) return false;
-  if (!recordOf(s.people, (p) => isRec(p) && nullOr(p.mourned, isBool))) return false;
+  if (!recordOf(s.people, (p) => isRec(p) && nullOr(p.mourned, isBool) && nullOr(p.birthLastName, isStr))) return false;
   if (!arrayOf(s.assets, (a) => isRec(a) && isStr(a.id) && isNum(a.value))) return false;
   if (!arrayOf(s.log, (l) => isRec(l) && isStr(l.text) && isStr(l.kind) && isNum(l.age))) return false;
   if (!arrayOf(s.eventQueue, (q) => isRec(q) && isStr(q.eventId))) return false;
@@ -111,6 +113,16 @@ function carryDebtCalls(state: GameState): GameState {
 }
 
 /**
+ * A save from before bankruptcies were counted: its journal holds one line per bankruptcy (the first and the
+ * "again" line), so the next one is numbered right ("a third time"). Once the count exists this changes nothing.
+ */
+function carryBankruptcies(state: GameState): GameState {
+  if (!state.finances.bankrupt || state.flags.bankruptcies !== undefined) return state;
+  const count = state.log.filter((l) => l.text === BANKRUPTCY_LINES.first || l.text === BANKRUPTCY_LINES.second).length;
+  return { ...state, flags: { ...state.flags, bankruptcies: Math.max(1, count) } };
+}
+
+/**
  * Upgrades a persisted GameState from an older schema. Returns null when the
  * save cannot be understood (the caller then discards it rather than crashing).
  */
@@ -132,5 +144,5 @@ export function migrateSave(raw: unknown): GameState | null {
   if (Object.values(people).some(unmourned)) {
     s = { ...s, people: Object.fromEntries(Object.entries(people).map(([id, p]) => [id, unmourned(p) ? { ...p, mourned: true } : p])) };
   }
-  return carryDebtCalls(repairCareerAndSchool(upgradeJusticeState(s as unknown as GameState)));
+  return carryBankruptcies(carryDebtCalls(repairCareerAndSchool(upgradeJusticeState(s as unknown as GameState))));
 }

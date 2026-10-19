@@ -1,8 +1,8 @@
-import { ASSET_BY_ID, type AssetDef } from '@/data/assets';
+import { ASSET_BY_ID, ASSETS, type AssetDef } from '@/data/assets';
 import { scaleMoney } from '../events/text';
 import type { Rng } from '../rng';
 import type { Asset, GameState } from '../types';
-import { addMoney, addStats, bump, clampStat, log, money, setResult, withArticle } from '../util';
+import { addMoney, addStats, bump, clampStat, inEra, log, lowerTitle, money, setResult, withArticle } from '../util';
 
 export const MORTGAGE_YEARS = 25;
 export const MORTGAGE_RATE = 0.06;
@@ -22,6 +22,7 @@ export function canBuy(state: GameState, defId: string, financing: 'cash' | 'mor
   const def = ASSET_BY_ID[defId];
   if (!def) return { ok: false, reason: 'Unknown item', cost: 0 };
   const price = assetPrice(state, def);
+  if (!inEra(state.year, def)) return { ok: false, reason: def.minYear !== undefined && state.year < def.minYear ? 'Not on sale yet' : 'No longer sold', cost: price };
   if (state.character.age < def.minAge) return { ok: false, reason: `Age ${def.minAge}+`, cost: price };
   if (state.crime.inPrison) return { ok: false, reason: state.crime.juvenile ? 'Not while in detention' : 'Not while in prison', cost: price };
   if (financing === 'mortgage') {
@@ -59,7 +60,8 @@ export function buyAsset(state: GameState, rng: Rng, defId: string, financing: '
   s = addStats(s, { happiness: def.joy });
   if (def.kind === 'car') s = bump(s, 'carsOwned');
   if (def.kind === 'house') s = bump(s, 'housesOwned');
-  const text = financing === 'mortgage' ? `I bought ${withArticle(def.name.toLowerCase())} with a mortgage.` : `I bought ${withArticle(def.name.toLowerCase())}.`;
+  // Mid-sentence names keep their capitals: "a gaming PC".
+  const text = financing === 'mortgage' ? `I bought ${withArticle(lowerTitle(def.name))} with a mortgage.` : `I bought ${withArticle(lowerTitle(def.name))}.`;
   s = log(s, text, 'money');
   return setResult(s, text, 'good', { statDeltas: { happiness: def.joy }, moneyDelta: -check.cost });
 }
@@ -74,7 +76,7 @@ export function sellAsset(state: GameState, assetId: string): GameState {
     const nextHouse = s.assets.find((a) => a.kind === 'house');
     if (nextHouse) s = { ...s, assets: s.assets.map((a) => (a.id === nextHouse.id ? { ...a, primary: true, rentedOut: false } : a)) };
   }
-  const text = proceeds >= 0 ? `I sold my ${asset.name.toLowerCase()} and cleared ${money(state, proceeds)}.` : `I sold my ${asset.name.toLowerCase()} at a loss of ${money(state, -proceeds)}.`;
+  const text = proceeds >= 0 ? `I sold my ${lowerTitle(asset.name)} and cleared ${money(state, proceeds)}.` : `I sold my ${lowerTitle(asset.name)} at a loss of ${money(state, -proceeds)}.`;
   s = log(s, text, 'money');
   return setResult(s, text, proceeds >= 0 ? 'good' : 'bad', { moneyDelta: proceeds });
 }
@@ -86,7 +88,7 @@ export function repairAsset(state: GameState, assetId: string): GameState {
   if (state.finances.cash < cost) return setResult(state, 'Not enough cash for repairs.', 'bad');
   let s = addMoney(state, -cost);
   s = { ...s, assets: s.assets.map((a) => (a.id === assetId ? { ...a, condition: 100, value: Math.round(Math.max(a.value, a.purchasePrice * 0.6)) } : a)) };
-  const text = `I had my ${asset.name.toLowerCase()} fully repaired.`;
+  const text = `I had my ${lowerTitle(asset.name)} fully repaired.`;
   s = log(s, text, 'money');
   return setResult(s, text, 'good', { moneyDelta: -cost });
 }
@@ -98,6 +100,11 @@ export function toggleRentOut(state: GameState, assetId: string): GameState {
   const rentedOut = !asset.rentedOut;
   const s = { ...state, assets: state.assets.map((a) => (a.id === assetId ? { ...a, rentedOut } : a)) };
   return setResult(s, rentedOut ? 'Tenants moved in.' : 'The tenants moved out.', 'info');
+}
+
+/** What the shop sells this year: an electric car waits for 2012, and the home computer gives way to the gaming PC. */
+export function assetsForSale(state: GameState): AssetDef[] {
+  return ASSETS.filter((d) => inEra(state.year, d));
 }
 
 /** Yearly value drift and wear. */

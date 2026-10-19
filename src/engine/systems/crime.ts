@@ -1,4 +1,4 @@
-import { CRIME_BY_ID, type CrimeDef } from '@/data/crimes';
+import { CRIME_BY_ID, CRIMES, type CrimeDef } from '@/data/crimes';
 import { EVENT_REGISTRY } from '../events/registry';
 import { openNextEvent } from '../events/select';
 import { parentsRef, scaleMoney } from '../events/text';
@@ -6,9 +6,15 @@ import { guardianFunds, payForMinor } from './guardians';
 import { onParole, paroleCard, paroleEligible, paroleHearingChance, releaseFromPrison, sealJuvenileRecord, TRIAL_EVENT_ID, trialCard, yearlyParole } from './justice';
 import type { Rng } from '../rng';
 import type { ActionAvailability, GameState } from '../types';
-import { addKarma, addMoney, addStats, bump, capitalize, clampStat, log, money, plural, setResult, actionCount, countAction } from '../util';
+import { addKarma, addMoney, addStats, bump, capitalize, clampStat, inEra, log, money, plural, setResult, actionCount, countAction } from '../util';
+
+/** The crimes of this era (CrimeDef.minYear/maxYear): no laptop scams before 2000, no bad checks after. */
+export function crimesInEra(state: GameState): CrimeDef[] {
+  return CRIMES.filter((c) => inEra(state.year, c));
+}
 
 export function crimeAvailability(state: GameState, def: CrimeDef): ActionAvailability {
+  if (!inEra(state.year, def)) return { available: false, reason: def.minYear !== undefined && state.year < def.minYear ? 'Not possible yet' : 'Not possible anymore' };
   if (state.character.age < def.minAge) return { available: false, reason: `Age ${def.minAge}+` };
   if (state.crime.inPrison) return { available: false, reason: state.crime.juvenile ? 'In detention' : 'In prison' };
   if (state.pendingEvent?.eventId === TRIAL_EVENT_ID || state.eventQueue.some((q) => q.eventId === TRIAL_EVENT_ID)) return { available: false, reason: 'I have a court date first' };

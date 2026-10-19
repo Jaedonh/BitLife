@@ -4,7 +4,8 @@
  *   npm run build:web && node e2e/smoke.mjs
  *
  * Uses the system Chromium (PLAYWRIGHT_BROWSERS_PATH or CHROME_PATH) so no
- * browser download is needed. Screenshots land in e2e/screenshots/.
+ * browser download is needed. Screenshots land in e2e/screenshots/ (E2E_SHOTS=<dir> to change it), at a
+ * 390x844 phone (E2E_VIEWPORT=360x740 for a small one).
  */
 import { chromium } from 'playwright';
 import { createServer } from 'node:http';
@@ -13,7 +14,8 @@ import { existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 
 const DIST = path.resolve('dist');
-const OUT = path.resolve('e2e/screenshots');
+const OUT = path.resolve(process.env.E2E_SHOTS ?? 'e2e/screenshots');
+const [VIEW_W, VIEW_H] = (process.env.E2E_VIEWPORT ?? '390x844').split('x').map(Number);
 const PORT = Number(process.env.E2E_PORT ?? 8123);
 /** Serve and open the export under a subpath, as GitHub Pages does (e.g. BASE_PATH=/BitLife). */
 const BASE = (process.env.BASE_PATH ?? '').replace(/\/$/, '');
@@ -58,7 +60,7 @@ export async function run(steps) {
   await mkdir(OUT, { recursive: true });
   const server = await serve();
   const browser = await chromium.launch({ executablePath: findChrome(), args: ['--no-sandbox'] });
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+  const page = await browser.newPage({ viewport: { width: VIEW_W || 390, height: VIEW_H || 844 }, deviceScaleFactor: 2 });
   const errors = [];
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
   page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });

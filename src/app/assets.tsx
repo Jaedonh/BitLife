@@ -8,11 +8,12 @@ import { Chip, ChipGroup } from '@/components/game/WorkChip';
 import { DangerButton } from '@/components/game/WorkDangerButton';
 import { Sheet, type SheetAction } from '@/components/game/WorkSheet';
 import { Button, Card, confirmAction, Screen, Section, T } from '@/components/ui';
-import { ASSET_BY_ID, ASSETS } from '@/data/assets';
+import { ASSET_BY_ID } from '@/data/assets';
 import { assetPrice, canBuy, INVEST_MIN_AGE, INVESTMENT_LABELS, netWorth, yearlyMortgagePayment } from '@/engine';
-import { DOWN_PAYMENT, MORTGAGE_RATE, MORTGAGE_YEARS } from '@/engine/systems/assets';
-import type { Asset, AssetKind, InvestmentKind } from '@/engine/types';
-import { formatMoney, formatMoneyFull } from '@/engine/util';
+import { assetsForSale, DOWN_PAYMENT, MORTGAGE_RATE, MORTGAGE_YEARS } from '@/engine/systems/assets';
+import { investmentKinds } from '@/engine/systems/finance';
+import type { Asset, AssetKind } from '@/engine/types';
+import { formatMoney, formatMoneyFull, lowerTitle } from '@/engine/util';
 import { useRewarded } from '@/hooks/useRewarded';
 import { useGameStore } from '@/store/gameStore';
 import { useSettingsStore } from '@/store/settingsStore';
@@ -75,7 +76,7 @@ export default function AssetsScreen() {
       proceeds >= 0
         ? `You'll get about ${formatMoneyFull(proceeds, cc)}${a.mortgage ? ' after paying off the mortgage' : ' after fees'}.${home}`
         : `The mortgage is bigger than the sale price: you'll still owe about ${formatMoneyFull(-proceeds, cc)}.${home}`;
-    if (await confirmAction(`Sell your ${a.name.toLowerCase()}?`, message, 'Sell')) act({ type: 'sellAsset', assetId: a.id });
+    if (await confirmAction(`Sell your ${lowerTitle(a.name)}?`, message, 'Sell')) act({ type: 'sellAsset', assetId: a.id });
   }
 
   const mortgageAction: SheetAction | null = buyMortgage
@@ -142,7 +143,7 @@ export default function AssetsScreen() {
               </ChipGroup>
               <T kind="small">{canInvest ? `Invest moves ${step}% of your cash (${formatMoneyFull(investAmount, cc)}). Withdraw takes ${step}% of that balance.` : `Withdraw takes ${step}% of that balance. Investing opens at ${INVEST_MIN_AGE}.`}</T>
             </Card>
-            {(Object.keys(INVESTMENT_LABELS) as InvestmentKind[]).map((kind) => {
+            {investmentKinds(game).map((kind) => {
               const inv = fin.investments.find((i) => i.kind === kind);
               const gain = inv ? gainLine(inv.amount - inv.costBasis, inv.costBasis, cc) : null;
               const withdrawAmount = inv ? (step === 100 ? inv.amount : Math.round((inv.amount * step) / 100)) : 0;
@@ -218,7 +219,7 @@ export default function AssetsScreen() {
               <Chip key={k} label={KIND_LABEL[k]} selected={shop === k} onPress={() => setShop(k)} testID={`shop-${k}`} />
             ))}
           </ChipGroup>
-          {ASSETS.filter((d) => d.kind === shop).map((d) => {
+          {assetsForSale(game).filter((d) => d.kind === shop).map((d) => {
             const price = assetPrice(game, d);
             const cash = canBuy(game, d.id, 'cash');
             const mort = d.mortgageable ? canBuy(game, d.id, 'mortgage') : null;

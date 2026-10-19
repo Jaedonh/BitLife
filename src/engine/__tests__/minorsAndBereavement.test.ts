@@ -141,13 +141,17 @@ describe('an event death runs the same handling as a natural death', () => {
     expect(lines).toEqual(['She fell again. I should have fussed.', `I inherited $${share.toLocaleString('en-US')} from Mom's estate.`]);
   });
 
-  it('takes an orphaned child in to relatives and leaves a minor no inheritance', () => {
+  it("takes an orphaned child in to relatives, and the child's share of the estate goes into their savings", () => {
     let s = lifeAt(10);
     const mother = kin(s, 'mother');
     s = patch(s, kin(s, 'father').id, { alive: false });
-    s = patch(s, mother.id, { money: 50_000 });
+    s = patch(s, mother.id, { money: 50_000, relationship: 60 });
+    const heirs = Object.values(s.people).filter((p) => p.kind === 'sibling' && p.alive).length + 1;
+    const share = Math.round((50_000 * 0.8) / heirs);
     const after = play(s, 'test_parent_falls', 'fine', mother.id);
-    expect(after.finances.cash).toBe(0);
+    // A minor inherits like a grown child: the share is kept in their own savings, not lost with the estate.
+    expect(after.finances.cash).toBe(share);
+    expect(after.log.at(-2)!.text).toBe(`I inherited $${share.toLocaleString('en-US')} from Mom's estate. It went into my savings.`);
     const carer = guardiansOf(after)[0]!;
     expect(carer.relative).toBe(true);
     const line = after.log.at(-1)!.text;

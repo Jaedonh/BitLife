@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
 
 import { getCountry } from '@/data/countries';
 import { STAGE_LABELS } from '@/engine';
@@ -57,6 +57,44 @@ function EnergyChip({ energy, max }: { energy: number; max: number }) {
   );
 }
 
+/**
+ * Where I am and what I do: "🇦🇺 Melbourne · Junior Developer · Quantum Inc." on one line when it fits. When it
+ * does not, the place and the status go on lines of their own, with no separator left hanging at the end of the
+ * first, and the status may take two lines so a long employer is never cut off. The two pieces are laid out in a
+ * wrapping row first (the place always starts it); once the status lands on a row below, the line is shown
+ * stacked until the text changes.
+ */
+export function PlaceLine({ place, status }: { place: string; status: string }) {
+  const key = `${place}|${status}`;
+  const [stackedFor, setStackedFor] = useState<string | null>(null);
+  if (stackedFor === key) {
+    return (
+      <View testID="char-status">
+        <Text style={typography.small} numberOfLines={1}>
+          {place}
+        </Text>
+        <Text style={typography.small} numberOfLines={2} testID="char-status-text">
+          {status}
+        </Text>
+      </View>
+    );
+  }
+  const onStatusLayout = (e: LayoutChangeEvent) => {
+    if (e.nativeEvent.layout.y > 1) setStackedFor(key);
+  };
+  return (
+    <View style={styles.place} testID="char-status">
+      {/* A no-break space: a plain one would be trimmed at the end of the piece. */}
+      <Text style={[typography.small, styles.placePart]} numberOfLines={1}>
+        {`${place} ·\u00A0`}
+      </Text>
+      <Text style={[typography.small, styles.placePart]} numberOfLines={1} testID="char-status-text" onLayout={onStatusLayout}>
+        {status}
+      </Text>
+    </View>
+  );
+}
+
 export function StatsHeader({ game, onOpenProfile }: { game: GameState; onOpenProfile?: () => void }) {
   const showKarma = useSettingsStore((s) => s.settings.showKarma);
   const c = game.character;
@@ -96,15 +134,7 @@ export function StatsHeader({ game, onOpenProfile }: { game: GameState; onOpenPr
             {c.firstName} {c.lastName}
           </Text>
           {/* The city and the status wrap as two pieces, so a long city never cuts off the years left in prison. */}
-          <View style={styles.place} testID="char-status">
-            {/* A no-break space: a plain one would be trimmed at the end of the piece. */}
-            <Text style={[typography.small, styles.placePart]} numberOfLines={1}>
-              {`${country.flag} ${c.city} ·\u00A0`}
-            </Text>
-            <Text style={[typography.small, styles.placePart]} numberOfLines={1}>
-              {subtitle}
-            </Text>
-          </View>
+          <PlaceLine place={`${country.flag} ${c.city}`} status={subtitle} />
         </View>
         <View style={styles.right}>
           <Text style={styles.age} testID="char-age">

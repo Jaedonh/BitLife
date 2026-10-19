@@ -217,7 +217,7 @@ describe('the obituary names the highest degree', () => {
     const text = buildObituary(done, 'old age', 0, 'Academic');
     expect(text).toMatch(/ earned a PhD but never held a steady job, which (he|she) insisted was a lifestyle choice\./);
     const retired = { ...done, career: { ...done.career, retired: true, history: [{ title: 'Fire Chief', company: 'the London Fire Department', fromAge: 30, toAge: 65, salary: 80_000, reason: 'retired' as const }] } };
-    expect(buildObituary(retired, 'old age', 0, 'Academic')).toMatch(/ retired after working as a fire chief and held a PhD\./);
+    expect(buildObituary(retired, 'old age', 0, 'Academic')).toMatch(/ retired after 35 years as a fire chief and held a PhD\./);
   });
 });
 

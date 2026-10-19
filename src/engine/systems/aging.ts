@@ -128,12 +128,15 @@ export function onNpcDeath(state: GameState, p: Person, rng: Rng, opts: { announ
     const grief = p.kind === 'spouse' || p.kind === 'child' ? -25 : p.kind === 'mother' || p.kind === 'father' ? -15 : p.kind === 'grandchild' ? -12 : p.kind === 'grandparent' ? -8 : p.kind === 'pet' ? -8 : close ? -10 : -3;
     s = addStats(s, { happiness: Math.round(grief * (close ? 1 : 0.5)) });
   }
-  if ((p.kind === 'mother' || p.kind === 'father' || p.kind === 'spouse') && p.money > 0 && s.character.age >= 18) {
+  // A child inherits too: a minor's share goes into their own savings, as a grandparent's bequest does (GAME_DESIGN §10a),
+  // and always, because parents do not write a young child out of the will (an estranged adult may be).
+  if ((p.kind === 'mother' || p.kind === 'father' || p.kind === 'spouse') && p.money > 0) {
     const siblings = Object.values(s.people).filter((x) => x.kind === 'sibling' && x.alive).length;
     const share = Math.round((p.money * (p.kind === 'spouse' ? 1 : 0.8)) / (p.kind === 'spouse' ? 1 : siblings + 1));
-    if (share > 0 && (p.kind === 'spouse' || p.relationship >= 25 || rng.chance(0.3))) {
+    const minor = s.character.age < 18;
+    if (share > 0 && (p.kind === 'spouse' || minor || p.relationship >= 25 || rng.chance(0.3))) {
       s = addMoney(s, share);
-      s = log(s, `I inherited ${money(s, share)} from ${personRef(p, s.people)}'s estate.`, 'money');
+      s = log(s, `I inherited ${money(s, share)} from ${personRef(p, s.people)}'s estate.${minor ? ' It went into my savings.' : ''}`, 'money');
     }
   }
   if (p.kind === 'grandparent' && p.money > 0) s = grandparentEstate(s, p, rng);
@@ -180,11 +183,32 @@ function relativeAge(rng: Rng, state: GameState, side: Person | undefined, justL
   return Math.max(me.age + 18, Math.min(near, ceiling));
 }
 
-/** The surname of a parent's family: the father's own, or the mother's maiden name (her parents carry it). */
+/**
+ * The late player in an heir's family: the dead parent who was the last life (the last ancestor). Players never
+ * change their surname, so theirs is their family's.
+ */
+function lateParent(state: GameState): Person | undefined {
+  const last = state.ancestors[state.ancestors.length - 1];
+  if (!last) return undefined;
+  return Object.values(state.people).find((x) => isParent(x) && !x.alive && fullName(x) === last.name && x.deathAge === last.age);
+}
+
+/**
+ * The surname of a parent's family: the one they were born with (`birthLastName`, when a marriage changed it), the
+ * one their own parents carry (a mother's maiden name), or their own. In an heir's life the late player kept the
+ * surname they were born with, so their brother or sister carries it too ("Mom's brother" of a late mother is a
+ * Hughes like her); the other parent married the late player, and one whose surname is the late player's took it
+ * at the wedding, so their family's is not known (undefined: the relative gets a surname of their own). The same
+ * goes for a mother who carries the child's.
+ */
 function familyName(state: GameState, parent: Person): string | undefined {
-  if (parent.kind === 'father') return parent.lastName;
+  if (parent.birthLastName) return parent.birthLastName;
+  const late = lateParent(state);
+  if (late && late.id === parent.id) return parent.lastName;
   const ownParent = Object.values(state.people).find((x) => x.kind === 'grandparent' && x.viaId === parent.id);
   if (ownParent) return ownParent.lastName;
+  if (late && parent.lastName === late.lastName) return undefined;
+  if (parent.kind === 'father') return parent.lastName;
   return parent.lastName === state.character.lastName ? undefined : parent.lastName;
 }
 

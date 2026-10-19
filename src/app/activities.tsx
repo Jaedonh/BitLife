@@ -9,8 +9,8 @@ import type { BadgeSpec } from '@/components/game/WorkChip';
 import { Disclosure } from '@/components/game/WorkDisclosure';
 import { Button, Card, Screen, Section, T } from '@/components/ui';
 import { ACTIVITIES, type ActivityDef, type ActivityGroup } from '@/data/activities';
-import { CRIMES } from '@/data/crimes';
 import { actionCount, activityAvailability, crimeAvailability, statBoostGain } from '@/engine';
+import { crimesInEra } from '@/engine/systems/crime';
 import { formatMoney } from '@/engine/util';
 import { useRewarded } from '@/hooks/useRewarded';
 import { useGameStore } from '@/store/gameStore';
@@ -138,7 +138,7 @@ export default function ActivitiesScreen() {
         {age >= 12 ? (
           <Section title="Crime">
             <T kind="small">Risky, illegal, and bad for your karma. Consequences are real.</T>
-            {CRIMES.filter((c) => age >= c.minAge).map((c) => {
+            {crimesInEra(game).filter((c) => age >= c.minAge).map((c) => {
               const avail = crimeAvailability(game, c);
               return (
                 <WorkActionRow

@@ -1,13 +1,13 @@
 import { getCountry } from '@/data/countries';
 import { HUSTLE_BY_ID, HUSTLES, type HustleDef } from '@/data/hustles';
-import { JOB_BY_ID, JOBS, type JobDef } from '@/data/jobs';
+import { JOB_BY_ID, JOBS, rungTitle, type JobDef } from '@/data/jobs';
 import { majorProse } from '@/data/majors';
 import { COMPANY_NAMES, COMPANY_SUFFIXES } from '@/data/names';
 import { removeJob } from '../events/effects';
 import { scaleMoney } from '../events/text';
 import { Rng } from '../rng';
 import type { GameState, Job, JobListing } from '../types';
-import { addStats, bump, capitalize, clampStat, formatMoney, log, lowerTitle, plural, roleWithArticle, sentence, setResult, withArticle, withFame } from '../util';
+import { addStats, bump, capitalize, clampStat, formatMoney, inEra, log, lowerTitle, plural, roleWithArticle, sentence, setResult, withArticle, withFame } from '../util';
 import { hireCoworkers } from './coworkers';
 import { bachelorMajor, hasDegree, hasHighSchool } from './education';
 
@@ -157,6 +157,12 @@ function promotionLine(def: JobDef, title: string): string {
     case 'City Councilor': return 'I was elected to the city council.';
     case 'Mayor': return 'I was elected mayor.';
     case 'Member of Parliament': return 'I won a seat in Parliament.';
+    case 'Member of Congress': return 'I won a seat in Congress.';
+    case 'Federal Deputy': return 'I won a seat in the Chamber of Deputies.';
+    case 'Representative': return 'I won a seat in the House of Representatives.';
+    case 'Member of the Diet': return 'I won a seat in the Diet.';
+    case 'Member of the Bundestag': return 'I won a seat in the Bundestag.';
+    case 'Senator': return 'I won a seat in the Senate.';
     case 'Minister': return 'I was appointed a government minister.';
     case 'District Judge': return 'I was appointed a district judge.';
     case 'Appeals Judge': return 'I was appointed to the court of appeals.';
@@ -176,16 +182,21 @@ export function listingsBlocker(state: GameState): string | null {
   return null;
 }
 
-/** Rolls a fresh set of job listings for this year. */
+/** A rung's title where and when the player holds it ("Member of Congress" in the US, "Food Columnist" in 1995). */
+function titleFor(state: GameState, def: JobDef, level: number): string {
+  return rungTitle(def, level, { countryCode: state.character.countryCode, year: state.year });
+}
+
+/** Rolls a fresh set of job listings for this year: only jobs that exist in this year (JobDef.minYear). */
 export function rollListings(state: GameState, rng: Rng): GameState {
   const age = state.character.age;
-  const pool = JOBS.filter((j) => (j.partTime ? age >= 14 && age <= 24 : age >= 16));
+  const pool = JOBS.filter((j) => (j.partTime ? age >= 14 && age <= 24 : age >= 16) && inEra(state.year, j));
   const fullTime = rng.shuffle(pool.filter((j) => !j.partTime)).slice(0, 10);
   const partTime = age <= 24 ? rng.shuffle(pool.filter((j) => j.partTime)).slice(0, 4) : [];
   const listings: JobListing[] = [...partTime, ...fullTime].map((def) => ({
     id: rng.id('l_'),
     defId: def.id,
-    title: def.ladder[0]!.title,
+    title: titleFor(state, def, 0),
     company: employerFor(def, rng, state.character.city),
     salary: listingSalary(state, def, 0, rng),
     category: def.category,
@@ -280,7 +291,7 @@ export function askForRaise(state: GameState, rng: Rng): GameState {
 
 function promote(state: GameState, rng: Rng, job: Job, def: JobDef): GameState {
   const nextLevel = job.level + 1;
-  const title = def.ladder[nextLevel]!.title;
+  const title = titleFor(state, def, nextLevel);
   const salary = Math.max(job.salary, Math.min(salaryCap(state, def, nextLevel), Math.max(Math.round(job.salary * 1.1), listingSalary(state, def, nextLevel, rng))));
   let s: GameState = { ...state, career: { ...state.career, job: { ...job, level: nextLevel, title, salary, yearsAtLevel: 0, performance: clampStat(job.performance - 10) } } };
   s = bump(s, 'promotions');
@@ -403,6 +414,7 @@ export function ownsCar(state: GameState): boolean {
 export function hustleBlocker(state: GameState, def: HustleDef): string | null {
   if (state.crime.inPrison) return state.crime.juvenile ? "I can't run a side hustle from detention." : "I can't run a side hustle from a prison cell.";
   if (state.career.hustle) return 'I already have a side hustle going.';
+  if (!inEra(state.year, def)) return def.minYear !== undefined && state.year < def.minYear ? "That isn't a thing yet." : 'Nobody does that anymore.';
   if (state.character.age < def.minAge) return `I have to be ${def.minAge} or older for that.`;
   if (def.needsCar && !ownsCar(state)) return 'I need a car for that.';
   if (state.character.energy < def.energy) return "I'm out of energy this year. Age up to recharge.";
@@ -426,7 +438,7 @@ export function startHustle(state: GameState, defId: string): GameState {
   if (!def) return state;
   const blocked = hustleBlocker(state, def);
   if (blocked) return setResult(state, blocked, state.career.hustle ? 'info' : 'bad');
-  let s: GameState = { ...state, character: { ...state.character, energy: state.character.energy - def.energy }, career: { ...state.career, hustle: { defId, name: def.name, level: 0, followers: 0, yearsActive: 0, lastIncome: 0 } } };
+  let s: GameState = { ...state, character: { ...state.character, energy: state.character.energy - def.energy }, career: { ...state.career, hustle: { defId, name: def.name, level: 0, peak: 0, followers: 0, yearsActive: 0, lastIncome: 0 } } };
   s = log(s, `I started ${withArticle(def.noun)} on the side.`);
   return setResult(s, `Started: ${def.name}.`, 'good');
 }
@@ -439,6 +451,21 @@ export function stopHustle(state: GameState): GameState {
   return setResult(s, 'Hustle closed.', 'info');
 }
 
+/** Hustles that run on creativity: the Creative trait helps them grow. */
+const CREATIVE_HUSTLES = ['streamer', 'etsy', 'app_dev', 'wedding_video', 'craft_stall'];
+
+/** The journal line for a hustle's breakout year: only online ones "go viral", and only once people said so. */
+function breakoutLine(state: GameState, def: HustleDef): string {
+  if (def.breakout) return def.breakout;
+  if (def.id === 'app_dev') return 'One of my apps went viral this year!';
+  return state.year < 2005 ? `My ${def.noun} took off this year!` : `My ${def.noun} went viral this year!`;
+}
+
+/**
+ * A year of a side hustle. It can grow a level, or slip one (8%), and the journal says which: a level never reached
+ * before is news ("It reached level 4"), one won back after a slip is a recovery ("bounced back to level 4"), and a
+ * slip is said too, so the levels in the journal always add up.
+ */
 function yearlyHustle(before: GameState, rng: Rng, servedYear: boolean): GameState {
   const state = dropCarlessHustle(before);
   const h = state.career.hustle;
@@ -447,7 +474,9 @@ function yearlyHustle(before: GameState, rng: Rng, servedYear: boolean): GameSta
   if (!def) return state;
   const c = state.character;
   const stat = c.stats[def.stat];
-  const boost = c.traits.includes('creative') && ['streamer', 'etsy', 'app_dev'].includes(def.id) ? 0.15 : 0;
+  const boost = c.traits.includes('creative') && CREATIVE_HUSTLES.includes(def.id) ? 0.15 : 0;
+  // Saves from before `peak` count the level they are at as the highest reached.
+  const peak = Math.max(h.peak ?? h.level, h.level);
   let level = h.level;
   if (level < 5 && rng.chance(def.growth * (0.3 + stat / 120) + boost)) level += 1;
   else if (level > 0 && rng.chance(0.08)) level -= 1;
@@ -455,19 +484,21 @@ function yearlyHustle(before: GameState, rng: Rng, servedYear: boolean): GameSta
   let s = state;
   if (def.viralChance > 0 && level >= 2 && rng.chance(def.viralChance)) {
     income += scaleMoney(s, def.viralBonus);
-    s = log(s, def.id === 'app_dev' ? 'One of my apps went viral this year!' : `My ${def.noun} went viral this year!`, 'good');
+    s = log(s, breakoutLine(s, def), 'good');
     s = addStats(s, { happiness: 8 });
   }
-  if (level > h.level) s = log(s, `My ${def.noun} is growing. It reached level ${level}.`, 'good');
+  if (level > h.level) s = log(s, level > peak ? `My ${def.noun} is growing. It reached level ${level}.` : `My ${def.noun} bounced back to level ${level}.`, 'good');
+  else if (level < h.level) s = log(s, `My ${def.noun} had a slow year and slipped back to level ${level}.`, 'info');
   if (level >= 3 && def.fame) s = withFame(s, s.character.fame + def.fame);
   if (level >= 5) s = { ...s, flags: { ...s.flags, hustleMaxed: true } };
-  s = { ...s, career: { ...s.career, hustle: { ...h, level, yearsActive: h.yearsActive + 1, lastIncome: income, followers: Math.round(h.followers * 1.1 + level * level * 1000) } } };
+  s = { ...s, career: { ...s.career, hustle: { ...h, level, peak: Math.max(peak, level), yearsActive: h.yearsActive + 1, lastIncome: income, followers: Math.round(h.followers * 1.1 + level * level * 1000) } } };
   // Keeping it running takes energy out of the new year's budget.
   return { ...s, character: { ...s.character, energy: Math.max(0, s.character.energy - def.energy) } };
 }
 
+/** The side hustles of this era (HustleDef.minYear/maxYear), each with whether it can be started now and why not. */
 export function hustleOptions(state: GameState): { def: HustleDef; eligible: boolean; reason?: string }[] {
-  return HUSTLES.map((h) => {
+  return HUSTLES.filter((h) => inEra(state.year, h)).map((h) => {
     const reason = state.character.age < h.minAge ? `Age ${h.minAge}+` : hustleBlocker(state, h);
     return reason ? { def: h, eligible: false, reason } : { def: h, eligible: true };
   });

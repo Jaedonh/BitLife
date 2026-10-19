@@ -108,6 +108,30 @@ describe('StatsHeader', () => {
     // The row wraps instead of truncating the whole line.
     expect([status.props.style].flat()).toEqual(expect.arrayContaining([expect.objectContaining({ flexWrap: 'wrap' })]));
   });
+
+  it('once the status wraps below the city, shows them on lines of their own: no hanging separator, and room for the employer', () => {
+    const g = newLife();
+    const hired = {
+      ...g,
+      character: { ...g.character, age: 22, city: 'Melbourne' },
+      career: { ...g.career, job: { defId: 'software_dev', title: 'Junior Developer', company: 'Quantum Inc.', salary: 68_000, level: 0, performance: 55, yearsHeld: 0, yearsAtLevel: 0, category: 'tech' as const, partTime: false, askedThisYear: false, workedHarderThisYear: false } },
+    };
+    const tree = render(<StatsHeader game={hired} />);
+    const statusText = () => tree.root.find((n) => typeof n.type === 'string' && n.props.testID === 'char-status-text');
+    const pieces = () => tree.root.find((n) => typeof n.type === 'string' && n.props.testID === 'char-status').findAllByType(Text).map((t) => [t.props.children].flat().join(''));
+    // Side by side while it fits on one line.
+    act(() => statusText().props.onLayout?.({ nativeEvent: { layout: { x: 90, y: 0, width: 150, height: 18 } } }));
+    expect(pieces()[0]).toMatch(/Melbourne ·\u00A0$/);
+    // Wrapped onto a second row: the city stands alone and the status may take two lines.
+    act(() => statusText().props.onLayout?.({ nativeEvent: { layout: { x: 0, y: 18, width: 178, height: 18 } } }));
+    const [place, status] = pieces();
+    expect(place).toMatch(/Melbourne$/);
+    expect(status).toBe('Junior Developer · Quantum Inc.');
+    expect(statusText().props.numberOfLines).toBe(2);
+    // A new status is laid out side by side again first.
+    act(() => tree.update(<StatsHeader game={{ ...hired, career: { ...hired.career, job: null }, character: { ...hired.character, age: 30 } }} />));
+    expect(pieces()[0]).toMatch(/·\u00A0$/);
+  });
 });
 
 describe('ScreenHeader', () => {

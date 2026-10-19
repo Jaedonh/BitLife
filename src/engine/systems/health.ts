@@ -1,10 +1,10 @@
 import { getCountry } from '@/data/countries';
-import { ILLNESSES, ILLNESS_BY_ID, shortIllnessName } from '@/data/illnesses';
+import { ILLNESSES, ILLNESS_BY_ID, shortIllnessName, visitCureChance } from '@/data/illnesses';
 import { giveIllness } from '../events/effects';
 import { parentsRef, scaleMoney } from '../events/text';
 import type { Rng } from '../rng';
 import { spend } from './guardians';
-import type { AddictionKind, GameState } from '../types';
+import type { AddictionKind, GameState, Illness } from '../types';
 import { addMoney, addStats, capitalize, joinList, log, setResult } from '../util';
 
 function ageBand(age: number): 0 | 1 | 2 {
@@ -13,6 +13,15 @@ function ageBand(age: number): 0 | 1 | 2 {
 
 /** What an addiction is called when it is finally beaten: "my drinking habit". */
 const HABIT_NAMES: Record<AddictionKind, string> = { alcohol: 'drinking', drugs: 'drug', gambling: 'gambling' };
+
+/** From this level an addiction has taken hold: it grows on its own instead of fading (GAME_DESIGN §13). */
+export const HABIT_LEVEL = 30;
+
+/**
+ * Flag `habit:<kind>`: the addiction took hold (reached HABIT_LEVEL) and has not ended since. Only such a habit is
+ * "finally shook" when it fades away; a party drink or two that fades was never a habit.
+ */
+export const habitFlag = (k: AddictionKind): string => `habit:${k}`;
 
 /** The journal line when a parent's doctor visit clears a child's illness. */
 function parentCureLine(defId: string, name: string, chronic: boolean, who: string): string {
@@ -49,8 +58,7 @@ export function yearlyHealth(state: GameState, rng: Rng): GameState {
   if (c.age < 18 && s.health.illnesses.length && Object.values(s.people).some((p) => (p.kind === 'mother' || p.kind === 'father' || p.kind === 'stepmother' || p.kind === 'stepfather') && p.alive)) {
     const kept = [];
     for (const ill of s.health.illnesses) {
-      const def = ILLNESS_BY_ID[ill.defId];
-      if (rng.chance(def?.cureChance ?? 0.7)) s = log(s, parentCureLine(ill.defId, ill.name, ill.chronic, capitalize(parentsRef(s))), 'good');
+      if (rng.chance(visitCureChance(ill.defId, false))) s = log(s, parentCureLine(ill.defId, ill.name, ill.chronic, capitalize(parentsRef(s))), 'good');
       else kept.push({ ...ill, treated: true });
     }
     s = { ...s, health: { ...s.health, illnesses: kept } };
@@ -72,18 +80,27 @@ export function yearlyHealth(state: GameState, rng: Rng): GameState {
   }
   // Addictions drift
   const addictions = { ...s.health.addictions };
+  const flags = { ...s.flags };
+  // A habit that ended some other way (rehab, a card) since last year is over: a later small bump starts afresh.
+  for (const k of ['alcohol', 'drugs', 'gambling'] as AddictionKind[]) if (flags[habitFlag(k)] && !((addictions[k] ?? 0) > 0)) delete flags[habitFlag(k)];
   for (const k of Object.keys(addictions) as AddictionKind[]) {
     const level = addictions[k] ?? 0;
     if (level <= 0) {
       delete addictions[k];
       continue;
     }
+    if (level >= HABIT_LEVEL) flags[habitFlag(k)] = true;
     // Untreated addictions creep up; low ones fade.
-    const drift = level >= 30 ? rng.int(0, 6) : rng.int(-6, 2);
+    const drift = level >= HABIT_LEVEL ? rng.int(0, 6) : rng.int(-6, 2);
     const next = Math.max(0, Math.min(100, level + drift));
+    if (next >= HABIT_LEVEL) flags[habitFlag(k)] = true;
     if (next <= 0) {
       delete addictions[k];
-      s = log(s, `I finally shook my ${HABIT_NAMES[k]} habit.`, 'good');
+      // Only a habit that took hold is news when it fades; a few drinks at a party just stop mattering.
+      if (flags[habitFlag(k)]) {
+        delete flags[habitFlag(k)];
+        s = log(s, `I finally shook my ${HABIT_NAMES[k]} habit.`, 'good');
+      }
     } else {
       addictions[k] = next;
       if (next >= 40) {
@@ -92,7 +109,7 @@ export function yearlyHealth(state: GameState, rng: Rng): GameState {
       }
     }
   }
-  s = { ...s, health: { ...s.health, addictions } };
+  s = { ...s, flags, health: { ...s.health, addictions } };
   return s;
 }
 
@@ -110,11 +127,12 @@ export function visitDoctor(state: GameState, rng: Rng): GameState {
   s = { ...s, health: { ...s.health, doctorVisitsThisYear: s.health.doctorVisitsThisYear + 1 } };
   const cured: string[] = [];
   let curedSerious = false;
-  const kept = [];
+  const kept: Illness[] = [];
+  // Chronic conditions already being treated before this visit: the doctor checks on them rather than starting a plan.
+  const ongoing = new Set(s.health.illnesses.filter((i) => i.chronic && i.treated).map((i) => i.defId));
   for (const ill of s.health.illnesses) {
-    const def = ILLNESS_BY_ID[ill.defId];
-    const chance = (def?.cureChance ?? 0.7) + (ill.treated ? 0.1 : 0);
-    if (rng.chance(chance)) {
+    // An incurable illness (dementia, arthritis) is managed, never cured (visitCureChance is 0).
+    if (rng.chance(visitCureChance(ill.defId, ill.treated))) {
       cured.push(shortIllnessName(ill.defId, ill.name));
       if (ill.severity >= 4) curedSerious = true;
     } else kept.push({ ...ill, treated: true });
@@ -122,13 +140,20 @@ export function visitDoctor(state: GameState, rng: Rng): GameState {
   s = { ...s, health: { ...s.health, illnesses: kept } };
   const heal = 4 + cured.length * 4;
   s = addStats(s, { health: heal });
-  // Chronic conditions get a plan; acute ones the doctor could not clear just need time.
-  const chronic = joinList(kept.filter((k) => k.chronic).map((k) => shortIllnessName(k.defId, k.name)));
-  const acute = joinList(kept.filter((k) => !k.chronic).map((k) => shortIllnessName(k.defId, k.name)));
+  // Chronic conditions get a plan, and once they have one, a check-up; acute ones the doctor could not clear just need time.
+  const names = (list: readonly Illness[]) => joinList(list.map((k) => shortIllnessName(k.defId, k.name)));
+  const planned = kept.filter((k) => k.chronic && !ongoing.has(k.defId));
+  const checked = kept.filter((k) => k.chronic && ongoing.has(k.defId));
+  const chronic = names(planned);
+  const stable = names(checked);
+  const acute = names(kept.filter((k) => !k.chronic));
   const lines: string[] = [];
   if (cured.length) lines.push(`The doctor treated my ${joinList(cured)}.`);
   if (chronic) lines.push(cured.length ? `I also have a plan to manage my ${chronic}.` : `The doctor gave me a plan to manage my ${chronic}.`);
-  if (acute) lines.push(`${cured.length || chronic ? '' : 'The doctor checked me over. '}I still need time to recover from my ${acute}.`);
+  // "My migraines are", "My asthma and anxiety are", "My asthma is".
+  const several = checked.length > 1 || !!ILLNESS_BY_ID[checked[0]?.defId ?? '']?.plural;
+  if (stable) lines.push(cured.length || chronic ? `My ${stable} ${several ? 'are' : 'is'} stable for now.` : `The doctor checked on my ${stable}. ${several ? "They're" : "It's"} stable for now.`);
+  if (acute) lines.push(`${cured.length || chronic || stable ? '' : 'The doctor checked me over. '}I still need time to recover from my ${acute}.`);
   if (cured.length && !kept.length) lines.push(curedSerious ? "I'm on the mend." : "I'm feeling much better.");
   const text = lines.length ? lines.join(' ') : 'The doctor gave me a clean bill of health.';
   s = log(s, text, 'good');

@@ -65,6 +65,17 @@ describe('year recap', () => {
     expect(yearHighlight(y3, y4)).toBeNull();
   });
 
+  it('a release is the news even when parole was granted the year before too', () => {
+    useGameStore.getState().newLife({ countryCode: 'US' }, { birthCard: false });
+    const g = useGameStore.getState().game!;
+    const release = "The board granted parole. I walked out with my things in a paper bag and a parole officer's number.";
+    const y31 = at(g, 31, [['Another year behind bars. 2 years to go.', 'bad'], [release, 'milestone']]);
+    // Back inside on parole the same year, and paroled again a year later.
+    const y32 = at(y31, 32, [['Another year behind bars. 1 year to go.', 'bad'], [release, 'milestone']]);
+    expect(yearHighlight(y31, y32)).toBe(release);
+    expect(yearHighlight(y31, y32, y31.log.length + 2)).toBe(release);
+  });
+
   it('counts the choices made on the year cards in the recap numbers, matching the journal card', async () => {
     const detach = attachLifeLedger();
     let sawEvent = false;

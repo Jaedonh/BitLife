@@ -1,7 +1,8 @@
 import { getCountry } from '@/data/countries';
+import { jobDefsForTitle } from '@/data/jobs';
 import { GRAD_BY_ID, majorProse } from '@/data/majors';
-import type { GameState, Person } from '../types';
-import { deathPhrase, formatMoneyFull, fullName, joinList, log, netWorth, numberWord, pronouns, roleWithArticle, sentence } from '../util';
+import type { GameState, JobHistoryEntry, Person } from '../types';
+import { deathPhrase, formatMoneyFull, fullName, joinList, log, netWorth, numberWord, plural, pronouns, roleWithArticle, sentence } from '../util';
 import { settleQuietYear } from './flavor';
 import { awardRibbon } from './ribbons';
 import { fosterRelation } from './scenarios';
@@ -116,6 +117,60 @@ function childSurvivors(state: GameState, possessive: string): string {
   return joinList(items);
 }
 
+/** A career in the work history: every stint in one line of work (all its employers and rungs), named by the latest title. */
+export interface CareerSpan {
+  /** The job definition, or the title itself for a job the data no longer knows. */
+  key: string;
+  title: string;
+  years: number;
+  retired: boolean;
+  /** When it last ended, to break ties toward the later career. */
+  until: number;
+}
+
+/**
+ * The work history as careers, in the order they last ended: two salons and two titles are one career as a stylist.
+ * A title on two ladders ("Partner" for a lawyer or a consultant, "Lieutenant") goes with the line of work the rest
+ * of the history, or the job held now (`currentDefId`), shows.
+ */
+export function careerSpans(history: readonly JobHistoryEntry[], currentDefId?: string): CareerSpan[] {
+  const known = new Set<string>(currentDefId ? [currentDefId] : []);
+  for (const h of history) {
+    const defs = jobDefsForTitle(h.title);
+    if (defs.length === 1) known.add(defs[0]!.id);
+  }
+  const keyOf = (title: string): string => {
+    const defs = jobDefsForTitle(title);
+    return (defs.find((d) => known.has(d.id)) ?? defs[0])?.id ?? title;
+  };
+  const spans = new Map<string, CareerSpan>();
+  for (const h of history) {
+    const key = keyOf(h.title);
+    const span = spans.get(key) ?? { key, title: h.title, years: 0, retired: false, until: h.toAge };
+    span.years += Math.max(0, h.toAge - h.fromAge);
+    if (h.toAge >= span.until) {
+      span.title = h.title;
+      span.until = h.toAge;
+    }
+    if (h.reason === 'retired') span.retired = true;
+    spans.set(key, span);
+  }
+  return [...spans.values()].sort((a, b) => a.until - b.until);
+}
+
+/** The career of the most years (the later one on a tie). */
+function longestOf(spans: readonly CareerSpan[]): CareerSpan | undefined {
+  return spans.reduce<CareerSpan | undefined>((best, x) => (!best || x.years >= best.years ? x : best), undefined);
+}
+
+/** "14 years as a stylist", or "working as a stylist" for a short one. */
+function yearsAs(span: CareerSpan): string {
+  return span.years >= 5 ? `${span.years} years as ${roleWithArticle(span.title)}` : `working as ${roleWithArticle(span.title)}`;
+}
+
+/** A career long enough to be what someone is remembered for, next to a later, shorter one. */
+const DEFINING_YEARS = 10;
+
 export function buildObituary(state: GameState, cause: string, worth: number, ribbonName: string): string {
   const c = state.character;
   const p = pronouns(c.gender);
@@ -155,7 +210,12 @@ export function buildObituary(state: GameState, cause: string, worth: number, ri
   const spouse = Object.values(state.people).find((x) => x.kind === 'spouse' && x.alive);
   const children = Object.values(state.people).filter((x) => x.kind === 'child');
   const aliveChildren = children.filter((x) => x.alive).length;
-  const bestJob = [...state.career.history].sort((a, b) => b.salary - a.salary)[0];
+  // The career told is the one retired from or the one of the most years, never just the best paid or the latest.
+  const spans = careerSpans(state.career.history, state.career.job?.defId);
+  const longest = longestOf(spans);
+  const retiredFrom = longestOf(spans.filter((x) => x.retired));
+  // Retired from a short last job after a long career: the long one is the story.
+  const remembered = retiredFrom && longest && longest.key !== retiredFrom.key && longest.years >= DEFINING_YEARS && longest.years > 2 * retiredFrom.years ? longest : (retiredFrom ?? longest);
   const edu = state.education;
   const studying = edu.enrolled && edu.major
     ? edu.stage === 'university'
@@ -165,19 +225,30 @@ export function buildObituary(state: GameState, cause: string, worth: number, ri
   // Elected office and the armed forces are served in, not worked at.
   const serving = lastJob && (lastJob.defId === 'military' || (lastJob.defId === 'politician' && lastJob.level > 0));
   // Never worked at all: "which he insisted was a lifestyle choice" ends that sentence, so the education goes first.
-  const idle = !lastJob && !studying && !bestJob && state.counters.yearsEmployed === 0 && c.age >= 23;
-  const careerText = lastJob
+  const idle = !lastJob && !studying && !remembered && state.counters.yearsEmployed === 0 && c.age >= 23;
+  // Still working at death after a long career in something else: "He spent 24 years as a staff engineer and later
+  // worked as a help desk technician at Clearwater Ltd."
+  const currentYears = lastJob ? lastJob.yearsHeld + spans.filter((x) => x.key === lastJob.defId).reduce((n, x) => n + x.years, 0) : 0;
+  const earlier = lastJob && longest && longest.key !== lastJob.defId && longest.years >= DEFINING_YEARS && longest.years > 2 * currentYears ? longest : undefined;
+  const nowText = lastJob
     ? serving
-      ? `${p.Subject} served ${lastJob.defId === 'military' ? 'in the Army ' : ''}as ${roleWithArticle(lastJob.title)}`
+      ? `served ${lastJob.defId === 'military' ? 'in the Army ' : ''}as ${roleWithArticle(lastJob.title)}`
       : lastJob.defId === 'athlete' || lastJob.defId === 'musician'
-        ? `${p.Subject} was ${roleWithArticle(lastJob.title)} with ${lastJob.company}`
-        : `${p.Subject} worked as ${roleWithArticle(lastJob.title)} at ${lastJob.company}`
+        ? `was ${roleWithArticle(lastJob.title)} with ${lastJob.company}`
+        : `worked as ${roleWithArticle(lastJob.title)} at ${lastJob.company}`
+    : '';
+  const careerText = lastJob
+    ? earlier
+      ? `${p.Subject} spent ${earlier.years} years as ${roleWithArticle(earlier.title)} and later ${nowText.replace(/^was /, 'became ')}`
+      : `${p.Subject} ${nowText}`
     : studying
       ? `${p.Subject} ${studying}`
-      : bestJob
+      : remembered
         ? state.career.retired
-          ? `${p.Subject} retired after working as ${roleWithArticle(bestJob.title)}`
-          : `${p.Subject} was best known for ${p.possessive} years as ${roleWithArticle(bestJob.title)}`
+          ? remembered === retiredFrom
+            ? `${p.Subject} retired after ${yearsAs(remembered)}`
+            : `${p.Subject} spent ${plural(remembered.years, 'year')} as ${roleWithArticle(remembered.title)} before retiring`
+          : `${p.Subject} was best known for ${p.possessive} years as ${roleWithArticle(remembered.title)}`
         : state.counters.yearsEmployed === 0
           ? c.age < 23
             ? `${p.Subject} was just getting started in life`
@@ -192,7 +263,8 @@ export function buildObituary(state: GameState, cause: string, worth: number, ri
         ? `${p.Subject} dropped out of college and never held a steady job`
         : `${p.Subject} never finished school or held a steady job`
       : `${p.Subject} never held a steady job`;
-  const lifeText = idle ? `${idleText}, which ${p.subject} insisted was a lifestyle choice` : `${careerText}${eduText}`;
+  // "…and later worked as a nurse at Mercy General, and held a degree in biology": the comma keeps the two "and"s apart.
+  const lifeText = idle ? `${idleText}, which ${p.subject} insisted was a lifestyle choice` : `${careerText}${earlier && eduText ? ',' : ''}${eduText}`;
   const aliveGrandchildren = Object.values(state.people).filter((x) => x.kind === 'grandchild' && x.alive).length;
   const kidsText = aliveChildren ? `${numberWord(aliveChildren)} ${aliveChildren === 1 ? 'child' : 'children'}` : '';
   const grandText = aliveGrandchildren ? `${numberWord(aliveGrandchildren)} ${aliveGrandchildren === 1 ? 'grandchild' : 'grandchildren'}` : '';

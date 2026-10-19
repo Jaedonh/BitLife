@@ -135,7 +135,8 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
     describe: millionaireText,
     test: millionaire,
   },
-  { id: 'first_pet', group: 'life', name: 'Pet Person', emoji: '🐾', description: 'Bring home your first pet.', test: (s) => anyone(s, (p) => p.kind === 'pet') },
+  // A pet of my own: the family dog that was there when I was born does not count.
+  { id: 'first_pet', group: 'life', name: 'Pet Person', emoji: '🐾', description: 'Bring home your first pet.', test: (s) => anyone(s, (p) => p.kind === 'pet' && p.metAtAge > 0) },
   { id: 'lifelong_friend', group: 'life', name: 'Friends for Life', emoji: '🤝', description: 'Stay close to a friend you met 40 years ago.', test: (s) => anyone(s, (p) => p.alive && (p.kind === 'friend' || p.kind === 'bestFriend') && p.relationship >= 80 && s.character.age - p.metAtAge >= 40) },
   { id: 'retired', group: 'life', name: 'Gold Watch', emoji: '⌚', description: 'Retire from work.', test: (s) => s.career.retired },
   { id: 'centenarian', group: 'life', name: 'Century', emoji: '🎂', description: 'Live to 100.', test: (s) => s.character.age >= 100 },

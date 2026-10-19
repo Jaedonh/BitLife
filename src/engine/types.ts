@@ -156,6 +156,8 @@ export interface Person {
   farAway?: boolean;
   /** A lover or spouse who died: their death has started the grief window (systems/romance.ts). Older saves count every such death as mourned. */
   mourned?: boolean;
+  /** The surname they were born with, when marrying the player changed it (their brother or sister carries this one). */
+  birthLastName?: string;
 }
 
 /** Milestones of one of the player's children. Every field is optional so older saves need no migration. */
@@ -268,6 +270,8 @@ export interface Hustle {
   defId: string;
   name: string;
   level: number; // 0-5
+  /** The highest level it has reached, so a level won back after a slip is not announced as new. Optional: older saves start from their level. */
+  peak?: number;
   followers: number;
   yearsActive: number;
   lastIncome: number;

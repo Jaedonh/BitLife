@@ -98,6 +98,15 @@ export function incFlag(state: GameState, key: string, by = 1): GameState {
   return setFlag(state, key, (typeof cur === 'number' ? cur : 0) + by);
 }
 
+/**
+ * Whether something the engine offers exists in `year`: a side hustle, an asset, an investment, a crime or a job
+ * listing with a first (`minYear`) and last (`maxYear`) year. Streaming channels, crypto and electric cars wait for
+ * their era, and the alternatives that came before them retire once they arrive.
+ */
+export function inEra(year: number, def: { minYear?: number; maxYear?: number }): boolean {
+  return (def.minYear === undefined || year >= def.minYear) && (def.maxYear === undefined || year <= def.maxYear);
+}
+
 export function netWorth(state: GameState): number {
   const assets = state.assets.reduce((sum, a) => sum + a.value - (a.mortgage?.remaining ?? 0), 0);
   const invest = state.finances.investments.reduce((sum, i) => sum + i.amount, 0);
@@ -168,11 +177,14 @@ export function withArticle(phrase: string): string {
   return `${article(phrase)} ${phrase}`;
 }
 
-/** A job title as it reads mid-sentence: lower case, but acronyms stay ("EMT", "HR assistant", "VP of sales"). */
+/** Names of legislatures in job titles: proper nouns that keep their capital mid-sentence ("a member of Congress"). */
+const PROPER_TITLE_WORDS = new Set(['Parliament', 'Congress', 'Diet', 'Bundestag']);
+
+/** A job title as it reads mid-sentence: lower case, but acronyms and proper nouns stay ("EMT", "HR assistant", "member of Congress"). */
 export function lowerTitle(title: string): string {
   return title
     .split(' ')
-    .map((w) => (w.length > 1 && w === w.toUpperCase() && /[A-Z]/.test(w) ? w : w.toLowerCase()))
+    .map((w) => ((w.length > 1 && w === w.toUpperCase() && /[A-Z]/.test(w)) || PROPER_TITLE_WORDS.has(w) ? w : w.toLowerCase()))
     .join(' ');
 }
 
@@ -183,7 +195,6 @@ export function lowerTitle(title: string): string {
 export function roleWithArticle(title: string): string {
   switch (title) {
     case 'Mayor': return 'mayor';
-    case 'Member of Parliament': return 'a member of Parliament';
     case 'Supreme Court Justice': return 'a Supreme Court justice';
     case 'Hall of Famer': return 'a Hall of Famer';
     default: return withArticle(lowerTitle(title));

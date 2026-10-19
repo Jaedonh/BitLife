@@ -322,3 +322,36 @@ describe('saves from before the debt-collector line was throttled', () => {
     expect(migrateSave(fresh)!.flags[DEBT_CALLS.flags.line]).toBeUndefined();
   });
 });
+
+describe('saves from before bankruptcies were counted and hustles kept a peak', () => {
+  const FIRST = 'I declared bankruptcy. The court took almost everything.';
+  const AGAIN = 'I declared bankruptcy again. Once more, the court took almost everything.';
+  /** A 60-year-old who went bankrupt at 40 and 52 under the old engine, with a craft shop at level 3 and no `peak`. */
+  function oldSave(): GameState {
+    const g = createLife({ countryCode: 'US' }, 1357, 1_700_000_000_000);
+    const lines = [
+      { age: 40, year: g.character.birthYear + 40, text: FIRST, kind: 'bad' as const },
+      { age: 52, year: g.character.birthYear + 52, text: AGAIN, kind: 'bad' as const },
+    ];
+    const hustle = { defId: 'etsy', name: 'Craft shop', level: 3, followers: 9000, yearsActive: 10, lastIncome: 8000 };
+    return JSON.parse(JSON.stringify({ ...g, year: g.character.birthYear + 60, character: { ...g.character, age: 60 }, career: { ...g.career, hustle }, finances: { ...g.finances, bankrupt: true }, log: [...g.log, ...lines] })) as GameState;
+  }
+
+  it('loads, counts the old bankruptcies from the journal, and numbers the next one right', () => {
+    const s = migrateSave(oldSave())!;
+    expect(s).not.toBeNull();
+    expect(s.flags.bankruptcies).toBe(2);
+    expect(s.career.hustle!.peak).toBeUndefined();
+    expect(migrateSave(JSON.parse(JSON.stringify(s)))).toEqual(s);
+    const broke = yearlyFinance({ ...s, assets: [], finances: { ...s.finances, cash: 0, investments: [], debt: 900_000 } }, new Rng(1));
+    expect(broke.log.at(-1)!.text).toBe('I went bankrupt a third time. The court clerk knew my name before I said it.');
+  });
+
+  it('rejects a mangled peak or birth surname rather than crash on it', () => {
+    const s = oldSave();
+    expect(migrateSave(withField(s, 'career.hustle.peak', 'high'))).toBeNull();
+    const someone = Object.keys(s.people)[0]!;
+    expect(migrateSave(withField(s, `people.${someone}.birthLastName`, 7))).toBeNull();
+    expect(migrateSave(withField(s, `people.${someone}.birthLastName`, 'Kelly'))).not.toBeNull();
+  });
+});
