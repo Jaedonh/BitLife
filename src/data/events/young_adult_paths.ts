@@ -462,7 +462,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 64,
     weight: 1.2,
-    cooldown: 10,
+    cooldown: 24,
     conditions: [{ hasJob: false }, { enrolled: false }, { retired: false }, { year: { gte: 1998 } }],
     choices: [
       {
@@ -501,7 +501,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 64,
     weight: 1,
-    cooldown: 10,
+    cooldown: 24,
     conditions: [{ hasJob: false }, { enrolled: false }, { retired: false }, { year: { gte: 2000 } }],
     choices: [
       {
@@ -626,7 +626,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 64,
     weight: 1,
-    cooldown: 10,
+    cooldown: 24,
     conditions: [{ hasJob: false }, { enrolled: false }, { retired: false }],
     person: { kind: ['friend', 'bestFriend'], minAge: 20, minRelationship: 40 },
     choices: [
@@ -836,7 +836,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 24,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 4,
     conditions: [{ enrolled: true }, { stage: ['university'] }, { hasJob: true }, { partTime: true }, { jobCategory: ['service'] }],
     choices: [
       {
@@ -876,7 +876,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 25,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 4,
     conditions: [{ enrolled: true }, { stage: ['university'] }],
     choices: [
       {
@@ -1228,7 +1228,8 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 1,
     once: true,
-    conditions: [{ noAsset: 'house' }, { atHome: false }, { any: [{ hasJob: true }, { married: true }] }, { not: { all: [{ enrolled: true }, { stage: ['university'] }] } }],
+    // A radiator wants a climate with winters.
+    conditions: [{ noAsset: 'house' }, { atHome: false }, { any: [{ hasJob: true }, { married: true }] }, { not: { all: [{ enrolled: true }, { stage: ['university'] }] } }, { climate: ['snowy', 'mild'] }],
     choices: [
       {
         id: 'soup',
@@ -1282,7 +1283,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 59,
     weight: 1,
-    cooldown: 12,
+    cooldown: 20,
     conditions: [{ noAsset: 'house' }, { atHome: false }, { any: [{ hasJob: true }, { married: true }] }, { not: { all: [{ enrolled: true }, { stage: ['university'] }] } }, { year: { gte: 2012 } }],
     choices: [
       {
@@ -1398,7 +1399,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.5,
-            then: [{ stat: 'happiness', delta: 3 }, { newPerson: { kind: 'friend', relationship: 50, gender: 'male', minAge: 20, maxAge: 40, log: '{{person}} works nights at a bakery. He leaves me bread now. I do his dishes. Peace.' } }],
+            then: [{ stat: 'happiness', delta: 3 }, { newPerson: { kind: 'friend', relationship: 50, gender: 'male', minAge: 20, maxAge: 40, occupation: 'Baker', log: '{{person}} works nights at a bakery. He leaves me bread now. I do his dishes. Peace.' } }],
             else: [{ stat: 'happiness', delta: -2 }, { log: 'He opened the door an inch, said "all good?" and closed it again. All good, I guess.' }],
           },
         ],
@@ -1538,7 +1539,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 29,
     weight: 2,
-    cooldown: 3,
+    cooldown: 6,
     // Not within a few years of grown_up_life's gu_baby_three_am, the same wide-awake baby (it guards against this one too).
     conditions: [{ not: { sinceEvent: 'gu_baby_three_am', lte: 3 } }],
     person: { kind: ['child'], maxAge: 1 },
@@ -1581,7 +1582,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 29,
     weight: 1.5,
-    cooldown: 4,
+    cooldown: 6,
     // Not within a few years of grown_up_life's gu_daycare_bill, the same bill (it guards against this one too).
     conditions: [{ hasJob: true }, { not: { sinceEvent: 'gu_daycare_bill', lte: 4 } }],
     person: { kind: ['child'], maxAge: 3 },
@@ -1630,7 +1631,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 29,
     weight: 1.5,
-    cooldown: 5,
+    cooldown: 6,
     // Not within a few years of grown_up_life's gu_cereal_aisle, the same tantrum in the same aisle (it guards against this one too).
     conditions: [{ not: { sinceEvent: 'gu_cereal_aisle', lte: 6 } }],
     person: { kind: ['child'], minAge: 2, maxAge: 4 },
@@ -1711,7 +1712,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 29,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 6,
     conditions: [{ hasPerson: ['friend', 'bestFriend'] }],
     person: { kind: ['child'], maxAge: 4 },
     choices: [
@@ -1793,7 +1794,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 29,
     weight: 1.5,
-    cooldown: 4,
+    cooldown: 6,
     conditions: [{ enrolled: false }, { retired: false }],
     person: { kind: ['child'], minAge: 2, maxAge: 4 },
     choices: [

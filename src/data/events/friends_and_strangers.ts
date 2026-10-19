@@ -7,9 +7,10 @@ import type { EventDef } from '@/engine/events/schema';
  * (followUpOnly) are queued by the events that set them up and never fire on
  * their own.
  *
- * The stranger cards are one-scene vignettes, so each opens once or rests for
- * 10-15 years; the friend cards rest 6-10 years. Nothing here needs a phone
- * newer than the one on the kitchen wall.
+ * Every card here is a vignette with its own fixed scene, so it opens once or
+ * rests for more than half its age range: no scene comes back a third time.
+ * A friend who moves away lives far away from then on ({ moveAway: true }).
+ * Nothing here needs a phone newer than the one on the kitchen wall.
  */
 export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ friends
@@ -21,7 +22,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 15,
+    cooldown: 38,
     conditions: [{ inPrison: false }],
     // A phone call: a friend left behind by a move abroad can make it too (their 3 a.m., my afternoon, or both).
     person: { kind: ['friend', 'bestFriend'], minRelationship: 30, farAway: 'any' },
@@ -71,9 +72,9 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 60,
     weight: 1.5,
-    cooldown: 12,
+    cooldown: 24,
     conditions: [{ inPrison: false }],
-    person: { kind: ['friend', 'bestFriend'] },
+    person: { kind: ['friend', 'bestFriend'], minRelationship: 30 },
     choices: [
       {
         id: 'cheer',
@@ -106,7 +107,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
           {
             chance: 0.6,
             then: [{ log: 'My excuse held. I spent the evening in blissful silence.' }],
-            else: [{ relationship: 'person', delta: -6 }, { log: 'A mutual friend saw me at the corner shop during the gig, buying snacks for one.', kind: 'bad' }],
+            else: [{ relationship: 'person', delta: -6 }, { log: 'A mutual friend saw me at the corner store during the gig, buying snacks for one.', kind: 'bad' }],
           },
         ],
       },
@@ -120,8 +121,8 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 10,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 15,
-    person: { kind: ['friend', 'bestFriend'] },
+    cooldown: 41,
+    person: { kind: ['friend', 'bestFriend'], minRelationship: 40 },
     choices: [
       {
         id: 'keep',
@@ -152,7 +153,8 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
           { karma: -6 },
           { stat: 'happiness', delta: 2 },
           { relationship: 'person', delta: -20 },
-          { log: 'It was a great story and I told it well. {{person}} does not speak to me now.', kind: 'bad' },
+          // A cooled friendship, not silence: a friend at 60 still has 40 left, and warm cards ask for 30-40.
+          { log: 'It was a great story and I told it well. {{person}} stopped saving me a seat.', kind: 'bad' },
         ],
       },
     ],
@@ -200,7 +202,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 12,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 15,
+    cooldown: 40,
     person: { kind: ['friend', 'bestFriend'], minRelationship: 20 },
     choices: [
       {
@@ -282,7 +284,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 90,
     weight: 1.2,
-    cooldown: 10,
+    cooldown: 39,
     // Getting in touch works at any distance, so a friend left behind by a move abroad can be the one.
     person: { kind: ['friend', 'bestFriend'], maxRelationship: 35, farAway: 'any' },
     choices: [
@@ -329,7 +331,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 70,
     weight: 1.2,
-    cooldown: 12,
+    cooldown: 27,
     conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend'], minRelationship: 40 },
     choices: [
@@ -349,7 +351,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
                 effects: [
                   { stat: 'happiness', delta: 4 },
                   { log: 'We broke down outside a town with one diner and made friends with the mechanic.' },
-                  { chance: 0.5, then: [{ newPerson: { kind: 'friend', relationship: 50, log: '{{person}} the mechanic kept in touch after the road trip.' } }] },
+                  { chance: 0.5, then: [{ newPerson: { kind: 'friend', relationship: 50, minAge: 25, maxAge: 65, occupation: 'Mechanic', log: '{{person}} the mechanic kept in touch after the road trip.' } }] },
                 ],
               },
               { weight: 2, effects: [{ stat: 'happiness', delta: -2 }, { money: -200 }, { log: 'We got lost, argued about the map and paid for a motel that smelled of carpet.', kind: 'bad' }] },
@@ -387,8 +389,10 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 80,
     weight: 1.2,
-    cooldown: 10,
-    person: { kind: ['friend', 'bestFriend'], minRelationship: 40 },
+    cooldown: 32,
+    // The friend is the one taking a job, so a grown-up of working age.
+    person: { kind: ['friend', 'bestFriend'], minRelationship: 40, minAge: 18, maxAge: 67 },
+    // The friend takes the job whatever I choose, and lives far away from then on (moveAway).
     choices: [
       {
         id: 'party',
@@ -405,6 +409,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
             then: [{ log: 'We still talk every week. Distance turned out to be only distance.' }],
             else: [{ relationship: 'person', delta: -10 }, { log: 'The calls got shorter. Then they became birthday messages.', kind: 'bad' }],
           },
+          { moveAway: true },
         ],
       },
       {
@@ -418,6 +423,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
             then: [{ log: '{{They}} promised to visit and actually did. Twice.', kind: 'good' }],
             else: [{ relationship: 'person', delta: -8 }, { log: 'Life swallowed {{them}} up over there. I understood.' }],
           },
+          { moveAway: true },
         ],
       },
       {
@@ -427,6 +433,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
           { relationship: 'person', delta: -8 },
           { stat: 'happiness', delta: -4 },
           { log: 'I asked how {{they}} could leave me. The silence answered.', kind: 'bad' },
+          { moveAway: true },
         ],
       },
     ],
@@ -439,9 +446,9 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 80,
     weight: 1.2,
-    cooldown: 12,
+    cooldown: 32,
     conditions: [{ inPrison: false }, { ownsAssetId: ['old_hatchback', 'sedan', 'pickup', 'ev', 'luxury_sedan', 'sports_car', 'supercar', 'classic_car'] }],
-    person: { kind: ['friend', 'bestFriend'] },
+    person: { kind: ['friend', 'bestFriend'], minRelationship: 30 },
     choices: [
       {
         id: 'keys',
@@ -489,9 +496,9 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 80,
     weight: 1.2,
-    cooldown: 12,
+    cooldown: 31,
     conditions: [{ inPrison: false }],
-    person: { kind: ['friend', 'bestFriend'] },
+    person: { kind: ['friend', 'bestFriend'], minRelationship: 30 },
     choices: [
       {
         id: 'yes',
@@ -546,9 +553,9 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 85,
     weight: 1.5,
-    cooldown: 12,
+    cooldown: 35,
     conditions: [{ inPrison: false }, { money: { gte: 500 } }],
-    person: { kind: ['friend', 'bestFriend'] },
+    person: { kind: ['friend', 'bestFriend'], minRelationship: 30 },
     choices: [
       {
         id: 'lend',
@@ -672,7 +679,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 75,
     weight: 1,
-    cooldown: 10,
+    cooldown: 28,
     conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend'], minRelationship: 50, minAge: 18 },
     choices: [
@@ -721,7 +728,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 80,
     weight: 1,
-    cooldown: 10,
+    cooldown: 32,
     conditions: [{ inPrison: false }, { not: { sinceEvent: 'ad_friend_mlm', lte: 2 } }, { not: { sinceEvent: 'mn_mlm_pitch', lte: 2 } }],
     person: { kind: ['friend', 'bestFriend'], minAge: 20 },
     choices: [
@@ -781,9 +788,9 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 90,
     weight: 1,
-    cooldown: 10,
+    cooldown: 39,
     conditions: [{ inPrison: false }],
-    person: { kind: ['friend', 'bestFriend'] },
+    person: { kind: ['friend', 'bestFriend'], minRelationship: 30 },
     choices: [
       {
         id: 'daily',
@@ -826,7 +833,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 10,
     maxAge: 50,
     weight: 1,
-    cooldown: 12,
+    cooldown: 21,
     person: { kind: ['friend', 'bestFriend'] },
     choices: [
       {
@@ -869,7 +876,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     maxAge: 11,
     weight: 2,
     cooldown: 3,
-    person: { kind: ['friend', 'bestFriend'] },
+    person: { kind: ['friend', 'bestFriend'], minRelationship: 30 },
     choices: [
       {
         id: 'nation',
@@ -912,7 +919,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 8,
     maxAge: 15,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 4,
     person: { kind: ['friend', 'bestFriend'] },
     choices: [
       {
@@ -957,8 +964,8 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 6,
     maxAge: 13,
     weight: 2,
-    cooldown: 3,
-    person: { kind: ['friend', 'bestFriend'] },
+    cooldown: 4,
+    person: { kind: ['friend', 'bestFriend'], minRelationship: 40 },
     choices: [
       {
         id: 'stayup',
@@ -1001,9 +1008,9 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 22,
     maxAge: 65,
     weight: 1,
-    cooldown: 10,
+    cooldown: 22,
     conditions: [{ inPrison: false }],
-    person: { kind: ['friend', 'bestFriend'], minAge: 20 },
+    person: { kind: ['friend', 'bestFriend'], minRelationship: 30, minAge: 20 },
     choices: [
       {
         id: 'celebrate',
@@ -1051,7 +1058,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 90,
     weight: 2,
-    cooldown: 25,
+    cooldown: 39,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -1095,7 +1102,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 90,
     weight: 1,
-    cooldown: 25,
+    cooldown: 39,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -1142,7 +1149,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 25,
+    cooldown: 38,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -1184,7 +1191,8 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 90,
     weight: 1.2,
-    cooldown: 20,
+    // Two hundred left socks are a once-in-a-life parcel.
+    once: true,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -1402,7 +1410,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 1.2,
-    cooldown: 20,
+    cooldown: 34,
     // I am driving: a car, or enough money that I plausibly have one (the sampler never buys cars).
     conditions: [{ inPrison: false }, { any: [{ ownsAsset: 'car' }, { money: { gte: 3000 } }] }],
     choices: [
@@ -1533,7 +1541,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 90,
     weight: 2,
-    cooldown: 25,
+    cooldown: 39,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -1554,7 +1562,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 4 },
           { energy: -1 },
           { log: 'I missed my train and did not mind. Some songs are worth being late for.' },
-          { chance: 0.2, then: [{ newPerson: { kind: 'friend', relationship: 50, log: 'The musician, {{person}}, and I got talking after the set. Now we are friends.' } }] },
+          { chance: 0.2, then: [{ newPerson: { kind: 'friend', relationship: 50, minAge: 18, maxAge: 45, occupation: 'Musician', log: 'The musician, {{person}}, and I got talking after the set. Now we are friends.' } }] },
         ],
       },
       {

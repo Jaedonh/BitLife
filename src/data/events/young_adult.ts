@@ -68,7 +68,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 24,
     weight: 2,
-    cooldown: 2,
+    cooldown: 4,
     conditions: [{ enrolled: true }, { stage: ['university'] }],
     person: { kind: ['friend', 'bestFriend', 'classmate'] },
     choices: [
@@ -213,7 +213,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 24,
     weight: 2,
-    cooldown: 2,
+    cooldown: 4,
     conditions: [{ enrolled: true }, { stage: ['university'] }, { not: { sinceEvent: 'sl_group_project_freeloader', lte: 2 } }],
     person: { kind: ['friend', 'bestFriend', 'classmate'], minAge: 17 },
     choices: [
@@ -267,7 +267,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 29,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 5,
     conditions: [{ inPrison: false }, { any: [{ enrolled: true }, { hasDegree: true }] }],
     choices: [
       {
@@ -343,7 +343,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     id: 'ya_first_apartment',
     category: 'random',
     title: 'Keys in hand',
-    text: 'Keys in hand. My first apartment is a narrow box with one window and a radiator that clanks like a ghost, and it is entirely, gloriously mine.',
+    text: 'Keys in hand. My first apartment is a narrow box with one window and pipes that clank like a ghost, and it is entirely, gloriously mine.',
     minAge: 18,
     maxAge: 26,
     weight: 2,
@@ -383,8 +383,10 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     minAge: 19,
     maxAge: 29,
     weight: 2,
-    cooldown: 3,
-    conditions: [{ inPrison: false }, { noAsset: 'house' }, { atHome: false }],
+    // One landlord, one winter, one boat photo: it does not happen again word for word.
+    once: true,
+    // A furnace and a winter cold enough to need one.
+    conditions: [{ inPrison: false }, { noAsset: 'house' }, { atHome: false }, { climate: ['snowy', 'mild'] }],
     choices: [
       {
         id: 'fix',
@@ -435,7 +437,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     minAge: 19,
     maxAge: 29,
     weight: 2,
-    cooldown: 3,
+    cooldown: 6,
     conditions: [{ inPrison: false }, { noAsset: 'house' }, { married: false }, { atHome: false }],
     person: { kind: ['friend', 'bestFriend'] },
     choices: [
@@ -484,7 +486,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 29,
     weight: 2,
-    cooldown: 3,
+    cooldown: 6,
     person: { kind: ['friend', 'bestFriend', 'sibling'], minAge: 18 },
     // A shared flat, not the family home.
     conditions: [{ inPrison: false }, { atHome: false }, { not: { sinceEvent: 'sl_dorm_fridge', lte: 2 } }],
@@ -524,7 +526,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     maxAge: 27,
     weight: 1.5,
     once: true,
-    person: { kind: ['friend', 'bestFriend', 'sibling'] },
+    person: { kind: ['friend', 'bestFriend', 'sibling'], minRelationship: 40 },
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -617,8 +619,8 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     minAge: 21,
     maxAge: 29,
     weight: 1.5,
-    cooldown: 4,
-    person: { kind: ['friend', 'bestFriend', 'sibling', 'ex'], minAge: 20 },
+    cooldown: 5,
+    person: { kind: ['friend', 'bestFriend', 'sibling', 'ex'], minRelationship: 30, minAge: 20 },
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -671,7 +673,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     weight: 1.5,
     cooldown: 5,
     // A grown-up founder (a student friend has no job to quit, and a little sibling no company to found).
-    person: { kind: ['friend', 'bestFriend', 'sibling'], minAge: 20 },
+    person: { kind: ['friend', 'bestFriend', 'sibling'], minRelationship: 30, minAge: 20 },
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -792,7 +794,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 29,
     weight: 2,
-    cooldown: 3,
+    cooldown: 6,
     // A group chat reaches friends anywhere, those left behind by a move abroad included.
     person: { kind: ['friend', 'bestFriend'], farAway: 'any' },
     conditions: [{ inPrison: false }, { year: { gte: 2010 } }, { not: { sinceEvent: 'tm_group_chat_drama', lte: 2 } }],
@@ -876,7 +878,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 29,
     weight: 1.5,
-    cooldown: 4,
+    cooldown: 6,
     conditions: [{ inPrison: false }, { year: { gte: 2010 } }],
     choices: [
       {
@@ -917,7 +919,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     minAge: 21,
     maxAge: 29,
     weight: 2,
-    cooldown: 3,
+    cooldown: 5,
     conditions: [{ hasJob: true }],
     choices: [
       {
@@ -971,7 +973,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     weight: 1.5,
     once: true,
     conditions: [{ hasJob: true }, { not: { sinceEvent: 'wk_mentor_offer', lte: 2 } }],
-    person: { kind: ['friend', 'bestFriend', 'sibling'], minAge: 24 },
+    person: { kind: ['friend', 'bestFriend', 'sibling'], minRelationship: 40, minAge: 24 },
     choices: [
       {
         id: 'accept',
@@ -1016,7 +1018,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 29,
     weight: 1.5,
-    cooldown: 4,
+    cooldown: 6,
     conditions: [{ hasJob: true }],
     choices: [
       {
@@ -1067,7 +1069,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 29,
     weight: 2,
-    cooldown: 3,
+    cooldown: 6,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -1109,7 +1111,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     minAge: 19,
     maxAge: 29,
     weight: 2,
-    cooldown: 3,
+    cooldown: 6,
     conditions: [{ hasJob: false }, { inPrison: false }],
     choices: [
       {
@@ -1206,7 +1208,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     minAge: 19,
     maxAge: 29,
     weight: 1.5,
-    cooldown: 4,
+    cooldown: 6,
     conditions: [{ inPrison: false }, { atHome: false }, { any: [{ hasJob: false }, { money: { lt: 2500 } }] }],
     person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
@@ -1300,7 +1302,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 29,
     weight: 2,
-    cooldown: 3,
+    cooldown: 6,
     conditions: [{ inPrison: false }, { ownsAssetId: ['old_hatchback', 'sedan', 'pickup', 'ev', 'luxury_sedan', 'sports_car', 'supercar', 'classic_car'] }, { not: { sinceEvent: 'mn_car_repair', lte: 2 } }],
     choices: [
       {
@@ -1346,7 +1348,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 29,
     weight: 2,
-    cooldown: 3,
+    cooldown: 6,
     conditions: [{ not: { sinceEvent: 'cp_scam_call', lte: 2 } }],
     choices: [
       {
@@ -1388,7 +1390,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 29,
     weight: 1.5,
-    cooldown: 4,
+    cooldown: 6,
     conditions: [{ inPrison: false }, { noAsset: 'house' }],
     choices: [
       {
@@ -1434,7 +1436,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 29,
     weight: 2,
-    cooldown: 3,
+    cooldown: 6,
     conditions: [{ year: { gte: 2013 } }],
     choices: [
       {
@@ -1694,7 +1696,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 29,
     weight: 2,
-    cooldown: 3,
+    cooldown: 6,
     // Not within two years of love_and_family's lf_anniversary_slip, the same forgotten date (it guards against this one too).
     conditions: [{ inPrison: false }, { hasLover: true }, { not: { sinceEvent: 'lf_anniversary_slip', lte: 2 } }],
     person: { kind: ['lover', 'spouse'] },
@@ -1707,7 +1709,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
           { money: -150 },
           {
             chance: 0.7,
-            then: [{ love: 3 }, { log: 'I "forgot my wallet," ran to the corner shop and came back with chocolate and a card. Transparent. Appreciated.', kind: 'good' }],
+            then: [{ love: 3 }, { log: 'I "forgot my wallet," ran to the corner store and came back with chocolate and a card. Transparent. Appreciated.', kind: 'good' }],
             else: [{ love: -3 }, { stat: 'happiness', delta: -2 }, { log: 'The only shop still open sold motor oil and mints. {{person}} called the mints "thoughtful." They were not.' }],
           },
         ],
@@ -1745,10 +1747,10 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 29,
     weight: 2,
-    cooldown: 3,
+    cooldown: 6,
     conditions: [{ inPrison: false }, { hasLover: false }, { flag: 'grieving', exists: false }, { not: { sinceEvent: 'lf_blind_date', lte: 4 } }],
     // A grown-up with coworkers of {{their}} own.
-    person: { kind: ['friend', 'bestFriend', 'sibling'], minAge: 18 },
+    person: { kind: ['friend', 'bestFriend', 'sibling'], minRelationship: 40, minAge: 18 },
     choices: [
       {
         id: 'go',
@@ -1809,7 +1811,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 29,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 6,
     conditions: [{ inPrison: false }],
     choices: [
       {

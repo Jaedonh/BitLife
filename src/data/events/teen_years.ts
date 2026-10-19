@@ -69,7 +69,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 17,
     weight: 2,
-    cooldown: 2,
+    cooldown: 3,
     conditions: [{ enrolled: true }, { not: { sinceEvent: 'sl_pop_quiz', lte: 2 } }],
     choices: [
       {
@@ -110,7 +110,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 17,
     weight: 2,
-    cooldown: 2,
+    cooldown: 3,
     conditions: [{ enrolled: true }],
     choices: [
       {
@@ -189,7 +189,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     weight: 2,
     once: true,
     conditions: [{ enrolled: true }],
-    person: { kind: ['friend', 'bestFriend'] },
+    person: { kind: ['friend', 'bestFriend'], minRelationship: 30 },
     choices: [
       {
         id: 'note',
@@ -475,7 +475,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 17,
     weight: 2,
-    cooldown: 2,
+    cooldown: 3,
     choices: [
       {
         id: 'take',
@@ -674,7 +674,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     weight: 2,
     once: true,
     conditions: [{ enrolled: true }, { stage: ['high'] }],
-    person: { kind: ['friend', 'bestFriend'] },
+    person: { kind: ['friend', 'bestFriend'], minRelationship: 30 },
     choices: [
       {
         id: 'date',
@@ -855,25 +855,27 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     // Not right after another friend's move (nc_friend_moving_away).
     conditions: [{ enrolled: true }, { not: { sinceEvent: 'nc_friend_moving_away', lte: 2 } }],
     person: { kind: ['friend', 'bestFriend'], minRelationship: 40 },
+    // The friend moves whatever I choose: kept in touch, they live far away (moveAway); let go, they leave the life.
     choices: [
       {
         id: 'online',
         label: 'Promise to stay in touch',
-        effects: [{ relationship: 'person', delta: -5 }, { stat: 'happiness', delta: -4 }, { log: 'We called every week, then every month. The distance is real, but so are we.' }],
+        effects: [{ relationship: 'person', delta: -5 }, { stat: 'happiness', delta: -4 }, { log: 'We called every week, then every month. The distance is real, but so are we.' }, { moveAway: true }],
       },
       {
         id: 'party',
         label: 'Throw a goodbye party',
-        effects: [{ relationship: 'person', delta: 8 }, { karma: 2 }, { stat: 'happiness', delta: -2 }, { stat: 'health', delta: -1 }, { log: 'The whole class came. {{person}} cried, I cried, then someone played a slow song and everyone cried.', kind: 'good' }],
+        effects: [{ relationship: 'person', delta: 8 }, { karma: 2 }, { stat: 'happiness', delta: -2 }, { stat: 'health', delta: -1 }, { log: 'The whole class came. {{person}} cried, I cried, then someone played a slow song and everyone cried.', kind: 'good' }, { moveAway: true }],
       },
       {
         id: 'drift',
         label: 'Let it drift',
+        // The new friend is made before the old one leaves, so the old friend's name is still taken.
         effects: [
           { log: 'We said goodbye and meant it. Some friendships belong to a time and a place.' },
-          { removePerson: true },
           { stat: 'happiness', delta: -6 },
           { chance: 0.5, then: [{ newPerson: { kind: 'friend', log: 'I made a new friend, {{person}}, who sits where my old friend used to.' } }] },
+          { removePerson: true },
         ],
       },
     ],
@@ -886,7 +888,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 17,
     weight: 2,
-    cooldown: 2,
+    cooldown: 3,
     // Someone raising us both is at home to make a fuss ({{parents}} names them).
     conditions: [{ hasPerson: ['mother', 'father', 'stepmother', 'stepfather'] }],
     // A sibling young enough to still bring home report cards.
@@ -924,7 +926,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 17,
     weight: 2,
-    cooldown: 2,
+    cooldown: 3,
     // A sibling who plausibly still lives at home.
     person: { kind: ['sibling'], minAge: 8, maxAge: 19 },
     choices: [
@@ -968,7 +970,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 17,
     weight: 2,
-    cooldown: 2,
+    cooldown: 3,
     conditions: [{ enrolled: true }],
     choices: [
       {
@@ -1153,7 +1155,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 17,
     weight: 2,
-    cooldown: 2,
+    cooldown: 3,
     conditions: [{ enrolled: true }, { grade: { lte: 50 } }],
     person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
@@ -1197,7 +1199,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 17,
     weight: 1.5,
-    cooldown: 2,
+    cooldown: 3,
     conditions: [{ enrolled: true }, { grade: { gte: 80 } }],
     choices: [
       {
@@ -1303,7 +1305,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 17,
     weight: 1.5,
-    cooldown: 2,
+    cooldown: 3,
     conditions: [{ enrolled: true }],
     person: { kind: ['friend', 'bestFriend'] },
     choices: [
@@ -1349,9 +1351,9 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 17,
     weight: 1.5,
-    cooldown: 2,
+    cooldown: 3,
     conditions: [{ enrolled: true }, { grade: { gte: 65 } }],
-    person: { kind: ['friend', 'bestFriend'] },
+    person: { kind: ['friend', 'bestFriend'], minRelationship: 30 },
     choices: [
       {
         id: 'help',

@@ -1,11 +1,28 @@
-import type { EventDef } from '@/engine/events/schema';
+import type { Condition, EventDef } from '@/engine/events/schema';
 
 /**
  * Ages 10+: neighbours, the street and the town of {{city}}. Noise, floods,
  * petitions, potholes, festivals, jury duty and the occasional act of
  * heroism. Follow-ups (followUpOnly) are queued by the events that set them
  * up and never fire on their own.
+ *
+ * A card opens once or rests for more than half its age range, so the same
+ * street scene never comes back a third time.
  */
+
+/**
+ * Where a summons puts ordinary people on a jury (or, in Japan, beside the judges): the common-law countries, France,
+ * Italy and Brazil, Spain since its jury law (trials from 1996) and Japan since 2009. India, Mexico, Nigeria and
+ * Germany summon no jury. The same list as the jury cards in justice_and_reentry.ts.
+ */
+const JURY_TRIALS: Condition = {
+  any: [
+    { country: ['US', 'GB', 'CA', 'AU', 'FR', 'IT', 'BR'] },
+    { all: [{ country: ['ES'] }, { year: { gte: 1996 } }] },
+    { all: [{ country: ['JP'] }, { year: { gte: 2009 } }] },
+  ],
+};
+
 export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ neighbours
   {
@@ -16,7 +33,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 90,
     weight: 2,
-    cooldown: 15,
+    cooldown: 38,
     // Not within a few years of adult_life's ad_neighbour_noise, the other noise through the wall (it guards against this one too).
     conditions: [{ inPrison: false }, { not: { sinceEvent: 'ad_neighbour_noise', lte: 3 } }],
     choices: [
@@ -115,9 +132,9 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 12,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 10,
+    cooldown: 40,
     conditions: [{ inPrison: false }],
-    person: { kind: ['friend', 'bestFriend', 'sibling', 'lover', 'spouse'] },
+    person: { kind: ['friend', 'bestFriend', 'sibling', 'lover', 'spouse'], minRelationship: 30 },
     choices: [
       {
         id: 'dish',
@@ -172,7 +189,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 15,
+    cooldown: 38,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -226,7 +243,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 85,
     weight: 1.5,
-    cooldown: 12,
+    cooldown: 36,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -392,7 +409,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 90,
     weight: 1,
-    cooldown: 8,
+    cooldown: 39,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -401,7 +418,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         effects: [
           {
             random: [
-              { weight: 6, effects: [{ log: 'Knee-deep, freezing, and something soft touched my ankle. I made it, on time. My shoes did not.' }, { money: -40 }, { stat: 'happiness', delta: 1 }] },
+              { weight: 6, effects: [{ log: 'Knee-deep, murky, and something soft touched my ankle. I made it, on time. My shoes did not.' }, { money: -40 }, { stat: 'happiness', delta: 1 }] },
               { weight: 3, effects: [{ log: 'I slipped on something invisible and went under. Dignity: gone. Keys: also gone.', kind: 'bad' }, { injury: 3 }, { money: -200 }] },
               { weight: 1, effects: [{ log: 'I waded across like an explorer and someone applauded from a window.', kind: 'good' }, { stat: 'happiness', delta: 3 }, { fame: 1 }] },
             ],
@@ -451,7 +468,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 10,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 6,
+    cooldown: 41,
     conditions: [{ inPrison: false }],
     person: { kind: ['mother', 'father', 'stepmother', 'stepfather', 'sibling', 'spouse', 'lover', 'child'], minAge: 5, household: true },
     choices: [
@@ -499,7 +516,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 90,
     weight: 1.2,
-    cooldown: 12,
+    cooldown: 37,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -589,7 +606,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 10,
     maxAge: 90,
     weight: 1.2,
-    cooldown: 15,
+    cooldown: 41,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -703,14 +720,14 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
       },
       {
         id: 'sell',
-        label: 'Sell it online',
-        conditions: [{ year: { gte: 2000 } }],
+        // A classified ad works in any year (an online listing would need an era gate).
+        label: 'Sell it with a classified ad',
         effects: [
           { karma: -1 },
           {
             chance: 0.5,
             then: [{ log: 'A music teacher paid {{$250}} and brought movers. My best deal ever, on something I never owned.', kind: 'money' }, { money: 250 }],
-            else: [{ log: 'Nobody wanted it. Not even for free. Not even with my new sign.' }, { stat: 'happiness', delta: -1 }],
+            else: [{ log: 'Nobody answered the ad. Not even after I changed the price to free.' }, { stat: 'happiness', delta: -1 }],
           },
         ],
       },
@@ -729,7 +746,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 95,
     weight: 1,
-    cooldown: 10,
+    cooldown: 39,
     // My own roof: not my parents' house or a landlord's.
     conditions: [{ inPrison: false }, { ownsAsset: 'house' }],
     choices: [
@@ -789,7 +806,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 90,
     weight: 1,
-    cooldown: 10,
+    cooldown: 39,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -836,7 +853,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 10,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 10,
+    cooldown: 41,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -881,12 +898,14 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     category: 'random',
     title: 'Yard sale',
     text: 'I dragged a lifetime of clutter onto the front lawn and stuck prices on it. {{person}} came to help, which mostly meant {{they}} sat in a lawn chair offering commentary.',
-    minAge: 12,
+    // A lifetime of clutter takes decades in a home of my own, and someone out of prison a few years ago walked out
+    // with a paper bag (sinceRelease: never released, or more than five years ago).
+    minAge: 35,
     maxAge: 90,
     weight: 1,
-    cooldown: 8,
-    conditions: [{ inPrison: false }],
-    person: { kind: ['mother', 'father', 'sibling', 'friend', 'bestFriend', 'spouse'] },
+    cooldown: 28,
+    conditions: [{ inPrison: false }, { atHome: false }, { not: { sinceRelease: 'any', lte: 5 } }],
+    person: { kind: ['mother', 'father', 'sibling', 'friend', 'bestFriend', 'spouse'], minRelationship: 30 },
     choices: [
       {
         id: 'cheap',
@@ -934,9 +953,10 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 90,
     weight: 1,
-    cooldown: 10,
+    // The parking garage is proposed once; after the vote it is settled.
+    once: true,
     conditions: [{ inPrison: false }],
-    person: { kind: ['mother', 'father', 'spouse', 'friend', 'bestFriend', 'sibling'] },
+    person: { kind: ['mother', 'father', 'spouse', 'friend', 'bestFriend', 'sibling'], minRelationship: 30 },
     choices: [
       {
         id: 'against',
@@ -991,7 +1011,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 1,
-    cooldown: 6,
+    cooldown: 34,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -1085,7 +1105,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 12,
     maxAge: 90,
     weight: 1.2,
-    cooldown: 8,
+    cooldown: 40,
     conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend', 'sibling', 'coworker', 'classmate'] },
     choices: [
@@ -1149,17 +1169,18 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 12,
     maxAge: 90,
     weight: 1,
-    cooldown: 6,
+    cooldown: 40,
     // Not right after another friend's move (teen_years' tn_friend_moving).
     conditions: [{ inPrison: false }, { not: { sinceEvent: 'tn_friend_moving', lte: 2 } }],
     person: { kind: ['friend', 'bestFriend'], minRelationship: 30 },
+    // The friend moves whatever I choose: kept in touch, they live far away (moveAway); let go, they leave the life.
     choices: [
       {
         id: 'sendoff',
         label: 'Throw a send-off',
         hint: 'Costs {{$120}}',
         conditions: [{ money: { gte: 120 } }],
-        effects: [{ money: -120, payer: 'self' }, { relationship: 'person', delta: 10 }, { stat: 'happiness', delta: 3 }, { log: 'Everyone came. {{person}} cried at the speeches, then at the cake, then in the driveway.', kind: 'good' }],
+        effects: [{ money: -120, payer: 'self' }, { relationship: 'person', delta: 10 }, { stat: 'happiness', delta: 3 }, { log: 'Everyone came. {{person}} cried at the speeches, then at the cake, then in the driveway.', kind: 'good' }, { moveAway: true }],
       },
       {
         id: 'visit',
@@ -1171,12 +1192,13 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
             then: [{ log: 'I visited twice that first year. Then once. We still message on birthdays.' }, { stat: 'happiness', delta: 1 }],
             else: [{ log: 'I meant to visit. Life kept happening. {{person}} understood, which was worse.', kind: 'bad' }, { stat: 'happiness', delta: -3 }, { relationship: 'person', delta: -8 }],
           },
+          { moveAway: true },
         ],
       },
       {
         id: 'pack',
         label: 'Help pack the van',
-        effects: [{ karma: 2 }, { stat: 'health', delta: -1 }, { relationship: 'person', delta: 6 }, { stat: 'happiness', delta: 2 }, { log: 'I carried {{their}} boxes and did not complain once about the books. Friends do that.', kind: 'good' }],
+        effects: [{ karma: 2 }, { stat: 'health', delta: -1 }, { relationship: 'person', delta: 6 }, { stat: 'happiness', delta: 2 }, { log: 'I carried {{their}} boxes and did not complain once about the books. Friends do that.', kind: 'good' }, { moveAway: true }],
       },
       {
         id: 'fade',
@@ -1237,7 +1259,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 12,
     maxAge: 90,
     weight: 0.8,
-    cooldown: 5,
+    cooldown: 40,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -1290,7 +1312,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
       {
         id: 'tea',
         label: 'Invite them in for tea',
-        effects: [{ stat: 'happiness', delta: 5 }, { karma: 1 }, { log: 'I put the kettle on. Tea became dinner, and dinner became a standing invitation.', kind: 'good' }, { newPerson: { kind: 'friend', gender: 'male', minAge: 35, maxAge: 75, relationship: 65, log: 'The man I saved, {{person}}, is now a friend.' } }],
+        effects: [{ stat: 'happiness', delta: 5 }, { karma: 1 }, { log: 'I made a pot of tea. Tea became dinner, and dinner became a standing invitation.', kind: 'good' }, { newPerson: { kind: 'friend', gender: 'male', minAge: 35, maxAge: 75, relationship: 65, log: 'The man I saved, {{person}}, is now a friend.' } }],
       },
     ],
   },
@@ -1302,9 +1324,10 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 75,
     weight: 0.8,
-    cooldown: 10,
-    // Not within a few years of adult_life's ad_jury_duty, the other summons (it guards against this one too).
-    conditions: [{ inPrison: false }, { criminalRecord: false }, { not: { sinceEvent: 'ad_jury_duty', lte: 6 } }],
+    cooldown: 29,
+    // Not within a few years of adult_life's ad_jury_duty, the other summons (it guards against this one too). Only
+    // where and when ordinary people are summoned to serve on a jury (JURY_TRIALS).
+    conditions: [{ inPrison: false }, { criminalRecord: false }, { not: { sinceEvent: 'ad_jury_duty', lte: 6 } }, JURY_TRIALS],
     choices: [
       {
         id: 'serve',
@@ -1340,7 +1363,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     id: 'nc_jury_verdict',
     category: 'random',
     title: 'The deliberation',
-    text: 'Deliberations. A burglary case, a nervous defendant, a witness who kept changing her story. Eleven jurors want to go home. I am less sure than they are.',
+    text: 'Deliberations. A robbery case, a nervous defendant, a witness who kept changing her story. Everyone else on the jury wants to go home. I am less sure than they are.',
     minAge: 18,
     maxAge: 95,
     weight: 1,
@@ -1368,7 +1391,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
           { energy: -1 },
           {
             random: [
-              { weight: 5, effects: [{ log: 'Two more days. Eleven glares. We acquitted, carefully, and I believe we got it right.', kind: 'good' }, { stat: 'happiness', delta: 4 }] },
+              { weight: 5, effects: [{ log: 'Two more days of glares. We acquitted, carefully, and I believe we got it right.', kind: 'good' }, { stat: 'happiness', delta: 4 }] },
               { weight: 5, effects: [{ log: 'Two more days. The evidence held up and we convicted, together. The boat man thanked me, exhausted.', kind: 'good' }, { stat: 'happiness', delta: 2 }] },
             ],
           },
@@ -1389,7 +1412,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 95,
     weight: 0.8,
-    cooldown: 6,
+    cooldown: 39,
     // My own windows, insurer and party: a place of my own (rented or owned), not my parents' house.
     conditions: [{ inPrison: false }, { atHome: false }],
     choices: [
@@ -1455,7 +1478,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 95,
     weight: 0.3,
-    cooldown: 10,
+    cooldown: 39,
     conditions: [{ inPrison: false }],
     choices: [
       {

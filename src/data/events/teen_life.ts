@@ -343,7 +343,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     id: 'tl_saving_up',
     category: 'money',
     title: 'The guitar in the window',
-    text: 'A secondhand electric guitar has hung in the music shop window all winter, priced at {{$350}}. I visit it most afternoons, like a relative. The owner has started waving.',
+    text: 'A secondhand electric guitar has hung in the music shop window for months, priced at {{$350}}. I visit it most afternoons, like a relative. The owner has started waving.',
     minAge: 13,
     maxAge: 17,
     weight: 1,
@@ -395,7 +395,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     cooldown: 3,
     conditions: [{ enrolled: true }],
     // Someone who eats in my cafeteria, not a little kid or a grown-up friend.
-    person: { kind: ['friend', 'bestFriend'], minAge: 12, maxAge: 18 },
+    person: { kind: ['friend', 'bestFriend'], minRelationship: 30, minAge: 12, maxAge: 18 },
     choices: [
       {
         id: 'lend',
@@ -496,7 +496,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 17,
     weight: 1.5,
-    cooldown: 2,
+    cooldown: 3,
     choices: [
       {
         id: 'bedtime',
@@ -976,7 +976,8 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 17,
     weight: 1.5,
-    cooldown: 3,
+    // Half my grade finds out where I work once.
+    once: true,
     conditions: [{ hasJob: true }, { partTime: true }, { enrolled: true }],
     choices: [
       {
@@ -1197,7 +1198,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
   {
     id: 'tl_online_friend',
     category: 'friends',
-    title: 'Teammate from far away',
+    title: 'Teammate from the game',
     text: 'For months the same player has been on my team in an online game almost every night. We talk strategy, then school, then everything. Today they asked if we could be friends outside the game.',
     minAge: 13,
     maxAge: 16,
@@ -1211,7 +1212,8 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
         effects: [
           { stat: 'happiness', delta: 3 },
           { energy: -1 },
-          { newPerson: { kind: 'friend', minAge: 13, maxAge: 17, relationship: 60, log: '{{person}} lives across the country and became one of my closest friends. We have never met.' } },
+          // A new person is made nearby (newPerson has no far-away option), so the friend lives across town, not the country.
+          { newPerson: { kind: 'friend', minAge: 13, maxAge: 17, relationship: 60, log: '{{person}} turned out to live across town. We met at the library, in daylight. Close friends now.' } },
         ],
       },
       {
@@ -1227,7 +1229,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
             chance: 0.5,
             then: [
               { stat: 'happiness', delta: 6 },
-              { newPerson: { kind: 'friend', minAge: 13, maxAge: 17, relationship: 75, log: '{{person}} turned out to be exactly who {{they}} said: a teenager who also hates the swamp level.' } },
+              { newPerson: { kind: 'friend', minAge: 13, maxAge: 17, relationship: 75, log: '{{person}} was exactly who {{they}} said: a teenager from across town who also hates the swamp level.' } },
             ],
             else: [{ stat: 'happiness', delta: -4 }, { stat: 'smarts', delta: 2 }, { log: 'They asked for my school and my address. I blocked them and told an adult. Right call.', kind: 'bad' }],
           },
@@ -1243,9 +1245,9 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 17,
     weight: 1.5,
-    cooldown: 2,
+    cooldown: 3,
     conditions: [{ enrolled: true }, { year: { gte: 2005 } }],
-    person: { kind: ['friend', 'bestFriend'], minAge: 11 },
+    person: { kind: ['friend', 'bestFriend'], minRelationship: 30, minAge: 11 },
     choices: [
       {
         id: 'play',
@@ -1484,7 +1486,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     once: true,
     conditions: [{ enrolled: true }],
     // A friend at my school, near my age.
-    person: { kind: ['friend', 'bestFriend'], minAge: 13, maxAge: 16 },
+    person: { kind: ['friend', 'bestFriend'], minRelationship: 40, minAge: 13, maxAge: 16 },
     choices: [
       {
         id: 'hug',
@@ -1550,7 +1552,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
           { karma: -2 },
           {
             chance: 0.4,
-            then: [{ money: 50 }, { log: 'She sent {{$50}} more with a note: "Cheeky. Good."', kind: 'money' }],
+            then: [{ money: 50 }, { log: 'She sent {{$50}} more with a note: "Bold. Good."', kind: 'money' }],
             else: [{ stat: 'happiness', delta: -2 }, { log: 'Next year she sent a poem about greedy children. It rhymed "inflation" with "ingratitude." Almost.', kind: 'bad' }],
           },
         ],
@@ -1654,7 +1656,8 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     maxAge: 17,
     weight: 1,
     once: true,
-    conditions: [{ enrolled: true }],
+    // A knitted sweater at the holidays wants a cold December, as kid_life's kl_reindeer_sweater.
+    conditions: [{ enrolled: true }, { climate: ['snowy', 'mild'] }, { southern: false }],
     person: { kind: ['mother', 'father'] },
     choices: [
       {

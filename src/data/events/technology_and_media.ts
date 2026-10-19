@@ -68,7 +68,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 90,
     weight: 1,
-    cooldown: 10,
+    cooldown: 38,
     conditions: [{ fame: { gte: 15 } }, { inPrison: false }, { year: { gte: 2018 } }],
     choices: [
       {
@@ -119,7 +119,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 60,
     weight: 1,
-    cooldown: 10,
+    cooldown: 23,
     conditions: [{ any: [{ fame: { gte: 5 } }, { stat: 'looks', gte: 65 }] }, { inPrison: false }, { year: { gte: 2010 } }],
     choices: [
       {
@@ -251,7 +251,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 70,
     weight: 1.2,
-    cooldown: 15,
+    cooldown: 27,
     conditions: [{ inPrison: false }, { year: { gte: 2010 } }],
     person: { kind: ['ex'], minAge: 20 },
     choices: [
@@ -280,7 +280,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 80,
     weight: 1.5,
-    cooldown: 15,
+    cooldown: 32,
     conditions: [{ inPrison: false }, { year: { gte: 2010 } }],
     person: { kind: ['lover', 'spouse'] },
     choices: [
@@ -315,7 +315,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 24,
     maxAge: 65,
     weight: 1.5,
-    cooldown: 10,
+    cooldown: 21,
     conditions: [{ hasChildren: true }, { inPrison: false }, { year: { gte: 2010 } }],
     person: { kind: ['child'], minAge: 8, maxAge: 15 },
     choices: [
@@ -397,7 +397,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 10,
     maxAge: 17,
     weight: 2,
-    cooldown: 3,
+    cooldown: 4,
     conditions: [{ enrolled: true }, { inPrison: false }, { year: { gte: 2010 } }],
     person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
@@ -439,7 +439,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 10,
     maxAge: 16,
     weight: 2,
-    cooldown: 3,
+    cooldown: 4,
     conditions: [{ inPrison: false }, { year: { gte: 2000 } }],
     choices: [
       {
@@ -477,7 +477,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 100,
     weight: 2,
-    cooldown: 20,
+    cooldown: 43,
     conditions: [{ inPrison: false }, { year: { gte: 2012 } }],
     choices: [
       {
@@ -520,7 +520,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 100,
     weight: 1.5,
-    cooldown: 20,
+    cooldown: 43,
     conditions: [{ inPrison: false }, { year: { gte: 2012 } }],
     choices: [
       {
@@ -586,7 +586,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 60,
     weight: 1.2,
-    cooldown: 10,
+    cooldown: 22,
     conditions: [{ hasLover: false }, { inPrison: false }, { year: { gte: 2012 } }, { flag: 'grieving', exists: false }],
     choices: [
       {
@@ -636,7 +636,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 12,
     maxAge: 45,
     weight: 1,
-    cooldown: 10,
+    cooldown: 17,
     conditions: [{ inPrison: false }, { year: { gte: 2012 } }],
     choices: [
       {
@@ -680,7 +680,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 80,
     weight: 1.2,
-    cooldown: 10,
+    cooldown: 33,
     conditions: [{ inPrison: false }, { year: { gte: 2012 } }],
     choices: [
       {
@@ -725,7 +725,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 20,
+    cooldown: 36,
     conditions: [{ inPrison: false }, { year: { gte: 2012 } }],
     choices: [
       { id: 'cancel', label: 'Cancel it', effects: [{ stat: 'happiness', delta: 2 }, { stat: 'smarts', delta: 1 }, { log: 'I canceled it. The app sent a sad notification. I did not breathe for it.' }] },
@@ -795,7 +795,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 15,
+    cooldown: 39,
     conditions: [{ inPrison: false }, { year: { gte: 2010 } }],
     choices: [
       {
@@ -867,7 +867,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 20,
+    cooldown: 39,
     conditions: [{ inPrison: false }, { year: { gte: 2010 } }],
     choices: [
       {
@@ -917,7 +917,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 12,
     maxAge: 60,
     weight: 2,
-    cooldown: 10,
+    cooldown: 25,
     conditions: [{ any: [{ enrolled: true }, { hasJob: true }] }, { inPrison: false }],
     choices: [
       {
@@ -945,7 +945,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 90,
     weight: 2,
-    cooldown: 20,
+    cooldown: 39,
     conditions: [{ inPrison: false }, { year: { gte: 2010 } }],
     choices: [
       {
@@ -1024,7 +1024,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 65,
     weight: 1,
-    cooldown: 10,
+    cooldown: 24,
     conditions: [{ hasJob: true }, { year: { gte: 1997 } }],
     choices: [
       {
@@ -1073,7 +1073,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 65,
     weight: 1.2,
-    cooldown: 10,
+    cooldown: 24,
     conditions: [{ hasJob: true }, { year: { gte: 1997 } }],
     choices: [
       {
@@ -1123,7 +1123,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 65,
     weight: 1.5,
-    cooldown: 10,
+    cooldown: 24,
     conditions: [{ hasJob: true }, { year: { gte: 2010 } }],
     choices: [
       {

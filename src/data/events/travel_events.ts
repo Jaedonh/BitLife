@@ -8,8 +8,8 @@ import type { EventDef } from '@/engine/events/schema';
  * (followUpOnly) are queued by the events that set them up.
  *
  * A card set abroad says so in its own text ("on my first evening abroad"), needs the money for a
- * trip, and has a long cooldown (or opens once), so the same street stall never turns up in my
- * hometown or four times in one life.
+ * trip, and rests for more than half its age range (or opens once), so the same street stall never
+ * turns up in my hometown or a third time in one life.
  */
 export const TRAVEL_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ airports
@@ -21,7 +21,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 80,
     weight: 1.5,
-    cooldown: 10,
+    cooldown: 32,
     conditions: [{ inPrison: false }, { money: { gte: 400 } }],
     choices: [
       {
@@ -68,7 +68,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 1,
-    cooldown: 10,
+    cooldown: 34,
     conditions: [{ inPrison: false }, { money: { gte: 300 } }],
     choices: [
       {
@@ -111,7 +111,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 85,
     weight: 1.5,
-    cooldown: 15,
+    cooldown: 35,
     conditions: [{ inPrison: false }, { money: { gte: 200 } }],
     choices: [
       {
@@ -168,7 +168,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 80,
     weight: 1,
-    cooldown: 10,
+    cooldown: 32,
     conditions: [{ inPrison: false }, { money: { gte: 300 } }],
     choices: [
       {
@@ -252,7 +252,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 80,
     weight: 0.8,
-    cooldown: 10,
+    cooldown: 32,
     conditions: [{ inPrison: false }, { money: { gte: 200 } }],
     choices: [
       {
@@ -399,7 +399,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 2,
-    cooldown: 20,
+    cooldown: 34,
     conditions: [{ inPrison: false }, { money: { gte: 300 } }],
     choices: [
       {
@@ -446,7 +446,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 1.5,
-    cooldown: 10,
+    cooldown: 34,
     conditions: [{ inPrison: false }, { money: { gte: 200 } }],
     choices: [
       {
@@ -492,7 +492,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 2,
-    cooldown: 20,
+    cooldown: 34,
     conditions: [{ inPrison: false }, { money: { gte: 300 } }],
     choices: [
       {
@@ -536,7 +536,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 80,
     weight: 1.2,
-    cooldown: 10,
+    cooldown: 32,
     conditions: [{ inPrison: false }, { any: [{ ownsAsset: 'car' }, { money: { gte: 1200 } }] }],
     choices: [
       {
@@ -587,7 +587,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 85,
     weight: 1.5,
-    cooldown: 20,
+    cooldown: 35,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -639,7 +639,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 21,
     maxAge: 85,
     weight: 0.8,
-    cooldown: 10,
+    cooldown: 33,
     conditions: [{ inPrison: false }, { money: { gte: 3000 } }],
     choices: [
       {
@@ -756,7 +756,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 85,
     weight: 1.5,
-    cooldown: 10,
+    cooldown: 35,
     conditions: [{ inPrison: false }, { money: { gte: 100, lte: 2500 } }],
     choices: [
       {
@@ -859,7 +859,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 80,
     weight: 1.5,
-    cooldown: 12,
+    cooldown: 33,
     conditions: [{ inPrison: false }],
     person: { kind: ['lover', 'spouse', 'friend', 'bestFriend', 'sibling'], minRelationship: 30 },
     choices: [
@@ -907,7 +907,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 70,
     weight: 1,
-    cooldown: 10,
+    cooldown: 26,
     conditions: [{ inPrison: false }, { money: { gte: 900 } }],
     person: { kind: ['friend', 'bestFriend', 'sibling', 'coworker'], minRelationship: 40, minAge: 18 },
     choices: [
@@ -922,7 +922,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 10 },
           { counter: 'vacations' },
           { log: 'Sand at the ceremony, sunburn at the reception, an unplanned speech. {{person}} cried. So did I.', kind: 'good' },
-          { chance: 0.2, then: [{ newPerson: { kind: 'friend', relationship: 50, log: 'I spent the whole reception talking to {{person}}, another guest, and we stayed in touch.' } }] },
+          { chance: 0.2, then: [{ newPerson: { kind: 'friend', relationship: 50, log: 'I spent the reception talking to {{person}}, a guest who turned out to live near me. Friends now.' } }] },
         ],
       },
       {
@@ -1027,7 +1027,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 24,
     maxAge: 60,
     weight: 1.5,
-    cooldown: 10,
+    cooldown: 19,
     conditions: [{ inPrison: false }, { hasChildren: true }, { money: { gte: 100 } }],
     person: { kind: ['child'], minAge: 3, maxAge: 12 },
     choices: [
@@ -1078,7 +1078,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 24,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 6,
     conditions: [{ inPrison: false }],
     person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
@@ -1128,7 +1128,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 75,
     weight: 1,
-    cooldown: 15,
+    cooldown: 28,
     conditions: [{ inPrison: false }, { money: { gte: 300 } }],
     person: { kind: ['ex'] },
     choices: [
@@ -1176,7 +1176,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 65,
     weight: 1.2,
-    cooldown: 10,
+    cooldown: 23,
     conditions: [{ inPrison: false }, { hasJob: true }],
     // A current coworker only (coworkers belong to the job I hold now).
     person: { kind: ['coworker'] },
@@ -1213,7 +1213,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
             chance: 0.5,
             then: [
               { jobPerformance: 3 },
-              { newPerson: { kind: 'friend', relationship: 45, log: 'I met {{person}} at the conference dinner and we kept in touch.' } },
+              { newPerson: { kind: 'friend', relationship: 45, log: 'I met {{person}} at the conference dinner. {{They}} works across town, so we kept in touch.' } },
               { log: 'I shook forty hands and remembered three names. One of them turned out to matter.', kind: 'good' },
             ],
             else: [{ stat: 'happiness', delta: -2 }, { log: 'I networked so hard I ran out of words by dessert. Nobody followed up. The dessert was good.' }],
@@ -1247,7 +1247,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 1 },
           { counter: 'vacations' },
           { log: 'Two weeks of hammering, sunburn and the best meals of my life. The roof went on. I cried leaving.', kind: 'good' },
-          { chance: 0.4, then: [{ newPerson: { kind: 'friend', relationship: 60, log: 'I built a roof with {{person}}, who is now a friend for life.' } }] },
+          { chance: 0.4, then: [{ newPerson: { kind: 'friend', relationship: 60, log: 'I built a roof with {{person}}, who lives one town over. A friend for life now.' } }] },
           { chance: 0.15, then: [{ illness: 'flu' }, { log: 'I also brought home a fever that lasted a week.', kind: 'bad' }] },
           { chance: 0.5, then: [{ queue: 'tr_volunteer_letter' }] },
         ],

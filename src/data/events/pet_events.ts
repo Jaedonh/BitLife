@@ -69,7 +69,8 @@ export const PET_EVENTS: EventDef[] = [
     weight: 1,
     once: true,
     conditions: [{ noPerson: ['pet'] }, { inPrison: false }],
-    person: { kind: ['friend', 'bestFriend'] },
+    person: { kind: ['friend', 'bestFriend'], minRelationship: 30 },
+    // The friend moves abroad whatever I choose, and lives far away from then on (moveAway).
     choices: [
       {
         id: 'take',
@@ -81,6 +82,7 @@ export const PET_EVENTS: EventDef[] = [
           { karma: 3 },
           { stat: 'happiness', delta: 5 },
           { log: '{{person}} hugged me at the airport and then hugged the dog for much longer.', kind: 'good' },
+          { moveAway: true },
           { queue: 'pt_first_night_home' },
         ],
       },
@@ -95,12 +97,13 @@ export const PET_EVENTS: EventDef[] = [
             then: [{ log: 'We found a retired couple with a big yard. The dog chose them within four minutes.', kind: 'good' }, { stat: 'happiness', delta: 2 }],
             else: [{ log: 'Nobody suitable turned up. {{person}} left in tears and the dog went to a shelter.', kind: 'bad' }, { stat: 'happiness', delta: -4 }],
           },
+          { moveAway: true },
         ],
       },
       {
         id: 'decline',
         label: 'Say no',
-        effects: [{ relationship: 'person', delta: -6 }, { stat: 'happiness', delta: -2 }, { log: '{{person}} said {{they}} understood. {{They}} did not call for a while.' }],
+        effects: [{ relationship: 'person', delta: -6 }, { stat: 'happiness', delta: -2 }, { log: '{{person}} said {{they}} understood, and left. {{They}} did not call for a while.' }, { moveAway: true }],
       },
     ],
   },
@@ -160,7 +163,7 @@ export const PET_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 70,
     weight: 0.8,
-    cooldown: 6,
+    cooldown: 27,
     conditions: [{ noPerson: ['pet'] }, { money: { gte: 100 } }, { inPrison: false }],
     choices: [
       {
@@ -359,9 +362,9 @@ export const PET_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 70,
     weight: 1,
-    cooldown: 6,
+    cooldown: 29,
     conditions: [{ inPrison: false }],
-    person: { kind: ['friend', 'bestFriend', 'sibling', 'coworker'], minAge: 18 },
+    person: { kind: ['friend', 'bestFriend', 'sibling', 'coworker'], minRelationship: 30, minAge: 18 },
     choices: [
       {
         id: 'accept',
@@ -411,7 +414,7 @@ export const PET_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 85,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 37,
     conditions: [{ inPrison: false }],
     person: { kind: ['pet'], species: ['dog', 'cat'] },
     choices: [
@@ -460,7 +463,7 @@ export const PET_EVENTS: EventDef[] = [
             chance: 0.6,
             then: [{ relationship: 'person', delta: 5 }, { stat: 'happiness', delta: 3 }, { log: '{{parents}} paid, with a lecture attached. {{person}} recovered. So did I, eventually.', kind: 'good' }],
             else: [
-              { log: 'They said no, kindly. I paid for the cheap treatment myself.' },
+              { log: '{{parents}} said no, kindly. I paid for the cheap treatment myself.' },
               { money: -180, payer: 'self' },
               {
                 chance: 0.6,
@@ -493,7 +496,7 @@ export const PET_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 85,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 37,
     conditions: [{ inPrison: false }],
     person: { kind: ['pet'], species: ['dog'] },
     choices: [
@@ -518,6 +521,7 @@ export const PET_EVENTS: EventDef[] = [
         effects: [
           { money: -30 },
           { stat: 'smarts', delta: 1 },
+          { energy: -1 },
           {
             chance: 0.7,
             then: [{ relationship: 'person', delta: 2 }, { log: 'A calm voice told me what to watch for. By morning the sock had reappeared, unharmed, on the rug.', kind: 'good' }],
@@ -558,7 +562,7 @@ export const PET_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 85,
     weight: 1.2,
-    cooldown: 4,
+    cooldown: 37,
     conditions: [{ inPrison: false }],
     person: { kind: ['pet'], species: ['dog', 'cat'] },
     choices: [
@@ -608,7 +612,7 @@ export const PET_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 80,
     weight: 0.8,
-    cooldown: 3,
+    cooldown: 34,
     conditions: [{ inPrison: false }],
     person: { kind: ['pet'], species: ['dog', 'cat'] },
     choices: [
@@ -621,8 +625,8 @@ export const PET_EVENTS: EventDef[] = [
           {
             random: [
               { weight: 2, effects: [{ money: 150 }, { fame: 1 }, { stat: 'happiness', delta: 8 }, { relationship: 'person', delta: 6 }, { log: '{{person}} won. First place, a ribbon the size of a dinner plate and a gift card. I cried a bit.', kind: 'milestone' }] },
-              { weight: 4, effects: [{ stat: 'happiness', delta: 3 }, { relationship: 'person', delta: 3 }, { log: "{{person}} got a ribbon for 'Most Enthusiastic,' which the judge handed over with a straight face.", kind: 'good' }] },
-              { weight: 2, effects: [{ stat: 'happiness', delta: -2 }, { log: '{{person}} disgraced us in front of the judge in a way that cleared the snack tent.', kind: 'bad' }] },
+              { weight: 4, effects: [{ stat: 'happiness', delta: 3 }, { relationship: 'person', delta: 2 }, { log: "{{person}} got a ribbon for 'Most Enthusiastic,' which the judge handed over with a straight face.", kind: 'good' }] },
+              { weight: 2, effects: [{ stat: 'happiness', delta: -2 }, { relationship: 'person', delta: -3 }, { log: '{{person}} disgraced us in front of the judge in a way that cleared the snack tent. We sulked.', kind: 'bad' }] },
             ],
           },
         ],
@@ -660,14 +664,16 @@ export const PET_EVENTS: EventDef[] = [
     minAge: 10,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 2,
+    cooldown: 41,
     conditions: [{ inPrison: false }],
     person: { kind: ['pet'], species: ['dog', 'cat'], minAge: 10 },
     choices: [
       {
         id: 'cherish',
         label: 'Make every day good',
+        hint: '{{$100}}',
         effects: [
+          { money: -100 },
           { relationship: 'person', delta: 6 },
           { stat: 'happiness', delta: 3 },
           {
@@ -713,7 +719,7 @@ export const PET_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 85,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 37,
     conditions: [{ inPrison: false }],
     person: { kind: ['pet'], species: ['dog', 'cat'] },
     choices: [
@@ -752,7 +758,7 @@ export const PET_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 1.2,
-    cooldown: 4,
+    cooldown: 34,
     conditions: [{ inPrison: false }],
     person: { kind: ['pet'], species: ['dog', 'parrot'] },
     choices: [
@@ -761,7 +767,7 @@ export const PET_EVENTS: EventDef[] = [
         label: 'Apologize with cake',
         hint: '{{$25}}',
         conditions: [{ money: { gte: 25 } }],
-        effects: [{ money: -25 }, { karma: 2 }, { stat: 'happiness', delta: 1 }, { log: 'Cake and an apology. The neighbor thawed and called {{person}} "kind of sweet, actually."', kind: 'good' }],
+        effects: [{ money: -25 }, { karma: 2 }, { stat: 'happiness', delta: -1 }, { log: 'Cake and a grovel. The neighbor thawed and called {{person}} "kind of sweet, actually."', kind: 'good' }],
       },
       {
         id: 'ignore',
@@ -769,9 +775,9 @@ export const PET_EVENTS: EventDef[] = [
         effects: [
           { karma: -1 },
           {
-            chance: 0.5,
+            chance: 0.4,
             then: [{ money: -150 }, { stat: 'happiness', delta: -4 }, { log: 'The city got involved: a fine, a warning, and a neighbor who now waves with one finger.', kind: 'bad' }],
-            else: [{ log: 'No more notes. Either {{person}} got quieter or the neighbor moved. I did not ask.' }],
+            else: [{ stat: 'happiness', delta: 2 }, { log: 'No more notes. Either {{person}} got quieter or the neighbor moved. I did not ask.' }],
           },
         ],
       },
@@ -875,7 +881,7 @@ export const PET_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 80,
     weight: 1,
-    cooldown: 5,
+    cooldown: 32,
     conditions: [{ hasLover: true }, { inPrison: false }],
     person: { kind: ['pet'], species: ['dog', 'cat'] },
     choices: [
@@ -913,7 +919,7 @@ export const PET_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 70,
     weight: 0.8,
-    cooldown: 4,
+    cooldown: 27,
     conditions: [{ hasJob: true }, { inPrison: false }],
     person: { kind: ['pet'], species: ['dog'] },
     choices: [
@@ -931,13 +937,13 @@ export const PET_EVENTS: EventDef[] = [
       {
         id: 'home',
         label: 'Leave {{them}} at home',
-        effects: [{ stat: 'happiness', delta: -1 }, { relationship: 'person', delta: -1 }, { log: "I spent the day admiring other people's pets and feeling disloyal." }],
+        effects: [{ stat: 'happiness', delta: -1 }, { relationship: 'person', delta: -1 }, { jobPerformance: 2 }, { log: "I admired other people's pets, felt disloyal, and got more work done than anyone." }],
       },
       {
         id: 'photo',
         label: 'Bring a framed photo',
         hint: '{{$15}}',
-        effects: [{ money: -15 }, { stat: 'happiness', delta: 2 }, { log: 'I put a framed photo of {{person}} on my desk. It won "best behaved" in the office vote.' }],
+        effects: [{ money: -15 }, { stat: 'happiness', delta: 2 }, { jobPerformance: 1 }, { log: 'I put a framed photo of {{person}} on my desk. It won "best behaved" in the office vote.' }],
       },
     ],
   },
@@ -949,7 +955,7 @@ export const PET_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 75,
     weight: 1,
-    cooldown: 4,
+    cooldown: 31,
     conditions: [{ inPrison: false }],
     person: { kind: ['pet'], species: ['dog'] },
     choices: [
@@ -1049,7 +1055,7 @@ export const PET_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 0.8,
-    cooldown: 5,
+    cooldown: 34,
     conditions: [{ inPrison: false }],
     person: { kind: ['pet'], species: ['dog', 'cat'] },
     choices: [
@@ -1086,7 +1092,7 @@ export const PET_EVENTS: EventDef[] = [
     minAge: 25,
     maxAge: 50,
     weight: 1,
-    cooldown: 5,
+    cooldown: 13,
     conditions: [{ hasChildren: true }, { inPrison: false }],
     person: { kind: ['pet'], species: ['dog', 'cat', 'rabbit'] },
     choices: [

@@ -53,9 +53,9 @@ export const KID_YEARS_EVENTS: EventDef[] = [
     minAge: 7,
     maxAge: 12,
     weight: 2,
-    cooldown: 2,
+    cooldown: 3,
     conditions: [{ enrolled: true }],
-    person: { kind: ['friend', 'bestFriend', 'classmate'], minAge: 6 },
+    person: { kind: ['friend', 'bestFriend', 'classmate'], minRelationship: 30, minAge: 6 },
     choices: [
       {
         id: 'copy',
@@ -197,7 +197,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
     minAge: 6,
     maxAge: 11,
     weight: 2,
-    cooldown: 2,
+    cooldown: 3,
     conditions: [{ enrolled: true }],
     choices: [
       {
@@ -256,7 +256,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
     minAge: 6,
     maxAge: 12,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 4,
     conditions: [{ enrolled: true }],
     choices: [
       {
@@ -380,7 +380,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
     minAge: 7,
     maxAge: 12,
     weight: 1.5,
-    cooldown: 2,
+    cooldown: 3,
     conditions: [{ enrolled: true }, { grade: { lte: 55 } }, { hasPerson: ['mother'] }],
     choices: [
       {
@@ -522,7 +522,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
     minAge: 7,
     maxAge: 12,
     weight: 1.5,
-    cooldown: 2,
+    cooldown: 3,
     person: { kind: ['friend', 'bestFriend', 'sibling'], minAge: 6, maxAge: 15 },
     choices: [
       {
@@ -596,7 +596,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
     minAge: 7,
     maxAge: 11,
     weight: 1.5,
-    cooldown: 2,
+    cooldown: 3,
     choices: [
       {
         id: 'classic',
@@ -644,9 +644,10 @@ export const KID_YEARS_EVENTS: EventDef[] = [
         id: 'search',
         label: 'Search until dark',
         effects: [
+          { stat: 'health', delta: -1 },
           {
             chance: 0.6,
-            then: [{ log: 'Found him at dusk, asleep under a hedge two streets away. I carried him home.', kind: 'good' }, { stat: 'happiness', delta: 6 }, { stat: 'health', delta: 1 }, { relationship: 'mother', delta: 2 }],
+            then: [{ log: 'Found him at dusk, asleep under a hedge two streets away. I carried him home.', kind: 'good' }, { stat: 'happiness', delta: 6 }, { relationship: 'mother', delta: 2 }],
             else: [{ log: 'We searched until it was too dark to see. We put his bowl out anyway.', kind: 'bad' }, { stat: 'happiness', delta: -8 }],
           },
         ],
@@ -747,7 +748,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
       {
         id: 'hide',
         label: 'Stay out of the way',
-        effects: [{ stat: 'happiness', delta: -5 }, { log: 'I went to my room and listened to the house be quiet.' }, { queue: 'kd_tight_months' }],
+        effects: [{ stat: 'happiness', delta: -2 }, { log: 'I went to my room and listened to the house be quiet.' }, { queue: 'kd_tight_months' }],
       },
     ],
   },
@@ -801,26 +802,31 @@ export const KID_YEARS_EVENTS: EventDef[] = [
     id: 'kd_moving_house',
     category: 'childhood',
     title: 'The big move',
-    text: '{{parents}} announced it at dinner: we are moving to the other side of {{country}} for work. New house, new school, new everything. The boxes arrived the next day.',
+    text: '{{parents}} announced it at dinner: we are moving to another city for work. New house, new school, new everything. The boxes arrived the next day.',
     minAge: 6,
     maxAge: 12,
     weight: 0.6,
     once: true,
+    // An immigrant family's move is the one abroad (scenarios.ts): not another city first, which would leave this
+    // town's new friends behind at the emigration and keep the far-away ones from before.
+    conditions: [{ not: { all: [{ flag: 'scenario:immigrant' }, { flag: 'immigrant', exists: false }] } }],
+    // The family moves whatever I choose (relocate: a new city; friends and grandparents stay behind, far away).
+    // Goodbyes come before the move, while everyone is still nearby.
     choices: [
       {
         id: 'pack',
         label: 'Help pack',
-        effects: [{ relationship: 'mother', delta: 3 }, { relationship: 'father', delta: 3 }, { stat: 'happiness', delta: -2 }, { karma: 1 }, { log: 'I labeled every box in my best handwriting. Half of them just said "stuff".' }, { queue: 'kd_new_town' }],
+        effects: [{ relationship: 'mother', delta: 3 }, { relationship: 'father', delta: 3 }, { stat: 'happiness', delta: -2 }, { karma: 1 }, { log: 'I labeled every box in my best handwriting. Half of them just said "stuff".' }, { relocate: true }, { queue: 'kd_new_town' }],
       },
       {
         id: 'refuse',
         label: 'Refuse to leave my room',
-        effects: [{ stat: 'happiness', delta: -6 }, { relationship: 'mother', delta: -3 }, { relationship: 'father', delta: -3 }, { log: 'I barricaded my door with a chair. The movers were very patient. We left anyway.', kind: 'bad' }, { queue: 'kd_new_town' }],
+        effects: [{ stat: 'happiness', delta: -6 }, { relationship: 'mother', delta: -3 }, { relationship: 'father', delta: -3 }, { log: 'I barricaded my door with a chair. The movers were very patient. We left anyway.', kind: 'bad' }, { relocate: true }, { queue: 'kd_new_town' }],
       },
       {
         id: 'goodbye',
         label: 'Say goodbye properly',
-        effects: [{ stat: 'happiness', delta: -3 }, { relationship: 'friend', delta: 4 }, { relationship: 'bestFriend', delta: 4 }, { karma: 2 }, { log: 'I went to every house on the street and said goodbye like a grown-up. It hurt more that way.' }, { queue: 'kd_new_town' }],
+        effects: [{ stat: 'happiness', delta: -3 }, { relationship: 'friend', delta: 4 }, { relationship: 'bestFriend', delta: 4 }, { karma: 2 }, { log: 'I went to every house on the street and said goodbye like a grown-up. It hurt more that way.' }, { relocate: true }, { queue: 'kd_new_town' }],
       },
     ],
   },
@@ -828,7 +834,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
     id: 'kd_new_town',
     category: 'childhood',
     title: 'The new town',
-    text: 'First week in the new town. The house smells of paint. The school is bigger. Nobody knows my name, which is either terrifying or a fresh start.',
+    text: 'First week in {{city}}. The house smells of paint. The school is bigger. Nobody knows my name, which is either terrifying or a fresh start.',
     minAge: 6,
     maxAge: 13,
     weight: 1,
@@ -848,7 +854,8 @@ export const KID_YEARS_EVENTS: EventDef[] = [
       {
         id: 'old',
         label: 'Cling to old friends',
-        effects: [{ relationship: 'friend', delta: 2 }, { relationship: 'bestFriend', delta: 2 }, { stat: 'happiness', delta: 1 }, { log: 'I wrote long letters to everyone back home. They wrote back less and less.' }],
+        // The friends back home live far away now, out of reach of a kind-wide relationship effect: the letters are the point.
+        effects: [{ karma: 1 }, { stat: 'smarts', delta: 1 }, { stat: 'happiness', delta: 1 }, { log: 'I wrote long letters to everyone back home. They wrote back less and less.' }],
       },
       {
         id: 'explore',
@@ -981,7 +988,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
     minAge: 6,
     maxAge: 12,
     weight: 1.2,
-    cooldown: 3,
+    cooldown: 4,
     person: { kind: ['sibling'], minAge: 4, maxAge: 17 },
     choices: [
       {
@@ -1031,8 +1038,8 @@ export const KID_YEARS_EVENTS: EventDef[] = [
     minAge: 7,
     maxAge: 12,
     weight: 2,
-    cooldown: 2,
-    person: { kind: ['friend', 'bestFriend'], minAge: 6 },
+    cooldown: 3,
+    person: { kind: ['friend', 'bestFriend'], minRelationship: 40, minAge: 6 },
     choices: [
       {
         id: 'go',
@@ -1076,7 +1083,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.4,
-            then: [{ log: 'They fixed my wheel and said my turn would come. It did, eventually.', kind: 'good' }, { stat: 'happiness', delta: 3 }],
+            then: [{ log: '{{parents}} fixed my wheel and said my turn would come. It did, eventually.', kind: 'good' }, { stat: 'happiness', delta: 3 }],
             else: [{ log: 'I was told to stop whining. I did not stop whining. I was told again.', kind: 'bad' }, { stat: 'happiness', delta: -3 }],
           },
         ],
@@ -1121,8 +1128,8 @@ export const KID_YEARS_EVENTS: EventDef[] = [
     minAge: 8,
     maxAge: 12,
     weight: 2,
-    cooldown: 2,
-    person: { kind: ['sibling', 'friend', 'bestFriend'], minAge: 6, maxAge: 17 },
+    cooldown: 3,
+    person: { kind: ['sibling', 'friend', 'bestFriend'], minRelationship: 30, minAge: 6, maxAge: 17 },
     choices: [
       {
         id: 'marathon',
@@ -1155,8 +1162,8 @@ export const KID_YEARS_EVENTS: EventDef[] = [
     minAge: 6,
     maxAge: 12,
     weight: 1.5,
-    cooldown: 3,
-    person: { kind: ['friend', 'bestFriend'] },
+    cooldown: 4,
+    person: { kind: ['friend', 'bestFriend'], minRelationship: 40 },
     choices: [
       {
         id: 'whole',
@@ -1225,7 +1232,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
     minAge: 8,
     maxAge: 12,
     weight: 1.5,
-    cooldown: 2,
+    cooldown: 3,
     choices: [
       {
         id: 'rake',
@@ -1296,7 +1303,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
     minAge: 6,
     maxAge: 12,
     weight: 1,
-    cooldown: 3,
+    cooldown: 4,
     conditions: [{ hasPerson: ['mother'] }, { hasPerson: ['father'] }],
     choices: [
       {

@@ -185,10 +185,10 @@ export const KID_LIFE_EVENTS: EventDef[] = [
         hint: 'Family pays {{$150}}',
         effects: [
           { money: -150 },
-          { stat: 'happiness', delta: -2 },
+          { stat: 'happiness', delta: -4 },
           { relationship: 'person', delta: 2 },
           { flag: 'foodAllergy' },
-          { log: 'The host phoned {{person}}. A doctor, a blood test, and the word "nuts". Now I read labels.' },
+          { log: 'I missed the rest of the party. A doctor, a blood test, and the word "nuts". Now I read labels.' },
         ],
       },
       {
@@ -340,7 +340,7 @@ export const KID_LIFE_EVENTS: EventDef[] = [
             chance: 0.3,
             then: [
               { money: -300 },
-              { stat: 'happiness', delta: -2 },
+              { stat: 'happiness', delta: -3 },
               { log: 'Four hours in the ER, one blood test, and the verdict: a stomach bug. Home by dinner.' },
             ],
             else: [
@@ -359,7 +359,7 @@ export const KID_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.3,
-            then: [{ stat: 'health', delta: -1 }, { log: 'It was a stomach bug. By dinner I was fine and a little disappointed about the scar.' }],
+            then: [{ stat: 'health', delta: -1 }, { stat: 'happiness', delta: 2 }, { log: 'It was a stomach bug. I slept it off and was back outside before dinner.' }],
             else: [
               { money: -4000 },
               { counter: 'surgeries' },
@@ -526,7 +526,7 @@ export const KID_LIFE_EVENTS: EventDef[] = [
     minAge: 6,
     maxAge: 12,
     weight: 1.2,
-    cooldown: 3,
+    cooldown: 4,
     choices: [
       {
         id: 'spend',
@@ -1413,7 +1413,7 @@ export const KID_LIFE_EVENTS: EventDef[] = [
     minAge: 6,
     maxAge: 12,
     weight: 1.2,
-    cooldown: 3,
+    cooldown: 4,
     conditions: [HAS_PARENT],
     person: { kind: ['sibling'], minAge: 4, maxAge: 17 },
     choices: [
@@ -1873,7 +1873,7 @@ export const KID_LIFE_EVENTS: EventDef[] = [
     weight: 1,
     once: true,
     conditions: [{ flag: 'poorFamily' }],
-    person: { kind: ['friend', 'bestFriend'], maxAge: 14 },
+    person: { kind: ['friend', 'bestFriend'], minRelationship: 30, maxAge: 14 },
     choices: [
       {
         id: 'comic',
