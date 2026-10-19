@@ -306,7 +306,9 @@ describe('juvenile court', () => {
     const detained = sendToPrison(aged(16), 2);
     const adultInside = sendToPrison(aged(30), 2);
     const free = aged(16);
-    const prisonEvents = EVENTS.filter((d) => !d.id.startsWith('jd_') && d.conditions?.some((c) => 'inPrison' in c && c.inPrison));
+    // Events written for detention say { juvenile: true } (the jd_ file, and others such as a grandparent's visit).
+    const forDetention = (d: (typeof EVENTS)[number]) => !!d.conditions?.some((c) => 'juvenile' in c && c.juvenile);
+    const prisonEvents = EVENTS.filter((d) => !d.id.startsWith('jd_') && !forDetention(d) && d.conditions?.some((c) => 'inPrison' in c && c.inPrison));
     expect(prisonEvents.length).toBeGreaterThan(5);
     for (const def of prisonEvents) expect([def.id, fitsState({ ...detained, character: { ...detained.character, age: Math.max(def.minAge, 16) } }, def)]).toEqual([def.id, false]);
     expect(JUVENILE_DETENTION_EVENTS.length).toBeGreaterThanOrEqual(8);
