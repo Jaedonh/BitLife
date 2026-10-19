@@ -124,6 +124,20 @@ const EMPLOYERS: Record<string, (base: string, city: string) => string> = {
   coach: (_b, c) => `${c} Athletic`,
 };
 
+/**
+ * The same job and rung at a rival employer for a raise (an event's switchEmployer effect). The old job goes into
+ * the history as left; coworkers from it stay behind (settleCoworkers). The Army has no rival.
+ */
+export function switchEmployer(state: GameState, rng: Rng, raise = 0.1): GameState {
+  const job = state.career.job;
+  const def = job ? JOB_BY_ID[job.defId] : undefined;
+  if (!job || !def || def.id === 'military') return state;
+  let company = employerFor(def, rng, state.character.city);
+  for (let i = 0; i < 4 && company === job.company; i++) company = employerFor(def, rng, state.character.city);
+  const s = removeJob(state, 'left');
+  return { ...s, career: { ...s.career, job: { ...job, company, salary: Math.round(job.salary * (1 + raise)), yearsHeld: 0 } } };
+}
+
 function employerFor(def: JobDef, rng: Rng, city: string): string {
   const base = rng.pick(COMPANY_NAMES);
   const suffix = rng.pick(COMPANY_SUFFIXES);

@@ -7,6 +7,7 @@
  * effects, so content never needs engine code.
  */
 import { ACHIEVEMENT_BY_ID } from '@/data/achievements';
+import type { Climate } from '@/data/countries';
 import { ILLNESS_BY_ID } from '@/data/illnesses';
 import type {
   AddictionKind,
@@ -73,6 +74,14 @@ export type Condition =
   | ({ sinceRelease: 'adult' | 'juvenile' | 'any' } & Comparator)
   /** A lifetime counter, e.g. { count: 'divorces', gte: 1 } or { count: 'firings', gte: 2 }. */
   | ({ count: keyof LifetimeCounters } & Comparator)
+  /** The calendar year, for era-specific content (smartphones, apps, video calls), e.g. { year: { gte: 2010 } }. */
+  | { year: Comparator }
+  /** The country's winters: { climate: ['snowy'] } for snow, ['snowy', 'mild'] for coats and cold weather. */
+  | { climate: Climate[] }
+  /** Southern hemisphere (December is summer). */
+  | { southern: boolean }
+  /** Still living in the family home (a minor, or a young adult on a low income who has not moved out). */
+  | { atHome: boolean }
   | { hustle: boolean }
   | { retired: boolean }
   | { illnessCount: Comparator }
@@ -119,6 +128,8 @@ export type Effect =
   | { addiction: AddictionKind; delta: number }
   | { injury: number }
   | { loseJob: true; reason?: 'fired' | 'left' }
+  /** Same job and rung at a rival employer, for a raise (default 10%). Coworkers from the old job stay behind. */
+  | { switchEmployer: true; raise?: number }
   | { jobPerformance: number }
   | { grade: number }
   | { expelled: true }

@@ -1,3 +1,4 @@
+import { getCountry } from '@/data/countries';
 import { hasMovedOut, isMarried, kidsCount } from '../systems/family';
 import type { GameState, Person } from '../types';
 import { netWorth } from '../util';
@@ -80,6 +81,10 @@ export function evaluateCondition(state: GameState, c: Condition): boolean {
   }
   if ('ownsAssetId' in c) return state.assets.some((a) => c.ownsAssetId.includes(a.defId));
   if ('hustle' in c) return (state.career.hustle !== null) === c.hustle;
+  if ('year' in c) return cmp(state.year, c.year);
+  if ('climate' in c) return c.climate.includes(getCountry(ch.countryCode).climate);
+  if ('southern' in c) return (getCountry(ch.countryCode).southern === true) === c.southern;
+  if ('atHome' in c) return livesAtHome(state) === c.atHome;
   if ('retired' in c) return state.career.retired === c.retired;
   if ('illnessCount' in c) return cmp(state.health.illnesses.length, c.illnessCount);
   if ('juvenile' in c) return (state.crime.inPrison && state.crime.juvenile === true) === c.juvenile;
