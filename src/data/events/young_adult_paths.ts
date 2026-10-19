@@ -6,8 +6,9 @@ import type { EventDef } from '@/engine/events/schema';
  *   volunteering, a gap year and life in my childhood bedroom;
  * - job hunting for unemployed adults 18-64, and a first full-time job;
  * - university life for enrolled undergraduates, ending with walking at commencement;
- * - renters 20-59 (no home of my own, and a job or a spouse, so not living with my parents);
+ * - renters 20-59 (no home of my own, a job or a spouse, and { atHome: false });
  * - young parenthood with a child under five, from the parent's side.
+ * Job portals, email and apps wait for their era with a { year } gate; the rest reads the same in 1995 and 2025.
  * The engine has no "lives with parents" state, so the childhood-bedroom events require that I have
  * no job, spouse, child or house, and either never had my own place (ya_first_apartment,
  * ya_move_in_together) or moved back home (ya_house_rules is only queued by that choice).
@@ -270,7 +271,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
       {
         id: 'refuse',
         label: 'Refuse on principle',
-        effects: [{ relationship: 'person', delta: -8 }, { stat: 'happiness', delta: 1 }, { log: 'I refused to pay. {{person}} changed the internet password and has not told me the new one.' }],
+        effects: [{ relationship: 'person', delta: -8 }, { stat: 'happiness', delta: 1 }, { log: 'I refused to pay. {{person}} took my bedroom door off its hinges "for repairs." It has been six weeks.' }],
       },
     ],
   },
@@ -372,7 +373,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     maxAge: 64,
     weight: 1.2,
     once: true,
-    conditions: [{ hasJob: false }, { enrolled: false }, { retired: false }],
+    conditions: [{ hasJob: false }, { enrolled: false }, { retired: false }, { year: { gte: 2005 } }],
     choices: [
       {
         id: 'honest',
@@ -461,8 +462,8 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 64,
     weight: 1.2,
-    cooldown: 6,
-    conditions: [{ hasJob: false }, { enrolled: false }, { retired: false }],
+    cooldown: 10,
+    conditions: [{ hasJob: false }, { enrolled: false }, { retired: false }, { year: { gte: 1998 } }],
     choices: [
       {
         id: 'feedback',
@@ -500,8 +501,8 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 64,
     weight: 1,
-    cooldown: 8,
-    conditions: [{ hasJob: false }, { enrolled: false }, { retired: false }],
+    cooldown: 10,
+    conditions: [{ hasJob: false }, { enrolled: false }, { retired: false }, { year: { gte: 2000 } }],
     choices: [
       {
         id: 'email',
@@ -625,7 +626,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 64,
     weight: 1,
-    cooldown: 8,
+    cooldown: 10,
     conditions: [{ hasJob: false }, { enrolled: false }, { retired: false }],
     person: { kind: ['friend', 'bestFriend'], minAge: 20, minRelationship: 40 },
     choices: [
@@ -665,7 +666,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     id: 'yp_first_day',
     category: 'work',
     title: 'First week',
-    text: 'First week at my first full-time job. I am officially a {{job}}. I have a name tag, a password I have already forgotten, and a growing list of people whose names I should know by now.',
+    text: 'First week at my first full-time job. I am officially a {{job}}. I have a name tag, a stack of forms, and a growing list of people whose names I should know by now.',
     minAge: 18,
     maxAge: 25,
     weight: 3,
@@ -892,7 +893,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
       },
       {
         id: 'extension',
-        label: 'Email for an extension',
+        label: 'Beg for an extension',
         effects: [
           {
             chance: 0.5,
@@ -947,7 +948,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     id: 'yp_textbook',
     category: 'school',
     title: 'Required reading',
-    text: 'The required textbook for one class costs {{$320}} and comes with an online access code that expires at the end of the semester. The professor wrote it. The new edition moved one chapter.',
+    text: 'The required textbook for one class costs {{$320}} and comes with a workbook that cannot be resold. The professor wrote it. The new edition moved one chapter.',
     minAge: 18,
     maxAge: 25,
     weight: 1,
@@ -1081,7 +1082,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 1,
     once: true,
-    conditions: [{ noAsset: 'house' }, { any: [{ hasJob: true }, { married: true }] }, { not: { all: [{ enrolled: true }, { stage: ['university'] }] } }],
+    conditions: [{ noAsset: 'house' }, { atHome: false }, { any: [{ hasJob: true }, { married: true }] }, { not: { all: [{ enrolled: true }, { stage: ['university'] }] } }, { year: { gte: 2003 } }],
     choices: [
       {
         id: 'upstairs',
@@ -1137,7 +1138,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 1,
     once: true,
-    conditions: [{ noAsset: 'house' }, { any: [{ hasJob: true }, { married: true }] }, { not: { all: [{ enrolled: true }, { stage: ['university'] }] } }],
+    conditions: [{ noAsset: 'house' }, { atHome: false }, { any: [{ hasJob: true }, { married: true }] }, { not: { all: [{ enrolled: true }, { stage: ['university'] }] } }, { year: { gte: 2012 } }],
     choices: [
       {
         id: 'pay',
@@ -1180,13 +1181,13 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
   {
     id: 'yp_thin_walls',
     category: 'random',
-    title: 'Through the wall',
+    title: 'Thin walls',
     text: "The walls in my building are so thin that I know my neighbor's whole life: his mother's birthday, his sourdough schedule, and that he is about to break up with someone named Dana.",
     minAge: 20,
     maxAge: 59,
     weight: 1,
     once: true,
-    conditions: [{ noAsset: 'house' }, { any: [{ hasJob: true }, { married: true }] }, { not: { all: [{ enrolled: true }, { stage: ['university'] }] } }],
+    conditions: [{ noAsset: 'house' }, { atHome: false }, { any: [{ hasJob: true }, { married: true }] }, { not: { all: [{ enrolled: true }, { stage: ['university'] }] } }],
     choices: [
       {
         id: 'hello',
@@ -1227,7 +1228,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 1,
     once: true,
-    conditions: [{ noAsset: 'house' }, { any: [{ hasJob: true }, { married: true }] }, { not: { all: [{ enrolled: true }, { stage: ['university'] }] } }],
+    conditions: [{ noAsset: 'house' }, { atHome: false }, { any: [{ hasJob: true }, { married: true }] }, { not: { all: [{ enrolled: true }, { stage: ['university'] }] } }],
     choices: [
       {
         id: 'soup',
@@ -1261,7 +1262,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
         effects: [
           { money: -50 },
           { stat: 'smarts', delta: 3 },
-          { log: 'I bled the radiator with a key and a video. The super came by just to look, impressed.' },
+          { log: 'I bled the radiator with a key and a library book. The super came by just to look, impressed.' },
           { chance: 0.2, then: [{ injury: 1 }, { log: 'I also scalded my wrist on the valve.', kind: 'bad' }] },
         ],
       },
@@ -1281,8 +1282,8 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 59,
     weight: 1,
-    cooldown: 8,
-    conditions: [{ noAsset: 'house' }, { any: [{ hasJob: true }, { married: true }] }, { not: { all: [{ enrolled: true }, { stage: ['university'] }] } }],
+    cooldown: 12,
+    conditions: [{ noAsset: 'house' }, { atHome: false }, { any: [{ hasJob: true }, { married: true }] }, { not: { all: [{ enrolled: true }, { stage: ['university'] }] } }, { year: { gte: 2012 } }],
     choices: [
       {
         id: 'locker',
@@ -1338,7 +1339,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 1,
     once: true,
-    conditions: [{ noAsset: 'house' }, { any: [{ hasJob: true }, { married: true }] }, { not: { all: [{ enrolled: true }, { stage: ['university'] }] } }],
+    conditions: [{ noAsset: 'house' }, { atHome: false }, { any: [{ hasJob: true }, { married: true }] }, { not: { all: [{ enrolled: true }, { stage: ['university'] }] } }],
     choices: [
       {
         id: 'chat',
@@ -1389,7 +1390,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     maxAge: 35,
     weight: 1,
     once: true,
-    conditions: [{ noAsset: 'house' }, { hasJob: true }, { married: false }, { hasChildren: false }, { eventNotFired: 'ya_move_in_together' }, { not: { all: [{ enrolled: true }, { stage: ['university'] }] } }],
+    conditions: [{ noAsset: 'house' }, { atHome: false }, { hasJob: true }, { married: false }, { hasChildren: false }, { eventNotFired: 'ya_move_in_together' }, { not: { all: [{ enrolled: true }, { stage: ['university'] }] } }],
     choices: [
       {
         id: 'knock',
@@ -1436,7 +1437,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 1,
     once: true,
-    conditions: [{ noAsset: 'house' }, { any: [{ hasJob: true }, { married: true }] }, { not: { all: [{ enrolled: true }, { stage: ['university'] }] } }],
+    conditions: [{ noAsset: 'house' }, { atHome: false }, { any: [{ hasJob: true }, { married: true }] }, { not: { all: [{ enrolled: true }, { stage: ['university'] }] } }],
     choices: [
       {
         id: 'photos',
@@ -1466,6 +1467,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
       {
         id: 'review',
         label: 'Write an honest review',
+        conditions: [{ year: { gte: 2005 } }],
         effects: [
           { karma: 1 },
           {
@@ -1491,7 +1493,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 1,
     once: true,
-    conditions: [{ noAsset: 'house' }, { any: [{ hasJob: true }, { married: true }] }, { not: { all: [{ enrolled: true }, { stage: ['university'] }] } }],
+    conditions: [{ noAsset: 'house' }, { atHome: false }, { any: [{ hasJob: true }, { married: true }] }, { not: { all: [{ enrolled: true }, { stage: ['university'] }] } }],
     choices: [
       {
         id: 'rugs',
@@ -1685,12 +1687,12 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
       },
       {
         id: 'chat',
-        label: "Join the parents' group chat",
+        label: "Join the parents' coffee group",
         effects: [
           {
             chance: 0.5,
             then: [{ stat: 'happiness', delta: 3 }, { newPerson: { kind: 'friend', relationship: 50, gender: 'male', minAge: 25, maxAge: 45, log: '{{person}}, a dad of twins, adopted me into the group. I get all the hand-me-downs now.' } }],
-            else: [{ stat: 'happiness', delta: -1 }, { log: 'The group chat is ninety percent nap schedules and one long argument about juice.' }],
+            else: [{ stat: 'happiness', delta: -1 }, { log: 'The coffee group is ninety percent nap schedules and one long argument about juice.' }],
           },
         ],
       },
@@ -1729,7 +1731,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
       {
         id: 'home',
         label: 'Stay home',
-        effects: [{ stat: 'happiness', delta: -3 }, { stat: 'health', delta: 2 }, { relationship: 'person', delta: 3 }, { relationship: 'friend', delta: -2 }, { relationship: 'bestFriend', delta: -2 }, { log: 'Laundry, bath, story, sleep. My friends sent photos. I sent one of the laundry.' }],
+        effects: [{ stat: 'happiness', delta: -3 }, { stat: 'health', delta: 2 }, { relationship: 'person', delta: 3 }, { relationship: 'friend', delta: -2 }, { relationship: 'bestFriend', delta: -2 }, { log: 'Laundry, bath, story, sleep. My friends told me about it for a week. I told them about the laundry.' }],
       },
     ],
   },
@@ -1792,6 +1794,8 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
         id: 'bring',
         label: 'Bring {{them}} along',
         effects: [
+          // A toddler at an interview is a day's work on its own.
+          { energy: -1 },
           {
             chance: 0.5,
             then: [{ stat: 'happiness', delta: 4 }, { relationship: 'person', delta: 2 }, { log: '{{person}} charmed the receptionist and colored quietly. The manager said I was "resourceful."', kind: 'good' }],
@@ -1826,6 +1830,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
       {
         id: 'video',
         label: 'Ask for a video call',
+        conditions: [{ year: { gte: 2010 } }],
         effects: [
           {
             chance: 0.6,
@@ -1840,7 +1845,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     id: 'yp_unsolicited_advice',
     category: 'family',
     title: 'Unsolicited advice',
-    text: 'Since {{person}} was born, everyone has advice. A stranger at the bus stop said {{they}} needs a hat. The pharmacist said {{they}} needs less hat. Someone online says I am doing everything wrong.',
+    text: 'Since {{person}} was born, everyone has advice. A stranger at the bus stop said {{they}} needs a hat. The pharmacist said {{they}} needs less hat. A magazine says I am doing everything wrong.',
     minAge: 18,
     maxAge: 29,
     weight: 1.5,
@@ -1867,7 +1872,8 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
       {
         id: 'argue',
         label: 'Argue with the internet',
-        effects: [{ stat: 'happiness', delta: -3 }, { stat: 'health', delta: -1 }, { stat: 'smarts', delta: 2 }, { log: 'I argued about hats online until 2 a.m. I now know everything about hats. {{person}} slept fine.' }],
+        conditions: [{ year: { gte: 2005 } }],
+        effects: [{ stat: 'happiness', delta: -3 }, { stat: 'health', delta: -1 }, { stat: 'smarts', delta: 2 }, { log: 'I argued about hats on a parenting forum until 2 a.m. I now know everything about hats. {{person}} slept fine.' }],
       },
     ],
   },

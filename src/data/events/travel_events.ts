@@ -6,6 +6,10 @@ import type { EventDef } from '@/engine/events/schema';
  * mix-ups, breakdowns, cruise bugs, destination weddings, upgrades, beach
  * rescues, souvenirs, border mix-ups and volunteering abroad. Follow-ups
  * (followUpOnly) are queued by the events that set them up.
+ *
+ * A card set abroad says so in its own text ("on my first evening abroad"), needs the money for a
+ * trip, and has a long cooldown (or opens once), so the same street stall never turns up in my
+ * hometown or four times in one life.
  */
 export const TRAVEL_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ airports
@@ -17,7 +21,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 80,
     weight: 1.5,
-    cooldown: 4,
+    cooldown: 10,
     conditions: [{ inPrison: false }, { money: { gte: 400 } }],
     choices: [
       {
@@ -49,7 +53,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: -5 },
           {
             chance: 0.4,
-            then: [{ money: 200 }, { log: 'The airline refunded part of the ticket after I wrote a politely furious email.', kind: 'money' }],
+            then: [{ money: 200 }, { log: 'The airline refunded part of the ticket after I wrote a politely furious letter.', kind: 'money' }],
             else: [{ log: 'The trip was off. I unpacked slowly, which is the saddest way to unpack.' }],
           },
         ],
@@ -64,7 +68,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 1,
-    cooldown: 5,
+    cooldown: 10,
     conditions: [{ inPrison: false }, { money: { gte: 300 } }],
     choices: [
       {
@@ -107,7 +111,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 85,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 15,
     conditions: [{ inPrison: false }, { money: { gte: 200 } }],
     choices: [
       {
@@ -143,10 +147,11 @@ export const TRAVEL_EVENTS: EventDef[] = [
         id: 'claim',
         label: 'File a furious claim',
         effects: [
+          { energy: -1 },
           { stat: 'smarts', delta: 1 },
           {
             chance: 0.5,
-            then: [{ money: 400 }, { stat: 'happiness', delta: 3 }, { log: 'Three forms, two calls and one very specific email later, the airline paid for everything and more.', kind: 'money' }],
+            then: [{ money: 300 }, { stat: 'happiness', delta: 3 }, { log: 'Three forms, two calls and one very specific letter later, the airline paid for everything and more.', kind: 'money' }],
             else: [{ stat: 'happiness', delta: -4 }, { money: -120, payer: 'self' }, { log: 'The claim vanished into a department that does not answer phones. I bought new clothes and moved on.', kind: 'bad' }],
           },
         ],
@@ -163,7 +168,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 80,
     weight: 1,
-    cooldown: 8,
+    cooldown: 10,
     conditions: [{ inPrison: false }, { money: { gte: 300 } }],
     choices: [
       {
@@ -228,7 +233,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
         label: 'Write back and say thanks',
         effects: [
           { karma: 2 },
-          { stat: 'happiness', delta: 4 },
+          { stat: 'happiness', delta: 2 },
           { log: 'I wrote back. A postcard came a year later. We are now strangers who are fond of each other.', kind: 'good' },
         ],
       },
@@ -247,7 +252,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 80,
     weight: 0.8,
-    cooldown: 8,
+    cooldown: 10,
     conditions: [{ inPrison: false }, { money: { gte: 200 } }],
     choices: [
       {
@@ -303,17 +308,17 @@ export const TRAVEL_EVENTS: EventDef[] = [
         effects: [
           { stat: 'health', delta: -1 },
           { stat: 'happiness', delta: 5 },
-          { newPerson: { kind: 'friend', relationship: 60, log: 'I made a friend called {{person}} over instant noodles and a shared phone charger.' } },
+          { newPerson: { kind: 'friend', relationship: 60, log: 'I made a friend called {{person}} over instant noodles and a shared jar of peanut butter.' } },
           { log: 'We talked until four about everything and nothing. I will remember it longer than most of the year.', kind: 'good' },
         ],
       },
       {
         id: 'swap',
-        label: 'Swap numbers and sleep',
+        label: 'Swap addresses and sleep',
         effects: [
           { stat: 'health', delta: 1 },
           { newPerson: { kind: 'friend', relationship: 40, log: '{{person}} from the hostel and I kept in touch, loosely.' } },
-          { log: 'We traded numbers and I slept. Sensible, slightly cowardly.' },
+          { log: 'We traded addresses and I slept. Sensible, slightly cowardly.' },
         ],
       },
       {
@@ -331,12 +336,13 @@ export const TRAVEL_EVENTS: EventDef[] = [
     id: 'tr_mystery_skewer',
     category: 'random',
     title: 'Mystery skewer',
-    text: 'A street stall is selling something on a skewer. It smells incredible. The sign is in a language I cannot read and the line is entirely locals, which is either a great sign or a dare.',
-    minAge: 16,
+    text: 'On my first evening abroad, a street stall is selling something on a skewer. It smells incredible. The sign is in a language I cannot read and the line is entirely locals, which is either a great sign or a dare.',
+    minAge: 18,
     maxAge: 85,
     weight: 2,
-    cooldown: 3,
-    conditions: [{ inPrison: false }],
+    once: true,
+    // A trip abroad I can afford.
+    conditions: [{ inPrison: false }, { money: { gte: 400 } }],
     choices: [
       {
         id: 'eat',
@@ -389,12 +395,12 @@ export const TRAVEL_EVENTS: EventDef[] = [
     id: 'tr_hopelessly_lost',
     category: 'random',
     title: 'Hopelessly lost',
-    text: 'My phone died, the streets stopped having names, and every alley opened onto another alley. The sun is going down and the same cat has watched me pass three times.',
-    minAge: 16,
+    text: 'On a trip to a city I had never seen, my map gave up, the streets stopped having names, and every alley opened onto another alley. The same cat has now watched me pass three times.',
+    minAge: 18,
     maxAge: 85,
     weight: 2,
-    cooldown: 3,
-    conditions: [{ inPrison: false }],
+    cooldown: 20,
+    conditions: [{ inPrison: false }, { money: { gte: 300 } }],
     choices: [
       {
         id: 'landmark',
@@ -402,7 +408,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.5,
-            then: [{ stat: 'happiness', delta: 4 }, { stat: 'health', delta: 1 }, { log: 'The tallest thing was the clock tower in the main square. I found my way back, briefly an explorer.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 4 }, { stat: 'health', delta: 1 }, { stat: 'smarts', delta: 2 }, { log: 'The tallest thing was the clock tower in the main square. I found my way back and learned the whole old town.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -4 }, { stat: 'health', delta: -2 }, { log: 'The tallest thing was a water tower at the edge of town. I walked two hours in the wrong direction.', kind: 'bad' }],
           },
         ],
@@ -440,7 +446,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 10,
     conditions: [{ inPrison: false }, { money: { gte: 200 } }],
     choices: [
       {
@@ -482,12 +488,12 @@ export const TRAVEL_EVENTS: EventDef[] = [
     id: 'tr_language_mixup',
     category: 'random',
     title: 'Lost in translation',
-    text: 'I ordered, I think, a coffee. The waiter nodded gravely and returned with a plate of grilled sardines and the chef, who wanted to shake my hand.',
-    minAge: 16,
+    text: 'At a café abroad, I ordered, I think, a coffee. The waiter nodded gravely and returned with a plate of grilled sardines and the chef, who wanted to shake my hand.',
+    minAge: 18,
     maxAge: 85,
     weight: 2,
-    cooldown: 3,
-    conditions: [{ inPrison: false }],
+    cooldown: 20,
+    conditions: [{ inPrison: false }, { money: { gte: 300 } }],
     choices: [
       {
         id: 'eat',
@@ -513,6 +519,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
       {
         id: 'app',
         label: 'Use a translation app',
+        conditions: [{ year: { gte: 2012 } }],
         effects: [
           { stat: 'smarts', delta: 2 },
           { stat: 'happiness', delta: 1 },
@@ -529,7 +536,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 80,
     weight: 1.2,
-    cooldown: 4,
+    cooldown: 10,
     conditions: [{ inPrison: false }, { any: [{ ownsAsset: 'car' }, { money: { gte: 1200 } }] }],
     choices: [
       {
@@ -549,7 +556,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.4,
-            then: [{ stat: 'smarts', delta: 2 }, { stat: 'happiness', delta: 6 }, { log: 'A loose cable. I fixed it like someone who had seen one video. It started. I am a mechanic now.', kind: 'good' }],
+            then: [{ stat: 'smarts', delta: 2 }, { stat: 'happiness', delta: 6 }, { log: 'A loose cable. I fixed it like someone who had seen one diagram. It started. I am a mechanic now.', kind: 'good' }],
             else: [
               { asset: 'damage', kind: 'car', amount: 25 },
               { money: -450 },
@@ -580,7 +587,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 85,
     weight: 1.5,
-    cooldown: 4,
+    cooldown: 20,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -632,7 +639,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 21,
     maxAge: 85,
     weight: 0.8,
-    cooldown: 6,
+    cooldown: 10,
     conditions: [{ inPrison: false }, { money: { gte: 3000 } }],
     choices: [
       {
@@ -745,11 +752,11 @@ export const TRAVEL_EVENTS: EventDef[] = [
     id: 'tr_souvenir_temptation',
     category: 'random',
     title: 'The perfect souvenir',
-    text: 'At a market stall I found it: a hand-carved thing of real beauty that I have no room for and cannot afford. The seller has noticed my face. Negotiations have begun whether I like it or not.',
+    text: 'At a market stall on my trip I found it: a hand-carved thing of real beauty that I have no room for and cannot afford. The seller has noticed my face. Negotiations have begun whether I like it or not.',
     minAge: 16,
     maxAge: 85,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 10,
     conditions: [{ inPrison: false }, { money: { gte: 100, lte: 2500 } }],
     choices: [
       {
@@ -852,7 +859,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 80,
     weight: 1.5,
-    cooldown: 4,
+    cooldown: 12,
     conditions: [{ inPrison: false }],
     person: { kind: ['lover', 'spouse', 'friend', 'bestFriend', 'sibling'], minRelationship: 30 },
     choices: [
@@ -900,7 +907,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 70,
     weight: 1,
-    cooldown: 6,
+    cooldown: 10,
     conditions: [{ inPrison: false }, { money: { gte: 900 } }],
     person: { kind: ['friend', 'bestFriend', 'sibling', 'coworker'], minRelationship: 40, minAge: 18 },
     choices: [
@@ -984,7 +991,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
           { love: 12 },
           { relationship: 'person', delta: 8 },
           { counter: 'vacations' },
-          { log: 'Two weeks of turquoise water and no phone signal. We came home broke, tanned and very married.', kind: 'good' },
+          { log: 'Two weeks of turquoise water and nobody who knew where we were. We came home broke, tanned and very married.', kind: 'good' },
         ],
       },
       {
@@ -1015,12 +1022,12 @@ export const TRAVEL_EVENTS: EventDef[] = [
   {
     id: 'tr_kids_road_trip',
     category: 'random',
-    title: 'Are we there yet',
+    title: 'Eleven times',
     text: 'Six hours in the car with {{person}}, who has asked whether we are there yet eleven times and has just announced that {{they}} might be sick. We are not there yet.',
     minAge: 24,
     maxAge: 60,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 10,
     conditions: [{ inPrison: false }, { hasChildren: true }, { money: { gte: 100 } }],
     person: { kind: ['child'], minAge: 3, maxAge: 12 },
     choices: [
@@ -1080,7 +1087,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
         label: 'Be genuinely enthusiastic',
         effects: [
           { counter: 'vacations' },
-          { stat: 'happiness', delta: 4 },
+          { stat: 'happiness', delta: 2 },
           { relationship: 'person', delta: 7 },
           { log: 'I followed the laminated schedule and, around day three, started enjoying it. {{person}} glowed.', kind: 'good' },
         ],
@@ -1102,7 +1109,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
           { counter: 'vacations' },
           {
             chance: 0.6,
-            then: [{ stat: 'happiness', delta: 6 }, { relationship: 'person', delta: -2 }, { log: 'I explored alone for a day and had the best time of the trip. {{person}} pretended not to mind.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 7 }, { relationship: 'person', delta: -2 }, { log: 'I explored alone for a day and had the best time of the trip. {{person}} pretended not to mind.', kind: 'good' }],
             else: [
               { stat: 'happiness', delta: -4 },
               { relationship: 'person', delta: -8 },
@@ -1121,7 +1128,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 75,
     weight: 1,
-    cooldown: 5,
+    cooldown: 15,
     conditions: [{ inPrison: false }, { money: { gte: 300 } }],
     person: { kind: ['ex'] },
     choices: [
@@ -1129,12 +1136,11 @@ export const TRAVEL_EVENTS: EventDef[] = [
         id: 'wave',
         label: 'Wave and say hello',
         effects: [
-          { stat: 'happiness', delta: 2 },
           { relationship: 'person', delta: 6 },
           {
             chance: 0.5,
             then: [{ stat: 'happiness', delta: 3 }, { log: 'We got coffee. It was fine. Really fine. We both said "you look well" and both meant it.', kind: 'good' }],
-            else: [{ stat: 'happiness', delta: -3 }, { log: 'We got coffee. {{They}} mentioned {{their}} new partner four times. I counted. The pool got smaller.' }],
+            else: [{ stat: 'happiness', delta: -4 }, { log: 'We got coffee. {{They}} mentioned {{their}} new partner four times. I counted. The pool got smaller.' }],
           },
         ],
       },
@@ -1142,7 +1148,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
         id: 'hide',
         label: 'Hide behind a menu',
         effects: [
-          { stat: 'happiness', delta: -2 },
+          { stat: 'happiness', delta: 1 },
           { log: 'I hid behind a drinks menu for forty minutes until {{person}} left. The menu and I are close now.' },
         ],
       },
@@ -1166,13 +1172,14 @@ export const TRAVEL_EVENTS: EventDef[] = [
     id: 'tr_work_trip',
     category: 'random',
     title: 'Conference trip',
-    text: '{{company}} is sending me to a conference in another city, and {{person}} is tagging along for the trip. Three days of lanyards, lukewarm coffee and a hotel with a surprisingly good view.',
+    text: '{{company}} is sending me and {{person}} from my team to a conference in another city. Three days of lanyards, lukewarm coffee and a hotel with a surprisingly good view.',
     minAge: 20,
     maxAge: 65,
     weight: 1.2,
-    cooldown: 3,
+    cooldown: 10,
     conditions: [{ inPrison: false }, { hasJob: true }],
-    person: { kind: ['coworker', 'friend', 'bestFriend'] },
+    // A current coworker only (coworkers belong to the job I hold now).
+    person: { kind: ['coworker'] },
     choices: [
       {
         id: 'talks',
@@ -1192,7 +1199,7 @@ export const TRAVEL_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 6 },
           {
             chance: 0.25,
-            then: [{ jobPerformance: -5 }, { log: 'We explored the old town. Someone from the office saw the photos. The photos were timestamped.', kind: 'bad' }],
+            then: [{ jobPerformance: -5 }, { log: 'We explored the old town. My boss, it turned out, was at the same café.', kind: 'bad' }],
             else: [{ jobPerformance: -1 }, { log: 'We explored the old town and nobody noticed. The afternoon session was about compliance anyway.' }],
           },
         ],

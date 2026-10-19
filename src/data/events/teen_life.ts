@@ -11,6 +11,10 @@ import type { EventDef } from '@/engine/events/schema';
  * Minors never pay an event cost themselves (effects.ts sends it to their
  * parents), so teen money here is earned through the event: a choice that
  * earns and spends inside the story adds only what is left over.
+ *
+ * Teens here are born 1975-2010, so phone and online cards carry a { year } gate
+ * (texting from 2000, smartphones, apps and posting from 2010) and the rest are
+ * written so they read the same in 1990 and in 2025.
  */
 export const TEEN_LIFE_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ early teens
@@ -23,13 +27,13 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     maxAge: 14,
     weight: 2,
     once: true,
-    // Not after any card that already put a phone in my hand (here or elsewhere).
+    // A smartphone with apps (from 2010), and not after any card that already put a phone in my hand.
     conditions: [
+      { year: { gte: 2010 } },
       { eventNotFired: 'tm_screen_time_intervention' },
       { eventNotFired: 'tm_lost_phone' },
       { eventNotFired: 'tm_chain_message' },
       { eventNotFired: 'tm_group_chat_drama' },
-      { eventNotFired: 'tn_detention' },
       { eventNotFired: 'sl_hallway_fight' },
       { eventNotFired: 'tl_grade_group_chat' },
       { eventNotFired: 'tl_scam_dm' },
@@ -234,7 +238,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     maxAge: 14,
     weight: 2,
     once: true,
-    conditions: [{ enrolled: true }],
+    conditions: [{ enrolled: true }, { year: { gte: 2010 } }],
     choices: [
       {
         id: 'mute',
@@ -449,6 +453,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     maxAge: 17,
     weight: 1.5,
     cooldown: 4,
+    conditions: [{ year: { gte: 2010 } }],
     choices: [
       {
         id: 'block',
@@ -776,7 +781,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
   {
     id: 'tl_first_paycheck_job',
     category: 'work',
-    title: 'Pay stub',
+    title: 'Eleven lines',
     text: 'My first real paycheck from {{company}} arrived today. I had calculated the number in my head all week. The real number is smaller, and the stub has eleven lines I do not understand.',
     minAge: 14,
     maxAge: 17,
@@ -990,7 +995,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.6,
-            then: [{ stat: 'happiness', delta: 4 }, { log: 'I struck a pose. It got more likes than anything I have ever posted on purpose.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 4 }, { log: 'I struck a pose. The photo made the yearbook, which is more than my school picture ever did.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -3 }, { log: 'I struck a pose. It went around school with a caption I will not repeat.', kind: 'bad' }],
           },
         ],
@@ -1008,6 +1013,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     maxAge: 17,
     weight: 1,
     cooldown: 4,
+    conditions: [{ year: { gte: 2010 } }],
     choices: [
       {
         id: 'allow',
@@ -1042,6 +1048,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     maxAge: 17,
     weight: 1.5,
     cooldown: 3,
+    conditions: [{ year: { gte: 2010 } }],
     choices: [
       {
         id: 'delete',
@@ -1094,7 +1101,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     maxAge: 17,
     weight: 1,
     cooldown: 4,
-    conditions: [{ enrolled: true }],
+    conditions: [{ enrolled: true }, { year: { gte: 2010 } }],
     // A friend at my school ("half the school follows it").
     person: { kind: ['friend', 'bestFriend'], minAge: 12, maxAge: 18 },
     choices: [
@@ -1143,6 +1150,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     maxAge: 17,
     weight: 1,
     cooldown: 4,
+    conditions: [{ year: { gte: 2010 } }],
     person: { kind: ['mother', 'father'] },
     choices: [
       {
@@ -1195,6 +1203,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     maxAge: 16,
     weight: 1,
     once: true,
+    conditions: [{ year: { gte: 2003 } }],
     choices: [
       {
         id: 'friends',
@@ -1235,7 +1244,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     maxAge: 17,
     weight: 1.5,
     cooldown: 2,
-    conditions: [{ enrolled: true }],
+    conditions: [{ enrolled: true }, { year: { gte: 2005 } }],
     person: { kind: ['friend', 'bestFriend'], minAge: 11 },
     choices: [
       {
@@ -1277,7 +1286,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     maxAge: 17,
     weight: 1,
     once: true,
-    conditions: [{ enrolled: true }],
+    conditions: [{ enrolled: true }, { year: { gte: 2010 } }],
     choices: [
       {
         id: 'lean',
@@ -1325,7 +1334,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     maxAge: 17,
     weight: 1.5,
     cooldown: 5,
-    conditions: [{ hasPerson: ['friend', 'bestFriend'] }],
+    conditions: [{ hasPerson: ['friend', 'bestFriend'] }, { year: { gte: 2010 } }],
     person: { kind: ['mother', 'father'] },
     choices: [
       {
@@ -1485,7 +1494,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 3 },
           {
             chance: 0.3,
-            then: [{ stat: 'happiness', delta: -2 }, { log: 'I hugged {{person}} in front of everyone. Someone filmed it. It is a sticker now.' }],
+            then: [{ stat: 'happiness', delta: -2 }, { log: 'I hugged {{person}} in front of everyone. Someone took a picture. It is in the yearbook now.' }],
             else: [{ log: 'I hugged {{person}} in front of everyone. {{They}} said it was no big deal, glowing.', kind: 'good' }],
           },
         ],
@@ -1505,7 +1514,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
   {
     id: 'tl_birthday_15',
     category: 'money',
-    title: 'The card',
+    title: "My great-aunt's twenty",
     text: "My great-aunt's birthday card arrived on time, as it has every year of my life. Inside: a poem she wrote herself and {{$20}}, the same {{$20}} she has sent since I turned five.",
     minAge: 15,
     maxAge: 15,
@@ -1529,6 +1538,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
       {
         id: 'text',
         label: 'Text her a thank-you',
+        conditions: [{ year: { gte: 2000 } }],
         effects: [{ money: 20 }, { stat: 'happiness', delta: 1 }, { log: 'I texted thanks with a heart. She replied "WHO IS THIS." She does not save numbers.' }],
       },
       {
@@ -1552,12 +1562,12 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     id: 'tl_nye_family',
     category: 'holiday',
     title: 'Midnight at home',
-    text: "New Year's Eve at home. {{person}} poured sparkling grape juice into the good glasses, there is a board game on the table and a countdown on TV. My friends are all texting from somewhere louder.",
+    text: "New Year's Eve at home. {{person}} poured sparkling grape juice into the good glasses, there is a board game on the table and a countdown on TV. My friends are all somewhere louder.",
     minAge: 13,
     maxAge: 17,
     weight: 1.5,
     cooldown: 3,
-    // "My friends are all texting": I have some.
+    // "My friends are all somewhere louder": I have some.
     conditions: [{ hasPerson: ['friend', 'bestFriend'] }],
     person: { kind: ['mother', 'father'] },
     choices: [
@@ -1579,8 +1589,8 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
       },
       {
         id: 'call',
-        label: 'Video-call my friends',
-        effects: [{ stat: 'happiness', delta: 3 }, { relationship: 'friend', delta: 3 }, { relationship: 'person', delta: -3 }, { log: 'I spent midnight on a video call in the hallway. {{person}} counted down without me.' }],
+        label: 'Call my friends at midnight',
+        effects: [{ stat: 'happiness', delta: 3 }, { relationship: 'friend', delta: 3 }, { relationship: 'person', delta: -3 }, { log: 'I spent midnight on the phone in the hallway with my friends. {{person}} counted down without me.' }],
       },
       {
         id: 'asleep',
@@ -1706,12 +1716,12 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
       },
       {
         id: 'text',
-        label: 'Ask over text',
+        label: 'Pass a note in class',
         effects: [
           {
             chance: 0.35,
-            then: [{ stat: 'happiness', delta: 4 }, { newPerson: { kind: 'lover', minAge: 16, maxAge: 17, relationship: 55, log: '{{person}} replied with a yes and eleven exclamation points. We are going out.' } }],
-            else: [{ stat: 'happiness', delta: -1 }, { log: 'Three dots appeared, vanished, appeared. Then: "haha you\'re funny." Ouch.', kind: 'bad' }],
+            then: [{ stat: 'happiness', delta: 4 }, { newPerson: { kind: 'lover', minAge: 16, maxAge: 17, relationship: 55, log: '{{person}} passed the note back with YES and eleven exclamation points. We are going out.' } }],
+            else: [{ stat: 'happiness', delta: -1 }, { log: 'The note came back with "haha you\'re funny" written under my question. Ouch.', kind: 'bad' }],
           },
         ],
       },
@@ -1989,7 +1999,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ money: 80 }, { energy: -1 }, { log: 'They needed someone to unload a truck on Saturday. {{$80}} in cash and very sore arms.', kind: 'money' }],
-            else: [{ stat: 'happiness', delta: -1 }, { log: 'She told me to apply online. The website wanted references. I have a cousin.' }],
+            else: [{ stat: 'happiness', delta: -1 }, { log: 'She handed me an application that wanted three references. I have a cousin.' }],
           },
         ],
       },
@@ -1999,7 +2009,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     id: 'tl_library_days',
     category: 'random',
     title: 'Days with no bell',
-    text: 'Without a school schedule, my days have no shape. The public library opens at nine, has free internet and a big chair by the window, and nobody there asks why I am not somewhere else.',
+    text: 'Without a school schedule, my days have no shape. The public library opens at nine, has every newspaper in town and a big chair by the window, and nobody there asks why I am not somewhere else.',
     minAge: 13,
     maxAge: 17,
     weight: 2,
@@ -2045,7 +2055,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
   {
     id: 'tl_useful_at_home',
     category: 'family',
-    title: 'House rules',
+    title: 'Under this roof',
     text: '{{person}} has a new rule: anyone under this roof who is not in school is going to be useful. {{They}} said it at breakfast while looking straight at me and buttering toast.',
     minAge: 13,
     maxAge: 17,
@@ -2078,7 +2088,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
       {
         id: 'sleep',
         label: 'Sleep in anyway',
-        effects: [{ stat: 'happiness', delta: 3 }, { relationship: 'person', delta: -5 }, { log: 'I slept until noon. {{person}} changed the internet password and taped the new one to the vacuum.', kind: 'bad' }],
+        effects: [{ stat: 'happiness', delta: 3 }, { relationship: 'person', delta: -5 }, { log: 'I slept until noon. {{person}} hid the TV remote in the vacuum cleaner and told me where.', kind: 'bad' }],
       },
     ],
   },
@@ -2157,11 +2167,11 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
       },
       {
         id: 'stories',
-        label: 'Ask her about my parents',
+        label: 'Ask her about the old days',
         effects: [
           { stat: 'happiness', delta: 3 },
           { karma: 1 },
-          { log: 'Between laps she told me stories about my parents at my age. Some happened in this van.', kind: 'good' },
+          { log: 'Between laps she told me stories about the family when she was my age. Some happened in this van.', kind: 'good' },
           { queue: 'tl_aunt_driving_test' },
         ],
       },

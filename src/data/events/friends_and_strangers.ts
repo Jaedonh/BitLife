@@ -6,6 +6,10 @@ import type { EventDef } from '@/engine/events/schema';
  * film crews, pigeons, wrong numbers and a dog with a collar. Follow-ups
  * (followUpOnly) are queued by the events that set them up and never fire on
  * their own.
+ *
+ * The stranger cards are one-scene vignettes, so each opens once or rests for
+ * 10-15 years; the friend cards rest 6-10 years. Nothing here needs a phone
+ * newer than the one on the kitchen wall.
  */
 export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ friends
@@ -13,11 +17,11 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     id: 'fs_three_am_call',
     category: 'friends',
     title: 'The 3 a.m. call',
-    text: 'My phone lit up at 3 a.m. It was {{person}}, voice shaking, saying everything had gone wrong at once and asking if I was awake. I was now.',
+    text: 'The phone rang at 3 a.m. It was {{person}}, voice shaking, saying everything had gone wrong at once and asking if I was awake. I was now.',
     minAge: 16,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 4,
+    cooldown: 15,
     conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend'], minRelationship: 30 },
     choices: [
@@ -45,7 +49,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
       },
       {
         id: 'silence',
-        label: 'Silence it and sleep',
+        label: 'Let it ring and sleep',
         effects: [
           { karma: -3 },
           { stat: 'happiness', delta: 1 },
@@ -66,7 +70,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 60,
     weight: 1.5,
-    cooldown: 5,
+    cooldown: 12,
     conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend'] },
     choices: [
@@ -101,7 +105,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
           {
             chance: 0.6,
             then: [{ log: 'My excuse held. I spent the evening in blissful silence.' }],
-            else: [{ relationship: 'person', delta: -6 }, { log: 'A mutual friend posted a photo of me at home, on the couch, during the gig.', kind: 'bad' }],
+            else: [{ relationship: 'person', delta: -6 }, { log: 'A mutual friend saw me at the corner shop during the gig, buying snacks for one.', kind: 'bad' }],
           },
         ],
       },
@@ -115,7 +119,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 10,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 4,
+    cooldown: 15,
     person: { kind: ['friend', 'bestFriend'] },
     choices: [
       {
@@ -169,6 +173,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
         effects: [
           { relationship: 'person', delta: -10 },
           { karma: 2 },
+          { stat: 'happiness', delta: -3 },
           { log: 'I apologized properly. {{They}} needed a month, but {{they}} came back.' },
         ],
       },
@@ -180,7 +185,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
           {
             chance: 0.4,
             then: [{ stat: 'happiness', delta: -2 }, { log: '{{They}} believed me. I did not believe me.' }],
-            else: [{ relationship: 'person', delta: -25 }, { log: '{{They}} had screenshots. Of course {{they}} had screenshots.', kind: 'bad' }],
+            else: [{ relationship: 'person', delta: -25 }, { log: '{{They}} had heard it from three people. Of course {{they}} had.', kind: 'bad' }],
           },
         ],
       },
@@ -190,11 +195,11 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     id: 'fs_falling_out',
     category: 'friends',
     title: 'The falling out',
-    text: '{{person}} and I had the kind of argument that starts about a borrowed charger and ends about everything. Now we are both waiting for the other to blink.',
+    text: '{{person}} and I had the kind of argument that starts about a borrowed sweater and ends about everything. Now we are both waiting for the other to blink.',
     minAge: 12,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 5,
+    cooldown: 15,
     person: { kind: ['friend', 'bestFriend'], minRelationship: 20 },
     choices: [
       {
@@ -204,7 +209,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
           { karma: 2 },
           {
             chance: 0.7,
-            then: [{ relationship: 'person', delta: 8 }, { stat: 'happiness', delta: 4 }, { log: 'I said sorry. {{They}} said sorry. The charger was never mentioned again.', kind: 'good' }],
+            then: [{ relationship: 'person', delta: 8 }, { stat: 'happiness', delta: 4 }, { log: 'I said sorry. {{They}} said sorry. The sweater was never mentioned again.', kind: 'good' }],
             else: [{ relationship: 'person', delta: -4 }, { log: '{{They}} accepted the apology like a parking ticket. Something had changed.', kind: 'bad' }],
           },
         ],
@@ -216,7 +221,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: -2 },
           {
             chance: 0.5,
-            then: [{ queue: 'fs_olive_branch' }, { log: 'A week passed. Then two. Then my phone buzzed.' }],
+            then: [{ queue: 'fs_olive_branch' }, { log: 'A week passed. Then two. Then the doorbell rang.' }],
             else: [{ relationship: 'person', delta: -12 }, { log: 'Neither of us blinked. Weeks became months.', kind: 'bad' }],
           },
         ],
@@ -227,7 +232,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
         effects: [
           { stat: 'happiness', delta: -5 },
           { karma: -2 },
-          { log: 'I deleted the number. It felt strong for a day and hollow for a year.', kind: 'bad' },
+          { log: 'I stopped answering for good. It felt strong for a day and hollow for a year.', kind: 'bad' },
           { removePerson: true },
         ],
       },
@@ -257,9 +262,10 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
         id: 'discuss',
         label: 'Bring up the fight anyway',
         effects: [
+          { karma: 1 },
           {
             chance: 0.5,
-            then: [{ relationship: 'person', delta: 16 }, { log: 'We finally said the real things. The friendship got sturdier.', kind: 'good' }],
+            then: [{ relationship: 'person', delta: 16 }, { stat: 'happiness', delta: 5 }, { log: 'We finally said the real things. The friendship got sturdier.', kind: 'good' }],
             else: [{ relationship: 'person', delta: -8 }, { log: 'The hot chocolate went cold while we had the whole fight again.', kind: 'bad' }],
           },
         ],
@@ -269,12 +275,13 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
   {
     id: 'fs_ghost_returns',
     category: 'friends',
-    title: 'The ghost returns',
-    text: '{{person}} vanished from my life without a word a while back. Today a message arrived: "hey stranger, long time!" plus a smiley face, as if nothing happened.',
+    // Written for the state the selector checks (a cooled friendship), not for years of silence it cannot see.
+    title: 'Out of nowhere',
+    text: '{{person}} and I have been cool on each other for a while now. Today {{they}} got in touch out of nowhere, all warmth, as if nothing had ever changed.',
     minAge: 14,
     maxAge: 90,
     weight: 1.2,
-    cooldown: 5,
+    cooldown: 10,
     person: { kind: ['friend', 'bestFriend'], maxRelationship: 35 },
     choices: [
       {
@@ -286,14 +293,14 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
           { karma: 1 },
           {
             chance: 0.35,
-            then: [{ relationship: 'person', delta: -15 }, { log: '{{They}} was back for a month, then gone again. I should have seen it coming.', kind: 'bad' }],
-            else: [{ log: '{{They}} had been through something. We picked up like no time had passed.', kind: 'good' }],
+            then: [{ relationship: 'person', delta: -15 }, { log: '{{They}} was warm for a month, then cool again. I should have seen it coming.', kind: 'bad' }],
+            else: [{ log: '{{They}} had been through something. We picked up where we left off.', kind: 'good' }],
           },
         ],
       },
       {
         id: 'cautious',
-        label: 'Ask what happened first',
+        label: 'Ask what changed',
         effects: [
           { relationship: 'person', delta: 10 },
           { stat: 'smarts', delta: 1 },
@@ -302,12 +309,12 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
       },
       {
         id: 'ghost_back',
-        label: 'Leave it on read',
+        label: 'Keep my distance',
         effects: [
           { karma: -2 },
           { stat: 'happiness', delta: 2 },
           { relationship: 'person', delta: -10 },
-          { log: 'I let the message sit there forever. Petty, but balanced.' },
+          { log: 'I kept it short and polite. Petty, but balanced.' },
         ],
       },
     ],
@@ -320,7 +327,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 70,
     weight: 1.2,
-    cooldown: 4,
+    cooldown: 12,
     conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend'], minRelationship: 40 },
     choices: [
@@ -373,12 +380,12 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
   {
     id: 'fs_big_news',
     category: 'friends',
-    title: 'Big news',
+    title: 'The going-away news',
     text: '{{person}} sat me down with the face people use for big news. {{They}} has been offered a job on the other side of the country and {{they}} is taking it.',
     minAge: 18,
     maxAge: 80,
     weight: 1.2,
-    cooldown: 6,
+    cooldown: 10,
     person: { kind: ['friend', 'bestFriend'], minRelationship: 40 },
     choices: [
       {
@@ -430,7 +437,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 80,
     weight: 1.2,
-    cooldown: 4,
+    cooldown: 12,
     conditions: [{ inPrison: false }, { ownsAssetId: ['old_hatchback', 'sedan', 'pickup', 'ev', 'luxury_sedan', 'sports_car', 'supercar', 'classic_car'] }],
     person: { kind: ['friend', 'bestFriend'] },
     choices: [
@@ -457,7 +464,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
         effects: [
           { relationship: 'person', delta: -5 },
           { stat: 'happiness', delta: 1 },
-          { log: '{{They}} said it was fine, took the bus, and sent me a photo of the bus.' },
+          { log: '{{They}} said it was fine, took the bus, and mailed me a photo of the bus.' },
         ],
       },
       {
@@ -480,7 +487,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 80,
     weight: 1.2,
-    cooldown: 5,
+    cooldown: 12,
     conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend'] },
     choices: [
@@ -537,7 +544,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 85,
     weight: 1.5,
-    cooldown: 4,
+    cooldown: 12,
     conditions: [{ inPrison: false }, { money: { gte: 500 } }],
     person: { kind: ['friend', 'bestFriend'] },
     choices: [
@@ -612,7 +619,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     id: 'fs_loan_unpaid',
     category: 'friends',
     title: 'Loan gone quiet',
-    text: 'Payday came and went. {{person}} has become very interested in {{their}} phone whenever I walk in, and the loan is never mentioned.',
+    text: 'Payday came and went. {{person}} has become very interested in {{their}} shoes whenever I walk in, and the loan is never mentioned.',
     minAge: 16,
     maxAge: 85,
     weight: 1,
@@ -663,7 +670,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 75,
     weight: 1,
-    cooldown: 8,
+    cooldown: 10,
     conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend'], minRelationship: 50, minAge: 18 },
     choices: [
@@ -705,24 +712,25 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
   {
     id: 'fs_powder_pitch',
     category: 'friends',
-    title: 'The powder pitch',
-    text: '{{person}} invited me over to "catch up," which turned out to mean a slideshow about a wellness powder {{they}} now sells. {{They}} keeps saying I could be {{their}} first recruit.',
+    // The end of a pitch, not another pitch (ad_friend_mlm and mn_mlm_pitch are the sales evenings), and never within two years of one.
+    title: 'A garage of powder',
+    text: '{{person}} has quit selling the wellness powder, but the company would not take the stock back, so {{their}} garage is full of it. {{They}} asked, with great dignity, whether I would take some at cost.',
     minAge: 18,
     maxAge: 80,
-    weight: 1.2,
-    cooldown: 5,
-    conditions: [{ inPrison: false }],
-    person: { kind: ['friend', 'bestFriend'] },
+    weight: 1,
+    cooldown: 10,
+    conditions: [{ inPrison: false }, { not: { sinceEvent: 'ad_friend_mlm', lte: 2 } }, { not: { sinceEvent: 'mn_mlm_pitch', lte: 2 } }],
+    person: { kind: ['friend', 'bestFriend'], minAge: 20 },
     choices: [
       {
         id: 'buy',
-        label: 'Buy a starter kit',
-        hint: '{{$300}}',
+        label: 'Buy a few boxes',
+        hint: '{{$150}}',
         effects: [
-          { money: -300 },
-          { relationship: 'person', delta: 5 },
-          { stat: 'happiness', delta: -2 },
-          { log: 'I own forty sachets of green powder now. {{person}} was thrilled. I am not.', kind: 'money' },
+          { money: -150 },
+          { relationship: 'person', delta: 6 },
+          { stat: 'happiness', delta: -1 },
+          { log: 'I now own a year of green powder. {{person}} was so relieved that {{they}} hugged the boxes goodbye.', kind: 'money' },
         ],
       },
       {
@@ -730,18 +738,32 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
         label: 'Politely decline',
         effects: [
           { relationship: 'person', delta: -3 },
-          { log: 'I said the powder was not for me. {{They}} sent me three links anyway.' },
+          { stat: 'happiness', delta: 1 },
+          { log: 'I said I had no room. {{They}} said nobody does, and closed the garage door slowly.' },
         ],
       },
       {
         id: 'intervene',
-        label: 'Tell {{them}} it is a scheme',
+        label: 'Help sell it at a yard sale',
         effects: [
-          { karma: 2 },
+          { energy: -1 },
           {
             chance: 0.5,
-            then: [{ relationship: 'person', delta: 8 }, { log: '{{They}} argued, went quiet, then quit a month later. We never mention the powder.', kind: 'good' }],
-            else: [{ relationship: 'person', delta: -12 }, { log: '{{They}} said I was negative energy. The slideshow continued without me.', kind: 'bad' }],
+            then: [{ relationship: 'person', delta: 6 }, { stat: 'happiness', delta: 3 }, { log: 'We sold most of it at a loss to people who seemed thrilled. {{person}} laughed for the first time in months.', kind: 'good' }],
+            else: [{ relationship: 'person', delta: 2 }, { stat: 'happiness', delta: -2 }, { log: 'The yard sale moved eleven sachets and one lamp. The lamp was mine.' }],
+          },
+        ],
+      },
+      {
+        id: 'refund',
+        label: 'Read the fine print for {{them}}',
+        effects: [
+          { stat: 'smarts', delta: 2 },
+          { karma: 1 },
+          {
+            chance: 0.4,
+            then: [{ relationship: 'person', delta: 8 }, { log: 'Page nine had a buyback rule. The company paid {{person}} back, grudgingly. I am a legal hero now.', kind: 'good' }],
+            else: [{ relationship: 'person', delta: -1 }, { log: 'The fine print had its own fine print. The powder stayed in the garage.' }],
           },
         ],
       },
@@ -751,12 +773,12 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     id: 'fs_friend_hospital',
     category: 'friends',
     title: 'Friend in the hospital',
-    text: '{{person}} took a bad fall off a bike and is in the hospital for a couple of weeks, bored, bandaged and texting me pictures of the ceiling.',
+    text: '{{person}} took a bad fall off a bike and is in the hospital for a couple of weeks, bored, bandaged and calling me hourly to describe the ceiling.',
     // From 13: the flowers-and-snacks option is a teen-sized spend, not pocket money.
     minAge: 13,
     maxAge: 90,
     weight: 1,
-    cooldown: 5,
+    cooldown: 10,
     conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend'] },
     choices: [
@@ -788,7 +810,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
         effects: [
           { relationship: 'person', delta: -10 },
           { stat: 'happiness', delta: -3 },
-          { log: 'I sent one message and felt bad every day {{they}} was in there.', kind: 'bad' },
+          { log: 'I called once and felt bad every day {{they}} was in there.', kind: 'bad' },
         ],
       },
     ],
@@ -801,7 +823,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 10,
     maxAge: 50,
     weight: 1,
-    cooldown: 5,
+    cooldown: 12,
     person: { kind: ['friend', 'bestFriend'] },
     choices: [
       {
@@ -976,7 +998,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 22,
     maxAge: 65,
     weight: 1,
-    cooldown: 5,
+    cooldown: 10,
     conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend'], minAge: 20 },
     choices: [
@@ -1026,7 +1048,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 90,
     weight: 2,
-    cooldown: 3,
+    cooldown: 25,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -1070,7 +1092,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 90,
     weight: 1,
-    cooldown: 6,
+    cooldown: 25,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -1117,7 +1139,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 3,
+    cooldown: 25,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -1159,7 +1181,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 90,
     weight: 1.2,
-    cooldown: 4,
+    cooldown: 20,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -1202,7 +1224,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 90,
     weight: 1.2,
-    cooldown: 5,
+    once: true,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -1245,7 +1267,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 6,
     maxAge: 90,
     weight: 1.2,
-    cooldown: 5,
+    once: true,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -1284,13 +1306,14 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
   {
     id: 'fs_viral_moment',
     category: 'friends',
+    // The evening news, not a bow on a wet step (tm_viral_post) or a cafeteria fall (tn_viral_fall), and never within two years of either.
     title: 'Fifteen minutes',
-    text: 'A clip of me tripping over a curb, recovering with a bow, and then tripping again has been shown on the {{city}} evening news. Strangers are doing the bow at me.',
+    text: 'A TV crew stopped me in {{city}} to ask about the weather, and I gave an answer about umbrellas so passionate that it ran on the evening news. Strangers now ask me about umbrellas.',
     minAge: 13,
     maxAge: 90,
     weight: 1,
-    cooldown: 8,
-    conditions: [{ inPrison: false }],
+    once: true,
+    conditions: [{ inPrison: false }, { not: { sinceEvent: 'tm_viral_post', lte: 2 } }, { not: { sinceEvent: 'tn_viral_fall', lte: 2 } }],
     choices: [
       {
         id: 'lean',
@@ -1300,15 +1323,15 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 4 },
           {
             chance: 0.3,
-            then: [{ stat: 'happiness', delta: -3 }, { log: 'The bow became a meme. The meme became my whole personality for a year.', kind: 'bad' }],
-            else: [{ log: 'I did the bow at the supermarket and got a round of applause.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: -3 }, { log: 'The umbrella speech became a catchphrase, and the catchphrase became my whole personality for a year.', kind: 'bad' }],
+            else: [{ log: 'A stranger at the supermarket asked for the umbrella speech. I gave it. Applause.', kind: 'good' }],
           },
         ],
       },
       {
         id: 'hide',
         label: 'Lie low until it passes',
-        effects: [{ stat: 'happiness', delta: -2 }, { stat: 'smarts', delta: 2 }, { log: 'I wore a hat and stayed in with books for a month. Someone did the bow at the hat.' }],
+        effects: [{ stat: 'happiness', delta: -2 }, { stat: 'smarts', delta: 2 }, { log: 'I wore a hat and stayed in with books for a month. Someone still asked the hat about umbrellas.' }],
       },
       {
         id: 'interviews',
@@ -1318,7 +1341,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
           { fame: 3 },
           {
             chance: 0.6,
-            then: [{ stat: 'happiness', delta: 3 }, { log: 'The interview went well. I am now "the bow person," which I accept.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 3 }, { log: 'The interview went well. I am now "the umbrella person," which I accept.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -4 }, { log: 'I tripped on the way into the studio. On camera. It got a second segment.', kind: 'bad' }],
           },
         ],
@@ -1334,7 +1357,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 90,
     weight: 1,
-    cooldown: 6,
+    once: true,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -1376,7 +1399,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 1.2,
-    cooldown: 3,
+    cooldown: 20,
     // I am driving: a car, or enough money that I plausibly have one (the sampler never buys cars).
     conditions: [{ inPrison: false }, { any: [{ ownsAsset: 'car' }, { money: { gte: 3000 } }] }],
     choices: [
@@ -1399,6 +1422,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
       {
         id: 'call',
         label: 'Call roadside assistance for them',
+        conditions: [{ year: { gte: 2000 } }],
         effects: [{ karma: 1 }, { log: 'I made a call from my window and drove on. Civic, if a little distant.' }],
       },
       {
@@ -1412,11 +1436,11 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     id: 'fs_wrong_number',
     category: 'friends',
     title: 'Wrong number',
-    text: 'A text arrived from a number I did not know: "Don\'t forget the lemons, Nana\'s counting on you." I do not know Nana. I have no lemons.',
+    text: 'The phone rang and a cheerful voice said, "Don\'t forget the lemons, Nana\'s counting on you," then waited for an answer. I do not know Nana. I have no lemons.',
     minAge: 13,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 4,
+    once: true,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -1425,27 +1449,27 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.5,
-            then: [{ stat: 'happiness', delta: 3 }, { newPerson: { kind: 'friend', relationship: 50, log: 'The wrong number was {{person}}. We kept texting. Nana got her lemons.' } }],
-            else: [{ log: 'They apologized and vanished. I hope the lemons arrived.' }],
+            then: [{ stat: 'happiness', delta: 3 }, { newPerson: { kind: 'friend', relationship: 50, log: 'The wrong number was {{person}}. We talked for an hour. Nana got her lemons.' } }],
+            else: [{ log: 'They apologized and hung up. I hope the lemons arrived.' }],
           },
         ],
       },
       {
         id: 'pun',
-        label: 'Reply with a lemon pun',
+        label: 'Answer with a lemon pun',
         effects: [
           { stat: 'happiness', delta: 2 },
           {
             chance: 0.45,
-            then: [{ newPerson: { kind: 'friend', relationship: 55, log: '{{person}} replied with a worse pun. We have been friends ever since.' } }],
-            else: [{ stat: 'happiness', delta: -1 }, { log: 'They did not get the pun. Or they got it and chose silence.' }],
+            then: [{ newPerson: { kind: 'friend', relationship: 55, log: '{{person}} answered with a worse pun. We have been friends ever since.' } }],
+            else: [{ stat: 'happiness', delta: -1 }, { log: 'They did not get the pun. Or they got it and hung up.' }],
           },
         ],
       },
       {
         id: 'ignore',
-        label: 'Ignore it',
-        effects: [{ stat: 'happiness', delta: 1 }, { log: 'I deleted it. Somewhere, Nana waits.' }],
+        label: 'Hang up',
+        effects: [{ stat: 'happiness', delta: 1 }, { log: 'I hung up. Somewhere, Nana waits.' }],
       },
     ],
   },
@@ -1457,7 +1481,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 8,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 4,
+    once: true,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -1505,7 +1529,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 90,
     weight: 2,
-    cooldown: 3,
+    cooldown: 25,
     conditions: [{ inPrison: false }],
     choices: [
       {

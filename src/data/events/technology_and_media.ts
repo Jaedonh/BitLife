@@ -9,6 +9,11 @@ import type { EventDef } from '@/engine/events/schema';
  *
  * Pronoun placeholders render as he/she, so lines that use {{they}} / {{They}}
  * stick to past-tense or modal verbs ("{{They}} made", "{{they}} refused").
+ *
+ * Players are born 1975-2010, so every card here waits for its technology with a
+ * { year } gate (CONTENT_STYLE): email and forums from 1997, texting from 2000,
+ * smartphones, apps, feeds, streaming and video calls from 2010, two-factor codes
+ * and dating apps from 2012, smart speakers from 2016, deepfakes from 2018.
  */
 export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ going viral
@@ -16,12 +21,13 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     id: 'tm_viral_post',
     category: 'random',
     title: 'Accidentally viral',
-    text: 'Someone filmed me slipping on a wet step in {{city}} and recovering with a deep, dignified bow. Two million views overnight. Strangers are now bowing at me in the supermarket.',
-    minAge: 13,
+    text: 'I missed the last step outside a café in {{city}} and turned the stumble into a deep, dignified bow. A stranger got it on video. Two million views overnight. Strangers are now bowing at me in the supermarket.',
+    // An adult card, and never within two years of the teen cafeteria-fall video (tn_viral_fall) or the evening-news umbrella speech (fs_viral_moment).
+    minAge: 18,
     maxAge: 70,
     weight: 1,
     once: true,
-    conditions: [{ inPrison: false }],
+    conditions: [{ inPrison: false }, { year: { gte: 2010 } }, { not: { sinceEvent: 'fs_viral_moment', lte: 2 } }, { not: { sinceEvent: 'tn_viral_fall', lte: 2 } }],
     choices: [
       {
         id: 'lean',
@@ -62,13 +68,15 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 90,
     weight: 1,
-    cooldown: 5,
-    conditions: [{ fame: { gte: 15 } }, { inPrison: false }],
+    cooldown: 10,
+    conditions: [{ fame: { gte: 15 } }, { inPrison: false }, { year: { gte: 2018 } }],
     choices: [
       {
         id: 'statement',
         label: 'Post a calm statement',
         effects: [
+          // Answering a fake takes days of replies; silence costs nothing up front.
+          { energy: -1 },
           {
             chance: 0.6,
             then: [{ log: 'The statement spread nearly as far as the fake. Most people believed me. The six fingers helped.', kind: 'good' }, { fame: 3 }, { stat: 'happiness', delta: 2 }],
@@ -111,8 +119,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 60,
     weight: 1,
-    cooldown: 5,
-    conditions: [{ any: [{ fame: { gte: 5 } }, { stat: 'looks', gte: 65 }] }, { inPrison: false }],
+    cooldown: 10,
+    conditions: [{ any: [{ fame: { gte: 5 } }, { stat: 'looks', gte: 65 }] }, { inPrison: false }, { year: { gte: 2010 } }],
     choices: [
       {
         id: 'honest',
@@ -150,44 +158,43 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
   {
     id: 'tm_group_chat_drama',
     category: 'random',
-    title: 'Group chat meltdown',
-    text: 'Our group chat has split into two factions over a plan {{person}} made without asking anyone. Forty messages in ten minutes. Someone has deployed a crying emoji as a weapon.',
+    // A planning mishap, not a falling-out: ya_group_chat_drama is the fight, and the two never open within two years.
+    title: 'Surprise, in writing',
+    text: '{{person}} started a group chat to plan a surprise party for a friend of ours, then added the friend by mistake. Forty messages of plans sit right above "wait, why am I in this?"',
     minAge: 11,
     maxAge: 35,
     weight: 2,
-    cooldown: 3,
-    conditions: [{ inPrison: false }],
+    // One leaked surprise party is a story; the same mistake again is a rerun.
+    once: true,
+    conditions: [{ inPrison: false }, { year: { gte: 2010 } }, { not: { sinceEvent: 'ya_group_chat_drama', lte: 2 } }],
     person: { kind: ['friend', 'bestFriend'] },
     choices: [
       {
         id: 'side',
-        label: 'Back {{person}}',
+        label: 'Invent a decoy party',
         effects: [
-          { relationship: 'person', delta: 6 },
+          { relationship: 'person', delta: 5 },
           {
             chance: 0.5,
-            then: [{ log: '{{person}} was grateful and the others came around by the weekend.', kind: 'good' }, { stat: 'happiness', delta: 2 }],
-            else: [{ log: 'Taking sides cost me the rest of the chat for a month. {{person}} and I had a very quiet corner.', kind: 'bad' }, { stat: 'happiness', delta: -4 }],
+            then: [{ log: '{{person}} and I planned a fake party in the chat. The real one stayed a surprise, barely.', kind: 'good' }, { stat: 'happiness', delta: 4 }],
+            else: [{ log: 'Our decoy party had too many details. The guest of honor saw through it and planned an outfit.', kind: 'bad' }, { stat: 'happiness', delta: -3 }],
           },
         ],
       },
       {
         id: 'peace',
-        label: 'Play peacemaker',
+        label: 'Make it a normal party',
         effects: [
           { karma: 2 },
-          { energy: -1 },
-          {
-            chance: 0.6,
-            then: [{ log: 'I proposed a compromise and the chat calmed down. For one evening I was a diplomat.', kind: 'good' }, { stat: 'happiness', delta: 4 }, { relationship: 'person', delta: 2 }],
-            else: [{ log: 'Both sides turned on me. The peacemaker always gets it.', kind: 'bad' }, { stat: 'happiness', delta: -3 }, { relationship: 'person', delta: -2 }],
-          },
+          { stat: 'happiness', delta: 2 },
+          { relationship: 'person', delta: -2 },
+          { log: 'I said the secret was out and made it a regular party. {{person}} sulked until the cake came out.' },
         ],
       },
       {
         id: 'mute',
         label: 'Mute the chat',
-        effects: [{ stat: 'happiness', delta: 2 }, { relationship: 'person', delta: -3 }, { log: 'I muted it and had the quietest evening of the year. I also missed one birthday plan entirely.' }],
+        effects: [{ stat: 'happiness', delta: 3 }, { relationship: 'person', delta: -3 }, { log: 'I muted it and let {{person}} sort it out. I heard the party went fine, from the guest of honor.' }],
       },
     ],
   },
@@ -199,8 +206,9 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 12,
     maxAge: 50,
     weight: 1.2,
-    cooldown: 5,
-    conditions: [{ inPrison: false }],
+    // There is only one soup song.
+    once: true,
+    conditions: [{ inPrison: false }, { year: { gte: 2010 } }],
     person: { kind: ['sibling'], minAge: 13 },
     choices: [
       {
@@ -242,8 +250,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 70,
     weight: 1.2,
-    cooldown: 5,
-    conditions: [{ inPrison: false }],
+    cooldown: 15,
+    conditions: [{ inPrison: false }, { year: { gte: 2010 } }],
     person: { kind: ['ex'], minAge: 20 },
     choices: [
       {
@@ -271,8 +279,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 80,
     weight: 1.5,
-    cooldown: 3,
-    conditions: [{ inPrison: false }],
+    cooldown: 15,
+    conditions: [{ inPrison: false }, { year: { gte: 2010 } }],
     person: { kind: ['lover', 'spouse'] },
     choices: [
       {
@@ -306,8 +314,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 24,
     maxAge: 65,
     weight: 1.5,
-    cooldown: 4,
-    conditions: [{ hasChildren: true }, { inPrison: false }],
+    cooldown: 10,
+    conditions: [{ hasChildren: true }, { inPrison: false }, { year: { gte: 2010 } }],
     person: { kind: ['child'], minAge: 8, maxAge: 15 },
     choices: [
       {
@@ -346,35 +354,37 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
   {
     id: 'tm_parent_tech_help',
     category: 'random',
-    title: 'The printer again',
-    text: '{{person}} called because the phone "has gone small." Also the printer is blinking, the television wants a password, and someone sent {{them}} a photo that will not open. I am tech support now.',
+    // A parent online, not the printer: ad_parent_tech_support is the house call, and the two never open within two years.
+    title: 'Comment from home',
+    text: '{{person}} has discovered social media. {{They}} has commented "Who is this?" under a photo of my best friend, "Proud of you!" under a news story, and signed every comment with {{their}} full name.',
     minAge: 25,
     maxAge: 65,
     weight: 1.5,
-    cooldown: 3,
-    conditions: [{ inPrison: false }],
+    // A parent discovers social media once.
+    once: true,
+    conditions: [{ inPrison: false }, { year: { gte: 2010 } }, { not: { sinceEvent: 'ad_parent_tech_support', lte: 2 } }],
     person: { kind: ['mother', 'father', 'stepmother', 'stepfather'], minAge: 55 },
     choices: [
       {
         id: 'visit',
-        label: 'Go over and fix it all',
-        effects: [{ energy: -2 }, { karma: 3 }, { relationship: 'person', delta: 8 }, { stat: 'happiness', delta: 2 }, { log: 'Two hours, four fixes, one cup of tea. {{person}} called me a genius. The phone had been zoomed in.', kind: 'good' }],
+        label: 'Teach {{them}} the basics',
+        effects: [{ energy: -1 }, { karma: 2 }, { relationship: 'person', delta: 6 }, { stat: 'happiness', delta: 1 }, { log: 'One evening, one pot of tea, one lesson on what is public. {{person}} still signs comments, but fewer.', kind: 'good' }],
       },
       {
         id: 'remote',
-        label: 'Talk {{them}} through it',
+        label: 'Reply to every comment',
         effects: [
           {
             chance: 0.5,
-            then: [{ log: 'Forty minutes of "the blue one, no, the OTHER blue one" and it was fixed. {{person}} sounded proud.', kind: 'good' }, { relationship: 'person', delta: 4 }, { stat: 'happiness', delta: 1 }, { karma: 1 }],
-            else: [{ log: '{{person}} pressed something and now the printer speaks another language. We are both tired.', kind: 'bad' }, { relationship: 'person', delta: -2 }, { stat: 'happiness', delta: -3 }],
+            then: [{ log: 'I answered every comment in public. It became a bit. My friends now look forward to {{person}}.', kind: 'good' }, { relationship: 'person', delta: 4 }, { stat: 'happiness', delta: 3 }],
+            else: [{ log: '{{person}} took my replies as encouragement and commented on everything I had ever posted.', kind: 'bad' }, { relationship: 'person', delta: -2 }, { stat: 'happiness', delta: -3 }],
           },
         ],
       },
       {
         id: 'link',
-        label: 'Send a tutorial link',
-        effects: [{ relationship: 'person', delta: -5 }, { stat: 'happiness', delta: 2 }, { log: 'I sent a link. {{person}} replied "thanks" three days later, then "how do I open links."' }],
+        label: 'Quietly hide the comments',
+        effects: [{ karma: -1 }, { relationship: 'person', delta: -3 }, { stat: 'happiness', delta: 3 }, { log: 'I hid {{their}} comments from everyone but {{them}}. {{person}} thinks the whole world reads them.' }],
       },
     ],
   },
@@ -382,12 +392,12 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     id: 'tm_screen_time_intervention',
     category: 'random',
     title: 'Phone confiscated',
-    text: '{{person}} saw my screen time report and went pale. Nine hours a day, mostly videos of people organizing fridges. {{They}} held out a hand and said the phone goes in a drawer until my grades improve.',
+    text: '{{person}} added up how long I spend on my phone and went pale. Nine hours a day, mostly videos of people organizing fridges. {{They}} held out a hand and said the phone goes in a drawer until my grades improve.',
     minAge: 10,
     maxAge: 17,
     weight: 2,
     cooldown: 3,
-    conditions: [{ enrolled: true }, { inPrison: false }],
+    conditions: [{ enrolled: true }, { inPrison: false }, { year: { gte: 2010 } }],
     person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
@@ -429,7 +439,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 16,
     weight: 2,
     cooldown: 3,
-    conditions: [{ inPrison: false }],
+    conditions: [{ inPrison: false }, { year: { gte: 2000 } }],
     choices: [
       {
         id: 'forward',
@@ -466,8 +476,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 100,
     weight: 2,
-    cooldown: 4,
-    conditions: [{ inPrison: false }],
+    cooldown: 20,
+    conditions: [{ inPrison: false }, { year: { gte: 2012 } }],
     choices: [
       {
         id: 'pay',
@@ -509,8 +519,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 100,
     weight: 1.5,
-    cooldown: 5,
-    conditions: [{ inPrison: false }],
+    cooldown: 20,
+    conditions: [{ inPrison: false }, { year: { gte: 2012 } }],
     choices: [
       {
         id: 'passwords',
@@ -545,7 +555,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 100,
     weight: 1,
     followUpOnly: true,
-    conditions: [{ inPrison: false }],
+    conditions: [{ inPrison: false }, { year: { gte: 2012 } }],
     choices: [
       {
         id: 'cash',
@@ -575,8 +585,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 60,
     weight: 1.2,
-    cooldown: 4,
-    conditions: [{ hasLover: false }, { inPrison: false }],
+    cooldown: 10,
+    conditions: [{ hasLover: false }, { inPrison: false }, { year: { gte: 2012 } }],
     choices: [
       {
         id: 'send',
@@ -625,8 +635,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 12,
     maxAge: 45,
     weight: 1,
-    cooldown: 5,
-    conditions: [{ inPrison: false }],
+    cooldown: 10,
+    conditions: [{ inPrison: false }, { year: { gte: 2012 } }],
     choices: [
       {
         id: 'send',
@@ -664,13 +674,13 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
   {
     id: 'tm_account_lockout',
     category: 'random',
-    title: 'Locked out',
+    title: 'The recovery form',
     text: 'I changed my phone number and now my main account wants a code sent to the old one. The recovery form asks what date I joined. It was, I think, a Tuesday.',
     minAge: 16,
     maxAge: 80,
     weight: 1.2,
-    cooldown: 5,
-    conditions: [{ inPrison: false }],
+    cooldown: 10,
+    conditions: [{ inPrison: false }, { year: { gte: 2012 } }],
     choices: [
       {
         id: 'service',
@@ -714,8 +724,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 6,
-    conditions: [{ inPrison: false }],
+    cooldown: 20,
+    conditions: [{ inPrison: false }, { year: { gte: 2012 } }],
     choices: [
       { id: 'cancel', label: 'Cancel it', effects: [{ stat: 'happiness', delta: 2 }, { stat: 'smarts', delta: 1 }, { log: 'I canceled it. The app sent a sad notification. I did not breathe for it.' }] },
       {
@@ -749,7 +759,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 100,
     weight: 1,
     once: true,
-    conditions: [{ money: { gte: 300 } }, { inPrison: false }],
+    conditions: [{ money: { gte: 300 } }, { inPrison: false }, { year: { gte: 2016 } }],
     choices: [
       {
         id: 'keep',
@@ -784,8 +794,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 4,
-    conditions: [{ inPrison: false }],
+    cooldown: 15,
+    conditions: [{ inPrison: false }, { year: { gte: 2010 } }],
     choices: [
       {
         id: 'track',
@@ -827,7 +837,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 1,
     followUpOnly: true,
-    conditions: [{ inPrison: false }],
+    conditions: [{ inPrison: false }, { year: { gte: 2010 } }],
     choices: [
       {
         id: 'reward',
@@ -856,8 +866,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 3,
-    conditions: [{ inPrison: false }],
+    cooldown: 20,
+    conditions: [{ inPrison: false }, { year: { gte: 2010 } }],
     choices: [
       {
         id: 'outside',
@@ -880,8 +890,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         id: 'provider',
         label: 'Call the provider',
         effects: [
+          // Hold music is miserable but restful; going outside is the one that costs energy.
           { stat: 'happiness', delta: -4 },
-          { energy: -1 },
           {
             chance: 0.3,
             then: [{ log: 'After two hours on hold a kind technician pushed a button and everything came back. I wept a little.', kind: 'good' }, { stat: 'happiness', delta: 6 }],
@@ -906,7 +916,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 12,
     maxAge: 60,
     weight: 2,
-    cooldown: 4,
+    cooldown: 10,
     conditions: [{ any: [{ enrolled: true }, { hasJob: true }] }, { inPrison: false }],
     choices: [
       {
@@ -921,8 +931,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
       },
       {
         id: 'uninstall',
-        label: 'Uninstall it',
-        effects: [{ stat: 'happiness', delta: -4 }, { grade: 3 }, { jobPerformance: 3 }, { log: 'I uninstalled it before it took me. I think about the crafting system more than I should.' }],
+        label: 'Put it away for good',
+        effects: [{ stat: 'happiness', delta: -4 }, { grade: 3 }, { jobPerformance: 3 }, { log: 'I put the game away before it took me. I think about the crafting system more than I should.' }],
       },
     ],
   },
@@ -934,8 +944,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 90,
     weight: 2,
-    cooldown: 3,
-    conditions: [{ inPrison: false }],
+    cooldown: 20,
+    conditions: [{ inPrison: false }, { year: { gte: 2010 } }],
     choices: [
       {
         id: 'allnight',
@@ -973,7 +983,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 65,
     weight: 1,
     once: true,
-    conditions: [{ hasJob: true }],
+    conditions: [{ hasJob: true }, { year: { gte: 2010 } }],
     choices: [
       {
         id: 'laugh',
@@ -1013,8 +1023,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 65,
     weight: 1,
-    cooldown: 6,
-    conditions: [{ hasJob: true }],
+    cooldown: 10,
+    conditions: [{ hasJob: true }, { year: { gte: 1997 } }],
     choices: [
       {
         id: 'tell',
@@ -1062,16 +1072,16 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 65,
     weight: 1.2,
-    cooldown: 5,
-    conditions: [{ hasJob: true }],
+    cooldown: 10,
+    conditions: [{ hasJob: true }, { year: { gte: 1997 } }],
     choices: [
       {
         id: 'recall',
         label: 'Try to recall it',
         effects: [
           {
-            chance: 0.3,
-            then: [{ log: 'Recall worked on most inboxes. The rest were polite enough to pretend.', kind: 'good' }, { stat: 'happiness', delta: 2 }],
+            chance: 0.45,
+            then: [{ log: 'Recall worked on most inboxes. The rest were polite enough to pretend.', kind: 'good' }, { stat: 'happiness', delta: 3 }],
             else: [{ log: 'Recall sent a second email announcing I wanted the first one back. Now everyone has read both.', kind: 'bad' }, { jobPerformance: -4 }, { stat: 'happiness', delta: -5 }],
           },
         ],
@@ -1081,10 +1091,12 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
         label: 'Own it and apologize',
         effects: [
           { karma: 2 },
+          // Apologizing to the whole building, the subject of the joke included, is its own small ordeal.
+          { stat: 'happiness', delta: -3 },
           {
             chance: 0.65,
-            then: [{ log: 'I sent a short, honest apology. The subject of the joke replied "honestly, fair." Crisis over.', kind: 'good' }, { jobPerformance: -1 }, { stat: 'happiness', delta: 1 }],
-            else: [{ log: 'The apology was accepted in the way that means it was not.' }, { jobPerformance: -3 }, { stat: 'happiness', delta: -3 }],
+            then: [{ log: 'I sent a short, honest apology. The subject of the joke replied "honestly, fair." Crisis over.', kind: 'good' }, { jobPerformance: -1 }, { stat: 'happiness', delta: 2 }],
+            else: [{ log: 'The apology was accepted in the way that means it was not.' }, { jobPerformance: -3 }, { stat: 'happiness', delta: -1 }],
           },
         ],
       },
@@ -1110,8 +1122,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 65,
     weight: 1.5,
-    cooldown: 3,
-    conditions: [{ hasJob: true }],
+    cooldown: 10,
+    conditions: [{ hasJob: true }, { year: { gte: 2010 } }],
     choices: [
       {
         id: 'own',
