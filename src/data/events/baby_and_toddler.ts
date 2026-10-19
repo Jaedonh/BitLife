@@ -1183,7 +1183,7 @@ export const BABY_AND_TODDLER_EVENTS: EventDef[] = [
     id: 'bt_pots_and_pans',
     category: 'childhood',
     title: 'The drum kit',
-    text: 'I opened the low kitchen cupboard and it was full of pots, pans and lids. Somebody in this family has been hiding a drum kit from me.',
+    text: 'I opened the low kitchen cabinet and it was full of pots, pans and lids. Somebody in this family has been hiding a drum kit from me.',
     minAge: 1,
     maxAge: 2,
     weight: 1.5,
@@ -1534,7 +1534,7 @@ export const BABY_AND_TODDLER_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 3 },
           { stat: 'health', delta: -1 },
           { karma: -1 },
-          { log: 'I skipped the toys and worked through their snack cupboard. {{person}} apologized on the way out.' },
+          { log: 'I skipped the toys and worked through their pantry. {{person}} apologized on the way out.' },
         ],
       },
       {

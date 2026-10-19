@@ -141,7 +141,8 @@ describe('widowhood cards grieve the one marriage', () => {
 
   it('a first-marriage widow still gets them, bound to that spouse', () => {
     const late = person('spouse', { age: 61, alive: false, deathAge: 61, marriedAtAge: 30, gender: 'male' });
-    const s = life(64, [late], { patch: { counters: { ...life(64).counters, marriages: 1 } } });
+    // The year after the loss: still in the grief window the fresh-grief cards wait for.
+    const s = life(64, [late], { patch: { counters: { ...life(64).counters, marriages: 1 }, flags: { grieving: 63 } } });
     expect(isEligible(s, EVENT('gy_widow_two_cups'))).toBe(true);
     expect(bound(s, 'gy_widow_two_cups').map((p) => p.id)).toEqual([late.id]);
   });

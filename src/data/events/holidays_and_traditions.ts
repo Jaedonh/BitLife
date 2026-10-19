@@ -382,8 +382,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
   {
     id: 'hd_resolution_spring',
     category: 'holiday',
-    title: 'Spring check-in',
-    text: 'Spring arrived and so did the moment every resolution dreads: the part where it stops being new. Nobody was checking on me. Only I would know.',
+    title: 'Three months in',
+    text: 'Three months into the year came the moment every resolution dreads: the part where it stops being new. Nobody was checking on me. Only I would know.',
     minAge: 14,
     maxAge: 90,
     weight: 1,
@@ -398,7 +398,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ stat: 'health', delta: 6 }, { stat: 'happiness', delta: 3 }, { stat: 'looks', delta: 1 }, { counter: 'workouts', by: 3 }, { log: 'I kept going past the part where it stopped being fun and into the part where it became a habit.', kind: 'good' }],
-            else: [{ stat: 'health', delta: 1 }, { log: 'I lasted until March, further than most, and then the weather happened. The sneakers remain clean.' }],
+            else: [{ stat: 'health', delta: 1 }, { log: 'I lasted until May, further than most, and then life happened. The sneakers remain clean.' }],
           },
         ],
       },
@@ -409,7 +409,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.6,
-            then: [{ stat: 'smarts', delta: 4 }, { stat: 'happiness', delta: 2 }, { counter: 'libraryVisits', by: 2 }, { log: 'Seven books by spring. I say "as I was reading recently" a lot now. Nobody has stopped me yet.', kind: 'good' }],
+            then: [{ stat: 'smarts', delta: 4 }, { stat: 'happiness', delta: 2 }, { counter: 'libraryVisits', by: 2 }, { log: 'Seven books by April. I say "as I was reading recently" a lot now. Nobody has stopped me yet.', kind: 'good' }],
             else: [{ stat: 'smarts', delta: 1 }, { log: 'Two books, one of them twice because I forgot I had read it. The pile by the bed is now furniture.' }],
           },
         ],
@@ -430,7 +430,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         id: 'quit',
         label: 'Quietly give up',
         effects: [
-          { stat: 'happiness', delta: 1 },
+          { stat: 'happiness', delta: 2 },
           { log: 'I gave up quietly, the traditional ending. There is always next year, and the year after that.' },
         ],
       },
@@ -492,9 +492,9 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
       {
         id: 'drink',
         label: 'Toast it, repeatedly',
+        // One night of toasts, not a habit: no addiction level for the journal to call a habit later.
         effects: [
-          { addiction: 'alcohol', delta: 3 },
-          { stat: 'happiness', delta: 3 },
+          { stat: 'happiness', delta: 4 },
           {
             chance: 0.3,
             then: [{ stat: 'health', delta: -3 }, { stat: 'happiness', delta: -4 }, { log: 'I rang in the year loudly and met its first morning on the couch, making promises to the ceiling.', kind: 'bad' }],
@@ -574,7 +574,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     weight: 2,
     cooldown: 10,
     conditions: [{ inPrison: false }],
-    person: { kind: ['mother', 'father', 'stepmother', 'stepfather', 'sibling', 'spouse', 'lover', 'friend', 'bestFriend'] },
+    // Given with enormous pride: not by a friend or relative who has stopped speaking to me.
+    person: { kind: ['mother', 'father', 'stepmother', 'stepfather', 'sibling', 'spouse', 'lover', 'friend', 'bestFriend'], minRelationship: 30 },
     choices: [
       {
         id: 'fake',
@@ -834,7 +835,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     id: 'hd_estranged_sibling',
     category: 'holiday',
     title: 'An old face',
-    text: '{{person}} turned up at the holiday gathering. We have not properly spoken in years, and now we are sharing a couch, a bowl of nuts and an enormous silence.',
+    // A cool bond (the selector cannot see when we last talked, so the text names an unmade peace, not a silence).
+    text: '{{person}} turned up at the holiday gathering. We never really made up after the last big fight, and now we are sharing a couch, a bowl of nuts and an enormous silence.',
     minAge: 18,
     maxAge: 90,
     weight: 1,
@@ -953,6 +955,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         label: 'Flip the pancakes',
         conditions: [{ flag: 'hd_tradition', eq: 'pancakes' }],
         effects: [
+          { energy: -1 },
           {
             random: [
               { weight: 70, effects: [{ stat: 'happiness', delta: 5 }, { relationship: 'person', delta: 5 }, { log: 'Pancakes in pajamas, flour everywhere, {{person}} flipping one at the ceiling. A tradition is born.', kind: 'good' }] },
@@ -966,6 +969,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         label: 'Build the fort',
         conditions: [{ flag: 'hd_tradition', eq: 'campout' }],
         effects: [
+          { energy: -1 },
           {
             random: [
               { weight: 70, effects: [{ stat: 'happiness', delta: 5 }, { relationship: 'person', delta: 5 }, { log: 'We built a blanket fort around the couch and told stories until {{person}} fell asleep mid-sentence.', kind: 'good' }] },
@@ -1434,13 +1438,13 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
       {
         id: 'bar',
         label: 'Make use of the open bar',
+        // One party, not a habit: no addiction level for the journal to call a habit later.
         effects: [
-          { addiction: 'alcohol', delta: 4 },
           { stat: 'happiness', delta: 3 },
           {
             chance: 0.4,
             then: [{ jobPerformance: -8 }, { stat: 'happiness', delta: -5 }, { log: 'I told a senior manager what I really thought of the new logo. In detail. Monday will be a long day.', kind: 'bad' }],
-            else: [{ log: 'I had a few too many and told everyone I loved them. Forgiven, mostly, by Monday.' }],
+            else: [{ relationship: 'coworker', delta: 3 }, { log: 'I had a few too many and told everyone I loved them. Forgiven, mostly, by Monday, and oddly popular.' }],
           },
         ],
       },

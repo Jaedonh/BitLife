@@ -6,7 +6,7 @@ import { colors, radius, spacing, typography } from '@/theme';
 
 import { LegacyAvatar } from './LegacyAvatar';
 import { heirLabel, lifeAvatar } from './legacy';
-import { occupationLabel } from './people';
+import { heirOccupationLabel } from './people';
 
 type Props = {
   heir: Person;
@@ -25,7 +25,7 @@ function bondColor(v: number): string {
 /** A child who can carry on the family line: who they are, how close you were, and what they inherit. */
 export function LegacyHeirCard({ heir, inheritance, countryCode, locked, onPress }: Props) {
   const name = `${heir.firstName} ${heir.lastName}`;
-  const details = [heirLabel(heir), heir.age === 0 ? 'newborn' : String(heir.age), occupationLabel(heir)].filter(Boolean).join(' · ');
+  const details = [heirLabel(heir), heir.age === 0 ? 'newborn' : String(heir.age), heirOccupationLabel(heir)].filter(Boolean).join(' · ');
   const money = inheritance > 0 ? `Inherits ${formatMoney(inheritance, countryCode)}` : 'No inheritance';
   const label = `Continue as ${name}, ${details}. Relationship ${heir.relationship} percent. ${money}.${locked ? ' Requires Premium.' : ''}`;
   return (

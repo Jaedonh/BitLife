@@ -3,7 +3,7 @@ import type { Rng } from '../rng';
 import { onNpcDeath } from '../systems/aging';
 import { promoteNow, switchEmployer } from '../systems/careers';
 import { relocateCity } from '../systems/scenarios';
-import { friendAgeRange, makePerson, namesInLife } from '../systems/character';
+import { familySurnames, friendAgeRange, makePerson, namesInJournalThisYear, namesInLife, occupationMinAge } from '../systems/character';
 import { coworkerTitle, workplaceOf } from '../systems/coworkers';
 import { markChildMilestone } from '../systems/family';
 import { payForMinor } from '../systems/guardians';
@@ -18,6 +18,11 @@ import { renderText, scaleMoney, type TextContext } from './text';
 export interface EffectContext extends TextContext {
   /** Re-resolved after person mutations. */
   personId?: string;
+  /**
+   * First names that stay taken for the whole effects list (namesInLife when it began): someone a choice removes
+   * (a friend who moves away and drifts off) is not replaced in the same choice by a newPerson of the same name.
+   */
+  reservedNames?: ReadonlySet<string>;
 }
 
 function currentPerson(state: GameState, ctx: EffectContext): Person | undefined {
@@ -149,6 +154,12 @@ function newPersonAgeRange(state: GameState, np: NewPersonSpec, bound: Person | 
   if ((np.kind === 'friend' || np.kind === 'bestFriend' || np.kind === 'classmate') && me < ADULT_AGE && range[0] < ADULT_AGE) {
     return clampRange(range, friendAgeRange(me));
   }
+  // Someone the card gives a job ("the mechanic") is old enough to hold it when I am grown up myself (a child's new
+  // friends stay children, and students, as above).
+  if (np.occupation && np.kind !== 'coworker') {
+    const floor = occupationMinAge(np.occupation);
+    return [Math.max(range[0], floor), Math.max(range[1], floor)];
+  }
   // A coworker is old enough for the job: an adult beside a full-time one, 14+ (the youngest age with a job) beside a teen one.
   if (np.kind === 'coworker') {
     const floor = state.career.job?.partTime === false ? 18 : 14;
@@ -158,8 +169,10 @@ function newPersonAgeRange(state: GameState, np: NewPersonSpec, bound: Person | 
 }
 
 /** Applies a list of effects in order. Pure except for `rng`, whose state the caller must persist. */
-export function applyEffects(state: GameState, rng: Rng, effects: readonly Effect[], ctx: EffectContext = {}): GameState {
+export function applyEffects(state: GameState, rng: Rng, effects: readonly Effect[], context: EffectContext = {}): GameState {
   let s = state;
+  // Names in the life when the list began stay taken to its end (nested lists share them).
+  const ctx = context.reservedNames ? context : { ...context, reservedNames: namesInLife(state) };
   for (const e of effects) {
     if (!s.alive) break;
     s = applyEffect(s, rng, e, ctx);
@@ -247,8 +260,11 @@ export function applyEffect(state: GameState, rng: Rng, e: Effect, ctx: EffectCo
     const occupation = np.kind === 'coworker' && s.career.job ? coworkerTitle(rng, s.career.job) : np.occupation && age >= 18 ? np.occupation : undefined;
     const p = makePerson(rng, {
       kind: np.kind, age, countryCode: s.character.countryCode, playerAge: s.character.age, relationship: np.relationship ?? rng.int(45, 80), gender: np.gender, species: np.species,
-      occupation, taken: namesInLife(s),
+      // Nor a name this year's journal mentions: someone who left since the birthday is not met again under it.
+      occupation, taken: new Set([...(ctx.reservedNames ?? []), ...namesInLife(s), ...namesInJournalThisYear(s)]),
       lastName: np.kind === 'child' || np.kind === 'sibling' ? s.character.lastName : undefined,
+      // Anyone else a card brings in is not family: they get a surname of their own.
+      avoidSurnames: familySurnames(s),
       // With a same-sex partner the child came by adoption or a donor, so it is not marked as the player's biological child.
       biological: np.kind === 'child' && otherParent?.gender !== s.character.gender ? true : undefined,
     });

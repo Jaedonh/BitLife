@@ -360,7 +360,8 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
       {
         id: 'laugh',
         label: 'Laugh it off',
-        effects: [{ karma: 2 }, { love: 5 }, { relationship: 'person', delta: 4 }, { stat: 'happiness', delta: 2 }, { log: 'We went to dinner anyway. {{They}} paid, out of guilt, which I allowed.', kind: 'good' }],
+        // Being gracious costs a little sting, which sulking would have let out.
+        effects: [{ karma: 2 }, { love: 5 }, { relationship: 'person', delta: 4 }, { stat: 'happiness', delta: -1 }, { log: 'It stung, but we went to dinner anyway. {{They}} paid, out of guilt, which I allowed.', kind: 'good' }],
       },
       {
         id: 'sulk',
@@ -1070,7 +1071,8 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     weight: 1.2,
     cooldown: 4,
     conditions: [{ hasLover: false }, { inPrison: false }, { flag: 'grieving', exists: false }, { not: { sinceEvent: 'ya_blind_date', lte: 4 } }],
-    person: { kind: ['friend', 'bestFriend'], minAge: 18 },
+    // A friend who takes my love life on as a project is one still on good terms with me.
+    person: { kind: ['friend', 'bestFriend'], minAge: 18, minRelationship: 30 },
     choices: [
       {
         id: 'go',
@@ -1764,9 +1766,11 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
         id: 'bless',
         label: 'Give my blessing',
         effects: [
+          { energy: -1 },
           { relationship: 'person', delta: 10 },
           { karma: 3 },
           { stat: 'happiness', delta: 3 },
+          { log: 'I said yes and meant it, then spent my weekends helping plan the wedding.' },
           { newPerson: { kind: 'stepfather', relationship: 50, gender: 'male', minAge: 50, maxAge: 75, log: 'I welcomed {{person}} into the family, boat and all.' } },
         ],
       },
@@ -1813,9 +1817,11 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
         id: 'welcome',
         label: 'Welcome her warmly',
         effects: [
+          { energy: -1 },
           { relationship: 'person', delta: 10 },
           { karma: 3 },
           { stat: 'happiness', delta: 3 },
+          { log: 'I hugged them both and offered to help with the wedding. I ended up running the seating chart.' },
           { newPerson: { kind: 'stepmother', relationship: 50, gender: 'female', minAge: 45, maxAge: 72, log: '{{person}} turned out to be kind, and a far better cook than {{father}}.' } },
         ],
       },

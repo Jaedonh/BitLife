@@ -1,4 +1,5 @@
-import type { EventDef } from '@/engine/events/schema';
+import { ASSETS } from '@/data/assets';
+import type { Condition, EventDef } from '@/engine/events/schema';
 
 /**
  * Ages 60+: retirement parties, grandchildren, downsizing, scam calls, a fall,
@@ -9,6 +10,15 @@ import type { EventDef } from '@/engine/events/schema';
  */
 /** Homes with stairs and rooms to spare (not a studio, condo or penthouse). */
 const BIG_HOME = ['townhouse', 'suburban', 'farmhouse', 'beach_house', 'mansion'];
+/**
+ * Living in a big home, not just owning one. I live in my primary house (the first one bought, or the next once it
+ * is sold, never rented out) and may rent out another, but conditions only see what I own: so every house I own
+ * must be a big one, and then the one I live in is too.
+ */
+const LIVES_IN_BIG_HOME: Condition[] = [
+  { ownsAssetId: BIG_HOME },
+  { not: { ownsAssetId: ASSETS.filter((a) => a.kind === 'house' && !BIG_HOME.includes(a.id)).map((a) => a.id) } },
+];
 
 export const LATER_LIFE_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ retirement
@@ -94,7 +104,9 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     maxAge: 95,
     weight: 1.5,
     cooldown: 4,
-    conditions: [{ inPrison: false }, { any: [{ retired: true }, { hasJob: false }] }],
+    // A pension to recalculate: only a retiree without a job draws one (finance.ts), never someone who simply has no
+    // job; and a couple of years of it at least, since the letter can say it underpaid me 'for years'.
+    conditions: [{ inPrison: false }, { retired: true }, { hasJob: false }, { not: { sinceRetired: true, lte: 1 } }],
     choices: [
       {
         id: 'open',
@@ -240,7 +252,8 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     minAge: 60,
     maxAge: 95,
     weight: 1.5,
-    cooldown: 4,
+    // The day my phone first started talking: it happens once, not again with the next grandchild.
+    once: true,
     conditions: [{ inPrison: false }],
     person: { kind: ['grandchild'], minAge: 9 },
     choices: [
@@ -257,7 +270,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
       {
         id: 'off',
         label: 'Ask {{them}} to turn it off',
-        effects: [{ stat: 'happiness', delta: 1 }, { relationship: 'person', delta: -1 }, { log: 'I asked for it to be a phone again. {{person}} gave me the look I once gave my grandparents.' }],
+        effects: [{ stat: 'happiness', delta: 1 }, { relationship: 'person', delta: -1 }, { log: 'I asked for it to be a phone again. {{person}} gave me a long look of deep, patient pity.' }],
       },
       {
         id: 'daily',
@@ -277,8 +290,10 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 1.5,
     once: true,
-    // A house with stairs and spare rooms; selling it is the player's own move on the Assets screen.
-    conditions: [{ inPrison: false }, { ownsAssetId: BIG_HOME }],
+    // Living in a house with stairs and spare rooms; selling it is the player's own move on the Assets screen. Not
+    // once I have moved into assisted living or in with my kids, or one of them has moved back in with me (the
+    // golden_years and grandchildren flags), whatever house I still own.
+    conditions: [{ inPrison: false }, ...LIVES_IN_BIG_HOME, { not: { flag: 'gy_assisted_living' } }, { not: { flag: 'gy_lives_with_kids' } }],
     choices: [
       {
         id: 'smaller',
@@ -304,10 +319,10 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
       },
       {
         id: 'kids',
-        label: 'Spend a season near the kids',
+        label: 'Spend a season near family',
         hint: '{{$4000}}',
         conditions: [{ hasChildren: true }],
-        effects: [{ money: -4000 }, { relationship: 'child', delta: 8 }, { stat: 'happiness', delta: 5 }, { log: 'I rented a little place near the children for three months. They loved it. They also lock the door.', kind: 'good' }],
+        effects: [{ money: -4000 }, { relationship: 'child', delta: 8 }, { stat: 'happiness', delta: 5 }, { log: 'I rented a little place near my family for three months. They loved it. They also lock the door.', kind: 'good' }],
       },
       {
         id: 'stay',
@@ -385,7 +400,8 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     maxAge: 95,
     weight: 1.5,
     cooldown: 5,
-    conditions: [{ inPrison: false }],
+    // Ordinary forgetfulness, which a doctor may call normal: not once dementia has been diagnosed.
+    conditions: [{ inPrison: false }, { not: { hasIllness: ['dementia'] } }],
     choices: [
       {
         id: 'lists',
@@ -478,7 +494,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
         hint: '{{$200}}',
         effects: [
           { money: -200 },
-          { chance: 0.25, then: [{ illness: 'hypertension' }, { stat: 'happiness', delta: -3 }, { log: 'The second doctor found the blood pressure the first had only hinted at. I now own a cuff.', kind: 'bad' }], else: [{ stat: 'happiness', delta: 3 }, { log: 'The second doctor said I was fine, full stop, no "for your age". I am keeping that one.', kind: 'good' }] },
+          { chance: 0.25, then: [{ illness: 'hypertension' }, { stat: 'happiness', delta: -3 }, { log: 'The second doctor found the blood pressure the first had only hinted at. I now own a cuff.', kind: 'bad' }], else: [{ stat: 'happiness', delta: 3 }, { log: 'The second doctor said I was fine, period, no "for your age". I am keeping that one.', kind: 'good' }] },
         ],
       },
     ],
@@ -534,10 +550,10 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     choices: [
       {
         id: 'kids',
-        label: 'Leave it to the kids',
+        label: 'Leave it to my family',
         hint: '{{$300}}',
         conditions: [{ hasChildren: true }],
-        effects: [{ money: -300 }, { relationship: 'child', delta: 6 }, { karma: 2 }, { stat: 'happiness', delta: 3 }, { log: 'I split everything between the children and left the "misc" boxes to whoever opens them first.', kind: 'good' }],
+        effects: [{ money: -300 }, { relationship: 'child', delta: 6 }, { karma: 2 }, { stat: 'happiness', delta: 3 }, { log: 'I left everything to my family, the "misc" boxes included. Opening those is their problem now.', kind: 'good' }],
       },
       {
         id: 'charity',
@@ -605,7 +621,8 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     weight: 1.5,
     cooldown: 3,
     conditions: [{ inPrison: false }],
-    person: { kind: ['child', 'friend', 'bestFriend', 'sibling', 'coworker'], maxAge: 55 },
+    // Someone who still seeks me out: not a friend or sibling who has stopped speaking to me.
+    person: { kind: ['child', 'friend', 'bestFriend', 'sibling', 'coworker'], maxAge: 55, minRelationship: 30 },
     choices: [
       {
         id: 'truth',
@@ -747,7 +764,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     id: 'll_old_flame',
     category: 'elderly',
     title: 'An old name',
-    text: 'A message arrived from {{personFull}}. We had not spoken in years. {{They}} wanted to know if I would like to get coffee, "no agenda", which is itself an agenda.',
+    text: 'A message arrived from {{personFull}}, out of the blue and very carefully worded. {{They}} wanted to know if I would like to get coffee, "no agenda", which is itself an agenda.',
     minAge: 60,
     maxAge: 90,
     weight: 1,
@@ -807,7 +824,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
         id: 'closure',
         label: 'Say what I never said',
         effects: [
-          { karma: 1 },
+          { karma: 2 },
           { chance: 0.5, then: [{ relationship: 'person', delta: 8 }, { stat: 'happiness', delta: 5 }, { log: 'I finally said it. {{person}} said {{they}} had known all along. We both felt lighter leaving.', kind: 'good' }], else: [{ relationship: 'person', delta: -6 }, { stat: 'happiness', delta: -2 }, { log: 'I said it. {{person}} went quiet, paid for the coffee, and left. Closure, of a kind.' }] },
         ],
       },
@@ -898,7 +915,8 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     cooldown: 5,
     // Not within a few years of holidays_and_traditions' hd_surprise_party, the other surprise party.
     conditions: [{ inPrison: false }, { not: { sinceEvent: 'hd_surprise_party', lte: 5 } }],
-    person: { kind: ['child', 'friend', 'bestFriend', 'sibling', 'spouse'] },
+    // Whoever organized it is close to me, never a friend or sibling who stopped speaking to me.
+    person: { kind: ['child', 'friend', 'bestFriend', 'sibling', 'spouse'], minRelationship: 40 },
     choices: [
       {
         id: 'hug',
@@ -925,7 +943,8 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     id: 'll_sibling_reunion',
     category: 'elderly',
     title: 'Halfway',
-    text: '{{person}} and I have not properly talked in years. {{They}} suggested we meet halfway, at the café our family went to when we were small and furious.',
+    // A cool bond (the selector cannot see when we last talked, so the text claims an old quarrel, not a silence).
+    text: '{{person}} and I have never settled an argument that started before either of us could drive. {{They}} suggested we meet halfway, at the café our family went to when we were small and furious.',
     minAge: 60,
     maxAge: 95,
     weight: 1.5,
@@ -968,7 +987,8 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     weight: 1,
     cooldown: 4,
     conditions: [{ inPrison: false }],
-    person: { kind: ['friend', 'bestFriend'], minAge: 55 },
+    // 'Natural causes' only from 60 (GAME_DESIGN §10), as for any other death.
+    person: { kind: ['friend', 'bestFriend'], minAge: 60 },
     choices: [
       {
         id: 'eulogy',

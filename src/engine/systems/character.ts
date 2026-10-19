@@ -69,6 +69,30 @@ export function namesInLife(state: Pick<GameState, 'character' | 'people'>): Set
   return out;
 }
 
+/** Whole-word search that also works for names with accents ("Zoë", "Søren"), where \b does not. */
+function mentionsName(text: string, name: string): boolean {
+  const letter = (ch: string | undefined) => !!ch && (/[0-9_]/.test(ch) || ch.toLowerCase() !== ch.toUpperCase());
+  for (let i = text.indexOf(name); i >= 0; i = text.indexOf(name, i + 1)) {
+    if (!letter(text[i - 1]) && !letter(text[i + name.length])) return true;
+  }
+  return false;
+}
+
+/**
+ * The country's first names that this year's journal mentions (GAME_DESIGN §10). Someone who left the life since the
+ * birthday (a coworker who stayed behind with the old job) keeps their name until the next one, so a coworker, baby
+ * or anyone a card brings in that year is not taken for them, in the journal or on their page.
+ */
+export function namesInJournalThisYear(state: Pick<GameState, 'character' | 'log'>): Set<string> {
+  const lines: string[] = [];
+  for (let i = state.log.length - 1; i >= 0 && state.log[i]!.age === state.character.age; i--) lines.push(state.log[i]!.text);
+  const out = new Set<string>();
+  if (!lines.length) return out;
+  const pool = NAMES[getCountry(state.character.countryCode).namePool];
+  for (const name of [...pool.male, ...pool.female]) if (lines.some((l) => mentionsName(l, name))) out.add(name);
+  return out;
+}
+
 /**
  * A first name from the country's pool that nobody in `taken` has, while the pool still has one (then any name).
  * The one helper behind every new person's name. Always a single draw, like an unchecked one, so everything rolled
@@ -94,9 +118,46 @@ const OCCUPATIONS_ADULT = [
 /** Jobs that take a degree (or years on the ladder) first: nobody is a 19-year-old dentist. */
 const OCCUPATIONS_NEED_YEARS = new Set(['Teacher', 'Nurse', 'Accountant', 'Shop Manager', 'Software Developer', 'Pharmacist', 'Lawyer', 'Journalist', 'Dentist', 'Engineer', 'Social Worker', 'Librarian', 'Architect']);
 
+/** The well-paid professions: a family that is always short of money has none of them at home (GAME_DESIGN §4). */
+const OCCUPATIONS_WELL_PAID = new Set(['Accountant', 'Software Developer', 'Pharmacist', 'Lawyer', 'Dentist', 'Engineer', 'Architect']);
+/** A poor family's parents: any job but a well-paid profession (or none). */
+const OCCUPATIONS_POOR = OCCUPATIONS_ADULT.filter((o) => !OCCUPATIONS_WELL_PAID.has(o));
+/** A wealthy family's parents: the professions and the jobs that run a business. */
+const OCCUPATIONS_WEALTHY = [...OCCUPATIONS_WELL_PAID, 'Shop Manager', 'Real Estate Agent'];
+
+/** Someone whose life stage still says "Student" is grown up from this age: they have a job (or none) and money of their own. */
+export const GROWN_UP_AGE = 23;
+
 /** An adult's job for their age: someone under 23 drawn into a graduate's job is still a student. */
 function occupationFor(drawn: string, age: number): string {
-  return age < 23 && OCCUPATIONS_NEED_YEARS.has(drawn) ? 'Student' : drawn;
+  return age < GROWN_UP_AGE && OCCUPATIONS_NEED_YEARS.has(drawn) ? 'Student' : drawn;
+}
+
+/** How old someone must be to hold this job: 23 for one that takes a degree first, else 18. */
+export function occupationMinAge(occupation: string): number {
+  return OCCUPATIONS_NEED_YEARS.has(occupation) ? GROWN_UP_AGE : 18;
+}
+
+/**
+ * What a grown-up who was still a student when they joined the life does now (GAME_DESIGN §10): an adult job for
+ * their age (or none) and savings like any adult's. The same draws makePerson makes for an adult.
+ */
+export function grownUpLivelihood(rng: Rng, age: number, countryCode: string): { occupation: string; money: number } {
+  const occupation = occupationFor(rng.pick(OCCUPATIONS_ADULT), age);
+  return { occupation, money: Math.round(rng.int(2_000, 120_000) * getCountry(countryCode).salaryMultiplier) };
+}
+
+/** Kinds that are the player's own family: they carry its surnames, so nobody else is given one (familySurnames). */
+const FAMILY_KINDS: ReadonlySet<RelationshipKind> = new Set(['mother', 'father', 'stepmother', 'stepfather', 'sibling', 'grandparent', 'child', 'grandchild', 'spouse']);
+
+/**
+ * The surnames of the player's family (GAME_DESIGN §10): theirs and their relatives'. Someone new who is not family
+ * (a friend, a partner, a coworker) is given another one, so they do not read as a relative.
+ */
+export function familySurnames(state: Pick<GameState, 'character' | 'people'>): Set<string> {
+  const out = new Set([state.character.lastName]);
+  for (const p of Object.values(state.people)) if (FAMILY_KINDS.has(p.kind) && !p.foster) out.add(p.lastName);
+  return out;
 }
 
 export function makePerson(
@@ -118,11 +179,18 @@ export function makePerson(
      * and theirs is added to the set, so several people made in a row stay distinct.
      */
     taken?: Set<string>;
+    /** Surnames to leave out of the draw (familySurnames): someone who is not family does not share the family's name. */
+    avoidSurnames?: ReadonlySet<string>;
+    /** The jobs an adult's occupation is drawn from (a parent's fits the family's wealth); all jobs by default. */
+    occupations?: readonly string[];
   },
 ): Person {
   const gender = opts.gender ?? rng.pick<Gender>(['male', 'female']);
   const firstName = freshFirstName(rng, gender, opts.countryCode, opts.taken);
-  const surname = rng.pick(NAMES[getCountry(opts.countryCode).namePool].surnames);
+  // One draw either way, like the first name.
+  const surnames = NAMES[getCountry(opts.countryCode).namePool].surnames;
+  const otherSurnames = opts.avoidSurnames?.size ? surnames.filter((n) => !opts.avoidSurnames!.has(n)) : surnames;
+  const surname = rng.pick(otherSurnames.length ? otherSurnames : surnames);
   opts.taken?.add(firstName);
   const adult = opts.age >= 18;
   return {
@@ -138,7 +206,7 @@ export function makePerson(
     smarts: rng.int(10, 95),
     health: rng.int(adult ? 50 : 80, 100),
     craziness: rng.int(0, 100),
-    occupation: opts.occupation ?? (adult ? occupationFor(rng.pick(OCCUPATIONS_ADULT), opts.age) : 'Student'),
+    occupation: opts.occupation ?? (adult ? occupationFor(rng.pick(opts.occupations ?? OCCUPATIONS_ADULT), opts.age) : 'Student'),
     money: opts.money ?? (adult ? Math.round(rng.int(2_000, 120_000) * getCountry(opts.countryCode).salaryMultiplier) : 0),
     memory: emptyMemory(opts.playerAge),
     metAtAge: opts.playerAge,
@@ -334,24 +402,30 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
   } else {
     const big = scenario === 'big_family';
     const single = scenario === 'single_parent';
-    const motherAge = big ? rng.int(26, 42) : rng.int(18, 42);
-    const fatherAge = clampStat(motherAge + rng.int(-4, 10));
+    // Rich parents are established in their professions (GAME_DESIGN §4), so they are past their student years.
+    const motherAge = big ? rng.int(26, 42) : rng.int(wealthy ? 25 : 18, 42);
+    const fatherAge = Math.max(wealthy ? 23 : 18, clampStat(motherAge + rng.int(-4, 10)));
     // Nobody at home shares a first name, the player's included (five children in one house need five names).
     const taken = new Set([firstName]);
     // A single parent is a mother three times in four, otherwise a father.
     const singleDad = single && rng.chance(0.25);
+    // The parents' jobs fit the family's money: no lawyer in a home where money is always tight (GAME_DESIGN §4).
+    const occupations = wealthy ? OCCUPATIONS_WEALTHY : poor ? OCCUPATIONS_POOR : undefined;
     if (!singleDad) {
-      const mother = makePerson(rng, { kind: 'mother', gender: 'female', age: motherAge, countryCode, lastName: rng.chance(0.85) ? lastName : undefined, playerAge: 0, relationship: rng.int(60, 100), money: parentMoney(), taken });
+      const mother = makePerson(rng, { kind: 'mother', gender: 'female', age: motherAge, countryCode, lastName: rng.chance(0.85) ? lastName : undefined, playerAge: 0, relationship: rng.int(60, 100), money: parentMoney(), taken, occupations });
       people[mother.id] = mother;
     }
     if (singleDad || (!single && rng.chance(0.88))) {
-      const father = makePerson(rng, { kind: 'father', gender: 'male', age: Math.max(18, fatherAge), countryCode, lastName, playerAge: 0, relationship: rng.int(55, 100), money: parentMoney(), taken });
+      const father = makePerson(rng, { kind: 'father', gender: 'male', age: fatherAge, countryCode, lastName, playerAge: 0, relationship: rng.int(55, 100), money: parentMoney(), taken, occupations });
       people[father.id] = father;
     }
-    const siblings = big ? rng.int(3, 5) : rng.weighted([0, 1, 2, 3], (n) => [35, 40, 18, 7][n]!);
-    const eldestParent = singleDad ? Math.max(18, fatherAge) : motherAge;
+    // Every parent at home was at least 17 when the eldest was born: the youngest parent caps the older siblings' ages,
+    // and so how many there can be (an 18-year-old has room for one, not three born the same year as each other).
+    const youngestParent = Math.min(...Object.values(people).map((p) => p.age));
+    const room = Math.max(1, Math.min(16, youngestParent - 17));
+    const siblings = Math.min(room, big ? rng.int(3, 5) : rng.weighted([0, 1, 2, 3], (n) => [35, 40, 18, 7][n]!));
     for (let i = 0; i < siblings; i++) {
-      const sib = makePerson(rng, { kind: 'sibling', age: rng.int(1, Math.min(16, eldestParent - 17)), countryCode, lastName, playerAge: 0, relationship: rng.int(40, 90), biological: true, taken });
+      const sib = makePerson(rng, { kind: 'sibling', age: rng.int(1, room), countryCode, lastName, playerAge: 0, relationship: rng.int(40, 90), biological: true, taken });
       people[sib.id] = sib;
     }
     const parents = Object.values(people).filter((p) => p.kind === 'mother' || p.kind === 'father');
@@ -361,7 +435,8 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
       for (const p of parents) if (p === father || !father || rng.chance(0.5)) p.occupation = 'Farmer';
     }
     for (const gp of rollGrandparents(rng, parents, lastName, countryCode, taken)) people[gp.id] = gp;
-    if (wealthy) traits.push('lucky');
+    // The Wealthy start's Lucky trait, once: a wealthy birth that already rolled it keeps the one.
+    if (wealthy && !traits.includes('lucky')) traits.push('lucky');
   }
 
   // An heir's share of the estate: 80% of what the previous character left, split between the children.

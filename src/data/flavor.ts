@@ -135,7 +135,8 @@ export const FLAVOR: readonly FlavorLine[] = [
   { minAge: 21, maxAge: 80, conditions: IN_GRAD_SCHOOL, text: 'Relatives kept asking when I would be finished with school. So did I.' },
   { minAge: 21, maxAge: 80, conditions: IN_GRAD_SCHOOL, text: 'I lived on coffee, cold pizza and the hope that all of this would be worth it.' },
   // ------------------------------------------------------------ situational: retirement
-  { minAge: 65, maxAge: 120, conditions: RETIRED, text: "Retirement suits me. I haven't set an alarm in years, and I still wake up at six." },
+  // 'In years': only a few years into retirement, past the party and golden_years' first Mondays (also up at six).
+  { minAge: 65, maxAge: 120, conditions: [...RETIRED, { sinceRetired: true, gte: 3 }], text: "Retirement suits me. I haven't set an alarm in years, and I still wake up at six." },
   { minAge: 65, maxAge: 120, conditions: RETIRED, text: 'I joined a walking group. We walk for ten minutes and talk for two hours.' },
   { minAge: 65, maxAge: 120, conditions: RETIRED, text: 'I finally had time for all my hobbies and found out I only had one.' },
   { minAge: 65, maxAge: 120, conditions: RETIRED, text: 'Without work, the days of the week lost their names. I tell them apart by the trash pickup.' },

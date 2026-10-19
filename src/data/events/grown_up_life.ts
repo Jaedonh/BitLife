@@ -1,3 +1,4 @@
+import { ASSETS } from '@/data/assets';
 import type { Condition, EventDef } from '@/engine/events/schema';
 
 /**
@@ -21,10 +22,25 @@ const FUEL_CARS = REAL_CARS.filter((id) => id !== 'ev');
 /** Homes with a roof of their own (not a studio, condo or penthouse in a block). */
 const ROOFED_HOMES = ['townhouse', 'suburban', 'farmhouse', 'beach_house', 'mansion'];
 /**
+ * Living under a roof of my own, not just owning one. I live in my primary house (the first one bought, or the next
+ * once it is sold, never rented out) and may rent out another, but conditions only see what I own: so every house I
+ * own must have its own roof, and then the one I live in does too.
+ */
+const LIVES_UNDER_OWN_ROOF: Condition[] = [
+  { ownsAssetId: ROOFED_HOMES },
+  { not: { ownsAssetId: ASSETS.filter((a) => a.kind === 'house' && !ROOFED_HOMES.includes(a.id)).map((a) => a.id) } },
+];
+/**
  * Widowhood cards grieve the one marriage of the life: one wedding and no spouse now, so the late spouse they bind
  * is the person I married and nobody since (never a first husband after a second wedding, or a second widowhood).
  */
 const WIDOWED: Condition[] = [{ married: false }, { count: 'marriages', eq: 1 }];
+/**
+ * The first months after the loss (the casseroles, the voicemail greeting, the ring I still wear, the closet): within
+ * the grief window, the year of the loss and the next (GAME_DESIGN §10), never decades later. Weighted up, as a
+ * short window.
+ */
+const NEWLY_WIDOWED: Condition[] = [...WIDOWED, { flag: 'grieving' }];
 
 export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ the wedding chain
@@ -309,7 +325,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
         label: 'Rent a bigger place',
         hint: '{{$1500}}',
         conditions: [{ noAsset: 'house' }],
-        effects: [{ money: -1500 }, { love: 5 }, { stat: 'happiness', delta: 2 }, { log: 'We moved somewhere with two closets. The mugs got a cupboard of their own.', kind: 'money' }],
+        effects: [{ money: -1500 }, { love: 5 }, { stat: 'happiness', delta: 2 }, { log: 'We moved somewhere with two closets. The mugs got a cabinet of their own.', kind: 'money' }],
       },
     ],
   },
@@ -325,7 +341,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     weight: 1.5,
     cooldown: 10,
     conditions: [{ count: 'divorces', gte: 1 }, { hasPerson: ['ex'] }],
-    person: { kind: ['friend', 'bestFriend'] },
+    person: { kind: ['friend', 'bestFriend'], minRelationship: 30 },
     choices: [
       {
         id: 'go',
@@ -579,9 +595,9 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
       },
       {
         id: 'kids',
-        label: 'Save it for the kids',
+        label: 'Save it for the family',
         conditions: [{ hasChildren: true }],
-        effects: [{ relationship: 'child', delta: 2 }, { karma: 1 }, { log: 'I boxed it up for the kids. One day they will ask, and I will tell them the good parts.' }],
+        effects: [{ relationship: 'child', delta: 2 }, { karma: 1 }, { log: 'I boxed it up for the family. One day someone will ask, and I will tell the good parts.' }],
       },
       {
         id: 'toss',
@@ -611,9 +627,9 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     text: 'Everyone was kind when {{person}} died. The casseroles came, the cards came, and then, slowly, everyone went back to their own lives. Which is fair, and which leaves me an evening every evening.',
     minAge: 25,
     maxAge: 64,
-    weight: 2,
+    weight: 3,
     once: true,
-    conditions: [...WIDOWED, { hasLover: false }],
+    conditions: [...NEWLY_WIDOWED, { hasLover: false }],
     person: { kind: ['spouse'], alive: false },
     choices: [
       {
@@ -668,10 +684,10 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     text: "{{person}}'s side of the closet is exactly as {{they}} left it, down to the shoes. I keep telling people I will deal with it soon, and I keep meaning it.",
     minAge: 25,
     maxAge: 64,
-    weight: 1.5,
+    weight: 3,
     once: true,
     // golden_years' gy_widow_closet is the same closet, later in life: one per life (it guards against this one too).
-    conditions: [...WIDOWED, { hasLover: false }, { eventNotFired: 'gy_widow_closet' }],
+    conditions: [...NEWLY_WIDOWED, { hasLover: false }, { eventNotFired: 'gy_widow_closet' }],
     person: { kind: ['spouse'], alive: false },
     choices: [
       {
@@ -710,9 +726,9 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     text: "The phone company wrote: {{person}}'s old number will go to someone new unless I keep paying for it. I still call it sometimes, just to hear {{their}} voicemail greeting.",
     minAge: 25,
     maxAge: 64,
-    weight: 1,
+    weight: 3,
     once: true,
-    conditions: [...WIDOWED, { hasLover: false }],
+    conditions: [...NEWLY_WIDOWED, { hasLover: false }],
     person: { kind: ['spouse'], alive: false },
     choices: [
       {
@@ -785,9 +801,9 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     text: 'A new coworker at {{company}} noticed my wedding ring and asked, brightly, what my other half does. I still wear it. I had not prepared for the question.',
     minAge: 25,
     maxAge: 64,
-    weight: 1,
+    weight: 3,
     once: true,
-    conditions: [{ hasJob: true }, ...WIDOWED, { hasLover: false }],
+    conditions: [{ hasJob: true }, ...NEWLY_WIDOWED, { hasLover: false }],
     person: { kind: ['spouse'], alive: false },
     choices: [
       {
@@ -889,7 +905,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
       {
         id: 'own',
         label: 'Own it with dignity',
-        effects: [{ karma: 2 }, { stat: 'happiness', delta: 1 }, { log: 'I nodded at the cashier and paid. Somewhere, my own parents are laughing.' }],
+        effects: [{ karma: 2 }, { stat: 'happiness', delta: 1 }, { log: 'I nodded at the cashier and paid. Somewhere, everyone who ever raised a toddler is laughing.' }],
       },
       {
         id: 'blame',
@@ -913,7 +929,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     id: 'gu_daycare_bill',
     category: 'money',
     title: 'The daycare bill',
-    text: 'The daycare with a spot for {{person}} sent its fees. I read the yearly total twice and sat down. All that, for a place where {{they}} will mostly nap and bite someone named Theo.',
+    text: 'The daycare with a spot for {{person}} sent its fees. I read the yearly total twice and sat down. All that, for a place where {{they}} will mostly nap and bite the other toddlers.',
     minAge: 25,
     maxAge: 64,
     weight: 1.5,
@@ -926,7 +942,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
         id: 'pay',
         label: 'Pay it and keep working',
         hint: '{{$4000}}',
-        effects: [{ money: -4000 }, { jobPerformance: 2 }, { stat: 'happiness', delta: -1 }, { log: 'I paid. {{person}} loves it there. Theo has filed no formal complaint.', kind: 'money' }],
+        effects: [{ money: -4000 }, { jobPerformance: 2 }, { stat: 'happiness', delta: -1 }, { log: 'I paid. {{person}} loves it there. The bitten have filed no formal complaint.', kind: 'money' }],
       },
       {
         id: 'grandma',
@@ -955,7 +971,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
           { money: -1500 },
           {
             chance: 0.6,
-            then: [{ log: 'The cheaper place is fine. Less finger painting, more television, a different Theo.' }],
+            then: [{ log: 'The cheaper place is fine. Less finger painting, more television, a whole new set of people to bite.' }],
             else: [{ money: -2500 }, { stat: 'happiness', delta: -4 }, { log: 'The cheaper place lost track of {{person}} twice in a week. Back to the expensive one.', kind: 'bad' }],
           },
         ],
@@ -1279,7 +1295,8 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     id: 'gu_estranged_child',
     category: 'family',
     title: 'The quiet between us',
-    text: '{{person}} and I have not had a real conversation in a long time. The last one ended with a slammed door, and the silence since has started to feel like furniture.',
+    // A cool bond (the selector cannot see when we last talked, so the text names the quarrel, not a silence).
+    text: 'Things between {{person}} and me have been cold since an argument that ended with a slammed door. We are polite now, carefully, and the politeness has started to feel like furniture.',
     minAge: 40,
     maxAge: 64,
     weight: 1,
@@ -1465,7 +1482,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     weight: 1.2,
     cooldown: 8,
     conditions: [{ hasLover: false }, { flag: 'grieving', exists: false }],
-    person: { kind: ['friend', 'bestFriend'], minAge: 25 },
+    person: { kind: ['friend', 'bestFriend'], minAge: 25, minRelationship: 30 },
     choices: [
       {
         id: 'dance',
@@ -1658,7 +1675,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     weight: 1,
     cooldown: 5,
     conditions: [{ hasLover: false }],
-    person: { kind: ['friend', 'bestFriend'] },
+    person: { kind: ['friend', 'bestFriend'], minRelationship: 30 },
     choices: [
       {
         id: 'pay',
@@ -1699,7 +1716,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     maxAge: 64,
     weight: 1,
     cooldown: 6,
-    conditions: [{ ownsAssetId: ROOFED_HOMES }],
+    conditions: [...LIVES_UNDER_OWN_ROOF],
     choices: [
       {
         id: 'patch',

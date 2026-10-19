@@ -86,9 +86,13 @@ export function personName(p: Person): string {
 /** What the player calls them in the journal ("Mom", "Dad", or the first name); pass the family so a second father reads "Papa". */
 export { personRef };
 
+/** One of my children who has finished or left high school (family.ts): they are not in school any more. */
+const leftSchool = (p: Person) => p.growth?.school === 'graduated' || p.growth?.school === 'droppedOut';
+
 /**
  * What someone does, for the subtitle under their name. Children are created as "Student" or "Baby" and
- * never get a job, so their label follows their age; pets have none.
+ * never get a job, so their label follows their age (and, for my own children, whether they are still at school);
+ * pets have none.
  */
 export function occupationLabel(p: Person): string | null {
   if (p.kind === 'pet') return null;
@@ -96,13 +100,21 @@ export function occupationLabel(p: Person): string | null {
   if (childish || p.age < 18) {
     if (p.age < 2) return 'Baby';
     if (p.age < 5) return 'Toddler';
-    // A grown-up child never had a job assigned, so past college age nothing is shown.
-    if (p.age < 23) return 'Student';
+    // A grown-up child never had a job assigned, so once out of school (or past college age) nothing is shown.
+    if (p.age < 23 && !leftSchool(p)) return 'Student';
     return null;
   }
-  // "Retired IT specialist": acronyms keep their capitals.
-  if (p.age >= 67 && p.occupation !== 'Unemployed') return `Retired ${lowerTitle(p.occupation)}`;
+  // "Retired IT specialist": acronyms keep their capitals. A coworker still works beside me, whatever their age.
+  if (p.age >= 67 && p.occupation !== 'Unemployed' && p.kind !== 'coworker') return `Retired ${lowerTitle(p.occupation)}`;
   return p.occupation;
+}
+
+/**
+ * What an heir's card says they do: their occupation label, or for a child who left high school without a diploma,
+ * that (the new life opens with it).
+ */
+export function heirOccupationLabel(p: Person): string | null {
+  return occupationLabel(p) ?? (p.growth?.school === 'droppedOut' ? 'No diploma' : null);
 }
 
 /** "Mother · 54 · Nurse", "Dog · 3". */
@@ -174,11 +186,22 @@ export function familyFacts(p: Person, state: Pick<GameState, 'people' | 'career
  * Everything the person screen says about someone, in order: how long you have known them (left out for an aunt or
  * uncle who took you in later, whose line already says when), the family facts, any silence, and the wedding.
  */
-export function personFacts(p: Person, state: Pick<GameState, 'people' | 'career' | 'character'>): string[] {
+export function personFacts(p: Person, state: Pick<GameState, 'people' | 'career' | 'character'> & Partial<Pick<GameState, 'flags' | 'crime'>>): string[] {
   const age = state.character.age;
   const since = isRelativeGuardian(p) && p.metAtAge > 0 ? null : sinceLine(p, age);
   const married = p.marriedAtAge !== undefined ? `Married when you were ${p.marriedAtAge}.` : null;
-  return [since, ...familyFacts(p, state), neglectLine(p, age), married].filter((x): x is string => !!x);
+  return [since, ...familyFacts(p, state), neglectLine(p, age, livesWithMe(p, state)), married].filter((x): x is string => !!x);
+}
+
+/**
+ * Whether someone shares my home now, beyond the parents and siblings of a childhood home: a spouse, a pet, and a
+ * partner I moved in with (`lf_living_together`), as for `household` event selectors. Not while I am in prison, nor
+ * anyone who lives far away.
+ */
+export function livesWithMe(p: Person, state: Partial<Pick<GameState, 'flags' | 'crime'>>): boolean {
+  if (!p.alive || p.farAway || state.crime?.inPrison) return false;
+  if (p.kind === 'spouse' || p.kind === 'pet') return true;
+  return p.kind === 'lover' && state.flags?.lf_living_together === true;
 }
 
 /** "Died of cancer at 71", "Died in a car accident at 40". */
@@ -190,10 +213,11 @@ const HOUSEHOLD: ReadonlySet<RelationshipKind> = new Set(['mother', 'father', 's
 
 /**
  * "You haven't spoken in 3 years." Only for real silence: a child lives with their parents and siblings until 18
- * (and a parent with their own kids), so those years never count as neglect, nor do years before you met.
+ * (and a parent with their own kids), so those years never count as neglect, nor do years before you met; and
+ * nobody I live with now (`livesWithMe`: a spouse, a live-in partner, a pet) is a stranger at home.
  */
-export function neglectLine(p: Person, playerAge: number): string | null {
-  if (!p.alive) return null;
+export function neglectLine(p: Person, playerAge: number, sharesHome = false): string | null {
+  if (!p.alive || sharesHome) return null;
   if (p.kind === 'child' && p.age < 18) return null;
   // A small grandchild is seen with their parents; a young child sees their grandparents the same way.
   if (p.kind === 'grandchild' && p.age < 6) return null;
@@ -349,7 +373,9 @@ function memoryTerms(p: Person, state: Pick<GameState, 'people' | 'character'>):
 
 /**
  * The last few journal lines that mention this person, newest first. An event card and its outcome line from
- * the same year usually both mention them; the outcome wins, so the list is not the same moment twice.
+ * the same year usually both mention them; the outcome wins, so the list is not the same moment twice. Only lines
+ * from since we met: a first name can come back to the life once its owner has left it (GAME_DESIGN §10), and the
+ * earlier Layla's lines are not this Layla's.
  */
 export function personMemories(state: Pick<GameState, 'people' | 'character' | 'log'>, p: Person, limit = 3): Memory[] {
   const terms = memoryTerms(p, state);
@@ -357,6 +383,8 @@ export function personMemories(state: Pick<GameState, 'people' | 'character' | '
   const outcomeAges = new Set<number>();
   for (let i = state.log.length - 1; i >= 0 && out.length < limit; i--) {
     const entry: LogEntry = state.log[i]!;
+    // The journal runs in age order, so nothing earlier can be about them.
+    if (entry.age < p.metAtAge) break;
     if (entry.kind === 'year' || entry.kind === 'death') continue;
     if (!terms.some((t) => mentions(entry.text, t))) continue;
     if (entry.kind === 'event') {

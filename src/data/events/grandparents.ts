@@ -71,7 +71,8 @@ export const GRANDPARENTS_EVENTS: EventDef[] = [
     minAge: 3,
     maxAge: 7,
     weight: 1.2,
-    cooldown: 3,
+    // Finding the secret drawer is a discovery: it happens once, not again a few years on word for word.
+    once: true,
     person: { kind: ['grandparent'], gender: 'female', minAge: 50 },
     choices: [
       {
@@ -484,7 +485,7 @@ export const GRANDPARENTS_EVENTS: EventDef[] = [
       {
         id: 'record',
         label: 'Write down every word',
-        effects: [{ energy: -1 }, { grade: 4 }, { stat: 'smarts', delta: 2 }, { relationship: 'person', delta: 5 }, { log: 'I filled a whole notebook and got a top mark. {{person}} wants a copy for the fridge.', kind: 'good' }],
+        effects: [{ energy: -1 }, { grade: 4 }, { stat: 'smarts', delta: 2 }, { relationship: 'person', delta: 5 }, { log: 'I filled a whole notebook and got a top grade. {{person}} wants a copy for the fridge.', kind: 'good' }],
       },
       {
         id: 'drama',

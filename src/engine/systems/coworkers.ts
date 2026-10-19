@@ -7,7 +7,7 @@ import { JOB_BY_ID } from '@/data/jobs';
 import type { Rng } from '../rng';
 import type { GameState, Job, Person } from '../types';
 import { log } from '../util';
-import { makePerson, namesInLife } from './character';
+import { familySurnames, makePerson, namesInJournalThisYear, namesInLife } from './character';
 
 /** Relationship at which a coworker stays a friend after the job ends. */
 export const COWORKER_FRIEND_AT = 70;
@@ -35,13 +35,16 @@ export function hireCoworkers(state: GameState, rng: Rng): GameState {
   if (!job || job.partTime) return state;
   const me = state.character;
   const people = { ...state.people };
-  // First names nobody in my life has yet (a coworker called Willow beside a wife called Willow reads as one person).
-  const taken = namesInLife(state);
+  // First names nobody in my life has yet (a coworker called Willow beside a wife called Willow reads as one person),
+  // nor anyone the journal mentions this year: the old job's Willow, left behind on a job change, is not hired again.
+  const taken = new Set([...namesInLife(state), ...namesInJournalThisYear(state)]);
+  // ...and a surname that is not the family's: a coworker is not a relative.
+  const avoidSurnames = familySurnames(state);
   const count = rng.int(2, 3);
   for (let i = 0; i < count; i++) {
     const age = Math.max(18, Math.min(70, me.age + rng.int(-6, 8)));
     const title = coworkerTitle(rng, job);
-    const p = makePerson(rng, { kind: 'coworker', age, countryCode: me.countryCode, playerAge: me.age, relationship: rng.int(35, 60), occupation: title, taken });
+    const p = makePerson(rng, { kind: 'coworker', age, countryCode: me.countryCode, playerAge: me.age, relationship: rng.int(35, 60), occupation: title, taken, avoidSurnames });
     p.workplace = workplaceOf(job);
     people[p.id] = p;
   }

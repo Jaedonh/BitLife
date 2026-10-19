@@ -103,7 +103,8 @@ export function LifeProfileSheet({ game, visible, onClose }: { game: GameState; 
             </View>
             {c.traits.length ? (
               <View style={styles.traits}>
-                {c.traits.map((t) => (
+                {/* Each trait once: an older save can list Lucky twice (a lucky roll plus a wealthy birth). */}
+                {[...new Set(c.traits)].map((t) => (
                   <View key={t} style={styles.trait} testID={`profile-trait-${t}`}>
                     <Text style={styles.traitLabel}>{TRAIT_LABELS[t]?.label ?? t}</Text>
                     <Text style={typography.small}>{TRAIT_LABELS[t]?.description ?? ''}</Text>

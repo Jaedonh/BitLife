@@ -642,9 +642,9 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
         ],
       },
       {
+        // The card already needs Mom, so this choice is always there beside building it taller.
         id: 'tell',
         label: 'Cry for {{mother}}',
-        conditions: [{ hasPerson: ['mother'] }],
         effects: [
           { relationship: 'person', delta: -2 },
           {

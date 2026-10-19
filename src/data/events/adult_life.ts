@@ -1,4 +1,5 @@
-import type { EventDef } from '@/engine/events/schema';
+import { ASSETS } from '@/data/assets';
+import type { Condition, EventDef } from '@/engine/events/schema';
 
 /**
  * Ages 30-59: mortgages, neighbors, homeowners' associations, midlife
@@ -11,6 +12,20 @@ import type { EventDef } from '@/engine/events/schema';
  */
 /** Houses with a front door and a yard of their own (not a studio, condo or penthouse). */
 const HOUSE_WITH_YARD = ['townhouse', 'suburban', 'farmhouse', 'beach_house', 'mansion'];
+/**
+ * Living in a house with a yard, not just owning one. I live in my primary house (the first one bought, or the next
+ * once it is sold, never rented out) and may rent out another, but conditions only see what I own: so every house I
+ * own must have a yard, and then the one I live in does too.
+ */
+const LIVES_IN_HOUSE_WITH_YARD: Condition[] = [
+  { ownsAssetId: HOUSE_WITH_YARD },
+  { not: { ownsAssetId: ASSETS.filter((a) => a.kind === 'house' && !HOUSE_WITH_YARD.includes(a.id)).map((a) => a.id) } },
+];
+/**
+ * Countries where a summons puts ordinary people on a twelve-person jury that can hang (the verdict card's 'eleven to
+ * one'): not India, Mexico or Nigeria, which have no lay juries, nor the mixed lay-judge courts of Germany or Japan.
+ */
+const JURY_TRIAL_COUNTRIES = ['US', 'GB', 'CA', 'AU'];
 
 export const ADULT_LIFE_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ home & money
@@ -24,7 +39,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     weight: 1,
     cooldown: 6,
     conditions: [{ inPrison: false }, { any: [{ hasJob: true }, { money: { gte: 20000 } }] }],
-    person: { kind: ['sibling', 'friend', 'bestFriend', 'child'], minAge: 21 },
+    // Asked of someone they trust: not a friend or sibling who has stopped speaking to me.
+    person: { kind: ['sibling', 'friend', 'bestFriend', 'child'], minAge: 21, minRelationship: 40 },
     choices: [
       {
         id: 'cosign',
@@ -61,7 +77,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 1,
     cooldown: 5,
-    conditions: [{ inPrison: false }, { ownsAssetId: HOUSE_WITH_YARD }],
+    conditions: [{ inPrison: false }, ...LIVES_IN_HOUSE_WITH_YARD],
     choices: [
       {
         id: 'repaint',
@@ -105,7 +121,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 1,
     cooldown: 5,
-    conditions: [{ inPrison: false }, { ownsAssetId: HOUSE_WITH_YARD }],
+    conditions: [{ inPrison: false }, ...LIVES_IN_HOUSE_WITH_YARD],
     choices: [
       {
         id: 'survey',
@@ -463,7 +479,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     choices: [
       {
         id: 'bike',
-        label: 'Motorbike lessons and leather',
+        label: 'Motorcycle lessons and leather',
         hint: '{{$4000}}',
         effects: [
           { money: -4000 },
@@ -650,7 +666,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ stat: 'looks', delta: 2 }, { log: 'Reading glasses. I look distinguished and can read again.', kind: 'good' }],
-            else: [{ stat: 'looks', delta: -1 }, { log: 'Reading glasses. I look exactly like my parents and can read again.' }],
+            else: [{ stat: 'looks', delta: -1 }, { log: 'Reading glasses. I look like a retired librarian and can read again.' }],
           },
         ],
       },
@@ -733,6 +749,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
         id: 'go',
         label: 'Go and be honest',
         effects: [
+          { energy: -1 },
           { stat: 'happiness', delta: 3 },
           {
             chance: 0.6,
@@ -747,6 +764,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
         // Not while I mourn a partner (the grief window, GAME_DESIGN §10).
         conditions: [{ hasLover: false }, { flag: 'grieving', exists: false }],
         effects: [
+          { energy: -1 },
           {
             chance: 0.4,
             then: [{ stat: 'happiness', delta: 8 }, { log: 'I found the old flame by the buffet. The years vanished in a sentence.', kind: 'good' }, { newPerson: { kind: 'lover', relationship: 60, log: 'The old spark with {{person}} was still there. We left the buffet early.' } }],
@@ -758,6 +776,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
         id: 'brag',
         label: 'Embellish my life story',
         effects: [
+          { energy: -1 },
           { karma: -2 },
           { stat: 'happiness', delta: 4 },
           {
@@ -923,8 +942,9 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
   {
     id: 'ad_sibling_feud',
     category: 'random',
-    title: 'The long silence',
-    text: '{{person}} and I have not properly spoken in years. A cousin is getting married and has seated us side by side. The cousin swears it was an accident.',
+    title: 'Side by side',
+    // A cool bond (the selector cannot see when we last talked, so the text names a feud, not a silence).
+    text: '{{person}} and I have been feuding for so long that nobody remembers how it started, us included. A cousin is getting married and has seated us side by side. The cousin swears it was an accident.',
     minAge: 30,
     maxAge: 59,
     weight: 1,
@@ -938,21 +958,21 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
         label: 'Clear the air',
         effects: [
           {
-            chance: 0.55,
-            then: [{ relationship: 'person', delta: 15 }, { stat: 'happiness', delta: 6 }, { karma: 3 }, { log: 'By the speeches we were laughing. Years of silence over nothing, like most of them.', kind: 'good' }],
-            else: [{ relationship: 'person', delta: -5 }, { stat: 'happiness', delta: -4 }, { log: 'We lasted until the appetizers. The old argument has not aged.', kind: 'bad' }],
+            chance: 0.5,
+            then: [{ relationship: 'person', delta: 15 }, { stat: 'happiness', delta: 6 }, { karma: 3 }, { log: 'By the speeches we were laughing. A whole feud over nothing, like most of them.', kind: 'good' }],
+            else: [{ relationship: 'person', delta: -6 }, { stat: 'happiness', delta: -5 }, { log: 'We lasted until the appetizers. The old argument has not aged.', kind: 'bad' }],
           },
         ],
       },
       {
         id: 'polite',
         label: 'Be polite, nothing more',
-        effects: [{ relationship: 'person', delta: 3 }, { stat: 'happiness', delta: -1 }, { log: 'We discussed the weather and the fish course. Progress, technically.' }],
+        effects: [{ relationship: 'person', delta: 3 }, { stat: 'happiness', delta: 1 }, { log: 'We discussed the weather and the fish course. Nobody shouted. Progress, technically.' }],
       },
       {
         id: 'swap',
         label: 'Swap seats',
-        effects: [{ karma: -2 }, { relationship: 'person', delta: -6 }, { stat: 'happiness', delta: 1 }, { log: 'I swapped with a confused uncle. {{person}} noticed. Everyone noticed.' }],
+        effects: [{ karma: -2 }, { relationship: 'person', delta: -6 }, { stat: 'happiness', delta: 2 }, { log: 'I swapped with a confused uncle and had a lovely evening. {{person}} noticed. Everyone noticed.' }],
       },
     ],
   },
@@ -969,7 +989,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     // A friend signing me up for something: not within a few years of money_events' wellness-oil pitch or
     // friends_and_strangers' garage of powder (both guard against this one too).
     conditions: [{ inPrison: false }, { not: { sinceEvent: 'mn_mlm_pitch', lte: 3 } }, { not: { sinceEvent: 'fs_powder_pitch', lte: 2 } }],
-    person: { kind: ['friend', 'bestFriend', 'sibling'] },
+    person: { kind: ['friend', 'bestFriend', 'sibling'], minRelationship: 30 },
     choices: [
       {
         id: 'train',
@@ -1021,7 +1041,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     weight: 1,
     cooldown: 6,
     conditions: [{ inPrison: false }],
-    person: { kind: ['friend', 'bestFriend', 'sibling'], maxAge: 45 },
+    // Godparent is asked of someone close, never of a friend or sibling who stopped speaking to me.
+    person: { kind: ['friend', 'bestFriend', 'sibling'], maxAge: 45, minRelationship: 40 },
     choices: [
       {
         id: 'yes',
@@ -1427,7 +1448,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     weight: 1,
     cooldown: 6,
     // Not within a few years of neighbours_and_community's nc_jury_duty, the other summons.
-    conditions: [{ inPrison: false }, { criminalRecord: false }, { not: { sinceEvent: 'nc_jury_duty', lte: 6 } }],
+    conditions: [{ inPrison: false }, { criminalRecord: false }, { country: JURY_TRIAL_COUNTRIES }, { not: { sinceEvent: 'nc_jury_duty', lte: 6 } }],
     choices: [
       {
         id: 'serve',
@@ -1474,7 +1495,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 80,
     weight: 1,
     followUpOnly: true,
-    conditions: [{ inPrison: false }],
+    conditions: [{ inPrison: false }, { country: JURY_TRIAL_COUNTRIES }],
     choices: [
       {
         id: 'conscience',

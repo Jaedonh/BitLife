@@ -3,7 +3,7 @@ import { personRef, scaleMoney } from '../events/text';
 import type { Rng } from '../rng';
 import type { GameState, Person, RelationshipKind } from '../types';
 import { addKarma, addMoney, addStats, bump, clampStat, clearCoupleFlags, countAction, actionCount, fullName, log, lowerTitle, money, pronouns, setResult, withArticle } from '../util';
-import { friendAgeRange, makePerson, namesInLife } from './character';
+import { familySurnames, friendAgeRange, GROWN_UP_AGE, grownUpLivelihood, makePerson, namesInJournalThisYear, namesInLife } from './character';
 import { ADULT_AGE, griefFactor, partnerAgeRange, romanceAllowed, yearlyGrief } from './romance';
 import { fosterRelation } from './scenarios';
 
@@ -34,19 +34,26 @@ export interface InteractionDef {
   minAgeFor?: Partial<Record<RelationshipKind, number>>;
   /** Pets only: the species it suits (nobody walks a pigeon). Absent means every pet. */
   species?: readonly string[];
+  /** How old the other person must be: nobody has a conversation with a baby or asks a toddler for money. */
+  minTargetAge?: number;
   energy: number;
   cost?: number;
   perYear?: number;
 }
 
+/** Babies and toddlers (under 5, as the people screen labels them) are not talked to, praised or insulted like grown-ups. */
+const TALKING_AGE = 5;
+/** Below this age money given goes into savings, and nobody is asked to lend any. */
+const SAVINGS_AGE = 16;
+
 export const INTERACTIONS: readonly InteractionDef[] = [
   { id: 'spendTime', label: 'Spend time', emoji: '🕰️', kinds: ['mother', 'father', 'stepmother', 'stepfather', 'sibling', 'child', 'friend', 'bestFriend', 'lover', 'spouse', 'coworker', 'classmate', 'grandparent', 'grandchild'], minAge: 3, energy: 1, perYear: 2 },
   { id: 'visit', label: 'Visit', emoji: '🏡', kinds: ['grandparent'], minAge: 4, energy: 1, perYear: 1 },
-  { id: 'conversation', label: 'Have a conversation', emoji: '💬', kinds: ['mother', 'father', 'stepmother', 'stepfather', 'sibling', 'child', 'friend', 'bestFriend', 'lover', 'spouse', 'coworker', 'classmate', 'ex', 'enemy', 'grandparent'], minAge: 4, energy: 0, perYear: 3 },
-  { id: 'compliment', label: 'Compliment', emoji: '🌟', kinds: ['mother', 'father', 'stepmother', 'stepfather', 'sibling', 'child', 'friend', 'bestFriend', 'lover', 'spouse', 'coworker', 'classmate', 'ex', 'grandparent'], minAge: 4, energy: 0, perYear: 2 },
-  { id: 'insult', label: 'Insult', emoji: '😤', kinds: ['mother', 'father', 'stepmother', 'stepfather', 'sibling', 'child', 'friend', 'bestFriend', 'lover', 'spouse', 'coworker', 'classmate', 'ex', 'enemy'], minAge: 4, energy: 0, perYear: 2 },
+  { id: 'conversation', label: 'Have a conversation', emoji: '💬', kinds: ['mother', 'father', 'stepmother', 'stepfather', 'sibling', 'child', 'friend', 'bestFriend', 'lover', 'spouse', 'coworker', 'classmate', 'ex', 'enemy', 'grandparent'], minAge: 4, minTargetAge: TALKING_AGE, energy: 0, perYear: 3 },
+  { id: 'compliment', label: 'Compliment', emoji: '🌟', kinds: ['mother', 'father', 'stepmother', 'stepfather', 'sibling', 'child', 'friend', 'bestFriend', 'lover', 'spouse', 'coworker', 'classmate', 'ex', 'grandparent'], minAge: 4, minTargetAge: TALKING_AGE, energy: 0, perYear: 2 },
+  { id: 'insult', label: 'Insult', emoji: '😤', kinds: ['mother', 'father', 'stepmother', 'stepfather', 'sibling', 'child', 'friend', 'bestFriend', 'lover', 'spouse', 'coworker', 'classmate', 'ex', 'enemy'], minAge: 4, minTargetAge: TALKING_AGE, energy: 0, perYear: 2 },
   { id: 'gift', label: 'Give a gift', emoji: '🎁', kinds: ['mother', 'father', 'stepmother', 'stepfather', 'sibling', 'child', 'friend', 'bestFriend', 'lover', 'spouse', 'coworker', 'grandparent', 'grandchild'], minAge: 8, energy: 0, cost: 150, perYear: 2 },
-  { id: 'askMoney', label: 'Ask for money', emoji: '🙏', kinds: ['mother', 'father', 'stepmother', 'stepfather', 'sibling', 'spouse', 'friend', 'bestFriend', 'grandparent'], minAge: 6, minAgeFor: { grandparent: 10 }, energy: 0, perYear: 1 },
+  { id: 'askMoney', label: 'Ask for money', emoji: '🙏', kinds: ['mother', 'father', 'stepmother', 'stepfather', 'sibling', 'spouse', 'friend', 'bestFriend', 'grandparent'], minAge: 6, minAgeFor: { grandparent: 10 }, minTargetAge: SAVINGS_AGE, energy: 0, perYear: 1 },
   { id: 'giveMoney', label: 'Give money', emoji: '💸', kinds: ['mother', 'father', 'sibling', 'child', 'friend', 'bestFriend', 'lover', 'spouse', 'grandchild'], minAge: 16, energy: 0, cost: 1000, perYear: 2 },
   { id: 'date', label: 'Go on a date', emoji: '🍷', kinds: ['lover', 'spouse'], minAge: 16, energy: 1, cost: 120, perYear: 2 },
   { id: 'propose', label: 'Propose', emoji: '💍', kinds: ['lover'], minAge: 18, energy: 1, cost: 2500, perYear: 1 },
@@ -71,6 +78,7 @@ const ROMANTIC: ReadonlySet<InteractionId> = new Set(['date', 'propose', 'haveCh
 function unavailableReason(state: GameState, person: Person, def: InteractionDef): string | null {
   const me = state.character;
   if (me.age < (def.minAgeFor?.[person.kind] ?? def.minAge)) return "I'm too young for that.";
+  if (def.minTargetAge !== undefined && person.age < def.minTargetAge) return person.age < 2 ? `${person.firstName} is still a baby.` : `${person.firstName} is only ${person.age}.`;
   if (state.crime.inPrison && !PRISON_INTERACTIONS.has(def.id)) return "Not while I'm behind bars.";
   if (person.farAway && IN_PERSON.has(def.id)) return 'They live far away now.';
   if (ROMANTIC.has(def.id) && (!romanceAllowed(me.age, person.age) || (def.id !== 'date' && person.age < ADULT_AGE))) {
@@ -180,9 +188,14 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
       if (person.love !== undefined) s = updatePerson(s, personId, { love: clampStat((s.people[personId]!.love ?? 0) + 4) });
       s = touch(s, s.people[personId]!);
       const young = s.character.age < 6;
-      const text = rng.pick(young
-        ? [`I spent a lovely afternoon with ${withWho}.`, `${who} and I played together until it got dark.`, `I followed ${who} around all day, talking nonstop.`]
-        : [`I spent a lovely afternoon with ${withWho}.`, `${who} and I hung out and lost track of time.`, `I spent quality time with ${who}.`]);
+      // A baby or toddler is played with, not talked at (TALKING_AGE).
+      const text = rng.pick(person.age < 2
+        ? [`I made faces at ${who} until ${pp.subject} giggled.`, `${who} fell asleep on me. I didn't move for an hour.`, `I spent a lovely afternoon with ${withWho}.`]
+        : person.age < TALKING_AGE
+          ? [`I built a block tower so ${who} could knock it down. Eleven times.`, `${who} and I played hide-and-seek. ${pp.Subject} hid behind the same curtain every time.`, `I spent a lovely afternoon with ${withWho}.`]
+          : young
+            ? [`I spent a lovely afternoon with ${withWho}.`, `${who} and I played together until it got dark.`, `I followed ${who} around all day, talking nonstop.`]
+            : [`I spent a lovely afternoon with ${withWho}.`, `${who} and I hung out and lost track of time.`, `I spent quality time with ${who}.`]);
       s = log(s, text, 'good');
       return setResult(s, text, 'good', { statDeltas: { happiness: 3 } });
     }
@@ -243,9 +256,15 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
       s = adjustRelationship(s, personId, loved ? rng.int(5, 12) : rng.int(0, 2));
       s = touch(s, s.people[personId]!, { gifts: person.memory.gifts + 1 });
       if (person.love !== undefined) s = updatePerson(s, personId, { love: clampStat((s.people[personId]!.love ?? 0) + 5) });
+      // A baby or toddler does not call, write or say "you shouldn't have".
+      const little = person.age < TALKING_AGE;
       const text = far
-        ? loved ? `I mailed ${who} a gift. ${pp.Subject} called the day it arrived.` : `I mailed ${who} a gift. ${pp.Subject} wrote back "you shouldn't have" and seemed to mean it.`
-        : loved ? `${who} loved the gift.` : `${who} said "you shouldn't have" and seemed to mean it.`;
+        ? little
+          ? loved ? `I mailed ${who} a gift. I hear ${pp.subject} would not let go of it.` : `I mailed ${who} a gift. I hear ${pp.subject} liked the box better.`
+          : loved ? `I mailed ${who} a gift. ${pp.Subject} called the day it arrived.` : `I mailed ${who} a gift. ${pp.Subject} wrote back "you shouldn't have" and seemed to mean it.`
+        : little
+          ? loved ? `${who} grabbed the gift with both hands and would not let go.` : `${who} ignored the gift and played with the box.`
+          : loved ? `${who} loved the gift.` : `${who} said "you shouldn't have" and seemed to mean it.`;
       s = log(s, text, loved ? 'good' : 'info');
       return setResult(s, text, loved ? 'good' : 'info', { moneyDelta: -cost });
     }
@@ -273,8 +292,8 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
       s = adjustRelationship(s, personId, rng.int(6, 12));
       s = updatePerson(s, personId, { money: person.money + cost });
       s = touch(s, s.people[personId]!);
-      // A young grandchild has no use for cash yet: it goes into savings for later.
-      const text = person.kind === 'grandchild' && person.age < 16
+      // A young child, grandchild, brother or sister has no use for cash yet: it goes into savings for later.
+      const text = (person.kind === 'grandchild' || person.kind === 'child' || person.kind === 'sibling') && person.age < SAVINGS_AGE
         ? `I put some money into a savings account for ${who}.`
         : far ? `I sent ${who} some money. It meant a lot.` : `I gave ${who} some money. It meant a lot.`;
       s = log(s, text, 'good');
@@ -341,8 +360,8 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
         s = log(s, text);
         return setResult(s, text, 'info');
       }
-      // A name nobody in the family has: two sons called David read as one.
-      const baby = makePerson(rng, { kind: 'child', age: 0, countryCode: me.countryCode, lastName: me.lastName, playerAge: me.age, relationship: rng.int(70, 95), biological: !adopting, taken: namesInLife(s) });
+      // A name nobody in the family has (two sons called David read as one), nor anyone this year's journal mentions.
+      const baby = makePerson(rng, { kind: 'child', age: 0, countryCode: me.countryCode, lastName: me.lastName, playerAge: me.age, relationship: rng.int(70, 95), biological: !adopting, taken: new Set([...namesInLife(s), ...namesInJournalThisYear(s)]) });
       baby.otherParentId = personId;
       baby.occupation = 'Baby';
       s = { ...s, people: { ...s.people, [baby.id]: baby } };
@@ -390,6 +409,23 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
 }
 
 /**
+ * People who were still students when they joined the life grow up (GAME_DESIGN §10): from 23, anyone whose
+ * occupation still says "Student" gets an adult job (or none) and savings of their own, so a partner met at 17 is
+ * not a student with nothing at 50. The player's own children and grandchildren are left alone: the engine tells
+ * their story through milestones (family.ts), and an heir starts between jobs.
+ */
+export function growUp(state: GameState, rng: Rng): GameState {
+  let s = state;
+  for (const p of Object.values(state.people)) {
+    if (!p.alive || p.kind === 'pet' || p.kind === 'child' || p.kind === 'grandchild' || p.age < GROWN_UP_AGE) continue;
+    if (p.occupation !== 'Student' && p.occupation !== 'Baby') continue;
+    const { occupation, money } = grownUpLivelihood(rng, p.age, s.character.countryCode);
+    s = updatePerson(s, p.id, { occupation, money: p.money + money });
+  }
+  return s;
+}
+
+/**
  * Relationship-driven yearly events that are too systemic for the event tables. `reserved` are names that stay
  * taken this year although their owner may have left the life during it (ageUp passes the names at the start of
  * the year, so a coworker who left with the job does not hand their name to a new friend the same year).
@@ -399,6 +435,9 @@ export function yearlyRelationships(state: GameState, rng: Rng, reserved: Readon
   const age = s.character.age;
   // Names stay reserved all year: a friend who drifts apart is not replaced by a new one of the same name.
   const taken = new Set([...reserved, ...namesInLife(state)]);
+  // Someone new is not family, so they do not share the family's surname (it would read as a relative).
+  const avoidSurnames = familySurnames(state);
+  s = growUp(s, rng);
   // A partner who died this year (ageNpcs runs just before) starts the grief window (an event death already has),
   // and a window that has run its course closes.
   s = yearlyGrief(s);
@@ -422,7 +461,7 @@ export function yearlyRelationships(state: GameState, rng: Rng, reserved: Readon
   const friends = Object.values(s.people).filter((p) => p.alive && (p.kind === 'friend' || p.kind === 'bestFriend') && !p.farAway).length;
   if (age >= 4 && age < 80 && friends < 4 && rng.chance(age < 25 ? 0.4 : 0.2)) {
     const [youngest, oldest] = friendAgeRange(age);
-    const f = makePerson(rng, { kind: 'friend', age: rng.int(youngest, oldest), countryCode: s.character.countryCode, playerAge: age, relationship: rng.int(45, 70), taken });
+    const f = makePerson(rng, { kind: 'friend', age: rng.int(youngest, oldest), countryCode: s.character.countryCode, playerAge: age, relationship: rng.int(45, 70), taken, avoidSurnames });
     s = { ...s, people: { ...s.people, [f.id]: f } };
     s = bump(s, 'friendsMade');
     s = log(s, `I made a new friend, ${fullName(f)}.`, 'good');
@@ -433,7 +472,7 @@ export function yearlyRelationships(state: GameState, rng: Rng, reserved: Readon
   const grief = griefFactor(s);
   if (!hasPartner && band && age < 75 && !s.crime.inPrison && grief > 0 && rng.chance((0.25 + s.character.stats.looks / 400) * grief)) {
     const partnerGender = rng.chance(0.9) ? (s.character.gender === 'male' ? 'female' : 'male') : s.character.gender;
-    const lover = makePerson(rng, { kind: 'lover', gender: partnerGender, age: rng.int(band[0], band[1]), countryCode: s.character.countryCode, playerAge: age, relationship: rng.int(50, 75), taken });
+    const lover = makePerson(rng, { kind: 'lover', gender: partnerGender, age: rng.int(band[0], band[1]), countryCode: s.character.countryCode, playerAge: age, relationship: rng.int(50, 75), taken, avoidSurnames });
     lover.love = rng.int(50, 80);
     s = { ...s, people: { ...s.people, [lover.id]: lover } };
     s = bump(s, 'lovers');

@@ -1,3 +1,4 @@
+import { ASSETS } from '@/data/assets';
 import type { Condition, EventDef } from '@/engine/events/schema';
 
 /** The real cars (not the bicycle or scooter, which also count as kind 'car'). */
@@ -5,12 +6,26 @@ const REAL_CAR = ['old_hatchback', 'sedan', 'pickup', 'ev', 'luxury_sedan', 'spo
 
 /** Homes with rooms to spare and a table for the whole family (not a studio, condo or penthouse). */
 const BIG_HOME = ['townhouse', 'suburban', 'farmhouse', 'beach_house', 'mansion'];
+/**
+ * Living in a big home, not just owning one. I live in my primary house (the first one bought, or the next once it
+ * is sold, never rented out) and may rent out another, but conditions only see what I own: so every house I own
+ * must be a big one, and then the one I live in is too.
+ */
+const LIVES_IN_BIG_HOME: Condition[] = [
+  { ownsAssetId: BIG_HOME },
+  { not: { ownsAssetId: ASSETS.filter((a) => a.kind === 'house' && !BIG_HOME.includes(a.id)).map((a) => a.id) } },
+];
 
 /**
  * Widowhood cards grieve the one marriage of the life: one wedding and no spouse now, so the late spouse they bind
  * is the person I married and nobody since (never a first husband after a second wedding, or a second widowhood).
  */
 const WIDOWED: Condition[] = [{ married: false }, { count: 'marriages', eq: 1 }];
+/**
+ * The first months of widowhood (two cups set out, the closet untouched, the stew from the card): within the grief
+ * window, the year of the loss and the next (GAME_DESIGN §10), never decades later. Weighted up, as a short window.
+ */
+const NEWLY_WIDOWED: Condition[] = [...WIDOWED, { flag: 'grieving' }];
 
 /**
  * Ages 60-110, told by the older person: old friends retiring, dying and moving
@@ -35,7 +50,8 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     weight: 1.2,
     cooldown: 6,
     conditions: [{ retired: true }, { hasJob: false }],
-    person: { kind: ['friend', 'bestFriend'], minAge: 58, maxAge: 75 },
+    // A friend who asks me to speak is one still on good terms with me.
+    person: { kind: ['friend', 'bestFriend'], minAge: 58, maxAge: 75, minRelationship: 30 },
     choices: [
       {
         id: 'honest',
@@ -77,7 +93,8 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     maxAge: 105,
     weight: 0.8,
     cooldown: 6,
-    person: { kind: ['friend', 'bestFriend'], minAge: 60 },
+    // Written into the funeral plans: a friend still close to me.
+    person: { kind: ['friend', 'bestFriend'], minAge: 60, minRelationship: 30 },
     choices: [
       {
         id: 'canoe',
@@ -274,9 +291,11 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     text: 'Retirement has a Monday problem. I still wake at six out of habit, shower, get dressed and make coffee, and then I stand in the hallway holding my keys with nowhere at all to go.',
     minAge: 60,
     maxAge: 75,
-    weight: 3,
+    // A short window, so weighted like later_life's retirement party.
+    weight: 5,
     once: true,
-    conditions: [{ retired: true }, { hasJob: false }],
+    // The first Mondays of retirement: within two years of retiring (the next birthday sees 1), not a decade on.
+    conditions: [{ sinceRetired: true, lte: 2 }],
     choices: [
       {
         id: 'schedule',
@@ -678,9 +697,9 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
       },
       {
         id: 'kids',
-        label: 'Call one of the kids',
+        label: 'Call family for help',
         conditions: [{ hasChildren: true }],
-        effects: [{ energy: -1 }, { relationship: 'child', delta: 3 }, { stat: 'happiness', delta: -1 }, { log: 'My kid closed the pop-up in two seconds and explained it for twenty minutes. A fair trade.' }],
+        effects: [{ energy: -1 }, { relationship: 'child', delta: 3 }, { stat: 'happiness', delta: -1 }, { log: 'Family tech support closed the pop-up in two seconds, then explained it for twenty. A fair trade.' }],
       },
       {
         id: 'bluff',
@@ -718,9 +737,9 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     text: 'Some mornings I still set out two cups before I remember that {{person}} is gone. My home makes all the same noises; there is just nobody left to blame them on.',
     minAge: 60,
     maxAge: 105,
-    weight: 1.2,
+    weight: 3,
     once: true,
-    conditions: [...WIDOWED, { hasLover: false }, { not: { flag: 'gy_lives_with_kids' } }],
+    conditions: [...NEWLY_WIDOWED, { hasLover: false }, { not: { flag: 'gy_lives_with_kids' } }],
     person: { kind: ['spouse'], alive: false },
     choices: [
       {
@@ -743,9 +762,9 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
       },
       {
         id: 'kids',
-        label: 'Let the kids visit more',
+        label: 'Let family visit more',
         conditions: [{ hasChildren: true }],
-        effects: [{ relationship: 'child', delta: 5 }, { stat: 'happiness', delta: 5 }, { energy: -1 }, { log: 'The kids take turns on Sundays now. They bring food and leave with my leftovers.', kind: 'good' }],
+        effects: [{ relationship: 'child', delta: 5 }, { stat: 'happiness', delta: 5 }, { energy: -1 }, { log: 'Family comes by on Sundays now. They bring food and leave with my leftovers.', kind: 'good' }],
       },
       {
         id: 'busy',
@@ -761,10 +780,10 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     text: "{{person}}'s jackets are still in the hall closet, buttoned the way {{they}} left them. Friends keep asking, gently, what I plan to do with them. I plan to keep opening the closet.",
     minAge: 60,
     maxAge: 105,
-    weight: 1,
+    weight: 3,
     once: true,
     // The same closet as gu_widowed_closet, for a widow who did not get that card.
-    conditions: [...WIDOWED, { hasLover: false }, { eventNotFired: 'gu_widowed_closet' }, { not: { flag: 'gy_assisted_living' } }, { not: { flag: 'gy_lives_with_kids' } }],
+    conditions: [...NEWLY_WIDOWED, { hasLover: false }, { eventNotFired: 'gu_widowed_closet' }, { not: { flag: 'gy_assisted_living' } }, { not: { flag: 'gy_lives_with_kids' } }],
     person: { kind: ['spouse'], alive: false },
     choices: [
       {
@@ -779,9 +798,9 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
       },
       {
         id: 'kids',
-        label: 'Let the kids choose first',
+        label: 'Let family choose first',
         conditions: [{ hasChildren: true }],
-        effects: [{ relationship: 'child', delta: 4 }, { log: "The kids each chose one. My youngest wears {{person}}'s old hat now. It looks exactly right." }],
+        effects: [{ relationship: 'child', delta: 4 }, { log: "My family chose first. {{person}}'s old hat has a new head under it now. It looks exactly right." }],
       },
       {
         id: 'leave',
@@ -797,9 +816,9 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     text: "{{person}} always did the cooking. Tonight I tried to make {{their}} famous stew from a recipe card in {{their}} handwriting. The card says 'some' four times and 'you know' once.",
     minAge: 60,
     maxAge: 100,
-    weight: 1,
+    weight: 3,
     once: true,
-    conditions: [...WIDOWED, { hasLover: false }, { not: { flag: 'gy_assisted_living' } }],
+    conditions: [...NEWLY_WIDOWED, { hasLover: false }, { not: { flag: 'gy_assisted_living' } }],
     person: { kind: ['spouse'], alive: false },
     choices: [
       {
@@ -925,7 +944,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
       },
       {
         id: 'kids',
-        label: 'Move in with the kids',
+        label: 'Move in with family',
         conditions: [{ hasChildren: true }],
         effects: [
           { flag: 'gy_lives_with_kids', set: true },
@@ -1137,7 +1156,8 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     once: true,
     conditions: [{ not: { jobCategory: ['tech'] } }],
     // A call works at any distance, so a friend left in the old country can be on the other end.
-    person: { kind: ['child', 'sibling', 'friend', 'bestFriend'], minAge: 18, farAway: 'any' },
+    // Twenty minutes of watching me mime: someone still glad to hear from me, not one who stopped speaking to me.
+    person: { kind: ['child', 'sibling', 'friend', 'bestFriend'], minAge: 18, farAway: 'any', minRelationship: 30 },
     choices: [
       {
         id: 'practice',
@@ -1226,7 +1246,8 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     maxAge: 95,
     weight: 1.2,
     cooldown: 4,
-    conditions: [{ noPerson: ['mother', 'father', 'stepmother', 'stepfather'] }, { ownsAssetId: BIG_HOME }, { not: { flag: 'gy_assisted_living' } }, { not: { flag: 'gy_lives_with_kids' } }],
+    // The table that seats fourteen is in a big home I live in, not one I rent out.
+    conditions: [{ noPerson: ['mother', 'father', 'stepmother', 'stepfather'] }, ...LIVES_IN_BIG_HOME, { not: { flag: 'gy_assisted_living' } }, { not: { flag: 'gy_lives_with_kids' } }],
     person: { kind: ['child'], minAge: 30 },
     choices: [
       {
@@ -1312,7 +1333,8 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     weight: 1,
     once: true,
     conditions: [{ eventNotFired: 'll_hearing_aid' }],
-    person: { kind: ['child'], minAge: 30 },
+    // A birthday present this thoughtful comes from a child still on good terms with me.
+    person: { kind: ['child'], minAge: 30, minRelationship: 30 },
     choices: [
       {
         id: 'wear',
@@ -1396,6 +1418,8 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     maxAge: 105,
     weight: 1.2,
     cooldown: 6,
+    // An ordinary mix-up a doctor may call common: not once dementia has been diagnosed.
+    conditions: [{ not: { hasIllness: ['dementia'] } }],
     person: { kind: ['child'], minAge: 20 },
     choices: [
       {

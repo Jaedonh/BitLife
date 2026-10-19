@@ -1,4 +1,4 @@
-import { scaleMoney } from './events/text';
+import { personRef, scaleMoney } from './events/text';
 import { Rng } from './rng';
 import { buyAsset, repairAsset, sellAsset, toggleRentOut } from './systems/assets';
 import { applyForJob, askForPromotion, askForRaise, dropCarlessHustle, listingsBlocker, quitJob, retire, rollListings, startHustle, stopHustle, workHarder } from './systems/careers';
@@ -114,7 +114,7 @@ function rewardedBoost(state: GameState, rng: Rng, placement: 'cashBoost' | 'sta
     const salary = s.career.job?.salary ?? 0;
     const amount = Math.max(scaleMoney(s, s.character.age < 18 ? 150 : 800), Math.round(salary * 0.25), Math.round(Math.abs(s.finances.cash) * 0.05));
     s = addMoney(s, amount);
-    s = log(s, s.character.age < 13 ? `A windfall! A relative slipped me ${money(s, amount)} for my piggy bank.` : `A windfall! I found ${money(s, amount)} I'd forgotten about.`, 'money');
+    s = log(s, windfallLine(s, money(s, amount)), 'money');
     return setResult(s, `Windfall: +${money(s, amount)}.`, 'good', { moneyDelta: amount });
   }
   if (placement === 'reroll') {
@@ -122,6 +122,20 @@ function rewardedBoost(state: GameState, rng: Rng, placement: 'cashBoost' | 'sta
     return setResult(s, 'A fresh batch of job listings arrived.', 'good');
   }
   return s;
+}
+
+/**
+ * The Windfall's journal line. A child's comes from family who would slip them money: a grandparent by name (sent
+ * from far away), else "a relative" when they have family; a child with no family at all (an orphan in foster care)
+ * finds it instead.
+ */
+function windfallLine(state: GameState, amount: string): string {
+  if (state.character.age >= 13) return `A windfall! I found ${amount} I'd forgotten about.`;
+  const living = Object.values(state.people).filter((p) => p.alive);
+  const grand = living.filter((p) => p.kind === 'grandparent').sort((a, b) => b.relationship - a.relationship || a.id.localeCompare(b.id))[0];
+  if (grand) return `A windfall! ${personRef(grand)} ${grand.farAway ? 'sent' : 'slipped'} me ${amount} for my piggy bank.`;
+  const family = living.some((p) => p.kind === 'mother' || p.kind === 'father' || p.relative || ((p.kind === 'stepmother' || p.kind === 'stepfather' || p.kind === 'sibling') && !p.foster));
+  return family ? `A windfall! A relative slipped me ${amount} for my piggy bank.` : `A windfall! I found ${amount} tucked in an old coat pocket. Straight into the piggy bank.`;
 }
 
 /** Revive once per life after death (rewarded ad or premium). */
