@@ -1062,7 +1062,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     id: 'ec_imaginary_friend',
     category: 'childhood',
     title: 'Captain Noodle',
-    text: 'I have a new best friend. His name is Captain Noodle, he is seven feet tall, and nobody else can see him. He has strong opinions about dinner.',
+    text: 'I have a new best friend. His name is Captain Noodle, he is taller than the door, and nobody else can see him. He has strong opinions about dinner.',
     minAge: 3,
     maxAge: 5,
     weight: 1.5,

@@ -98,8 +98,8 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     maxAge: 105,
     weight: 0.8,
     cooldown: 6,
-    // Written into the funeral plans: a friend still close to me.
-    person: { kind: ['friend', 'bestFriend'], minAge: 60, minRelationship: 30 },
+    // Written into the funeral plans: a friend still close to me, and one of long standing ('I promised years ago').
+    person: { kind: ['friend', 'bestFriend'], minAge: 60, minRelationship: 30, knownFor: { gte: 10 } },
     choices: [
       {
         id: 'canoe',
@@ -179,7 +179,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
       {
         id: 'skip',
         label: 'Stay home',
-        effects: [{ stat: 'happiness', delta: 1 }, { log: 'I stayed home with the yearbook. Everyone in it is still seventeen, which helped.' }],
+        effects: [{ stat: 'happiness', delta: 1 }, { log: 'I stayed home with the old class photo. Everyone in it is still seventeen, which helped.' }],
       },
     ],
   },
@@ -226,7 +226,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
           {
             chance: 0.2,
             then: [{ injury: 2 }, { log: 'Lunch was perfect until we both tripped on the restaurant step. Two bruises, one great day.', kind: 'bad' }],
-            else: [{ log: 'We had lunch at the old diner and stayed until they started mopping. {{person}} glowed.', kind: 'good' }],
+            else: [{ log: 'We had lunch at the old café and stayed until they started mopping. {{person}} glowed.', kind: 'good' }],
           },
         ],
       },
@@ -329,7 +329,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ newPerson: { kind: 'friend', relationship: 45, minAge: 58, maxAge: 75, log: 'On a Monday walk I met {{person}}, also retired, also walking nowhere in particular.' } }],
-            else: [{ log: 'I walked six miles and found a bakery I never had time for. Monday has a bakery now.' }],
+            else: [{ log: 'I walked for two hours and found a bakery I never had time for. Monday has a bakery now.' }],
           },
         ],
       },
@@ -755,7 +755,8 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 4 },
           {
             chance: 0.6,
-            then: [{ newPerson: { kind: 'friend', relationship: 50, log: '{{person}} from the grief group lost a husband of fifty years. We meet for soup on Fridays.' } }],
+            // Married fifty years: someone of seventy or more, whatever my own age.
+            then: [{ newPerson: { kind: 'friend', relationship: 50, minAge: 70, maxAge: 92, log: '{{person}} from the grief group lost a husband of fifty years. We meet for soup on Fridays.' } }],
             else: [{ log: 'The group met in the library on Mondays, over bad coffee. It helped more than I expected.', kind: 'good' }],
           },
         ],
@@ -990,7 +991,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.4,
-            then: [{ karma: 3 }, { stat: 'happiness', delta: 6 }, { fame: 1 }, { log: 'I brokered a deal: 71 degrees, weekdays only. Table six is at peace. I am a statesman.', kind: 'good' }],
+            then: [{ karma: 3 }, { stat: 'happiness', delta: 6 }, { fame: 1 }, { log: 'I brokered a deal: two degrees warmer, weekdays only. Table six is at peace. I am a statesman.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -3 }, { log: 'The summit ended with Frank taking the thermostat cover to his room. Hostilities continue.', kind: 'bad' }],
           },
           { queue: 'gy_al_talent_night' },
@@ -1302,7 +1303,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
           {
             random: [
               { weight: 4, effects: [{ newPerson: { kind: 'friend', relationship: 55, minAge: 60, maxAge: 85, farAway: true, log: 'I shared a dinner table all week with {{person}}, who lives at the other end of the country. We have already booked next year.' } }] },
-              { weight: 4, effects: [{ log: 'Seven days of sea air, ballroom dancing and shrimp. I came home tanned and two pounds heavier.', kind: 'good' }] },
+              { weight: 4, effects: [{ log: 'Seven days of sea air, ballroom dancing and shrimp. I came home tanned and a little rounder.', kind: 'good' }] },
               { weight: 2, effects: [{ stat: 'health', delta: -2 }, { stat: 'happiness', delta: -3 }, { log: 'I was seasick for four of the seven nights. The ship doctor and I are on first-name terms.', kind: 'bad' }] },
             ],
           },
@@ -1420,12 +1421,13 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     id: 'gy_name_roulette',
     category: 'family',
     title: 'Every name but one',
-    text: 'I called {{person}} by every name in the family, and the name of a dog we had decades ago, before I landed on the right one. {{They}} waited patiently, like someone who has been through this before.',
+    text: "I called {{person}} by every name in the family, and the name of the neighbor's dog, before I landed on the right one. {{They}} waited patiently, like someone who has been through this before.",
     minAge: 65,
     maxAge: 105,
     weight: 1.2,
     cooldown: 6,
-    // An ordinary mix-up a doctor may call common: not once dementia has been diagnosed.
+    // An ordinary mix-up a doctor may call common: not once dementia has been diagnosed. The neighbor's dog, not one of
+    // ours: the card binds the child, so it cannot check that a family dog ever existed.
     conditions: [{ not: { hasIllness: ['dementia'] } }],
     person: { kind: ['child'], minAge: 20 },
     choices: [
@@ -1697,7 +1699,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
     id: 'gy_record_grandkid_questions',
     category: 'family',
     title: 'Secret handshakes',
-    text: '{{person}} heard about my criminal record from a cousin and came straight to me with questions. Was I in a gang? Did I have a nickname? Do I still know any secret handshakes?',
+    text: '{{person}} heard about my criminal record from {{their}} cousin and came straight to me with questions. Was I in a gang? Did I have a nickname? Do I still know any secret handshakes?',
     minAge: 60,
     maxAge: 100,
     weight: 1.2,

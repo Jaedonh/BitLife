@@ -39,6 +39,13 @@ const JOB_HUNTING: Condition[] = [...OUT_OF_WORK, { any: [{ hustle: false }, { h
 const UNDERWATER: Condition[] = [{ netWorth: { lt: 0 } }];
 const HUSTLE_STALLED: Condition[] = [{ hustleLevel: { eq: 0 } }];
 const SINGLE_PARENT: Condition[] = [{ married: false }, { hasLover: false }];
+/**
+ * No first-word card yet (early_childhood's ec_first_word, starting_scenarios' ss_tc_first_word), so a vague
+ * "might have been a word" never follows the year my first word was written down.
+ */
+const NO_FIRST_WORD_YET: Condition[] = [{ eventNotFired: 'ec_first_word' }, { eventNotFired: 'ss_tc_first_word' }];
+/** Living alone: no spouse or partner, not in assisted living and not sharing a home with a grown child (golden_years.ts). */
+const LIVES_ALONE: Condition[] = [{ noPerson: ['spouse', 'lover'] }, { flag: 'gy_assisted_living', exists: false }, { flag: 'gy_lives_with_kids', exists: false }];
 /** A grandchild who was there all year, named in the line. */
 const GRANDCHILD: PersonSelector = { kind: ['grandchild'] };
 /**
@@ -54,7 +61,7 @@ const PET: PersonSelector = { kind: ['pet'] };
 export const FLAVOR: readonly FlavorLine[] = [
   { minAge: 0, maxAge: 1, text: 'I discovered my own feet and found them hilarious.' },
   { minAge: 0, maxAge: 1, text: 'I slept, ate, and cried on a schedule only I understood.' },
-  { minAge: 1, maxAge: 2, text: 'I said something that might have been a word. Nobody agrees on which one.' },
+  { minAge: 1, maxAge: 2, conditions: NO_FIRST_WORD_YET, text: 'I said something that might have been a word. Nobody agrees on which one.' },
   { minAge: 1, maxAge: 3, text: 'I drew on the wall. It was a masterpiece. It was painted over.' },
   { minAge: 2, maxAge: 4, text: 'I refused to eat anything green for most of the year.' },
   { minAge: 2, maxAge: 5, text: 'I had an imaginary friend who was, frankly, a bad influence.' },
@@ -132,7 +139,8 @@ export const FLAVOR: readonly FlavorLine[] = [
   { minAge: 21, maxAge: 80, conditions: IN_GRAD_SCHOOL, text: 'I explained my work to my family at dinner. They nodded the way people nod at weather reports.' },
   { minAge: 21, maxAge: 80, conditions: IN_GRAD_SCHOOL, text: 'I studied in the library so late that the night guard started saving me a seat.' },
   { minAge: 21, maxAge: 80, conditions: IN_GRAD_SCHOOL, text: 'My study group turned into a support group by the third week. We still studied, sometimes.' },
-  { minAge: 21, maxAge: 80, conditions: IN_GRAD_SCHOOL, text: 'Relatives kept asking when I would be finished with school. So did I.' },
+  // Relatives: not a foster child's (the orphan scenario has none in the life).
+  { minAge: 21, maxAge: 80, conditions: [...IN_GRAD_SCHOOL, { not: { flag: 'foster_care' } }], text: 'Relatives kept asking when I would be finished with school. So did I.' },
   { minAge: 21, maxAge: 80, conditions: IN_GRAD_SCHOOL, text: 'I lived on coffee, cold pizza and the hope that all of this would be worth it.' },
   // ------------------------------------------------------------ situational: retirement
   // 'In years': only a few years into retirement, past the party and golden_years' first Mondays (also up at six).
@@ -192,7 +200,9 @@ export const FLAVOR: readonly FlavorLine[] = [
   { minAge: 22, maxAge: 64, conditions: [...OUT_OF_WORK, ...UNDERWATER], text: 'My savings ran out before the month did. Again.' },
   { minAge: 22, maxAge: 64, conditions: [...OUT_OF_WORK, ...UNDERWATER], text: 'I learned twelve ways to cook rice and one way to let an unknown number go to voicemail.' },
   // ------------------------------------------------------------ situational: a single parent of young children
-  { minAge: 18, maxAge: 120, conditions: SINGLE_PARENT, person: { kind: ['child'], maxAge: 9 }, text: 'I raised {{person}} on my own. Bedtime stories came at the end of long days, but they came.' },
+  // "I raised {{person}} on my own" is about an only child; with two or more young ones the line names them all.
+  { minAge: 18, maxAge: 120, conditions: [...SINGLE_PARENT, { count: 'children', eq: 1 }], person: { kind: ['child'], maxAge: 9 }, text: 'I raised {{person}} on my own. Bedtime stories came at the end of long days, but they came.' },
+  { minAge: 18, maxAge: 120, conditions: SINGLE_PARENT, groups: [{ kind: ['child'], maxAge: 9, atLeast: 2 }], text: 'I raised my kids on my own. Bedtime stories came at the end of long days, but they came.' },
   { minAge: 18, maxAge: 120, conditions: SINGLE_PARENT, person: { kind: ['child'], maxAge: 9 }, text: '{{person}} and I had breakfast for dinner more than once. {{They}} thinks it is a tradition.' },
   { minAge: 18, maxAge: 120, conditions: SINGLE_PARENT, person: { kind: ['child'], maxAge: 3 }, text: 'I learned to do everything one-handed, because the other hand was holding {{person}}.' },
   { minAge: 18, maxAge: 120, conditions: SINGLE_PARENT, person: { kind: ['child'], maxAge: 9 }, text: 'Doing it alone was hard. {{person}} drew me as a superhero anyway.' },
@@ -206,7 +216,7 @@ export const FLAVOR: readonly FlavorLine[] = [
   { minAge: 90, maxAge: 120, conditions: [{ stat: 'health', gte: 60 }], text: 'My doctor asked for my secret. I said I eat dessert first, which is true.' },
   { minAge: 90, maxAge: 120, conditions: [{ stat: 'happiness', gte: 65 }], text: 'I am in my nineties and cheerful about it. Some people find this suspicious.' },
   { minAge: 85, maxAge: 120, person: { kind: ['spouse'], minAge: 75 }, text: '{{person}} and I sat together most evenings and argued about which of us is older.' },
-  { minAge: 90, maxAge: 120, conditions: [{ noPerson: ['spouse', 'lover'] }], text: 'I live alone now. I talk to the radio, and some days it agrees with me.' },
+  { minAge: 90, maxAge: 120, conditions: LIVES_ALONE, text: 'I live alone now. I talk to the radio, and some days it agrees with me.' },
   { minAge: 90, maxAge: 120, groups: [CHILDREN], text: 'My children are getting old. I find this harder to believe than anything else.' },
   { minAge: 90, maxAge: 120, conditions: [{ stat: 'smarts', gte: 60 }], text: 'I still did the crossword every morning, in pen, out of pure confidence.' },
 ];

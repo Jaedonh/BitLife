@@ -645,7 +645,7 @@ export const BABY_AND_TODDLER_EVENTS: EventDef[] = [
           { relationship: 'pet', delta: 3 },
           { stat: 'happiness', delta: 3 },
           { stat: 'health', delta: 1 },
-          { log: 'I chased our pet across the kitchen at about a foot a minute. It let me think I was winning.', kind: 'good' },
+          { log: 'I chased our pet across the kitchen at top crawling speed. It let me think I was winning.', kind: 'good' },
         ],
       },
     ],
@@ -1046,8 +1046,9 @@ export const BABY_AND_TODDLER_EVENTS: EventDef[] = [
     maxAge: 3,
     weight: 1.5,
     once: true,
-    // After ec_first_word, so that card's "my first real word" never comes after this one.
-    conditions: [{ eventFired: 'ec_first_word' }],
+    // After the first-word card (early_childhood's ec_first_word, or starting_scenarios' ss_tc_first_word in a
+    // one-parent or foster home), so that card's first word never comes after this one.
+    conditions: [{ any: [{ eventFired: 'ec_first_word' }, { eventFired: 'ss_tc_first_word' }] }],
     choices: [
       {
         id: 'pet',

@@ -109,8 +109,10 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     weight: 1,
     cooldown: 4,
     // The same Sunday-lunch scene as young_adult's ya_meet_the_parents and prison_life's pl_meet_parents: years apart.
-    conditions: [{ inPrison: false }, { not: { sinceEvent: 'ya_meet_the_parents', lte: 4 } }, { not: { sinceEvent: 'pl_meet_parents', lte: 5 } }],
-    person: { kind: ['lover'] },
+    // A first visit belongs early in a relationship: a partner of at most three years (so never a couple together for a
+    // decade, nor the same partner twice, with the cooldown), and not someone I see behind a spouse's back.
+    conditions: [{ inPrison: false }, { married: false }, { not: { sinceEvent: 'ya_meet_the_parents', lte: 4 } }, { not: { sinceEvent: 'pl_meet_parents', lte: 5 } }],
+    person: { kind: ['lover'], knownFor: { lte: 3 } },
     choices: [
       {
         id: 'charm',
@@ -1718,7 +1720,8 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 0.8,
     cooldown: 5,
-    conditions: [{ inPrison: false }],
+    // Cousins, aunts and uncles: not for a foster child, whose foster siblings are no relation (an orphan has none).
+    conditions: [{ inPrison: false }, { not: { flag: 'foster_care' } }],
     person: { kind: ['sibling'] },
     choices: [
       {

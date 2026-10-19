@@ -666,7 +666,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 3 },
           { stat: 'happiness', delta: 4 },
           { relationship: 'sibling', delta: -4 },
-          { chance: 0.15, then: [{ money: 3000 }, { fame: 4 }, { log: 'A small publisher took it. {{$3000}} and a launch in a bookstore with eleven chairs, all full.', kind: 'milestone' }], else: [{ log: 'I wrote the whole truth and printed six copies. Several relatives now avoid eye contact at dinner.', kind: 'good' }] },
+          { chance: 0.15, then: [{ money: 3000 }, { fame: 4 }, { log: 'A small publisher took it. {{$3000}} and a launch in a bookstore with eleven chairs, all full.', kind: 'milestone' }], else: [{ log: 'I wrote the whole truth and printed six copies. Several people in it now avoid my eye.', kind: 'good' }] },
         ],
       },
       {
@@ -769,7 +769,8 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 1,
     once: true,
-    conditions: [{ inPrison: false }],
+    // An old flame's 'no agenda' coffee waits out the grief window (GAME_DESIGN §10), as its follow-up's rekindling does.
+    conditions: [{ inPrison: false }, { flag: 'grieving', exists: false }],
     person: { kind: ['ex'] },
     choices: [
       {
@@ -987,8 +988,9 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     weight: 1,
     cooldown: 4,
     conditions: [{ inPrison: false }],
-    // 'Natural causes' only from 60 (GAME_DESIGN §10), as for any other death.
-    person: { kind: ['friend', 'bestFriend'], minAge: 60 },
+    // 'Natural causes' only from 60 (GAME_DESIGN §10), as for any other death. 'Longer than either of us cared to
+    // count': a friend of twenty years or more, never one made last year.
+    person: { kind: ['friend', 'bestFriend'], minAge: 60, knownFor: { gte: 20 } },
     choices: [
       {
         id: 'eulogy',
@@ -1070,7 +1072,7 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
         label: 'Grow prize dahlias',
         effects: [
           { stat: 'happiness', delta: 2 },
-          { chance: 0.3, then: [{ fame: 2 }, { stat: 'happiness', delta: 7 }, { log: 'My dahlias won first prize at the county fair. A rival accused me of buying them. I did not. Mostly.', kind: 'good' }], else: [{ log: 'The dahlias came third out of four. The judge said "plucky", which is not a horticultural term.' }] },
+          { chance: 0.3, then: [{ fame: 2 }, { stat: 'happiness', delta: 7 }, { log: 'My dahlias won first prize at the flower show. A rival accused me of buying them. I did not. Mostly.', kind: 'good' }], else: [{ log: 'The dahlias came third out of four. The judge said "plucky", which is not a horticultural term.' }] },
         ],
       },
       {

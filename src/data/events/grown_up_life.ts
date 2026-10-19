@@ -118,7 +118,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     id: 'gu_wedding_planning',
     category: 'romance',
     title: 'Planning the wedding',
-    text: '{{person}} and I are engaged, and the wedding has become a second job. There are spreadsheets, a guest list that keeps growing, and three relatives who each expect to give a speech.',
+    text: '{{person}} and I are engaged, and the wedding has become a second job. There are spreadsheets, a guest list that keeps growing, and three of {{their}} relatives who each expect to give a speech.',
     minAge: 22,
     maxAge: 64,
     weight: 1,
@@ -151,7 +151,8 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
           { love: 4 },
           { stat: 'happiness', delta: 3 },
           { log: 'Thirty guests, a rented garden and folding chairs. Even the guest list fights were small.' },
-          { chance: 0.3, then: [{ stat: 'happiness', delta: -2 }, { log: 'An aunt who did not make the thirty has stopped returning my calls.', kind: 'bad' }] },
+          // Their aunt, not mine: a foster child (the orphan scenario) has no aunts in the life.
+          { chance: 0.3, then: [{ stat: 'happiness', delta: -2 }, { log: "{{person}}'s aunt did not make the thirty and has stopped returning our calls.", kind: 'bad' }] },
           { queue: 'gu_wedding_day' },
         ],
       },
@@ -495,6 +496,8 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     maxAge: 64,
     weight: 1,
     once: true,
+    // A pang over an ex's new partner waits out the grief window (GAME_DESIGN §10), as later_life's ll_old_flame does.
+    conditions: [{ flag: 'grieving', exists: false }],
     person: { kind: ['ex'], minAge: 22 },
     choices: [
       {
@@ -1863,11 +1866,12 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     id: 'gu_hoa_treasurer',
     category: 'random',
     title: 'Elected in absentia',
-    text: "The homeowners' association needed a treasurer. Nobody volunteered, so they elected whoever missed the meeting. That was me. I now have a binder, a password and enemies.",
+    text: "The residents' association needed a treasurer. Nobody volunteered, so they elected whoever missed the meeting. That was me. I now have a binder, a password and enemies.",
     minAge: 30,
     maxAge: 64,
     weight: 0.8,
     once: true,
+    // A residents' association and its money, as everywhere (a homeowners' association is American): no paint rules.
     conditions: [{ ownsAsset: 'house' }],
     choices: [
       {
@@ -1896,15 +1900,15 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
           { karma: 1 },
           {
             chance: 0.5,
-            then: [{ stat: 'happiness', delta: -3 }, { log: 'I approved everything. The street now has a purple house and a wind turbine. Meetings are tense.' }],
-            else: [{ stat: 'happiness', delta: 4 }, { log: 'I approved every paint color and fence. The most popular treasurer in history.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: -3 }, { log: 'I approved everything. We now own a bounce house and a wind turbine. Meetings are tense.' }],
+            else: [{ stat: 'happiness', delta: 4 }, { log: 'I said yes to every request for money. The most popular treasurer in history.', kind: 'good' }],
           },
         ],
       },
       {
         id: 'strict',
-        label: 'Enforce every rule',
-        effects: [{ karma: -3 }, { stat: 'happiness', delta: 3 }, { log: 'I measured every mailbox. I have become the person with the clipboard.' }],
+        label: 'Block every expense',
+        effects: [{ karma: -3 }, { stat: 'happiness', delta: 3 }, { log: 'I blocked every expense, down to the meeting cookies. I have become the person with the clipboard.' }],
       },
     ],
   },
@@ -1912,7 +1916,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     id: 'gu_burst_pipe',
     category: 'money',
     title: 'Indoor lake',
-    text: 'A pipe burst in the wall while I was out. I came home to an inch of water across the kitchen, a slipper floating past the fridge, and the gentle sound of my money leaving.',
+    text: 'A pipe burst in the wall while I was out. I came home to a kitchen floor under water, a slipper floating past the fridge, and the gentle sound of my money leaving.',
     minAge: 25,
     maxAge: 64,
     weight: 1,
@@ -2119,7 +2123,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     id: 'gu_one_more_drive',
     category: 'family',
     title: 'One more drive',
-    text: '{{person}} asked me to drive {{them}} back to the town where {{they}} grew up. Three hundred miles, one more look at the old house, and every story I have ever heard, again.',
+    text: '{{person}} asked me to drive {{them}} back to the town where {{they}} grew up. Five hours each way, one more look at the old house, and every story I have ever heard, again.',
     minAge: 35,
     maxAge: 64,
     weight: 1,
@@ -2136,7 +2140,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
           { energy: -1 },
           { relationship: 'person', delta: 12 },
           { stat: 'happiness', delta: 6 },
-          { log: 'We found the old house, the old school and a diner that remembered {{them}}. I heard new stories.', kind: 'good' },
+          { log: 'We found the old house, the old school and a café that remembered {{them}}. I heard new stories.', kind: 'good' },
         ],
       },
       {
@@ -2156,7 +2160,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     id: 'gu_odometer',
     category: 'random',
     title: 'Two hundred thousand',
-    text: 'On the way home the odometer on my old hatchback crept toward 200,000 miles. I am about to see a number I will never see again, in a car held together by hope.',
+    text: 'On the way home the odometer on my old hatchback crept toward 200,000. I am about to see a number I will never see again, in a car held together by hope.',
     minAge: 25,
     maxAge: 64,
     weight: 0.8,

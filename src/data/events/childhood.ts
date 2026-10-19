@@ -382,7 +382,7 @@ export const CHILDHOOD_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.6,
-            then: [{ stat: 'happiness', delta: 5 }, { relationship: 'person', delta: 2 }, { log: 'I looked back and {{person}} was twenty yards behind me, cheering. I was riding a bike.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 5 }, { relationship: 'person', delta: 2 }, { log: 'I looked back and {{person}} was way down the path behind me, cheering. I was riding a bike.', kind: 'good' }],
             else: [{ injury: 2 }, { stat: 'happiness', delta: -2 }, { log: 'I wobbled, panicked and met the hedge. {{person}} picked me out of it and we tried again.', kind: 'bad' }],
           },
         ],

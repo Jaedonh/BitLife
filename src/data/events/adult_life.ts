@@ -73,7 +73,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 1,
     cooldown: 5,
-    conditions: [{ inPrison: false }, ...LIVES_IN_HOUSE_WITH_YARD],
+    // A homeowners' association with fines and hearings (and a cul-de-sac) is an American institution.
+    conditions: [{ inPrison: false }, { country: ['US'] }, ...LIVES_IN_HOUSE_WITH_YARD],
     choices: [
       {
         id: 'repaint',
@@ -112,7 +113,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     id: 'ad_neighbour_fence',
     category: 'random',
     title: 'Fence line',
-    text: 'My neighbor built a new fence and, by my measurement, it eats eighteen inches of my yard. By their measurement, I need a new tape measure.',
+    text: 'My neighbor built a new fence and, by my measurement, it eats a strip of my yard as wide as a doormat. By their measurement, I need a new tape measure.',
     minAge: 30,
     maxAge: 59,
     weight: 1,
@@ -146,7 +147,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
       {
         id: 'let',
         label: 'Let it go',
-        effects: [{ karma: 1 }, { stat: 'happiness', delta: -2 }, { log: 'I let the fence stand. Every time I mow, I think about those eighteen inches.' }],
+        effects: [{ karma: 1 }, { stat: 'happiness', delta: -2 }, { log: 'I let the fence stand. Every time I mow, I think about that strip of lawn.' }],
       },
       {
         id: 'hedge',
@@ -212,7 +213,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           { karma: 2 },
           { stat: 'happiness', delta: 2 },
           { log: 'I showed the kid a basic beat. The noise is now at least in time.', kind: 'good' },
-          { chance: 0.5, then: [{ newPerson: { kind: 'friend', relationship: 45, log: "The teenager's parent, {{person}}, became a friend out of sheer gratitude." } }] },
+          // The parent of a teenager: old enough to have one.
+          { chance: 0.5, then: [{ newPerson: { kind: 'friend', relationship: 45, minAge: 32, maxAge: 58, log: "The teenager's parent, {{person}}, became a friend out of sheer gratitude." } }] },
         ],
       },
     ],
@@ -423,8 +425,9 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 0.3,
     once: true,
-    // Not within ten years of money_events' mn_distant_inheritance, the other will from a relative I barely knew.
-    conditions: [{ not: { sinceEvent: 'mn_distant_inheritance', lte: 10 } }],
+    // Not within ten years of money_events' mn_distant_inheritance, the other will from a relative I barely knew. Not for
+    // a foster child either: an orphan has no relatives in the life, and a will from one would be a story of its own.
+    conditions: [{ not: { sinceEvent: 'mn_distant_inheritance', lte: 10 } }, { not: { flag: 'foster_care' } }],
     choices: [
       {
         id: 'accept',
@@ -946,7 +949,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     weight: 1,
     cooldown: 6,
     // Not within a few years of holidays_and_traditions' hd_estranged_sibling, the same silence at a family gathering.
-    conditions: [{ inPrison: false }, { not: { sinceEvent: 'hd_estranged_sibling', lte: 3 } }],
+    // A cousin's wedding needs cousins: not for a foster child (foster siblings are no relation, and an orphan has none).
+    conditions: [{ inPrison: false }, { not: { sinceEvent: 'hd_estranged_sibling', lte: 3 } }, { not: { flag: 'foster_care' } }],
     person: { kind: ['sibling'], maxRelationship: 40 },
     choices: [
       {
@@ -976,8 +980,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     // Not another sales pitch (money_events' mn_mlm_pitch is the starter-kit one): a friend signs me up for something.
     id: 'ad_friend_mlm',
     category: 'random',
-    title: 'Twenty miles',
-    text: "{{person}} signed us both up for a twenty-mile charity walk and told the organizers I am 'basically a hiker'. The walk is in three weeks. I own one pair of sneakers and zero hiking socks.",
+    title: 'The long walk',
+    text: "{{person}} signed us both up for a charity walk that takes all day and told the organizers I am 'basically a hiker'. The walk is in three weeks. I own one pair of sneakers and zero hiking socks.",
     minAge: 30,
     maxAge: 59,
     weight: 1,
@@ -997,7 +1001,7 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 5 },
           {
             chance: 0.8,
-            then: [{ stat: 'happiness', delta: 5 }, { log: 'Three weeks of evening walks, then twenty miles with {{person}}. Money raised, blisters earned.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 5 }, { log: 'Three weeks of evening walks, then the whole route with {{person}}. Money raised, blisters earned.', kind: 'good' }],
             else: [{ injury: 3 }, { log: 'I twisted an ankle in training and cheered {{person}} over the line from a folding chair.', kind: 'bad' }],
           },
         ],
@@ -1015,8 +1019,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
           { karma: 1 },
           {
             chance: 0.5,
-            then: [{ relationship: 'person', delta: 6 }, { stat: 'happiness', delta: 5 }, { log: 'I walked twenty miles on pride alone. {{person}} and I crossed the line together, limping.', kind: 'good' }],
-            else: [{ injury: 4 }, { relationship: 'person', delta: 2 }, { stat: 'happiness', delta: -2 }, { log: "Mile twelve took my knees. I finished in the support van, eating the volunteers' oranges.", kind: 'bad' }],
+            then: [{ relationship: 'person', delta: 6 }, { stat: 'happiness', delta: 5 }, { log: 'I walked the whole route on pride alone. {{person}} and I crossed the line together, limping.', kind: 'good' }],
+            else: [{ injury: 4 }, { relationship: 'person', delta: 2 }, { stat: 'happiness', delta: -2 }, { log: "The halfway point took my knees. I finished in the support van, eating the volunteers' oranges.", kind: 'bad' }],
           },
         ],
       },

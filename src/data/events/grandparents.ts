@@ -241,6 +241,8 @@ export const GRANDPARENTS_EVENTS: EventDef[] = [
     maxAge: 14,
     weight: 1.5,
     cooldown: 3,
+    // Still on the farm, with a grandparent nearby: once the family moves to another city (a card's relocate effect),
+    // the grandparents stay behind and live far away, so nobody is bound for a visit at sunrise.
     conditions: [{ flag: 'farm' }],
     person: { kind: ['grandparent'], minAge: 50, maxAge: 85 },
     choices: [

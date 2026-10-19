@@ -31,7 +31,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         effects: [
           { stat: 'happiness', delta: 3 },
           { log: 'I wished for a pony. No pony came. I got a bicycle the next year, which is at least pony-shaped.' },
-          { chance: 0.25, then: [{ money: 20 }, { log: 'An aunt slipped me {{$20}} and said not to spend it all on candy. I spent it all on candy.', kind: 'money' }] },
+          // A neighbor, not an aunt: a foster child (the orphan scenario) has no aunts in the life.
+          { chance: 0.25, then: [{ money: 20 }, { log: 'A neighbor slipped me {{$20}} and said not to spend it all on candy. I spent it all on candy.', kind: 'money' }] },
         ],
       },
       {
