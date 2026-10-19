@@ -126,6 +126,8 @@ export function candidatesFor(state: GameState, sel: PersonSelector): Person[] {
 export function livesAtHome(state: GameState): boolean {
   const age = state.character.age;
   if (age < 18) return true;
+  // An orphan ages out of foster care at 18 into a place of their own.
+  if (state.flags.foster_care === true) return false;
   const ownsHome = state.assets.some((a) => a.kind === 'house' && a.primary && !a.rentedOut);
   return age < 24 && !ownsHome && (state.career.job?.salary ?? 0) < scaleMoney(state, 20_000) && !hasPersonOfKind(state, ['spouse']);
 }

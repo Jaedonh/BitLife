@@ -1,7 +1,7 @@
 import { getCountry } from '@/data/countries';
 import { FARM_TOWNS, SCENARIOS } from '@/data/scenarios';
 import { ageUp } from '../ageUp';
-import { evaluateCondition } from '../events/conditions';
+import { evaluateCondition, livesAtHome } from '../events/conditions';
 import { makeRegistry } from '../events/select';
 import { Rng } from '../rng';
 import { checkInvariants } from '../simulate';
@@ -100,7 +100,7 @@ describe('orphan', () => {
     expect(texts(s).some((t) => t.startsWith(`My ${label} is ${foster.firstName} ${foster.lastName} (${foster.age})`))).toBe(true);
     const dead = { ...foster, alive: false, deathAge: foster.age, deathCause: 'a stroke' };
     const after = onNpcDeath({ ...s, people: { ...s.people, [foster.id]: dead } }, dead, new Rng(1));
-    expect(texts(after).at(-1)).toBe(`My ${label} ${foster.firstName} ${foster.lastName} died of a stroke at ${foster.age}.`);
+    expect(texts(after)).toContain(`My ${label} ${foster.firstName} ${foster.lastName} died of a stroke at ${foster.age}.`);
     const kid = ageTo(s, 6);
     if (kid.alive && kid.people[foster.id]?.alive) expect(buildObituary(kid, 'an accident', 0, 'Gone Too Soon')).toContain(`${label} ${foster.firstName}`);
   });
@@ -130,6 +130,22 @@ describe('orphan', () => {
     const lines = Array.from({ length: 8 }, (_, i) => ageUp({ ...sick, rng: { s: 1000 + i } }, noEvents)).flatMap((x) => texts(x));
     expect(lines.some((t) => t.startsWith(`${foster.firstName} took me to the doctor`))).toBe(true);
     expect(lines.some((t) => t.startsWith('My parents took me'))).toBe(false);
+  });
+
+  it('a foster child who loses the foster parent is placed with another family', () => {
+    const orphan = ageTo(all[2]!, 9);
+    const foster = kinds(orphan, 'stepmother', 'stepfather')[0]!;
+    const dead = { ...foster, alive: false, deathAge: foster.age, deathCause: 'a heart attack' };
+    const after = onNpcDeath({ ...orphan, people: { ...orphan.people, [foster.id]: dead } }, dead, new Rng(1));
+    expect(texts(after)).toContain(`With ${foster.firstName} gone, my caseworker placed me with another foster family.`);
+    expect(texts(after).some((t) => t.includes('both my parents'))).toBe(false);
+  });
+
+  it('a former foster child has a place of their own from 18', () => {
+    const orphan = all[2]!;
+    const adult = { ...orphan, character: { ...orphan.character, age: 19 } };
+    expect(livesAtHome(adult)).toBe(false);
+    expect(livesAtHome({ ...orphan, character: { ...orphan.character, age: 12 } })).toBe(true);
   });
 
   it('ages out of foster care at 18', () => {

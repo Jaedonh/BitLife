@@ -93,6 +93,8 @@ export function ageNpcs(state: GameState, rng: Rng): GameState {
   return s;
 }
 
+const GUARDIAN_KINDS: readonly Person['kind'][] = ['mother', 'father', 'stepmother', 'stepfather'];
+
 /**
  * Everything an NPC's death sets off: the journal line, grief, inheritance and, for a child, being taken in
  * by relatives. `p` is already marked dead in `state`. Shared by natural deaths (ageNpcs) and event deaths
@@ -124,9 +126,10 @@ export function onNpcDeath(state: GameState, p: Person, rng: Rng, opts: { announ
     }
   }
   if (p.kind === 'grandparent' && p.money > 0) s = grandparentEstate(s, p, rng);
-  if ((p.kind === 'mother' || p.kind === 'father') && s.character.age < 18) {
-    const otherParent = Object.values(s.people).some((x) => (x.kind === 'mother' || x.kind === 'father') && x.alive);
-    if (!otherParent) s = log(s, 'With both my parents gone, I was taken in by relatives.', 'bad');
+  // A child who loses the last parent or step-parent at home goes to relatives, or a foster child to a new home.
+  if (GUARDIAN_KINDS.includes(p.kind) && s.character.age < 18) {
+    const guardianLeft = Object.values(s.people).some((x) => x.alive && GUARDIAN_KINDS.includes(x.kind));
+    if (!guardianLeft) s = log(s, p.foster ? `With ${p.firstName} gone, my caseworker placed me with another foster family.` : 'With both my parents gone, I was taken in by relatives.', 'bad');
   }
   return s;
 }
