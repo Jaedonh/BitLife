@@ -4,7 +4,7 @@ import { scaleMoney } from '../events/text';
 import type { Rng } from '../rng';
 import { payForMinor } from './guardians';
 import type { Career, GameState, InvestmentKind } from '../types';
-import { addMoney, addStats, log, money, netWorth, setResult } from '../util';
+import { addMoney, addStats, log, money, netWorth, notePeakDebt, setResult } from '../util';
 
 export const INVESTMENT_LABELS: Record<InvestmentKind, { name: string; description: string; prose: string }> = {
   savings: { name: 'Savings account', description: 'Safe. ~2% a year.', prose: 'my savings account' },
@@ -59,7 +59,8 @@ function investmentReturn(kind: InvestmentKind, rng: Rng): number {
 
 /** The whole yearly cash-flow pass. Runs after careers have updated salary. */
 export function yearlyFinance(state: GameState, rng: Rng): GameState {
-  let s = state;
+  // The debt carried into the year (event costs, new tuition) before any of it is repaid.
+  let s = notePeakDebt(state);
   const c = s.character;
   const country = getCountry(c.countryCode);
   const adult = c.age >= 18;
@@ -143,6 +144,7 @@ export function yearlyFinance(state: GameState, rng: Rng): GameState {
       incomeBoostYears: Math.max(0, s.finances.incomeBoostYears - 1),
     },
   };
+  s = notePeakDebt(s);
   if (adult && debt > scaleMoney(s, 60_000) && gross === 0) {
     s = log(s, 'Debt collectors are calling. I have no income and the interest keeps piling up.', 'bad');
     s = addStats(s, { happiness: -4 });
@@ -196,7 +198,7 @@ export function payDebt(state: GameState, amount: number): GameState {
   if (state.finances.cash <= 0) return setResult(state, 'I have no cash to pay my debt with.', 'bad');
   amount = Math.min(state.finances.debt, Math.round(amount), state.finances.cash);
   if (amount <= 0) return setResult(state, 'I need to pay at least something.', 'bad');
-  let s = addMoney(state, -amount);
+  let s = addMoney(notePeakDebt(state), -amount);
   s = { ...s, finances: { ...s.finances, debt: s.finances.debt - amount } };
   return setResult(s, `I paid off ${money(s, amount)} of debt.`, 'good', { moneyDelta: -amount });
 }

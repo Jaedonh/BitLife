@@ -18,6 +18,19 @@ export function withFame(s: GameState, fame: number): GameState {
   return { ...s, character: { ...s.character, fame: next }, flags: { ...s.flags, peakFame: peak } };
 }
 
+/** The life's largest total debt (loans plus student debt), kept in flags so older saves need no migration. */
+export function peakDebt(s: GameState): number {
+  const peak = s.flags.peakDebt;
+  return Math.max(s.finances.debt + s.education.studentDebt, typeof peak === 'number' ? peak : 0);
+}
+
+/** Remembers the current total debt if it is the life's largest yet (the Debt Free achievement reads it). */
+export function notePeakDebt(s: GameState): GameState {
+  const total = s.finances.debt + s.education.studentDebt;
+  const peak = s.flags.peakDebt;
+  return total > (typeof peak === 'number' ? peak : 0) ? { ...s, flags: { ...s.flags, peakDebt: total } } : s;
+}
+
 export function addStats(state: GameState, deltas: Partial<Stats>): GameState {
   const s = state.character.stats;
   const p = state.character.potential;

@@ -5,12 +5,15 @@
  *
  * Checks: schema validity, unique ids across the given files + the registry,
  * placeholders, queued follow-ups exist, and that every event is reachable
- * (eligible for at least one of a few thousand simulated states).
+ * (eligible for at least one of a few thousand simulated states). The yearly
+ * flavor lines (src/data/flavor.ts) are always checked the same way: wording,
+ * placeholders, conditions, and that each one fits some sampled year.
  */
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import { EVENTS } from '../src/data/events';
+import { FLAVOR } from '../src/data/flavor';
 import { isEligible } from '../src/engine/events/select';
 import { validateEvent, type EventDef } from '../src/engine/events/schema';
 import { ageUp } from '../src/engine/ageUp';
@@ -20,7 +23,10 @@ import { createLife } from '../src/engine/systems/character';
 import { Rng } from '../src/engine/rng';
 import { balancedPolicy, recklessPolicy } from '../src/engine/simulate';
 import { applyAction } from '../src/engine/actions';
+import { varyLife } from './varied-lives';
 import { applyEffects } from '../src/engine/events/effects';
+import { advanceYear } from '../src/engine/systems/aging';
+import { flavorFits, validateFlavor } from '../src/engine/systems/flavor';
 import type { GameState } from '../src/engine/types';
 
 async function loadFile(file: string): Promise<EventDef[]> {
@@ -42,19 +48,8 @@ function buyHomeAndCar(s: GameState, seed: number): GameState {
   return s;
 }
 
-/**
- * Situations real play reaches but a few dozen sampled lives rarely do, seeded on purpose so content written
- * for them stays reachable: a younger sibling at 3, an addiction in some adult lives, losing both parents young.
- */
-function seedRareSituations(s: GameState, seed: number, rng: Rng): GameState {
-  const age = s.character.age;
-  if (seed % 6 === 1 && age === 3) s = applyEffects(s, rng, [{ newPerson: { kind: 'sibling', minAge: 0, maxAge: 0 } }]);
-  if (seed % 7 === 2 && age === 24) s = applyEffects(s, rng, [{ addiction: seed % 2 ? 'drugs' : 'alcohol', delta: 40 }]);
-  if (seed % 13 === 5 && age === 12) {
-    for (const p of Object.values(s.people)) if (p.alive && (p.kind === 'mother' || p.kind === 'father')) s = { ...s, people: { ...s.people, [p.id]: { ...p, alive: false, deathAge: p.age, deathCause: 'an accident' } } };
-  }
-  return s;
-}
+/** Each sampled year as the flavor picker sees it: its start (the birthday just passed) and how it ended. */
+const flavorYears: { start: GameState; now: GameState }[] = [];
 
 /**
  * Plays seeded lives and keeps every year's state. With the default empty registry no events
@@ -80,6 +75,7 @@ function sampleStates(n: number, recklessLives = 20, registry = makeRegistry([])
     // every third life is cut short so early states keep their weight too.
     const years = seed % 3 === 0 ? 5 + (seed % 90) : 100;
     for (let y = 0; y < years && s.alive; y++) {
+      const start = advanceYear(s);
       s = ageUp(s, registry);
       let guard = 0;
       while (s.pendingEvent && guard++ < 20) {
@@ -92,7 +88,6 @@ function sampleStates(n: number, recklessLives = 20, registry = makeRegistry([])
       if (seed % 2 === 0 && (s.character.age === 8 || s.character.age === 25 || s.character.age === 45)) {
         s = applyEffects(s, petRng, [{ newPerson: { kind: 'pet', species: seed % 4 === 0 ? 'dog' : 'cat' } }]);
       }
-      s = seedRareSituations(s, seed, petRng);
       for (const a of policy(s, rng)) s = applyAction(s, a);
       // An arrest opens a court card; answer it before the next year, as the app does.
       while (s.pendingEvent && guard++ < 40) {
@@ -100,7 +95,9 @@ function sampleStates(n: number, recklessLives = 20, registry = makeRegistry([])
         s = resolveChoice(s, choice.id, registry);
       }
       s = buyHomeAndCar(s, seed);
+      s = varyLife(s, seed);
       states.push(s);
+      flavorYears.push({ start, now: s });
     }
   }
   return states;
@@ -133,19 +130,24 @@ async function main() {
   // Lives without events, plus lives where every event (registry + these files) can fire, so
   // events gated on flags or eventFired from other events are reachable when their setup is.
   const states = [...sampleStates(60), ...sampleStates(90, 20, makeRegistry(all), 50_000)];
-  for (const { file, defs } of fileDefs) {
-    for (const e of defs) {
-      if (e.followUpOnly) continue;
-      const hits = states.filter((s) => isEligible(s, e)).length;
-      if (hits === 0) errors.push(`${file}: event ${e.id} was never eligible in ${states.length} sampled states (check age range / conditions / person selector)`);
-    }
+  const registry = makeRegistry(all);
+  const unseenEvents = () => fileDefs.flatMap(({ file, defs }) => defs.filter((e) => !e.followUpOnly && !states.some((s) => isEligible(s, e))).map((e) => ({ file, e })));
+  const unseenFlavor = () => FLAVOR.filter((line) => !flavorYears.some((y) => flavorFits(line, y.start, y.now)));
+  // Rare but real situations (a law career, a teen in detention, a long marriage) may miss the first sample; anything
+  // unseen gets a second, larger sample of event-firing lives before it is reported as unreachable.
+  if (unseenEvents().length || unseenFlavor().length) states.push(...sampleStates(240, 40, registry, 150_000));
+  for (const { file, e } of unseenEvents()) errors.push(`${file}: event ${e.id} was never eligible in ${states.length} sampled states (check age range / conditions / person selector)`);
+  // Flavor lines: wording and conditions, and that each one can be written in some sampled year.
+  for (const err of validateFlavor(FLAVOR)) errors.push(`src/data/flavor.ts: ${err}`);
+  for (const line of unseenFlavor()) {
+    if (line) errors.push(`src/data/flavor.ts: flavor line "${line.text}" never fit any of ${flavorYears.length} sampled years (check age range / conditions / person selector)`);
   }
   const total = fileDefs.reduce((n, x) => n + x.defs.length, 0);
   if (errors.length) {
     console.error(`${errors.length} problem(s):\n` + errors.map((e) => ` - ${e}`).join('\n'));
     process.exit(1);
   }
-  console.log(`OK: ${total} events in ${files.length} file(s) valid and reachable (registry now ${all.length}).`);
+  console.log(`OK: ${total} events in ${files.length} file(s) valid and reachable (registry now ${all.length}); ${FLAVOR.length} flavor lines valid and reachable.`);
 }
 
 main().catch((e) => {

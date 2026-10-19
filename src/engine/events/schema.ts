@@ -6,6 +6,8 @@
  * can choose (choices with effects). A tiny interpreter (effects.ts) applies
  * effects, so content never needs engine code.
  */
+import { ACHIEVEMENT_BY_ID } from '@/data/achievements';
+import { ILLNESS_BY_ID } from '@/data/illnesses';
 import type {
   AddictionKind,
   AssetKind,
@@ -76,6 +78,12 @@ export type Condition =
   | { juvenile: boolean }
   | { eventFired: string }
   | { eventNotFired: string }
+  /** Has at least one of these illnesses (ids in src/data/illnesses.ts), e.g. { hasIllness: ['arthritis'] }. */
+  | { hasIllness: string[] }
+  /** Years married to the living spouse (player age minus the age at the wedding), e.g. { yearsMarried: { eq: 25 } }. */
+  | { yearsMarried: Comparator }
+  /** A side hustle is running at this level (0-5), e.g. { hustleLevel: { lte: 1 } }. */
+  | { hustleLevel: Comparator }
   | { any: Condition[] }
   | { all: Condition[] }
   | { not: Condition };
@@ -211,9 +219,37 @@ export function textIssues(text: string): string[] {
   return issues;
 }
 
+/** Unknown or malformed {{placeholders}} in a line of text. */
+export function placeholderIssues(text: string): string[] {
+  const issues: string[] = [];
+  for (const m of text.matchAll(PLACEHOLDER_RE)) {
+    const key = m[1]!.trim();
+    if (key.startsWith('$')) {
+      if (!/^\$\d+$/.test(key)) issues.push(`bad money placeholder ${key}`);
+    } else if (!KNOWN_PLACEHOLDERS.has(key)) issues.push(`unknown placeholder ${key}`);
+  }
+  return issues;
+}
+
+/** Conditions that can never hold because they name something that does not exist (an unknown illness id). */
+export function conditionIssues(conditions: readonly Condition[] | undefined): string[] {
+  const issues: string[] = [];
+  for (const c of conditions ?? []) {
+    if ('hasIllness' in c) {
+      if (!c.hasIllness.length) issues.push('hasIllness lists no illness');
+      for (const id of c.hasIllness) if (!Object.prototype.hasOwnProperty.call(ILLNESS_BY_ID, id)) issues.push(`unknown illness ${id} (see src/data/illnesses.ts)`);
+    }
+    if ('any' in c) issues.push(...conditionIssues(c.any));
+    if ('all' in c) issues.push(...conditionIssues(c.all));
+    if ('not' in c) issues.push(...conditionIssues([c.not]));
+  }
+  return issues;
+}
+
 export function validateEvent(def: EventDef, knownIds: Set<string>): string[] {
   const errors: string[] = [];
   const where = `event ${def.id}`;
+  for (const issue of conditionIssues([...(def.conditions ?? []), ...(def.choices ?? []).flatMap((c) => c.conditions ?? [])])) errors.push(`${where}: ${issue}`);
   if (!def.id || !/^[a-z0-9_]+$/.test(def.id)) errors.push(`${where}: id must be snake_case`);
   if (!def.title) errors.push(`${where}: missing title`);
   if (!def.text) errors.push(`${where}: missing text`);
@@ -312,6 +348,7 @@ function checkEffect(e: Effect, where: string, knownIds: Set<string>, errors: st
   if ('queue' in e && !knownIds.has(e.queue)) errors.push(`${where}: queues unknown event ${e.queue}`);
   if ('trial' in e && !TRIAL_PLEAS.includes(e.trial)) errors.push(`${where}: unknown trial plea ${String(e.trial)}`);
   if ('paroleHearing' in e && !PAROLE_APPROACHES.includes(e.paroleHearing)) errors.push(`${where}: unknown parole approach ${String(e.paroleHearing)}`);
+  if ('achievement' in e && !Object.prototype.hasOwnProperty.call(ACHIEVEMENT_BY_ID, e.achievement)) errors.push(`${where}: grants unknown achievement ${e.achievement} (see src/data/achievements.ts)`);
   if ('random' in e) {
     if (!e.random.length) errors.push(`${where}: empty random outcome list`);
     for (const o of e.random) for (const x of o.effects) checkEffect(x, where, knownIds, errors);

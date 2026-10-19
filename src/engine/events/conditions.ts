@@ -79,6 +79,12 @@ export function evaluateCondition(state: GameState, c: Condition): boolean {
   if ('juvenile' in c) return (state.crime.inPrison && state.crime.juvenile === true) === c.juvenile;
   if ('eventFired' in c) return state.firedEvents[c.eventFired] !== undefined;
   if ('eventNotFired' in c) return state.firedEvents[c.eventNotFired] === undefined;
+  if ('hasIllness' in c) return state.health.illnesses.some((i) => c.hasIllness.includes(i.defId));
+  if ('yearsMarried' in c) {
+    const wedding = alivePeople(state).find((p) => p.kind === 'spouse')?.marriedAtAge;
+    return wedding !== undefined && cmp(ch.age - wedding, c.yearsMarried);
+  }
+  if ('hustleLevel' in c) return !!state.career.hustle && cmp(state.career.hustle.level, c.hustleLevel);
   if ('any' in c) return c.any.some((x) => evaluateCondition(state, x));
   if ('all' in c) return c.all.every((x) => evaluateCondition(state, x));
   if ('not' in c) return !evaluateCondition(state, c.not);

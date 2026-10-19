@@ -6,6 +6,7 @@ export * from './types';
 export * from './util';
 export { Rng, randomSeed } from './rng';
 export { RIBBONS, RIBBON_BY_ID } from './systems/ribbons';
+export { achievementContext, newAchievements, type PastLife } from './systems/achievements';
 export { INTERACTIONS, availableInteractions } from './systems/relationships';
 export { activityAvailability, activityCost } from './systems/activities';
 export { crimeAvailability } from './systems/crime';

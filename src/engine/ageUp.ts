@@ -1,5 +1,3 @@
-import { FLAVOR } from '@/data/flavor';
-import { renderText } from './events/text';
 import { EVENT_REGISTRY } from './events/registry';
 import { openNextEvent, scheduleYearEvents, type EventRegistry } from './events/select';
 import { Rng } from './rng';
@@ -9,6 +7,7 @@ import { rollListings, yearlyCareer } from './systems/careers';
 import { yearlyPrison } from './systems/crime';
 import { yearlyEducation } from './systems/education';
 import { yearlyFinance } from './systems/finance';
+import { yearlyFlavor } from './systems/flavor';
 import { yearlyHealth } from './systems/health';
 import { rollMortality } from './systems/mortality';
 import { yearlyRelationships } from './systems/relationships';
@@ -23,6 +22,7 @@ export function ageUp(state: GameState, registry: EventRegistry = EVENT_REGISTRY
   if (!state.alive || state.pendingEvent) return state;
   const rng = new Rng(state.rng);
   let s = advanceYear(state);
+  const yearStart = s;
   const headerIndex = s.log.length;
   s = log(s, `${s.year}: Age ${s.character.age}`, 'year');
   s = milestones(s);
@@ -40,12 +40,10 @@ export function ageUp(state: GameState, registry: EventRegistry = EVENT_REGISTRY
   if (s.character.age >= 14) s = rollListings(s, rng);
   s = rollMortality(s, rng);
   if (!s.alive) return { ...s, rng: rng.snapshot() };
-  if (s.log.length - headerIndex <= 1) {
-    const pool = FLAVOR.filter((f) => s.character.age >= f.minAge && s.character.age <= f.maxAge);
-    if (pool.length) s = log(s, renderText(rng.pick(pool).text, s));
-  }
   s = { ...s, rng: rng.snapshot(), updatedAt: state.updatedAt };
   s = scheduleYearEvents(s, registry);
+  // Chosen once the year's systems have run and its cards are scheduled, so the line fits both (no "quiet year" line in a year with a card).
+  s = yearlyFlavor(s, { start: yearStart, lines: s.log.length - headerIndex - 1, event: s.eventQueue.length > 0 });
   return openNextEvent(s, registry);
 }
 

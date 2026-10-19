@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { ageUp as engineAgeUp, applyAction, beginLife, createLife, EVENT_REGISTRY, listingsBlocker, randomSeed, resolveChoice, secondChance, statBoostBlocker } from '@/engine';
+import { achievementContext, ageUp as engineAgeUp, applyAction, beginLife, createLife, EVENT_REGISTRY, listingsBlocker, newAchievements, randomSeed, resolveChoice, secondChance, statBoostBlocker } from '@/engine';
 import type { GameState, LastResult, LogKind, NewLifeOptions, PlayerAction } from '@/engine/types';
 import { ads } from '@/services/ads';
 import { track } from '@/services/analytics';
@@ -128,6 +128,21 @@ function recordDeath(game: GameState) {
   });
 }
 
+/**
+ * Unlocks whatever achievements this state has earned (after an age-up, an action, a choice or a
+ * death; never per render). The checker is pure and skips what is already unlocked, so it is cheap.
+ */
+export function checkAchievements(game: GameState | null) {
+  if (!game) return;
+  const settings = useSettingsStore.getState();
+  const fresh = newAchievements(game, achievementContext(settings.graveyard, game), settings.achievements);
+  if (!fresh.length) return;
+  settings.unlockAchievements(
+    fresh.map((a) => a.id),
+    { lifeName: `${game.character.firstName} ${game.character.lastName}`, age: game.character.age },
+  );
+}
+
 export const useGameStore = create<GameStore>((set, get) => ({
   hydrated: false,
   game: null,
@@ -147,6 +162,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const game = birthCard ? beginLife(born, EVENT_REGISTRY) : born;
     set({ game });
     persist(game);
+    checkAchievements(game);
     track({ name: 'life_started', generation: game.generation, custom: !!(options.firstName || options.countryCode || options.customStats) });
   },
   continueAsHeir: (childId) => {
@@ -155,6 +171,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const game = createLife({ heir: { childId, previous: prev } }, randomSeed(), Date.now());
     set({ game });
     persist(game);
+    checkAchievements(game);
     track({ name: 'heir_continued', generation: game.generation });
   },
   ageUp: async () => {
@@ -188,6 +205,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     persist(next);
     track({ name: 'age_up', age: next.character.age });
     if (!next.alive) recordDeath(next);
+    checkAchievements(next);
     if (!settings.premium) ads.preload();
   },
   choose: (choiceId) => {
@@ -207,6 +225,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     persist(next);
     track({ name: 'event_choice', eventId: g.pendingEvent.eventId, choiceId });
     if (!next.alive) recordDeath(next);
+    checkAchievements(next);
   },
   act: (action) => {
     const g = get().game;
@@ -215,6 +234,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ game: next });
     persist(next);
     if (!next.alive) recordDeath(next);
+    checkAchievements(next);
   },
   canUseRewarded: (placement, option) => {
     const g = get().game;
@@ -261,6 +281,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (placement === 'secondChance' && !current.alive && next.alive) useSettingsStore.getState().removeFromGraveyard(current.character.id);
     set({ game: next });
     persist(next);
+    checkAchievements(next);
     return 'granted';
   },
   abandonLife: () => {

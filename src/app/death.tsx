@@ -2,6 +2,7 @@ import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { achievementProgress, unlockedSince } from '@/components/game/achievements';
 import { LegacyHeirCard } from '@/components/game/LegacyHeirCard';
 import { LegacyLifeStory } from '@/components/game/LegacyLifeStory';
 import { LegacyTombstone } from '@/components/game/LegacyTombstone';
@@ -25,6 +26,7 @@ export default function DeathScreen() {
   const premium = useSettingsStore((s) => s.premium);
   const showKarma = useSettingsStore((s) => s.settings.showKarma);
   const graveyard = useSettingsStore((s) => s.graveyard);
+  const achievements = useSettingsStore((s) => s.achievements);
   const [storyOpen, setStoryOpen] = useState(false);
   const [shareMsg, setShareMsg] = useState<string | null>(null);
   if (!game) return <Redirect href="/" />;
@@ -40,6 +42,8 @@ export default function DeathScreen() {
   const inheritance = heirInheritance(game);
   const canContinue = canContinueLine(game, premium);
   const revive = canUseRewarded('secondChance');
+  const progress = achievementProgress(achievements);
+  const newThisLife = unlockedSince(achievements, game.createdAt);
 
   const share = async () => {
     setShareMsg(null);
@@ -109,6 +113,14 @@ export default function DeathScreen() {
           />
           <Button title="Menu" variant="secondary" onPress={() => router.replace('/')} style={styles.flex} testID="death-menu" accessibilityLabel="Back to menu" />
         </View>
+
+        <Button
+          title={`🏆 Achievements · ${progress.unlocked}/${progress.total}${newThisLife ? ` · ${newThisLife} new this life` : ''}`}
+          variant="secondary"
+          onPress={() => router.push('/achievements')}
+          testID="death-achievements"
+          accessibilityLabel={`Achievements, ${progress.unlocked} of ${progress.total} unlocked${newThisLife ? `, ${newThisLife} new this life` : ''}`}
+        />
 
         <Section title="Your story">
           <View style={styles.row}>

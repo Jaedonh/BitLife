@@ -5,13 +5,14 @@ import { AccessibilityInfo, Animated, Platform, Pressable, StyleSheet, Text, Vie
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { create } from 'zustand';
 
+import { ACHIEVEMENT_BY_ID, type AchievementDef } from '@/data/achievements';
 import type { LogKind } from '@/engine/types';
 import { useGameStore } from '@/store/gameStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { colors, lifeTints, radius, spacing, typography, violetSoft } from '@/theme';
 import { KIND_META } from './lifeFormat';
 import { LifePills } from './LifePills';
-import { EMPTY_QUEUE, enqueueToast, MIN_VISIBLE_MS, nextToast, toastFromResult, type ToastItem, type ToastQueue } from './lifeToastQueue';
+import { EMPTY_QUEUE, enqueueToast, MIN_VISIBLE_MS, nextToast, resetQueue, toastFromAchievements, toastFromResult, type ToastItem, type ToastQueue } from './lifeToastQueue';
 
 /**
  * Distance from the bottom edge at which toasts sit on the life screen, so they clear the
@@ -57,7 +58,7 @@ function reducer(q: ToastQueue, a: Action): ToastQueue {
       // Only the toast that finished leaving may advance the queue (a new year may have replaced it).
       return q.current?.id === a.id ? nextToast(q) : q;
     case 'reset':
-      return q.current || q.pending.length ? EMPTY_QUEUE : q;
+      return resetQueue(q);
   }
 }
 
@@ -79,10 +80,16 @@ export function ResultToast() {
   const timing = useRef({ id: -1, count: 0, remaining: 0, shown: 0 });
 
   // Every new result, straight from the store: a store listener sees each one even when
-  // several land before React renders again.
+  // several land before React renders again. Achievement unlocks come from the settings store.
   useEffect(() => {
     let seq = 0;
-    return useGameStore.subscribe((s, prev) => {
+    const offAchievements = useSettingsStore.subscribe((s, prev) => {
+      const n = s.achievementNotice;
+      if (!n || n === prev.achievementNotice) return;
+      const item = toastFromAchievements(n.ids.map((id) => ACHIEVEMENT_BY_ID[id]).filter((d): d is AchievementDef => !!d), ++seq);
+      if (item) dispatch({ type: 'push', item });
+    });
+    const offResults = useGameStore.subscribe((s, prev) => {
       const g = s.game;
       const p = prev.game;
       if (g === p) return;
@@ -93,6 +100,10 @@ export function ResultToast() {
       const item = toastFromResult(r, g, p, ++seq);
       if (item) dispatch({ type: 'push', item });
     });
+    return () => {
+      offAchievements();
+      offResults();
+    };
   }, []);
 
   const current = queue.current;
@@ -162,7 +173,7 @@ export function ResultToast() {
           style={({ pressed }) => [styles.toast, { borderColor: color, borderLeftColor: color }, pressed && styles.pressed]}
         >
           <View style={[styles.iconWrap, { backgroundColor: ICON_TINT[current.kind] }]}>
-            <Text style={styles.icon}>{meta.icon ?? '💬'}</Text>
+            <Text style={styles.icon}>{current.icon ?? meta.icon ?? '💬'}</Text>
           </View>
           <View style={styles.body}>
             {current.title ? (

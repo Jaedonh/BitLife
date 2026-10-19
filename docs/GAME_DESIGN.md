@@ -31,7 +31,7 @@ Working title "LifeLoop"; Teen / 13+ content rating target.
 11. Relationship events: break-ups, new friends, new partners (§10).
 12. Job listings refresh (from age 14).
 13. Mortality roll and the critical-health countdown (§5).
-14. If the year was otherwise quiet, one flavour line (so no year is empty).
+14. One flavour line (§15a), chosen once step 15 has scheduled the year's cards: always in a quiet year (so no year is empty), sometimes a situational one in a busy year.
 15. Schedule 0-3 random events (§15) and open the first one as a card.
 16. The app shows a one-line **year summary** (stat deltas, cash change) once the year's cards are closed.
 
@@ -150,11 +150,25 @@ Events are data (`src/data/events/*.ts`) validated by `src/engine/events/schema.
   choices: [{ id, label, hint?, conditions?, effects: Effect[] }] }
 ```
 
-Conditions cover stats, money, net worth, income, flags, job/category/level, school stage/grade, marital status, children, people of a kind, country, prison, juvenile detention, record, traits, gender, karma, fame, addictions, assets, hustles, retirement, illness count, and whether another event fired. Effects cover stat/money/karma/fame/energy deltas, journal lines, flags, relationship and love deltas, removing or killing the bound person, creating people (friend, lover, child, pet…), death, prison, arrest, illness, cure, addiction, injury, job loss, performance, grade, expulsion, queued follow-ups, counters, weighted `random` outcomes, `chance` branches, asset damage/loss and achievements. Text supports `{{name}} {{person}} {{they}} {{$1000}}`-style placeholders.
+Conditions cover stats, money, net worth, income, flags, job/category/level, school stage/grade, marital status, children, people of a kind, country, prison, juvenile detention, record, traits, gender, karma, fame, addictions, assets, hustles and hustle level, retirement, illness count and specific illnesses, years married, whether another event fired or how long ago, a specific job, lifetime counters, a real car, and money thresholds in USD scaled per country. Effects cover stat/money/karma/fame/energy deltas, journal lines, flags, relationship and love deltas, removing or killing the bound person, creating people (friend, lover, child, pet…), death, prison, arrest, illness, cure, addiction, injury, job loss, performance, grade, expulsion, queued follow-ups, counters, weighted `random` outcomes, `chance` branches, asset damage/loss and achievements. Text supports `{{name}} {{person}} {{they}} {{$1000}}`-style placeholders.
 
 A new life opens with one newborn card (minAge 0: a first bath, the first night home) before the first age-up; heirs start without one. Selection per year: ages 0-2: 45% one event; 3-5: 75%; 6-17: 1 + 35% second; 18-69: 92% one, +40% second, +8% third; 70+: 1 + 30% second. Eligible = age range, conditions, `once`/`cooldown` (default 2 years), and a bindable person. Weighted pick without replacement, same-category repeats weighted ×0.25. Dead or departed bound people invalidate a queued event. While the player is in prison only events written for prison (`inPrison: true`) open. Money in events (effects and `money`/`netWorth`/`income` thresholds) is authored in USD and scaled per country; a minor's costs fall on their parents unless a choice spends the child's own savings (`payer: 'self'`), and the parents also pay for a child's doctor visits and outings.
 
 Content budget: 12 category files (early childhood, kid years, teen years, young adult, adult life, later life, work, love & family, health, money, crime & prison, friends & strangers), ≥ 300 choice events at launch, plus 50 flavour lines so no year is empty. House style: first person, 15-45 words, choices ≤ 6 words, no dominant choice, Teen rating.
+
+## 15a. Journal flavour lines
+
+One-line, no-choice journal lines (`src/data/flavor.ts`, 141 lines: 52 generic, 89 situational) keep the journal personal between event cards. A generic line has only an age range. A situational line adds `conditions` (the event condition language, including `hasIllness`, `yearsMarried` and `hustleLevel`) and may bind a `person` for `{{person}}`/`{{they}}`. Situational lines cover prison years, being locked up as a minor, university, graduate school, retirement, 10/25/40-year anniversaries and long marriages, pets, thirteen chronic illnesses, an addiction past 30 (where it starts to grow), a side hustle still stuck at level 0 (earning nothing), unemployment and debt (net worth below zero), single parents of young children, grandparents and 90+.
+
+The engine (`src/engine/systems/flavor.ts`) picks the line after the year's systems have run and its cards are scheduled:
+
+- **Quiet year** (no other journal line): always one line, from the generic lines in the age range plus every situational line whose situation holds, situational lines weighted 3x.
+- **Busy year**: 35% chance of one situational line (never a generic one), unless the year brought grave news (a death, a new severity-4+ illness, the doctor's warning).
+- A situational line is only written when its conditions hold both at the start of the year (just after the birthday) and after its systems ran, and a bound person was already in that role at the start: no line about a diagnosis, release, divorce or pet the year's own lines just reported. In prison only lines written for prison (`{ inPrison: true }`) qualify, as with events, and the year of a release (it began behind bars) gets no line about life outside.
+- Lines that say the year was uneventful are marked `quiet` and are only written in a year with no other line and no event card.
+- No line repeats within 10 years (`GameState.flavorSeen`, optional, pruned to the window); a quiet year whose candidates were all used recently takes the one written longest ago, so no year is empty.
+
+The validator checks every flavour line on each run (wording, placeholders, first person, ≤ 100 characters, quiet wording without the `quiet` mark, unknown illness ids) and that each one fits some sampled year; the text audit renders them all in `audit/text/flavor.md`. The samplers also take a few choices the policies never make on some seeds (graduate school, a side hustle, tending a marriage, a habit past 30; `scripts/varied-lives.ts`) so that content gated on them is reachable.
 
 ## 16. Death, obituary, ribbons, legacy
 
@@ -162,15 +176,23 @@ On death: cause (illness-driven where one exists; otherwise age-appropriate), ne
 
 **Legacy:** continue as any living child: the new life starts as that child (their name, gender, age, looks/smarts/health, country and city) in the year of the death, with their share of the estate (80% of the net worth split between the children), the family tree (the dead player becomes a dead parent; the child's recorded other parent, mother or father by their own gender, and siblings persist; no parent is invented), generation counter and ancestor list. Free play: one hand-off per family line (generation 1 → 2); premium: unlimited. **Second chance:** once per life, death can be undone (rewarded ad, or instantly for premium): health is restored to ~45 and severe illnesses removed.
 
+## 16a. Achievements
+
+Forty achievements (`src/data/achievements.ts`) are meta progression across lives: life milestones (a degree, graduate school, practicing medicine, the top rung of a full-time career, marriage, a 50-year marriage, three children, a home, a mansion, a local-terms million, a first pet, a close friend met 40 years ago, retirement, 100 and 110 years), ways to live (die at 80+ without ever committing a crime, three prison sentences, paying off $20k+ of debt including student loans without bankruptcy, 80 fame, a top-level hustle, 95 karma, a scholarship, 10 vacations, 100 workouts, 50 compliments, a millionaire without a diploma), the family line (generation 2 and 5), across lives (finish 1 and 10 lives, 10 different ribbons, lives in 5 countries) and seven secrets shown as "???" until found (five pets in one life, fired three times, a rejected proposal, three divorces, a pigeon, bankruptcy, three cosmetic surgeries). Money thresholds scale with the country's salary multiplier, like the ribbons.
+
+Each achievement is a pure test over the current life plus a summary of the device's other lives (distinct ribbons and countries, lives finished, from the graveyard). The store runs the checker (`src/engine/systems/achievements.ts`) after every age-up, action, event choice, rewarded reward, new life and heir hand-off, death included; already unlocked ones are skipped, so a check is a few microseconds. An event can also grant one with the `{ achievement: id }` effect (the validator rejects unknown ids). Three facts the checker needs are kept in `flags` so old saves need no migration: `peakDebt` (largest loans plus student debt, recorded by the finance pass and before a debt payment), `proposalsRejected` (the propose interaction) and `cosmeticSurgeries` (the plastic surgery activity, botched or not; the lifetime `surgeries` counter also counts operations from health events). A "dropout" is an adult without a diploma who is no longer in school, so a student whose high school runs to 19 does not count at 18.
+
+Unlocks persist in the settings store under their own storage key as `{ unlockedAt, lifeName, age }` per id. They survive new lives, premium changes and Clear graveyard; Settings → Reset achievements (with a confirmation) locks them all again. A new unlock shows as a trophy toast in the app-wide feedback host ("Achievement unlocked: …", or "3 achievements unlocked" for a batch); it waits while an event card is open, goes before the next year recap instead of being dropped by it, and outlives the end of a life, and it is not written to the journal. The achievements screen (home screen and tombstone) lists them by group with a progress count; the tombstone button also says how many this life unlocked. Dynasty (generation 5) needs more than the one free hand-off per family line.
+
 ## 17. Onboarding and settings
 
-A one-line tutorial tip on the first life ("Tap the green + …"). Settings: haptics, karma visibility, premium/restore purchases, privacy policy and ad privacy options (when required), rate/contact, delete current life. Saves persist automatically after every change (debounced), with a schema version and migration hook; corrupt saves are discarded, never crash.
+A one-line tutorial tip on the first life ("Tap the green + …"). Settings: haptics, karma visibility, premium/restore purchases, privacy policy and ad privacy options (when required), rate/contact, delete current life, reset achievements. Saves persist automatically after every change (debounced), with a schema version and migration hook; corrupt saves are discarded, never crash.
 
 ## 18. Content budget (launch)
 
 | Content | Count |
 | --- | --- |
-| Random events | ≥ 300 choice events + 50 flavour lines |
+| Random events | ≥ 300 choice events + 141 flavour lines (89 situational) |
 | Jobs | 71 ladders / ~260 titles |
 | Majors / graduate programs | 25 / 6 |
 | Activities / crimes | 15 / 7 |
@@ -179,6 +201,7 @@ A one-line tutorial tip on the first life ("Tap the green + …"). Settings: hap
 | Illnesses | 25 |
 | Interactions | 14 |
 | Ribbons | 26 |
+| Achievements | 40 |
 | Countries / name pools | 13 / 9 |
 | Traits | 10 |
 
@@ -210,7 +233,7 @@ Three independent designs (parity-first, retention-first, systems-first) were sc
 - **Yearly energy** raised to 1 / 2 / 4 / 3 pips (ages 0-5 / 6-12 / 13-59 / 60+) so a year allows 3-4 social or physical actions; money and admin actions stay free and Age+ is never blocked.
 - One premium SKU at $4.99 with the existing ids; one free generation hand-off per family line.
 
-Deferred to the roadmap (below): a shared seeded market cycle driving index fund, house values and rental vacancy; birth-era gates and era events; near-miss ribbon hints on the tombstone; 40 achievements; a six-key skills record; the "ad in N years" counter.
+Deferred to the roadmap (below): a shared seeded market cycle driving index fund, house values and rental vacancy; birth-era gates and era events; near-miss ribbon hints on the tombstone; a six-key skills record; the "ad in N years" counter.
 
 ## 21. Post-MVP roadmap
 

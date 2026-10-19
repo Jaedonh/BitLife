@@ -429,6 +429,11 @@ export interface GameState {
   /** Achievements unlocked in this life (ids). */
   achievements: string[];
   lastResult: LastResult | null;
+  /**
+   * Yearly flavor lines written recently: line template -> player age when written, so a line is not
+   * repeated within FLAVOR_RULES.repeatGap years. Optional: saves from before it start empty.
+   */
+  flavorSeen?: Record<string, number>;
 }
 
 export interface NewLifeOptions {
