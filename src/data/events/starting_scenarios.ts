@@ -422,7 +422,7 @@ export const STARTING_SCENARIOS_EVENTS: EventDef[] = [
       {
         id: 'read',
         label: 'Read in a corner',
-        effects: [{ stat: 'smarts', delta: 2 }, { stat: 'happiness', delta: -1 }, { log: 'I read in a corner under the coats. Someone brought me pie there, which was nice.' }],
+        effects: [{ stat: 'smarts', delta: 2 }, { stat: 'happiness', delta: -1 }, { log: 'I read in a corner of the spare room. Someone brought me pie there, which was nice.' }],
       },
     ],
   },
@@ -929,7 +929,7 @@ export const STARTING_SCENARIOS_EVENTS: EventDef[] = [
     id: 'ss_im_parcel',
     category: 'family',
     title: 'A box from back home',
-    text: 'A parcel came from {{person}}, back home, taped on every side: the sweets I loved when I was small, a jar of something that leaked a little and a hand-knitted sweater in the size I was when we left.',
+    text: 'A parcel came from {{person}}, back home, taped on every side: the candy I loved when I was small, a jar of something that leaked a little and a hand-knitted sweater in the size I was when we left.',
     minAge: 8,
     maxAge: 18,
     weight: 2,
@@ -949,8 +949,8 @@ export const STARTING_SCENARIOS_EVENTS: EventDef[] = [
       },
       {
         id: 'ration',
-        label: 'Make the sweets last',
-        effects: [{ stat: 'happiness', delta: 4 }, { stat: 'health', delta: -1 }, { log: 'I rationed the sweets to one a day. They lasted until spring and tasted like our old kitchen.' }],
+        label: 'Make the candy last',
+        effects: [{ stat: 'happiness', delta: 4 }, { stat: 'health', delta: -1 }, { log: 'I rationed the candy to a piece a day. It lasted until spring and tasted like our old kitchen.' }],
       },
     ],
   },
@@ -1085,6 +1085,7 @@ export const STARTING_SCENARIOS_EVENTS: EventDef[] = [
         id: 'retake',
         label: 'Take it again',
         effects: [
+          { energy: -1 },
           {
             chance: 0.85,
             then: [

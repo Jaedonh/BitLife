@@ -206,7 +206,7 @@ export const MONEY_EVENTS: EventDef[] = [
         id: 'pay',
         label: 'Pay the increase',
         hint: '{{$2160}} a year',
-        effects: [{ money: -2160 }, { stat: 'happiness', delta: -5 }, { log: 'I paid. Over the year it came to {{$2160}}. The radiator still rattles.', kind: 'money' }],
+        effects: [{ money: -2160 }, { stat: 'happiness', delta: -5 }, { log: 'I paid. Over the year it came to {{$2160}}. The faucet still drips.', kind: 'money' }],
       },
       {
         id: 'negotiate',
@@ -215,7 +215,7 @@ export const MONEY_EVENTS: EventDef[] = [
           { energy: -1 },
           {
             chance: 0.5,
-            then: [{ money: -1000 }, { stat: 'happiness', delta: 2 }, { log: 'I pointed out the rattling radiator and the missing tiles. We settled on half the increase.', kind: 'good' }],
+            then: [{ money: -1000 }, { stat: 'happiness', delta: 2 }, { log: 'I pointed out the dripping faucet and the missing tiles. We settled on half the increase.', kind: 'good' }],
             else: [{ money: -2160 }, { stat: 'happiness', delta: -3 }, { log: 'The landlord listened politely and raised it anyway. The tiles remain missing.', kind: 'bad' }],
           },
         ],
@@ -228,7 +228,7 @@ export const MONEY_EVENTS: EventDef[] = [
           { money: -900 },
           { stat: 'happiness', delta: -4 },
           { stat: 'health', delta: -2 },
-          { log: 'I moved. It cost {{$900}} and a weekend, but the new place is cheaper and the radiator is silent.', kind: 'info' },
+          { log: 'I moved. It cost {{$900}} and a weekend, but the new place is cheaper and the faucet does not drip.', kind: 'info' },
           { chance: 0.3, then: [{ stat: 'happiness', delta: 8 }, { log: 'The new neighborhood turned out to be lovely. Best decision I made all year.', kind: 'good' }] },
         ],
       },
@@ -329,7 +329,8 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 0.8,
-    cooldown: 5,
+    // The same windfall to the cent reads as a glitch the second time: once in a life.
+    once: true,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -428,7 +429,8 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 2,
-    cooldown: 20,
+    // "Dear Beloved" a third time reads as a loop: twice in a life at most.
+    cooldown: 34,
     conditions: [{ inPrison: false }, { year: { gte: 2000 } }],
     choices: [
       {
@@ -454,6 +456,7 @@ export const MONEY_EVENTS: EventDef[] = [
         label: "Waste the prince's time",
         effects: [
           { stat: 'smarts', delta: 1 },
+          { energy: -1 },
           {
             random: [
               { weight: 7, effects: [{ stat: 'happiness', delta: 4 }, { log: 'I kept the prince talking for three weeks about my fictional llama farm. The llamas are thriving.', kind: 'good' }] },
@@ -552,7 +555,7 @@ export const MONEY_EVENTS: EventDef[] = [
       {
         id: 'mute',
         label: 'Mute the cousin',
-        effects: [{ stat: 'happiness', delta: 1 }, { log: "I muted the chat. Six months later I could not remember the coin's name, which felt like winning.", kind: 'info' }],
+        effects: [{ stat: 'happiness', delta: 2 }, { log: "I muted the chat. Six months later I could not remember the coin's name, which felt like winning.", kind: 'info' }],
       },
     ],
   },
@@ -672,7 +675,8 @@ export const MONEY_EVENTS: EventDef[] = [
     id: 'mn_raise_tip',
     category: 'money',
     title: 'Insider advice',
-    text: '{{person}} told me the budget for raises at {{company}} gets decided next week, and that people who ask early get "rounded up." {{They}} said this in a whisper, so it must be true.',
+    // A one-time bonus, not a raise: no card effect changes the salary on the Work screen.
+    text: '{{person}} told me the bonus pool at {{company}} gets split up next week, and that people who ask early get "rounded up." {{They}} said this in a whisper, so it must be true.',
     minAge: 20,
     maxAge: 65,
     weight: 1,
@@ -687,7 +691,7 @@ export const MONEY_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 3 },
           {
             chance: 0.55,
-            then: [{ money: 1500 }, { stat: 'happiness', delta: 6 }, { jobPerformance: 2 }, { log: 'I asked. My boss blinked, checked a spreadsheet, and said yes. {{person}} was right.', kind: 'good' }],
+            then: [{ money: 1500 }, { stat: 'happiness', delta: 6 }, { jobPerformance: 2 }, { log: 'I asked. My boss blinked, checked a spreadsheet, and found me a {{$1500}} bonus. {{person}} was right.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -3 }, { log: 'I asked. My boss said, "Let\'s circle back," which in office terms means no.', kind: 'bad' }],
           },
         ],
@@ -701,8 +705,8 @@ export const MONEY_EVENTS: EventDef[] = [
           { energy: -1 },
           {
             chance: 0.7,
-            then: [{ money: 1200 }, { stat: 'happiness', delta: 5 }, { log: 'I brought numbers. Numbers worked. A modest bump, properly argued.', kind: 'good' }],
-            else: [{ log: 'I presented my case beautifully. The budget had already been spent on a new coffee machine.', kind: 'info' }],
+            then: [{ money: 1200 }, { stat: 'happiness', delta: 5 }, { log: 'I brought numbers. Numbers worked: a {{$1200}} bonus, properly argued.', kind: 'good' }],
+            else: [{ log: 'I presented my case beautifully. The bonus pool had already been spent on a new coffee machine.', kind: 'info' }],
           },
         ],
       },
@@ -989,7 +993,7 @@ export const MONEY_EVENTS: EventDef[] = [
       {
         id: 'sell',
         label: 'Sell some belongings',
-        effects: [{ money: 180 }, { stat: 'happiness', delta: -3 }, { log: 'I sold the console, two coats and a lamp I liked. {{$180}} and a bare shelf.', kind: 'money' }],
+        effects: [{ money: 180 }, { stat: 'happiness', delta: -3 }, { log: 'I sold the console, a guitar I never learned and a lamp I liked. {{$180}} and a bare shelf.', kind: 'money' }],
       },
       {
         id: 'stretch',
@@ -1006,7 +1010,8 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 22,
     maxAge: 80,
     weight: 1.2,
-    cooldown: 4,
+    // A card "I did not know existed" is found once; the heron is a one-time purchase.
+    once: true,
     conditions: [{ inPrison: false }, { married: true }],
     person: { kind: ['spouse'] },
     choices: [

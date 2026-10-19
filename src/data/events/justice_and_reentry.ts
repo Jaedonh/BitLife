@@ -27,6 +27,19 @@ import type { Condition, EventDef } from '@/engine/events/schema';
  *   jr_po_rapport (bool) my parole officer trusts me
  */
 
+/**
+ * Where lay jurors sit on trials: the common-law countries, France, Italy and Brazil, Spain since its jury law
+ * (trials from 1996) and Japan's lay judges from 2009. India, Mexico, Nigeria and Germany summon no jury, so a
+ * jury summons, a jury room or a reporter asking about one needs this. Exported for the other jury cards.
+ */
+export const JURY_TRIALS: Condition = {
+  any: [
+    { country: ['US', 'GB', 'CA', 'AU', 'FR', 'IT', 'BR'] },
+    { all: [{ country: ['ES'] }, { year: { gte: 1996 } }] },
+    { all: [{ country: ['JP'] }, { year: { gte: 2009 } }] },
+  ],
+};
+
 /** On parole: two full years after an early release from adult prison. */
 const ON_PAROLE: Condition[] = [{ flag: 'parole' }, { inPrison: false }];
 
@@ -574,7 +587,7 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
           {
             chance: 0.6,
             then: [{ jobPerformance: 2 }, { stat: 'happiness', delta: 5 }, { log: "I said yes, that's me, worst haircut of my life. Somebody laughed, and the room breathed again.", kind: 'good' }],
-            else: [{ stat: 'happiness', delta: -4 }, { log: 'I owned it. Half the room respected that. The other half started locking their lockers.', kind: 'bad' }],
+            else: [{ stat: 'happiness', delta: -4 }, { jobPerformance: -3 }, { log: 'I owned it. Half the room respected that. The other half started locking their lockers.', kind: 'bad' }],
           },
         ],
       },
@@ -584,8 +597,8 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.5,
-            then: [{ relationship: 'person', delta: 6 }, { stat: 'happiness', delta: 2 }, { log: "{{person}} apologized, red to the ears, and said {{they}} didn't think. Most people don't.", kind: 'good' }],
-            else: [{ relationship: 'person', delta: -10 }, { stat: 'happiness', delta: -3 }, { log: '{{person}} shrugged and said it was public information. I keep my distance now.', kind: 'bad' }],
+            then: [{ relationship: 'person', delta: 8 }, { stat: 'happiness', delta: 2 }, { log: "{{person}} apologized, red to the ears, and said {{they}} didn't think. Most people don't.", kind: 'good' }],
+            else: [{ relationship: 'person', delta: -6 }, { stat: 'happiness', delta: -3 }, { log: '{{person}} shrugged and said it was public information. I keep my distance now.', kind: 'bad' }],
           },
         ],
       },
@@ -793,7 +806,7 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
     maxAge: 75,
     weight: 0.7,
     cooldown: 10,
-    conditions: [...CLEAN_RECORD],
+    conditions: [...CLEAN_RECORD, JURY_TRIALS],
     choices: [
       {
         id: 'raise',
@@ -838,12 +851,13 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
     id: 'jr_jury_note',
     category: 'random',
     title: 'Juror number seven',
-    text: "Day four of the trial. Juror number seven has been reading news about our case on his phone under the table, and at lunch he's already telling everyone what the verdict should be.",
+    // The news, not a phone or a paper: it works in 1995 and in 2050.
+    text: "Day four of the trial. Juror number seven has been following the news about our case every night, and at lunch he's already telling everyone what the verdict should be.",
     minAge: 18,
     maxAge: 80,
     weight: 1,
     followUpOnly: true,
-    conditions: [{ inPrison: false }],
+    conditions: [{ inPrison: false }, JURY_TRIALS],
     choices: [
       {
         id: 'note',
@@ -853,7 +867,7 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
           {
             chance: 0.6,
             then: [{ stat: 'happiness', delta: 3 }, { log: 'The judge swapped juror seven for an alternate. Nobody knew who sent the note. I knew.', kind: 'good' }],
-            else: [{ stat: 'happiness', delta: -4 }, { log: 'My note caused a mistrial. Two weeks of testimony, gone. The right call, and a heavy one.', kind: 'bad' }],
+            else: [{ stat: 'happiness', delta: -6 }, { log: 'My note caused a mistrial. Two weeks of testimony, gone. The right call, and a heavy one.', kind: 'bad' }],
           },
         ],
       },
@@ -863,7 +877,7 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.5,
-            then: [{ stat: 'happiness', delta: 2 }, { karma: 1 }, { log: 'I quietly told him to put the phone away. He did, and sulked for the rest of the trial.', kind: 'info' }],
+            then: [{ stat: 'happiness', delta: 2 }, { karma: 1 }, { log: 'I quietly told him to stop reading about the case. He did, and sulked for the rest of the trial.', kind: 'info' }],
             else: [{ stat: 'happiness', delta: -3 }, { log: 'He told the whole jury I was a hall monitor. Deliberations were very chilly.', kind: 'bad' }],
           },
         ],
@@ -871,7 +885,7 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
       {
         id: 'ignore',
         label: 'Stay out of it',
-        effects: [{ karma: -2 }, { stat: 'happiness', delta: -1 }, { log: 'I said nothing. We reached a verdict on day six. I never knew how much of it came from his phone.', kind: 'info' }],
+        effects: [{ karma: -2 }, { stat: 'happiness', delta: -1 }, { log: 'I said nothing. We reached a verdict on day six. I never knew how much of it came from the news.', kind: 'info' }],
       },
     ],
   },
@@ -921,7 +935,8 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 80,
     weight: 0.7,
-    cooldown: 10,
+    // The same van and the same red light: twice in a life at most, decades apart.
+    cooldown: 32,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -1265,6 +1280,7 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
         label: 'Draw the designs instead',
         effects: [
           { stat: 'happiness', delta: 2 },
+          { energy: -1 },
           {
             chance: 0.8,
             then: [{ log: 'I draw the designs now, and someone else holds the needle. Clean hands, extra soups.', kind: 'info' }],

@@ -103,7 +103,8 @@ export const HEALTH_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 85,
     weight: 1,
-    cooldown: 10,
+    // A rash shaped like a country is a joke that works once.
+    once: true,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -397,6 +398,7 @@ export const HEALTH_EVENTS: EventDef[] = [
         id: 'hear',
         label: 'Go in and hear it',
         effects: [
+          { energy: -1 },
           {
             random: [
               { weight: 5, effects: [{ stat: 'happiness', delta: 8 }, { log: 'Benign. Nothing to do. I walked out to the parking lot and laughed until a stranger checked on me.', kind: 'good' }] },
@@ -767,7 +769,8 @@ export const HEALTH_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 85,
     weight: 1,
-    cooldown: 6,
+    // The recording at breakfast is a one-time scene: played back again it reads as the same morning.
+    once: true,
     conditions: [{ hasLover: true }, { inPrison: false }],
     person: { kind: ['spouse', 'lover'] },
     choices: [
@@ -1046,10 +1049,12 @@ export const HEALTH_EVENTS: EventDef[] = [
             then: [{ death: 'a car crash' }],
             else: [
               { injury: 6 },
+              // Hurt as badly as in the ambulance, with a year of paperwork on top: a chance at money for a lot of stress.
+              { stat: 'happiness', delta: -5 },
               {
                 random: [
-                  { weight: 5, effects: [{ money: 8000 }, { stat: 'happiness', delta: 2 }, { log: "The van's company settled. {{$8000}} for a sore neck, a year of paperwork and a very stern letter.", kind: 'money' }] },
-                  { weight: 5, effects: [{ money: -1500, payer: 'self' }, { stat: 'happiness', delta: -6 }, { log: 'Their lawyer argued I "drove into the van." We lost. I paid my lawyer anyway.', kind: 'bad' }] },
+                  { weight: 5, effects: [{ money: 8000 }, { stat: 'happiness', delta: 1 }, { log: "The van's company settled. {{$8000}} for a sore neck, a year of paperwork and a very stern letter.", kind: 'money' }] },
+                  { weight: 5, effects: [{ money: -1500, payer: 'self' }, { stat: 'happiness', delta: -4 }, { log: 'Their lawyer argued I "drove into the van." We lost. I paid my lawyer anyway.', kind: 'bad' }] },
                 ],
               },
             ],

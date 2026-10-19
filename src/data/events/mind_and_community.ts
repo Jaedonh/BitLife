@@ -1,3 +1,4 @@
+import { JURY_TRIALS } from '@/data/events/justice_and_reentry';
 import type { EventDef } from '@/engine/events/schema';
 
 /**
@@ -177,7 +178,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
           { counter: 'meditations' },
           {
             chance: 0.65,
-            then: [{ stat: 'happiness', delta: 2 }, { log: 'A red scarf, a stroller, a sign, a shoe, a cloud. By five, my lungs had come back.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 4 }, { log: 'A red scarf, a stroller, a sign, a shoe, a cloud. By five, my lungs had come back.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -3 }, { log: 'I counted to five twice. It helped a little. I got off at the next stop, shaking.' }],
           },
         ],
@@ -220,7 +221,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
       {
         id: 'list',
         label: 'Write down what helped',
-        effects: [{ stat: 'smarts', delta: 2 }, { stat: 'happiness', delta: 1 }, { log: 'I made a list: sleep, walks, fewer people who drain me. I taped it inside a cupboard.' }],
+        effects: [{ stat: 'smarts', delta: 2 }, { stat: 'happiness', delta: 1 }, { log: 'I made a list: sleep, walks, fewer people who drain me. I taped it inside a kitchen cabinet.' }],
       },
       {
         id: 'thank',
@@ -650,7 +651,8 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     maxAge: 75,
     weight: 1.5,
     cooldown: 6,
-    conditions: [{ addiction: 'alcohol' }],
+    // Someone counts my drinks once drinking is a habit (as the corner store and the meeting ask), not after one office party.
+    conditions: [{ addiction: 'alcohol', min: 5 }],
     person: { kind: ['friend', 'bestFriend', 'sibling', 'spouse'], minAge: 18 },
     choices: [
       {
@@ -756,7 +758,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
           { addiction: 'alcohol', delta: -4 },
           { addiction: 'drugs', delta: -4 },
           { stat: 'happiness', delta: -1 },
-          { log: 'I sat in the back with my coat on and listened. Some of it was my story too.' },
+          { log: 'I sat in the back with my bag on my lap and listened. Some of it was my story too.' },
           { chance: 0.4, then: [{ queue: 'mc_sponsor' }] },
         ],
       },
@@ -979,7 +981,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 1.5,
     once: true,
-    conditions: [{ any: [{ eventFired: 'ad_jury_verdict' }, { eventFired: 'nc_jury_verdict' }] }],
+    conditions: [{ any: [{ eventFired: 'ad_jury_verdict' }, { eventFired: 'nc_jury_verdict' }] }, JURY_TRIALS],
     choices: [
       {
         id: 'talk',
@@ -1399,7 +1401,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     id: 'mc_earthquake',
     category: 'random',
     title: 'The ground moved',
-    text: 'At three in the morning the bed began to slide. The lamp swung, the dishes chattered in the cupboard, and a low rumble came up through the floor. Then it stopped, and every dog in {{city}} started.',
+    text: 'At three in the morning the bed began to slide. The lamp swung, the dishes chattered in the cabinets, and a low rumble came up through the floor. Then it stopped, and every dog in {{city}} started.',
     minAge: 16,
     maxAge: 90,
     weight: 1,
@@ -1442,7 +1444,8 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 90,
     weight: 1,
-    cooldown: 8,
+    // The same substation fire: twice in a life at most, decades apart.
+    cooldown: 37,
     choices: [
       {
         id: 'library',
@@ -1844,7 +1847,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     id: 'mc_work_missing_money',
     category: 'work',
     title: 'It does not add up',
-    text: 'A total on my screen at {{company}} does not match the report: off by exactly {{$10000}}. It is 4:55 on a Friday, and everyone around me is already putting on their coats.',
+    text: 'A total on my screen at {{company}} does not match the report: off by exactly {{$10000}}. It is 4:55 on a Friday, and everyone around me is already packing up their bags.',
     minAge: 20,
     maxAge: 70,
     weight: 1,

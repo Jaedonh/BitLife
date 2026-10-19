@@ -39,7 +39,6 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
       {
         id: 'ask',
         label: 'Ask {{mother}} for ideas',
-        conditions: [{ hasPerson: ['mother'] }],
         effects: [
           { log: "{{mother}} helped me make a shoebox diorama. The teacher said 'ambitious'. I took that as praise.", kind: 'good' },
           { relationship: 'mother', delta: 3 },
@@ -926,6 +925,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
         id: 'prepare',
         label: 'Join and prepare',
         effects: [
+          { energy: -1 },
           { stat: 'smarts', delta: 3 },
           { stat: 'happiness', delta: -1 },
           {
@@ -1158,6 +1158,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
         id: 'heart',
         label: 'Write from the heart',
         effects: [
+          { energy: -1 },
           { stat: 'smarts', delta: 2 },
           {
             chance: 0.35,
@@ -1182,6 +1183,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
         label: 'Ask {{mother}} to proofread',
         conditions: [{ hasPerson: ['mother'] }],
         effects: [
+          { energy: -1 },
           { relationship: 'mother', delta: 3 },
           { stat: 'smarts', delta: 1 },
           {
@@ -1348,7 +1350,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
             random: [
               { weight: 50, effects: [{ log: 'The party was great. The exam was not. I wrote an essay I do not fully remember.', kind: 'bad' }, { grade: -6 }] },
               { weight: 30, effects: [{ log: 'I went, danced, left early. The exam was fine. Balance, apparently, exists.' }, { grade: -1 }] },
-              { weight: 20, effects: [{ log: 'I drank more than I meant to and slept through the exam entirely. A costly, headachey lesson.', kind: 'bad' }, { grade: -10 }, { stat: 'health', delta: -3 }, { addiction: 'alcohol', delta: 3 }, { stat: 'happiness', delta: -4 }] },
+              { weight: 20, effects: [{ log: 'I drank more than I meant to and slept through the exam entirely. A costly, headachey lesson.', kind: 'bad' }, { grade: -10 }, { stat: 'health', delta: -3 }, { stat: 'happiness', delta: -4 }] },
             ],
           },
         ],
@@ -1400,6 +1402,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
         id: 'grant',
         label: 'Apply for a grant',
         effects: [
+          { energy: -1 },
           {
             chance: 0.4,
             then: [{ log: 'The grant covered everything. A free semester abroad. I nearly hugged the office clerk.', kind: 'milestone' }, { stat: 'happiness', delta: 10 }, { stat: 'smarts', delta: 6 }, { counter: 'vacations' }],
@@ -1413,7 +1416,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
         conditions: [{ hasPerson: ['mother', 'father'] }],
         effects: [
           {
-            chance: 0.5,
+            chance: 0.35,
             then: [
               { log: '{{parents}} scraped the money together. I sent a postcard from every city. Every one is still on the fridge.', kind: 'milestone' },
               { stat: 'happiness', delta: 10 },

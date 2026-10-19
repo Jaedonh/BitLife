@@ -496,7 +496,8 @@ export const COWORKERS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 75,
     weight: 1,
-    cooldown: 5,
+    // The same slice and the same sticky note: twice in a working life at most.
+    cooldown: 29,
     conditions: [...FULL_TIME, NOT_GIG],
     person: { kind: ['coworker'] },
     choices: [

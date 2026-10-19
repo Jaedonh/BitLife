@@ -245,7 +245,8 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
       {
         id: 'craving',
         label: 'Sit out the craving',
-        conditions: [{ addiction: 'alcohol' }],
+        // A craving is a habit that has taken hold (as mind_and_community's drinking cards ask), not one toast that is fading.
+        conditions: [{ addiction: 'alcohol', min: 5 }],
         effects: [{ addiction: 'alcohol', delta: -5 }, { stat: 'happiness', delta: -3 }, { stat: 'health', delta: 2 }, { log: 'I wanted it badly and sat on my hands until count. One more day without. It counts.', kind: 'good' }],
       },
       {
@@ -438,7 +439,7 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ relationship: 'person', delta: 7 }, { stat: 'happiness', delta: 4 }, { log: '{{person}} never answered the six pages. {{They}} showed up on visiting day, which is an answer.', kind: 'good' }],
-            else: [{ relationship: 'person', delta: 1 }, { stat: 'happiness', delta: -2 }, { log: 'Six pages went out. Four lines came back, all about the weather. That is how {{person}} says hello.', kind: 'info' }],
+            else: [{ relationship: 'person', delta: 2 }, { stat: 'happiness', delta: -2 }, { log: 'Six pages went out. Four lines came back, all about the weather. That is how {{person}} says hello.', kind: 'info' }],
           },
         ],
       },
@@ -508,6 +509,7 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
         id: 'toast',
         label: 'Write a toast to be read',
         effects: [
+          { energy: -1 },
           {
             chance: 0.7,
             then: [{ relationship: 'person', delta: 7 }, { stat: 'happiness', delta: 4 }, { log: '{{person}} said my toast made half the room cry and the other half laugh. I was there, a little.', kind: 'good' }],
@@ -900,6 +902,7 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
         id: 'essay',
         label: 'Write the essay',
         effects: [
+          { energy: -1 },
           {
             chance: 0.5,
             then: [{ stat: 'smarts', delta: 6 }, { stat: 'happiness', delta: 6 }, { flag: 'cp_prison_good_conduct', inc: 1 }, { log: 'I got a seat. Tuesdays are the best night of my week. I have opinions about philosophers now.', kind: 'good' }],
@@ -1084,7 +1087,7 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
       {
         id: 'fine',
         label: "Say I'm doing fine",
-        effects: [{ stat: 'happiness', delta: -1 }, { log: 'I said I was fine. The old-timer laughed, said that was rule one of doing it wrong, and left.', kind: 'info' }],
+        effects: [{ stat: 'happiness', delta: 1 }, { log: 'I said I was fine. The old-timer laughed, called that rule one of doing it wrong, and let me be.', kind: 'info' }],
       },
       {
         id: 'why',
@@ -1298,6 +1301,7 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
         id: 'explain',
         label: 'Explain it in person',
         effects: [
+          { energy: -1 },
           {
             chance: 0.45,
             then: [{ stat: 'happiness', delta: 6 }, { log: 'The landlord heard the whole story and handed me the keys. Some people just need to hear it.', kind: 'good' }],
@@ -1702,7 +1706,7 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
         effects: [
           { karma: 2 },
           {
-            chance: 0.6,
+            chance: 0.5,
             then: [{ stat: 'happiness', delta: 4 }, { log: 'I thanked the officer for the night I got to call home late. They had forgotten. I had not.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -2 }, { log: 'The officer did not remember me at all. I had been a number. I said thanks anyway.', kind: 'info' }],
           },

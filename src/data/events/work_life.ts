@@ -12,6 +12,45 @@ const NOT_AN_OWNER: Condition = {
     any: JOBS.flatMap((d) => d.ladder.flatMap((r, i): Condition[] => (/\b(Owner|Contractor)$/.test(r.title) ? [{ all: [{ jobId: [d.id] }, { jobLevel: { gte: i } }] }] : []))),
   },
 };
+
+/** Jobs where customers come to my counter, chair or table: a card about "a customer" in the room is for these. */
+const SERVES_CUSTOMERS = ['pt_cashier', 'pt_barista', 'fast_food', 'retail', 'waiter', 'bartender', 'hairdresser', 'receptionist', 'bank_teller', 'mail_carrier', 'pharmacist', 'insurance_agent', 'fitness_trainer'];
+
+/** Jobs where a customer tips: the counter, the table, the bar and the salon chair. */
+const TIPPED = ['pt_barista', 'fast_food', 'waiter', 'bartender', 'hairdresser'];
+
+/** Below the top rung, so there is a boss to answer to: owners, chiefs and CEOs have nobody above them. */
+const HAS_A_BOSS: Condition = { not: { any: JOBS.map((d): Condition => ({ all: [{ jobId: [d.id] }, { jobLevel: { gte: d.ladder.length - 1 } }] })) } };
+
+/** Jobs where a client places an order that has to be made, shipped or delivered (and can be late). */
+const TAKES_ORDERS = ['retail', 'warehouse', 'driver', 'electrician', 'plumber', 'carpenter', 'mechanic', 'construction', 'admin', 'sales', 'marketing', 'executive', 'it_support', 'software_dev', 'web_designer', 'graphic_designer', 'photographer', 'engineer', 'lab_tech'];
+
+/**
+ * A job a laptop can carry home, in the years when a team in another city could work over video calls (as
+ * adult_life's work-from-home choice): not a ward, a site, a cockpit or a counter.
+ */
+const REMOTE_WORK: Condition[] = [
+  { jobId: ['admin', 'sales', 'hr', 'marketing', 'management_consultant', 'executive', 'accountant', 'financial_analyst', 'insurance_agent', 'it_support', 'software_dev', 'data_scientist', 'web_designer', 'graphic_designer', 'writer', 'journalist', 'paralegal', 'civil_servant'] },
+  { year: { gte: 2012 } },
+];
+
+/**
+ * {{company}} can move me up a rung: not the top of the ladder, not a rung below an owner's, contractor's or
+ * author's (which is mine to take, not theirs to give), and not a seat I am elected or appointed to or a fame rung.
+ */
+const COMPANY_CAN_PROMOTE: Condition = {
+  not: {
+    any: [
+      { jobId: ['politician', 'judge', 'actor', 'musician', 'athlete', 'chef_tv'] },
+      ...JOBS.flatMap((d) =>
+        d.ladder.flatMap((_, i): Condition[] => {
+          const next = d.ladder[i + 1];
+          return !next || /\b(Owner|Contractor|Author)$/.test(next.title) ? [{ all: [{ jobId: [d.id] }, { jobLevel: { eq: i } }] }] : [];
+        }),
+      ),
+    ],
+  },
+};
 export const WORK_LIFE_EVENTS: EventDef[] = [
   // ───────────────────────────────── bosses & ethics ─────────────────────────────────
   {
@@ -23,7 +62,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1,
     cooldown: 4,
-    conditions: [{ hasJob: true }, { partTime: false }],
+    // A client's order and a tracking number: a shop, a trade, a desk or a studio, not a ward, a classroom or a patrol.
+    conditions: [{ hasJob: true }, { partTime: false }, { jobId: TAKES_ORDERS }, HAS_A_BOSS],
     choices: [
       {
         id: 'lie',
@@ -741,7 +781,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1.5,
     cooldown: 3,
-    conditions: [{ hasJob: true }],
+    // Customers come to the counter, the table or the chair: not to a warehouse floor or an engineer's desk. Owners have no manager to hand it to.
+    conditions: [{ hasJob: true }, { jobId: SERVES_CUSTOMERS }, NOT_AN_OWNER],
     choices: [
       {
         id: 'calm',
@@ -791,7 +832,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 2,
     cooldown: 2,
-    conditions: [{ hasJob: true }, { jobCategory: ['service'] }],
+    // A tip at the counter, the table, the bar or the chair (not the warehouse or the night watch); an owner sets the tip policy.
+    conditions: [{ hasJob: true }, { jobId: TIPPED }, NOT_AN_OWNER],
     choices: [
       {
         id: 'keep',
@@ -842,7 +884,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.45,
-            then: [{ money: 2500 }, { stat: 'happiness', delta: 6 }, { jobPerformance: 2 }, { log: 'I made my case. My boss "found room in the budget" within a week.', kind: 'money' }],
+            then: [{ money: 2500 }, { stat: 'happiness', delta: 6 }, { jobPerformance: 2 }, { log: 'I made my case. My boss "found room in the budget" for a one-time {{$2500}} adjustment.', kind: 'money' }],
             else: [{ stat: 'happiness', delta: -7 }, { jobPerformance: -3 }, { log: 'My boss said pay is confidential and I should not have been listening. I was in an elevator.', kind: 'bad' }],
           },
         ],
@@ -897,7 +939,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.4,
-            then: [{ money: 2000 }, { jobPerformance: 3 }, { stat: 'happiness', delta: 5 }, { log: 'I made my case with numbers. The raise came through.', kind: 'money' }],
+            then: [{ money: 2000 }, { jobPerformance: 3 }, { stat: 'happiness', delta: 5 }, { log: 'I made my case with numbers. The raise is "under review," but a {{$2000}} bonus came through.', kind: 'money' }],
             else: [{ jobPerformance: -3 }, { stat: 'happiness', delta: -3 }, { log: 'I asked. The answer was a long sentence that ended in "next cycle."', kind: 'bad' }],
           },
         ],
@@ -1099,7 +1141,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     id: 'wk_night_shift',
     category: 'work',
     title: 'Night shift',
-    text: '{{company}} is short on the night shift and offered me a permanent move: more money, fewer people, and a body clock that would never forgive me.',
+    text: '{{company}} is short on the night shift and offered me a permanent move: a sign-on bonus, fewer people, and a body clock that would never forgive me.',
     minAge: 18,
     maxAge: 60,
     weight: 0.8,
@@ -1109,7 +1151,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
       {
         id: 'take',
         label: 'Take the night shift',
-        effects: [{ money: 3000 }, { jobPerformance: 3 }, { stat: 'health', delta: -5 }, { stat: 'happiness', delta: -3 }, { relationship: 'spouse', delta: -4 }, { log: 'I moved to nights. The pay is better. The sunlight is theoretical.', kind: 'money' }],
+        effects: [{ money: 3000 }, { jobPerformance: 3 }, { stat: 'health', delta: -5 }, { stat: 'happiness', delta: -3 }, { relationship: 'spouse', delta: -4 }, { log: 'I moved to nights. The bonus is real. The sunlight is theoretical.', kind: 'money' }],
       },
       {
         id: 'decline',
@@ -1160,8 +1202,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
       {
         id: 'drink',
         label: 'Hit the open bar',
+        // One night at the open bar is a story, not a habit: no addiction (it would fade into "I finally shook my drinking habit").
         effects: [
-          { addiction: 'alcohol', delta: 3 },
           {
             random: [
               { weight: 5, effects: [{ stat: 'happiness', delta: 5 }, { log: 'I had a great time and only regret the dancing.', kind: 'good' }] },
@@ -1317,7 +1359,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.5,
-            then: [{ money: 1500 }, { stat: 'happiness', delta: 4 }, { log: 'The union won. A year later: a contract, a raise, and a boss who says "per the agreement" a lot.', kind: 'good' }],
+            then: [{ money: 1500 }, { stat: 'happiness', delta: 4 }, { log: 'The union won. A year later: a contract, back pay, and a boss who says "per the agreement" a lot.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -3 }, { log: 'The union lost by a handful of votes. Management put a cake in the break room. Nobody ate it.', kind: 'bad' }],
           },
         ],
@@ -1329,7 +1371,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.5,
-            then: [{ money: 1500 }, { stat: 'happiness', delta: 6 }, { fame: 1 }, { log: 'The union won, and they could not touch me. I got the raise and a target on my back.', kind: 'good' }],
+            then: [{ money: 1500 }, { stat: 'happiness', delta: 6 }, { fame: 1 }, { log: 'The union won, and they could not touch me. I got the back pay and a target on my back.', kind: 'good' }],
             else: [
               {
                 chance: 0.6,
@@ -1412,7 +1454,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
           {
             random: [
               { weight: 6, effects: [{ stat: 'happiness', delta: 2 }, { relationship: 'coworker', delta: 3 }, { log: 'My name was not on the list. I went to lunch with the other survivors and felt guilty and relieved.', kind: 'good' }] },
-              { weight: 4, effects: [{ loseJob: true, reason: 'left' }, { money: 2500 }, { stat: 'happiness', delta: -10 }, { log: 'My slot came. I was laid off with a severance check and a cardboard box.', kind: 'bad' }] },
+              { weight: 4, effects: [{ loseJob: true, reason: 'laidOff' }, { money: 2500 }, { stat: 'happiness', delta: -10 }, { log: 'My slot came. I was laid off with a severance check and a cardboard box.', kind: 'bad' }] },
             ],
           },
         ],
@@ -1425,7 +1467,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.7,
             then: [{ stat: 'happiness', delta: 3 }, { log: 'My name was not on the list, and I now have a résumé that sparkles. Win-win.', kind: 'good' }],
-            else: [{ loseJob: true, reason: 'left' }, { money: 3000 }, { stat: 'happiness', delta: -4 }, { log: 'I was laid off, but my résumé was already out there. Severance plus a head start.', kind: 'info' }],
+            else: [{ loseJob: true, reason: 'laidOff' }, { money: 3000 }, { stat: 'happiness', delta: -4 }, { log: 'I was laid off, but my résumé was already out there. Severance plus a head start.', kind: 'info' }],
           },
         ],
       },
@@ -1447,37 +1489,41 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 58,
     weight: 0.6,
     once: true,
-    conditions: [{ hasJob: true }, { partTime: false }],
+    conditions: [{ hasJob: true }, { partTime: false }, COMPANY_CAN_PROMOTE],
     choices: [
       {
         id: 'take',
         label: 'Take it and move',
+        // The goodbyes land while everyone is still nearby; then relocate (a new city: friends stay behind, new coworkers) and
+        // promotion (the next rung and its pay; the engine writes that line). {{city}} is the new city by the time the log renders.
         effects: [
-          { money: 8000 },
-          { jobPerformance: 10 },
-          { counter: 'promotions' },
-          { stat: 'happiness', delta: 4 },
           { relationship: 'spouse', delta: -8 },
           { relationship: 'child', delta: -6 },
           { relationship: 'friend', delta: -8 },
           { relationship: 'bestFriend', delta: -6 },
           { relationship: 'mother', delta: -3 },
           { relationship: 'father', delta: -3 },
-          { log: 'I took the promotion and the moving van. New title, new apartment, a lot of long phone calls.', kind: 'milestone' },
+          { relocate: true },
+          { log: 'I packed a moving van and started over in {{city}}: new apartment, new commute, long phone calls.', kind: 'milestone' },
+          { promotion: true },
+          { money: 2000 },
+          { stat: 'happiness', delta: -2 },
         ],
       },
       {
         id: 'decline',
         label: 'Decline, stay put',
-        effects: [{ jobPerformance: -3 }, { stat: 'happiness', delta: -3 }, { karma: 1 }, { relationship: 'spouse', delta: 3 }, { log: 'I turned it down. The one who took it sends photos of her office view. I have my people.', kind: 'info' }],
+        effects: [{ jobPerformance: -3 }, { stat: 'happiness', delta: -3 }, { karma: 1 }, { relationship: 'spouse', delta: 3 }, { log: 'I turned it down. The one who took it sends photos of her new city. I have my people.', kind: 'info' }],
       },
       {
         id: 'remote',
         label: 'Ask to do it remotely',
+        // A desk job in the video-call years: a carpenter or a nurse cannot be promoted "from my own kitchen".
+        conditions: REMOTE_WORK,
         effects: [
           {
             chance: 0.35,
-            then: [{ money: 3000 }, { jobPerformance: 8 }, { counter: 'promotions' }, { stat: 'happiness', delta: 6 }, { log: 'They said yes. I got the title, the raise, and my own kitchen.', kind: 'good' }],
+            then: [{ log: 'They said yes: the new role, from my own kitchen.', kind: 'good' }, { promotion: true }],
             else: [{ jobPerformance: -2 }, { stat: 'happiness', delta: -2 }, { log: 'They said the role had to be in person. It went to someone else.', kind: 'bad' }],
           },
         ],

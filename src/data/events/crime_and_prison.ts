@@ -176,7 +176,8 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
     maxAge: 75,
     weight: 1,
     cooldown: 8,
-    conditions: [{ inPrison: false }, { money: { gte: 120 } }],
+    // The newest phone, blocked by the network once reported stolen: smartphones (CONTENT_STYLE, about 2010).
+    conditions: [{ inPrison: false }, { money: { gte: 120 } }, { year: { gte: 2008 } }],
     choices: [
       {
         id: 'buy',
@@ -225,7 +226,8 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 85,
     weight: 1,
-    cooldown: 12,
+    // The same pharmacy door: twice in a life at most, decades apart.
+    cooldown: 36,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -252,7 +254,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ stat: 'happiness', delta: 5 }, { log: 'I yelled like a car alarm. They bolted, dropping half of what they had grabbed.', kind: 'good' }],
-            else: [{ injury: 6 }, { money: -80 }, { stat: 'happiness', delta: -5 }, { log: 'One of them came at me. I ended up on the sidewalk with a sore jaw and no phone.', kind: 'bad' }],
+            else: [{ injury: 6 }, { money: -80 }, { stat: 'happiness', delta: -5 }, { log: 'One of them came at me. I ended up on the sidewalk with a sore jaw and no wallet.', kind: 'bad' }],
           },
         ],
       },
@@ -458,7 +460,8 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 80,
     weight: 1,
-    cooldown: 8,
+    // The same neighbor and the same garage: a second offer would be the same scene.
+    once: true,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -1034,7 +1037,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
     id: 'cp_prison_bribe_guard',
     category: 'prison',
     title: 'A helpful guard',
-    text: 'One of the guards lingered at my door and mentioned, quietly, that certain things could be brought in for certain prices. A phone, better food, a blind eye. Cash only.',
+    text: 'One of the guards lingered at my door and mentioned, quietly, that certain things could be brought in for certain prices. Better food, a blind eye, the odd small luxury. Cash only.',
     minAge: 18,
     maxAge: 90,
     weight: 0.8,
@@ -1045,7 +1048,8 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
         id: 'phone',
         label: 'Pay for a phone',
         hint: '{{$300}}',
-        conditions: [{ money: { gte: 300 } }],
+        // A cheap mobile under the mattress: contraband phones are a 2000s problem.
+        conditions: [{ money: { gte: 300 } }, { year: { gte: 2000 } }],
         effects: [
           { money: -300 },
           { karma: -2 },
