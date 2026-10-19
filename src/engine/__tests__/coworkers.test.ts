@@ -1,5 +1,6 @@
 import { applyAction } from '../actions';
 import { ageUp } from '../ageUp';
+import { candidatesFor } from '../events/conditions';
 import { applyEffects } from '../events/effects';
 import type { EventDef } from '../events/schema';
 import { makeRegistry, openNextEvent, resolveChoice } from '../events/select';
@@ -41,7 +42,7 @@ const coworkers = (s: GameState) => Object.values(s.people).filter((p) => p.kind
 
 describe('coworkers', () => {
   it('a full-time hire brings two or three adult coworkers near my age, linked to the job', () => {
-    const s = hire('l_full');
+    let s = hire('l_full');
     const team = coworkers(s);
     expect(team.length).toBeGreaterThanOrEqual(2);
     expect(team.length).toBeLessThanOrEqual(3);
@@ -72,7 +73,7 @@ describe('coworkers', () => {
   });
 
   it('leaving a job: close coworkers stay as friends, with a line after the one about quitting; the rest are gone', () => {
-    const s = hire('l_full');
+    let s = hire('l_full');
     const [close, distant] = coworkers(s);
     const before = { ...s, people: { ...s.people, [close!.id]: { ...close!, relationship: COWORKER_FRIEND_AT } } };
     const after = applyAction(before, { type: 'quitJob' });
@@ -86,7 +87,7 @@ describe('coworkers', () => {
   });
 
   it('switching jobs settles the old team, and the new job brings its own', () => {
-    const s = hire('l_full');
+    let s = hire('l_full');
     const old = coworkers(s).map((p) => p.id);
     const next: JobListing = { id: 'l_next', defId: 'fast_food', title: 'Fast Food Worker', company: 'Copper Grill', salary: 25_000, category: 'service', partTime: false };
     let t = s;
@@ -101,7 +102,7 @@ describe('coworkers', () => {
   });
 
   it('retiring, being fired by an event, and going to prison each part me from the team', () => {
-    const s = hire('l_full');
+    let s = hire('l_full');
     const [mate] = coworkers(s);
     const close = { ...s, people: { [mate!.id]: { ...mate!, relationship: 90 } } };
     const retired = applyAction({ ...close, character: { ...close.character, age: 62 } }, { type: 'retire' });
@@ -120,7 +121,7 @@ describe('coworkers', () => {
   });
 
   it('a yearly layoff settles the team in the same year', () => {
-    const s = hire('l_full');
+    let s = hire('l_full');
     const team = coworkers(s).map((p) => p.id);
     // Performance this low gets the player fired at the next age-up about half the time.
     let fired: GameState | undefined;
@@ -133,7 +134,7 @@ describe('coworkers', () => {
   });
 
   it('a coworker an event introduces works with me at my current job', () => {
-    const s = hire('l_full');
+    let s = hire('l_full');
     const t = applyEffects(s, new Rng(3), [{ newPerson: { kind: 'coworker', relationship: 50 } }]);
     const added = Object.values(t.people).find((p) => !s.people[p.id])!;
     expect(added.workplace).toEqual({ jobId: 'fast_food', company: 'Ember Burger' });
@@ -160,9 +161,28 @@ describe('coworkers', () => {
   });
 
   it('coworkers from an older save, with no workplace, are left alone', () => {
-    const s = hire('l_full');
+    let s = hire('l_full');
     const legacy: Person = { ...makePerson(new Rng(8), { kind: 'coworker', age: 30, countryCode: 'US', playerAge: 22 }), id: 'old_mate', memory: emptyMemory(22) };
     const t = applyAction({ ...s, people: { ...s.people, old_mate: legacy } }, { type: 'quitJob' });
     expect(t.people.old_mate).toMatchObject({ kind: 'coworker' });
   });
 });
+
+describe('coworkers in event cards', () => {
+  it('a leaving coworker stays as a friend only if close, and cards bind only the current job\'s coworkers', () => {
+    let s = hire('l_full');
+    const team = Object.values(s.people).filter((p) => p.kind === 'coworker');
+    expect(team.length).toBeGreaterThan(1);
+    const [close, distant] = team as [Person, Person];
+    s = { ...s, people: { ...s.people, [close.id]: { ...close, relationship: 80 }, [distant.id]: { ...distant, relationship: 20 } } };
+    const left = applyEffects(applyEffects(s, new Rng(1), [{ coworkerLeaves: true }], { personId: close.id }), new Rng(1), [{ coworkerLeaves: true }], { personId: distant.id });
+    expect(left.people[close.id]?.kind).toBe('friend');
+    expect(left.people[close.id]?.workplace).toBeUndefined();
+    expect(left.people[distant.id]).toBeUndefined();
+    // After a job change, the old workplace's coworkers no longer match a coworker card.
+    const moved = { ...s, career: { ...s.career, job: { ...s.career.job!, company: 'Somewhere Else' } } };
+    expect(candidatesFor(moved, { kind: ['coworker'] })).toEqual([]);
+    expect(candidatesFor(s, { kind: ['coworker'] }).length).toBe(team.length);
+  });
+});
+

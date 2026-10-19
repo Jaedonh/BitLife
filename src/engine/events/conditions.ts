@@ -106,6 +106,8 @@ export function candidatesFor(state: GameState, sel: PersonSelector): Person[] {
     if (sel.minAge !== undefined && p.age < sel.minAge) return false;
     if (sel.maxAge !== undefined && p.age > sel.maxAge) return false;
     if (sel.household && !livesWithPlayer(state, p)) return false;
+    // A coworker linked to a job is only a coworker while the player still holds that job (see coworkers.ts).
+    if (p.kind === 'coworker' && p.workplace && !(state.career.job && p.workplace.jobId === state.career.job.defId && p.workplace.company === state.career.job.company)) return false;
     if (sel.gender !== undefined && p.gender !== sel.gender) return false;
     // A grown child's milestones (systems/family.ts).
     if (sel.movedOut !== undefined && hasMovedOut(p) !== sel.movedOut) return false;

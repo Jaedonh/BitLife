@@ -597,17 +597,17 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
       {
         id: 'speech',
         label: 'Give a proper speech',
-        effects: [{ relationship: 'person', delta: 10 }, { stat: 'happiness', delta: 4 }, { relationship: 'coworker', delta: 3 }, { log: 'I told the story of {{person}} and the fire alarm. The room roared. {{They}} hugged me.', kind: 'good' }],
+        effects: [{ relationship: 'person', delta: 10 }, { stat: 'happiness', delta: 4 }, { relationship: 'coworker', delta: 3 }, { log: 'I told the story of {{person}} and the fire alarm. The room roared. {{They}} hugged me.', kind: 'good' }, { coworkerLeaves: true }],
       },
       {
         id: 'gift',
         label: 'Buy a thoughtful gift',
-        effects: [{ money: -120 }, { relationship: 'person', delta: 8 }, { karma: 2 }, { log: 'I found a gift {{they}} actually wanted. {{They}} teared up, then pretended {{they}} had not.', kind: 'good' }],
+        effects: [{ money: -120 }, { relationship: 'person', delta: 8 }, { karma: 2 }, { log: 'I found a gift {{they}} actually wanted. {{They}} teared up, then pretended {{they}} had not.', kind: 'good' }, { coworkerLeaves: true }],
       },
       {
         id: 'cake',
         label: 'Just eat the cake',
-        effects: [{ stat: 'happiness', delta: 2 }, { relationship: 'person', delta: -2 }, { log: 'I ate the cake and signed the door-sized card. It was good cake.', kind: 'info' }],
+        effects: [{ stat: 'happiness', delta: 2 }, { relationship: 'person', delta: -2 }, { log: 'I ate the cake and signed the door-sized card. It was good cake.', kind: 'info' }, { coworkerLeaves: true }],
       },
     ],
   },

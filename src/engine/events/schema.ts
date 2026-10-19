@@ -103,6 +103,8 @@ export type Effect =
   | { relationship: 'person' | RelationshipKind; delta: number }
   | { love: number }
   | { removePerson: true }
+  /** The bound coworker leaves the player's workplace (retires, quits, is let go): a close one (50+) stays as a friend, anyone else drops out of the player's life. */
+  | { coworkerLeaves: true }
   /** Marries the bound lover (both 18+): they become the spouse, as with a successful proposal. The content writes the wedding line. */
   | { marry: true }
   | { personDies: true; cause?: string }

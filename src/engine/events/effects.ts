@@ -169,6 +169,17 @@ export function applyEffect(state: GameState, rng: Rng, e: Effect, ctx: EffectCo
     if (!person || person.love === undefined) return s;
     return updatePerson(s, person.id, { love: clampStat(person.love + e.love) });
   }
+  if ('coworkerLeaves' in e) {
+    if (!person || person.kind !== 'coworker') return s;
+    if (person.alive && person.relationship >= 50) {
+      const friend: Person = { ...person, kind: 'friend' };
+      delete friend.workplace;
+      return { ...s, people: { ...s.people, [person.id]: friend } };
+    }
+    const people = { ...s.people };
+    delete people[person.id];
+    return { ...s, people };
+  }
   if ('removePerson' in e) {
     if (!person) return s;
     if (person.kind === 'lover' || person.kind === 'spouse') return updatePerson(s, person.id, { kind: 'ex', love: 0 });
