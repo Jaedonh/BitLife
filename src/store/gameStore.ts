@@ -157,13 +157,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ hydrated: true, game });
   },
   newLife: (options = {}, { birthCard = true } = {}) => {
+    // The wealthy family is a premium perk: without premium the Wealthy scenario starts a Standard life.
+    const premium = useSettingsStore.getState().premium;
+    const allowed: NewLifeOptions = premium ? options : { ...options, scenario: options.scenario === 'wealthy' ? 'standard' : options.scenario, wealthyFamily: undefined };
     // A life starts with a newborn card, so the first thing the player sees is being a baby.
-    const born = createLife(options, randomSeed(), Date.now());
+    const born = createLife(allowed, randomSeed(), Date.now());
     const game = birthCard ? beginLife(born, EVENT_REGISTRY) : born;
     set({ game });
     persist(game);
     checkAchievements(game);
-    track({ name: 'life_started', generation: game.generation, custom: !!(options.firstName || options.countryCode || options.customStats) });
+    track({ name: 'life_started', generation: game.generation, custom: !!(options.firstName || options.countryCode || options.customStats), scenario: game.character.scenario ?? 'standard' });
   },
   continueAsHeir: (childId) => {
     const prev = get().game;

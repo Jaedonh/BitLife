@@ -64,7 +64,14 @@ export interface Character {
   /** Social energy budget for the current year (Another Life style). */
   energy: number;
   energyMax: number;
+  /** How this life started (GAME_DESIGN §4a). Absent for heirs and saves from before scenarios. */
+  scenario?: ScenarioId;
+  /** Immigrant scenario: the age at which the family moves abroad, and where to. */
+  moveAbroad?: { age: number; countryCode: string };
 }
+
+/** Starting scenarios offered on the new-life screen (src/data/scenarios.ts). */
+export type ScenarioId = 'standard' | 'orphan' | 'big_family' | 'single_parent' | 'immigrant' | 'prodigy' | 'farm_kid' | 'wealthy';
 
 export type RelationshipKind =
   | 'mother'
@@ -81,7 +88,9 @@ export type RelationshipKind =
   | 'coworker'
   | 'classmate'
   | 'enemy'
-  | 'pet';
+  | 'pet'
+  | 'grandparent'
+  | 'grandchild';
 
 export interface PersonMemory {
   /** Age (of the player) of the last interaction. */
@@ -123,6 +132,32 @@ export interface Person {
   otherParentId?: string;
   /** True when the player is the biological parent/child. */
   biological?: boolean;
+  /**
+   * The relative who makes them family: for a grandparent, the player's parent they are the parent of;
+   * for a grandchild, the player's child they are the child of.
+   */
+  viaId?: string;
+  /** Coworkers: the job they share with the player (job definition id and employer). Gone when that job ends. */
+  workplace?: { jobId: string; company: string };
+  /** The player's children: how they are getting on as they grow up (engine milestones, systems/family.ts). */
+  growth?: ChildGrowth;
+  /** Orphan scenario: a foster parent (kind stepmother/stepfather) or foster sibling, labelled "foster". */
+  foster?: boolean;
+}
+
+/** Milestones of one of the player's children. Every field is optional so older saves need no migration. */
+export interface ChildGrowth {
+  /** 'started' at the country's school age, then 'graduated' or 'droppedOut' at the end of high school. */
+  school?: 'started' | 'graduated' | 'droppedOut';
+  movedOut?: boolean;
+  /** Who they married (they are not a person in the player's life). */
+  spouse?: { firstName: string; gender: Gender };
+  /** Children of their own born so far: the player's grandchildren through them. */
+  kids?: number;
+  /** Babies on the way (announced by an event); one is born each year. */
+  expecting?: number;
+  /** A name promised for the next baby (named after the player). */
+  babyName?: { firstName: string; gender: Gender };
 }
 
 export type EducationStage = 'none' | 'primary' | 'middle' | 'high' | 'university' | 'graduate' | 'done';
@@ -445,6 +480,8 @@ export interface NewLifeOptions {
   customStats?: Partial<Stats>;
   /** Premium: start in a wealthy family. */
   wealthyFamily?: boolean;
+  /** Starting scenario (default 'standard'); 'wealthy' is the premium wealthy family. Ignored for heirs. */
+  scenario?: ScenarioId;
   /** Continue as an heir: carries over surname, family, inheritance. */
   heir?: HeirSeed;
 }

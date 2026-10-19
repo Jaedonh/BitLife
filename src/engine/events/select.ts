@@ -1,4 +1,5 @@
 import { Rng } from '../rng';
+import { settleCoworkers } from '../systems/coworkers';
 import type { GameState, PendingEvent, QueuedEvent } from '../types';
 import { bump, log } from '../util';
 import { candidatesFor, evaluateAll } from './conditions';
@@ -142,6 +143,8 @@ export function resolveChoice(state: GameState, choiceId: string, registry: Even
   // Only a code-defined card's context feeds its effects (its case, e.g. the court's charge and fee).
   const vars = def.vars?.length ? pending.context : undefined;
   s = applyEffects(s, rng, choice.effects, { personId: pending.personId, person: pending.personId ? s.people[pending.personId] : undefined, vars });
+  // A choice that cost the player their job (fired, jailed) also parts them from that job's coworkers.
+  s = settleCoworkers(s);
   s = { ...s, rng: rng.snapshot() };
   return openNextEvent(s, registry);
 }

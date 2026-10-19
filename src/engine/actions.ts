@@ -6,6 +6,7 @@ import { commitCrime } from './systems/crime';
 import { dropOut, enroll, skipClass, studyHarder } from './systems/education';
 import { invest, payDebt, withdraw } from './systems/finance';
 import { doActivity } from './systems/activities';
+import { settleCoworkers } from './systems/coworkers';
 import { interact } from './systems/relationships';
 import type { GameState, LastResult, PlayerAction, Stats } from './types';
 import { addMoney, addStats, bump, capitalize, log, money, setResult } from './util';
@@ -46,6 +47,8 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
     case 'rewarded': s = rewardedBoost(s, rng, action.placement, action.option); break;
     default: break;
   }
+  // Quitting, retiring, switching jobs or a crime that ends in prison parts the player from the old job's coworkers.
+  s = settleCoworkers(s);
   // The toast reports what actually changed: caps and hidden potential can swallow some or all of a nominal gain.
   if (s.lastResult) s = { ...s, lastResult: withAppliedStatDeltas(s.lastResult, state.character.stats, s.character.stats) };
   return { ...s, rng: rng.snapshot() };

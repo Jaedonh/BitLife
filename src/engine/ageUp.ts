@@ -4,13 +4,16 @@ import { Rng } from './rng';
 import { advanceYear, ageNpcs, driftStats } from './systems/aging';
 import { yearlyAssets } from './systems/assets';
 import { rollListings, yearlyCareer } from './systems/careers';
+import { settleCoworkers } from './systems/coworkers';
 import { yearlyPrison } from './systems/crime';
 import { yearlyEducation } from './systems/education';
+import { yearlyFamily } from './systems/family';
 import { yearlyFinance } from './systems/finance';
 import { yearlyFlavor } from './systems/flavor';
 import { yearlyHealth } from './systems/health';
 import { rollMortality } from './systems/mortality';
 import { yearlyRelationships } from './systems/relationships';
+import { yearlyScenario } from './systems/scenarios';
 import type { GameState } from './types';
 import { log } from './util';
 
@@ -26,17 +29,20 @@ export function ageUp(state: GameState, registry: EventRegistry = EVENT_REGISTRY
   const headerIndex = s.log.length;
   s = log(s, `${s.year}: Age ${s.character.age}`, 'year');
   s = milestones(s);
+  s = yearlyScenario(s, rng);
   s = driftStats(s, rng);
   // A year that started behind bars earns nothing on the outside, even if it ends in release.
   const servedYear = s.crime.inPrison;
   s = yearlyPrison(s, rng);
   s = yearlyEducation(s, rng);
   s = yearlyCareer(s, rng, servedYear);
+  s = settleCoworkers(s);
   s = yearlyAssets(s, rng);
   s = yearlyFinance(s, rng);
   s = yearlyHealth(s, rng);
   s = ageNpcs(s, rng);
   s = yearlyRelationships(s, rng);
+  s = yearlyFamily(s, rng);
   if (s.character.age >= 14) s = rollListings(s, rng);
   s = rollMortality(s, rng);
   if (!s.alive) return { ...s, rng: rng.snapshot() };

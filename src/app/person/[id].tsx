@@ -12,6 +12,7 @@ import {
   CONFIRM_INTERACTIONS,
   deathLine,
   divorceSettlement,
+  familyFacts,
   interactionTiles,
   kindLabel,
   loveWord,
@@ -76,6 +77,7 @@ export default function PersonScreen() {
   const memories = personMemories(game, person);
   const facts = [
     sinceLine(person),
+    ...familyFacts(person, game),
     neglectLine(person, game.character.age),
     person.marriedAtAge !== undefined ? `Married when you were ${person.marriedAtAge}.` : null,
   ].filter(Boolean);

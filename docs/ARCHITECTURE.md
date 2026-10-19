@@ -21,12 +21,13 @@ cheap to extend with content.
 │  createLife · ageUp · applyAction · resolveChoice · selectors · narrative (log text)       │
 │  systems/: aging · education · careers · relationships · assets · activities · events ·    │
 │            health · crime · finance · death · ribbons · legacy · achievements · flavor     │
+│            family · coworkers · scenarios                                                  │
 │  rng.ts (seeded)   types.ts (GameState)   content registry (src/data)                      │
 └───────────────┬────────────────────────────────────────────────────────────────────────────┘
                 │ data tables only (no logic)
 ┌───────────────▼────────────────  data (src/data)  ─────────────────────────────────────────┐
 │  countries · names · events/* · jobs · majors · activities · assets · illnesses · ribbons  │
-│  · achievements · flavor                                                                   │
+│  · achievements · flavor · scenarios                                                       │
 └────────────────────────────────────────────────────────────────────────────────────────────┘
 
 services (src/services): ads (AdMob) · purchases (RevenueCat) · storage · analytics seam (no SDK shipped)
@@ -60,9 +61,10 @@ reports reproducible from a save file.
 ### Yearly phase order (ageUp)
 
 The exact order is fixed and documented in `docs/GAME_DESIGN.md §2`. In short:
-advance age and year → stat drift and decay → finances (salary, passive income,
-expenses, debt) → education progress → career progress → relationships drift and
-family events (births, deaths, divorces) → health, illness, addiction → mortality
+advance age and year → milestone line and the starting scenario's yearly rules (`systems/scenarios.ts`) → stat drift and decay → finances (salary, passive income,
+expenses, debt) → education progress → career progress (then coworkers of a job
+that ended are settled) → relationships drift and family events (births, deaths,
+divorces) → the player's children's milestones and grandchildren (`systems/family.ts`) → health, illness, addiction → mortality
 roll → schedule the year's random events → write the log header. When an event
 needs a decision, `ageUp` stops with `state.pendingEvent` set and the UI shows a
 modal; `resolveChoice` applies the chosen effect and continues the queue.
@@ -90,6 +92,14 @@ Yearly journal flavour lines are data too (`src/data/flavor.ts`): an age range, 
 same language as events and an optional `person` to bind. `src/engine/systems/flavor.ts` picks at most one a year
 at the end of `ageUp` (after the year's cards are scheduled, before the first one opens), and the validator checks
 and samples them on every run (docs/GAME_DESIGN.md §15a).
+
+### Family links
+
+People are linked by optional fields on `Person`: `otherParentId` (a child's other parent), `viaId` (a
+grandparent's child or a grandchild's parent), `workplace` (the job a coworker shares with the player) and
+`growth` (a child's milestones). All are optional, so older saves load unchanged; `migrations.ts` only checks
+their types. Coworkers are settled after anything that can end a job: the end of `applyAction`, the end of
+`resolveChoice`'s effects, and the career phase of `ageUp`.
 
 ## State and persistence
 

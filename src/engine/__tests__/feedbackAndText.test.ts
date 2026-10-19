@@ -143,7 +143,8 @@ describe('obituaries fit the age (F17)', () => {
     const s = ageTo(base, 9);
     const [gone] = parents;
     const pet: Person = { ...makePerson(new Rng(3), { kind: 'pet', age: 2, countryCode: 'GB', playerAge: 9, species: 'dog' }), id: 'pet1', firstName: 'Biscuit' };
-    const people = { ...s.people, [gone!.id]: { ...s.people[gone!.id]!, alive: false } };
+    // Grandparents are listed too (see the grandparents test); this one is about parents, siblings and pets.
+    const people = Object.fromEntries(Object.entries({ ...s.people, [gone!.id]: { ...s.people[gone!.id]!, alive: false } }).filter(([, x]) => x.kind !== 'grandparent'));
     const left = Object.values(people).find((x) => x.alive && (x.kind === 'mother' || x.kind === 'father'))!;
     const sibs = Object.values(people).filter((x) => x.alive && x.kind === 'sibling').length;
     const pos = s.character.gender === 'male' ? 'his' : 'her';

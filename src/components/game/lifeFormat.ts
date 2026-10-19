@@ -3,6 +3,9 @@
  * entry kind (used by the journal's year cards and the feedback toasts) and the
  * stat/money "pills" that report a change.
  */
+import { getCountry } from '@/data/countries';
+import { SCENARIO_BY_ID } from '@/data/scenarios';
+import { countryInProse } from '@/engine/systems/scenarios';
 import type { GameState, LogKind, StatId, Stats } from '@/engine/types';
 import { formatMoney, formatMoneyFull } from '@/engine/util';
 import { colors } from '@/theme';
@@ -112,4 +115,16 @@ const ZODIAC_GLYPH: Record<string, string> = {
 
 export function zodiacGlyph(sign: string): string {
   return ZODIAC_GLYPH[sign] ?? '✨';
+}
+
+/**
+ * The starting scenario on the life profile ("🧸 Orphan"), with where an immigrant was born once the family has
+ * moved ("✈️ Immigrant · born in the United States"). A Standard birth, an heir and an older save show nothing.
+ */
+export function scenarioChipText(game: GameState): string | null {
+  const id = game.character.scenario;
+  const def = id && id !== 'standard' ? SCENARIO_BY_ID[id] : undefined;
+  if (!def) return null;
+  const from = game.flags.immigrant;
+  return `${def.emoji} ${def.name}${typeof from === 'string' ? ` · born in ${countryInProse(getCountry(from).name)}` : ''}`;
 }

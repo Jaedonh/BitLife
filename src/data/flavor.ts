@@ -183,7 +183,7 @@ export const FLAVOR: readonly FlavorLine[] = [
   // ------------------------------------------------------------ situational: ninety and over
   { minAge: 90, maxAge: 120, conditions: [{ stat: 'health', gte: 60 }], text: 'My doctor asked for my secret. I said I eat dessert first, which is true.' },
   { minAge: 90, maxAge: 120, conditions: [{ stat: 'happiness', gte: 65 }], text: 'I am in my nineties and cheerful about it. Some people find this suspicious.' },
-  { minAge: 90, maxAge: 120, person: { kind: ['spouse'], minAge: 80 }, text: '{{person}} and I sat together most evenings and argued about which of us is older.' },
+  { minAge: 85, maxAge: 120, person: { kind: ['spouse'], minAge: 75 }, text: '{{person}} and I sat together most evenings and argued about which of us is older.' },
   { minAge: 90, maxAge: 120, conditions: [{ noPerson: ['spouse', 'lover'] }], text: 'I live alone now. I talk to the radio, and some days it agrees with me.' },
   { minAge: 90, maxAge: 120, conditions: [{ hasChildren: true }], text: 'My children are getting old. I find this harder to believe than anything else.' },
   { minAge: 90, maxAge: 120, conditions: [{ stat: 'smarts', gte: 60 }], text: 'I still did the crossword every morning, in pen, out of pure confidence.' },

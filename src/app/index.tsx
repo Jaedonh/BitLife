@@ -94,7 +94,7 @@ export default function MenuScreen() {
           {game ? <T kind="label" style={styles.groupLabel}>START A NEW LIFE</T> : null}
           <View style={styles.tiles}>
             <Tile emoji="🎲" title="Random life" subtitle="Random country, family and looks" primary={!alive} onPress={() => void startRandom()} testID="new-random-life" label="New random life" />
-            <Tile emoji="✏️" title="Custom life" subtitle="Pick a name, gender and country" onPress={() => router.push('/new-life')} testID="new-custom-life" label="Custom life" />
+            <Tile emoji="✏️" title="Custom life" subtitle="Pick how it starts, a name and a country" onPress={() => router.push('/new-life')} testID="new-custom-life" label="Custom life" />
           </View>
         </View>
 

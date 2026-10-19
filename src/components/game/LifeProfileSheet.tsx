@@ -9,7 +9,7 @@ import type { GameState } from '@/engine/types';
 import { formatMoneyFull, MONTH_NAMES, netWorth } from '@/engine/util';
 import { useSettingsStore } from '@/store/settingsStore';
 import { colors, lifeTints, radius, spacing, typography, violetSoft } from '@/theme';
-import { avatarFor, zodiacGlyph } from './lifeFormat';
+import { avatarFor, scenarioChipText, zodiacGlyph } from './lifeFormat';
 import { lifeStatus } from './StatsHeader';
 
 function MoneyRow({ label, amount, cc, tone, strong, testID }: { label: string; amount: number; cc: string; tone?: 'up' | 'down'; strong?: boolean; testID?: string }) {
@@ -54,6 +54,8 @@ export function LifeProfileSheet({ game, visible, onClose }: { game: GameState; 
   const mortgages = game.assets.reduce((sum, a) => sum + (a.mortgage?.remaining ?? 0), 0);
   const worth = netWorth(game);
   const born = `${c.birthDay} ${MONTH_NAMES[c.birthMonth - 1] ?? ''} ${c.birthYear}`.replace(/\s+/g, ' ').trim();
+  // A special start is part of who they are; a Standard birth needs no label.
+  const scenario = scenarioChipText(game);
 
   return (
     <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onClose}>
@@ -93,6 +95,11 @@ export function LifeProfileSheet({ game, visible, onClose }: { game: GameState; 
                   {zodiacGlyph(c.zodiac)} {c.zodiac}
                 </Text>
               </View>
+              {scenario ? (
+                <View style={[styles.chip, { backgroundColor: lifeTints.primary }]} testID="profile-scenario">
+                  <Text style={styles.chipText}>{scenario}</Text>
+                </View>
+              ) : null}
             </View>
             {c.traits.length ? (
               <View style={styles.traits}>

@@ -72,7 +72,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 2,
     weight: 2,
     once: true,
-    person: { kind: ['mother', 'father'] },
+    person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
         id: 'explore',
@@ -113,7 +113,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 4,
     weight: 2,
     cooldown: 2,
-    person: { kind: ['mother', 'father'] },
+    person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
         id: 'splash',
@@ -261,7 +261,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 4,
     weight: 2,
     cooldown: 2,
-    person: { kind: ['mother', 'father'] },
+    person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
         id: 'scream',
@@ -334,7 +334,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 5,
     weight: 1.5,
     once: true,
-    person: { kind: ['mother', 'father'] },
+    person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
         id: 'wail',
@@ -380,7 +380,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 5,
     weight: 2,
     cooldown: 2,
-    person: { kind: ['mother', 'father'] },
+    person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
         id: 'eat',
@@ -422,7 +422,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 5,
     weight: 2,
     cooldown: 2,
-    person: { kind: ['mother', 'father'] },
+    person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
         id: 'call',
@@ -456,7 +456,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 5,
     weight: 2,
     cooldown: 3,
-    person: { kind: ['mother', 'father'] },
+    person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
         id: 'freeze',
@@ -812,17 +812,18 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     id: 'ec_grandma_visit',
     category: 'childhood',
     title: "Grandma's visit",
-    text: 'Grandma has come to stay for a whole week. She smells like peppermints, calls me by the wrong name sometimes, and allows seconds of absolutely everything.',
+    text: '{{person}} has come to stay for a whole week. She smells like peppermints, calls me by the wrong name sometimes, and allows seconds of absolutely everything.',
     minAge: 2,
     maxAge: 5,
     weight: 2,
     cooldown: 2,
-    person: { kind: ['mother', 'father'] },
+    conditions: [{ hasPerson: ['mother'] }],
+    person: { kind: ['grandparent'], gender: 'female' },
     choices: [
       {
         id: 'bake',
         label: 'Help her bake',
-        effects: [{ stat: 'smarts', delta: 2 }, { stat: 'happiness', delta: 3 }, { stat: 'health', delta: -1 }, { log: 'We made cookies. I ate most of the dough. Grandma said that was the proper way.', kind: 'good' }],
+        effects: [{ stat: 'smarts', delta: 2 }, { stat: 'happiness', delta: 3 }, { stat: 'health', delta: -1 }, { relationship: 'person', delta: 5 }, { log: 'We made cookies. I ate most of the dough. {{person}} said that was the proper way.', kind: 'good' }],
       },
       {
         id: 'show',
@@ -831,15 +832,15 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 2 },
           {
             chance: 0.7,
-            then: [{ money: 20 }, { stat: 'happiness', delta: 1 }, { log: 'I sang all three songs I know. Grandma slipped me {{$20}} and said not to tell {{person}}.', kind: 'money' }],
-            else: [{ stat: 'happiness', delta: -1 }, { log: 'Grandma fell asleep halfway through my second song. Tough crowd.' }],
+            then: [{ money: 20 }, { stat: 'happiness', delta: 1 }, { relationship: 'person', delta: 4 }, { log: 'I sang all three songs I know. {{person}} slipped me {{$20}} and said not to tell {{mother}}.', kind: 'money' }],
+            else: [{ stat: 'happiness', delta: -1 }, { log: '{{person}} fell asleep halfway through my second song. Tough crowd.' }],
           },
         ],
       },
       {
         id: 'hide',
         label: 'Hide from the kisses',
-        effects: [{ stat: 'happiness', delta: 3 }, { karma: -1 }, { relationship: 'person', delta: -1 }, { log: 'I hid behind the couch whenever she puckered up. {{person}} called it rude. Grandma found it funny.' }],
+        effects: [{ stat: 'happiness', delta: 3 }, { karma: -1 }, { relationship: 'mother', delta: -1 }, { log: 'I hid behind the couch whenever she puckered up. {{mother}} called it rude. {{person}} found it funny.' }],
       },
     ],
   },
@@ -847,27 +848,28 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     id: 'ec_grandpa_story',
     category: 'childhood',
     title: "Grandpa's tale",
-    text: 'Grandpa sat me on his knee and told me about the time he wrestled a goose, won, and was given a medal by the mayor. {{mother}} rolled her eyes.',
+    text: '{{person}} sat me on his knee and told me about the time he wrestled a goose, won, and was given a medal by the mayor. {{mother}} rolled her eyes.',
     minAge: 3,
     maxAge: 5,
     weight: 1.5,
     cooldown: 2,
     conditions: [{ hasPerson: ['mother'] }],
+    person: { kind: ['grandparent'], gender: 'male' },
     choices: [
       {
         id: 'believe',
         label: 'Believe every word',
-        effects: [{ stat: 'happiness', delta: 4 }, { stat: 'smarts', delta: -1 }, { log: 'I now know a great deal about goose wrestling, none of it true. Worth it.', kind: 'good' }],
+        effects: [{ stat: 'happiness', delta: 4 }, { stat: 'smarts', delta: -1 }, { relationship: 'person', delta: 5 }, { log: 'I now know a great deal about goose wrestling, none of it true. Worth it.', kind: 'good' }],
       },
       {
         id: 'question',
         label: 'Ask too many questions',
-        effects: [{ stat: 'smarts', delta: 3 }, { stat: 'happiness', delta: 1 }, { log: 'By question four the goose was a swan and the medal a handshake. I had learned about evidence.' }],
+        effects: [{ stat: 'smarts', delta: 3 }, { stat: 'happiness', delta: 1 }, { relationship: 'person', delta: 2 }, { log: 'By question four the goose was a swan and the medal a handshake. I had learned about evidence.' }],
       },
       {
         id: 'sleep',
         label: 'Fall asleep halfway',
-        effects: [{ stat: 'health', delta: 2 }, { stat: 'happiness', delta: 1 }, { log: 'I dozed off somewhere around the goose. Grandpa kept going. He did not need an audience.' }],
+        effects: [{ stat: 'health', delta: 2 }, { stat: 'happiness', delta: 1 }, { log: 'I dozed off somewhere around the goose. {{person}} kept going. He did not need an audience.' }],
       },
     ],
   },
@@ -940,7 +942,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     weight: 1,
     once: true,
     conditions: [{ noPerson: ['pet'] }],
-    person: { kind: ['mother', 'father'] },
+    person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
         id: 'sensible',
@@ -1065,7 +1067,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 5,
     weight: 1.5,
     once: true,
-    person: { kind: ['mother', 'father'] },
+    person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
         id: 'place',
@@ -1107,7 +1109,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 5,
     weight: 2,
     cooldown: 2,
-    person: { kind: ['mother', 'father'] },
+    person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
         id: 'wish',
@@ -1116,7 +1118,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 4 },
           {
             chance: 0.3,
-            then: [{ money: 50 }, { log: "I wished for treasure. Grandma's card had {{$50}} in it. Wishes work.", kind: 'money' }],
+            then: [{ money: 50 }, { log: 'I wished for treasure. My card from {{person}} had {{$50}} tucked inside. Wishes work.', kind: 'money' }],
             else: [{ log: 'I wished for a pony. No pony arrived, but the cake was excellent.', kind: 'good' }],
           },
         ],
@@ -1177,7 +1179,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     weight: 1.5,
     cooldown: 2,
     conditions: [{ trait: 'anxious' }],
-    person: { kind: ['mother', 'father'] },
+    person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
         id: 'hide',

@@ -1383,19 +1383,21 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     weight: 1,
     cooldown: 3,
     conditions: [{ inPrison: false }],
-    person: { kind: ['child'], minAge: 18, maxAge: 30 },
+    // Children who have not moved out yet (systems/family.ts); leaving here is the move, so the engine does not repeat it.
+    person: { kind: ['child'], minAge: 18, maxAge: 30, movedOut: false },
     choices: [
       {
         id: 'deposit',
         label: 'Help with the deposit',
         hint: '{{$1500}}',
         conditions: [{ money: { gte: 1500 } }],
-        effects: [{ money: -1500 }, { relationship: 'person', delta: 10 }, { karma: 2 }, { stat: 'happiness', delta: -2 }, { log: 'I paid the deposit. {{They}} promised to visit, and does, mostly when hungry.', kind: 'good' }],
+        effects: [{ childMilestone: 'movedOut' }, { money: -1500 }, { relationship: 'person', delta: 10 }, { karma: 2 }, { stat: 'happiness', delta: -2 }, { log: 'I paid the deposit. {{They}} promised to visit, and does, mostly when hungry.', kind: 'good' }],
       },
       {
         id: 'bless',
         label: 'Send {{them}} off with love',
         effects: [
+          { childMilestone: 'movedOut' },
           { relationship: 'person', delta: 5 },
           { stat: 'happiness', delta: -3 },
           { karma: 1 },
@@ -1413,7 +1415,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
           {
             chance: 0.4,
             then: [{ relationship: 'person', delta: 4 }, { money: 1200 }, { stat: 'happiness', delta: 2 }, { log: '{{They}} stayed, paid a bit of rent, and did {{their}} own laundry. Civilized.', kind: 'money' }],
-            else: [{ relationship: 'person', delta: -4 }, { log: '{{They}} said no thanks, kindly, and left anyway. Fair enough.' }],
+            else: [{ childMilestone: 'movedOut' }, { relationship: 'person', delta: -4 }, { log: '{{They}} said no thanks, kindly, and left anyway. Fair enough.' }],
           },
         ],
       },
@@ -1426,7 +1428,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ log: '{{They}} stayed, resentfully. The house is full and tense.', kind: 'bad' }],
-            else: [{ stat: 'happiness', delta: -4 }, { log: '{{They}} left anyway and calls less now.', kind: 'bad' }],
+            else: [{ childMilestone: 'movedOut' }, { stat: 'happiness', delta: -4 }, { log: '{{They}} left anyway and calls less now.', kind: 'bad' }],
           },
         ],
       },
@@ -1497,26 +1499,28 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     weight: 0.8,
     cooldown: 4,
     conditions: [{ inPrison: false }],
-    person: { kind: ['child'], minAge: 22, maxAge: 45 },
+    // Only a child who is not married yet; the wedding is the one the engine would otherwise write (family.ts).
+    person: { kind: ['child'], minAge: 22, maxAge: 45, married: false },
     choices: [
       {
         id: 'big',
         label: 'Pay for a big wedding',
         hint: '{{$15000}}',
         conditions: [{ money: { gte: 15000 } }],
-        effects: [{ money: -15000 }, { relationship: 'person', delta: 15 }, { stat: 'happiness', delta: 8 }, { karma: 2 }, { log: 'I paid for the wedding. It was enormous, beautiful, and {{person}} hugged me for a full minute.', kind: 'milestone' }],
+        effects: [{ childMilestone: 'married' }, { money: -15000 }, { relationship: 'person', delta: 15 }, { stat: 'happiness', delta: 8 }, { karma: 2 }, { log: 'I paid for the wedding. It was enormous, beautiful, and {{person}} hugged me for a full minute.', kind: 'milestone' }],
       },
       {
         id: 'some',
         label: 'Contribute what I can',
         hint: '{{$3000}}',
         conditions: [{ money: { gte: 3000 } }],
-        effects: [{ money: -3000 }, { relationship: 'person', delta: 8 }, { stat: 'happiness', delta: 5 }, { log: "I chipped in what I could. It covered the cake and the band, and the wedding was lovely.", kind: 'good' }],
+        effects: [{ childMilestone: 'married' }, { money: -3000 }, { relationship: 'person', delta: 8 }, { stat: 'happiness', delta: 5 }, { log: "I chipped in what I could. It covered the cake and the band, and the wedding was lovely.", kind: 'good' }],
       },
       {
         id: 'speech',
         label: 'Just give a speech',
         effects: [
+          { childMilestone: 'married' },
           { relationship: 'person', delta: 3 },
           { stat: 'happiness', delta: 4 },
           {
@@ -1537,23 +1541,25 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     maxAge: 95,
     weight: 0.7,
     cooldown: 3,
-    conditions: [{ inPrison: false }],
-    person: { kind: ['child'], minAge: 22, maxAge: 45 },
+    // A first grandchild, born the next year (systems/family.ts).
+    conditions: [{ inPrison: false }, { not: { flag: 'grandparent' } }],
+    person: { kind: ['child'], minAge: 22, maxAge: 45, kids: { eq: 0 } },
     choices: [
       {
         id: 'thrilled',
         label: 'Be thrilled',
-        effects: [{ stat: 'happiness', delta: 10 }, { relationship: 'person', delta: 8 }, { log: 'A grandchild. I bought a tiny sweater the same afternoon.', kind: 'milestone' }],
+        effects: [{ childMilestone: 'expecting' }, { stat: 'happiness', delta: 10 }, { relationship: 'person', delta: 8 }, { log: 'A grandchild. I bought a tiny sweater the same afternoon.', kind: 'milestone' }],
       },
       {
         id: 'help',
         label: 'Offer to help with the baby',
-        effects: [{ stat: 'happiness', delta: 6 }, { relationship: 'person', delta: 12 }, { karma: 2 }, { stat: 'health', delta: -2 }, { log: "I'm on babysitting duty every Thursday. I'm exhausted and delighted.", kind: 'good' }],
+        effects: [{ childMilestone: 'expecting' }, { stat: 'happiness', delta: 6 }, { relationship: 'person', delta: 12 }, { karma: 2 }, { stat: 'health', delta: -2 }, { log: "I'm on babysitting duty every Thursday once the baby comes. Already tired, already delighted.", kind: 'good' }],
       },
       {
         id: 'advice',
         label: 'Offer a lot of advice',
         effects: [
+          { childMilestone: 'expecting' },
           {
             chance: 0.4,
             then: [{ relationship: 'person', delta: 3 }, { log: '{{They}} took the advice and even thanked me for some of it.' }],

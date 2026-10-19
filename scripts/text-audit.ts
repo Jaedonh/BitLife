@@ -31,7 +31,7 @@ import { renderText } from '../src/engine/events/text';
 import { Rng } from '../src/engine/rng';
 import { balancedPolicy, recklessPolicy } from '../src/engine/simulate';
 import { createLife, makePerson } from '../src/engine/systems/character';
-import type { GameState, Person } from '../src/engine/types';
+import type { GameState, Person, ScenarioId } from '../src/engine/types';
 
 function arg(name: string, fallback: string): string {
   const i = process.argv.indexOf(`--${name}`);
@@ -40,6 +40,8 @@ function arg(name: string, fallback: string): string {
 
 const OUT = path.resolve(arg('out', 'audit/text'));
 const LIVES = Number(arg('lives', '240'));
+/** After the standard lives, three lives per special start (orphan, immigrant, farm kid…), so their lines are audited too. */
+const SCENARIO_LIVES: readonly ScenarioId[] = ['orphan', 'big_family', 'single_parent', 'immigrant', 'prodigy', 'farm_kid', 'wealthy'];
 
 /**
  * The policies never buy assets, so ownsAsset/ownsAssetId conditions would be unreachable:
@@ -58,9 +60,10 @@ function sample(): { states: GameState[]; years: { start: GameState; now: GameSt
   const states: GameState[] = [];
   const years: { start: GameState; now: GameState }[] = [];
   const systemLines = new Map<string, { ages: Set<number>; example: string }>();
-  for (let seed = 1; seed <= LIVES; seed++) {
-    const policy = seed % 5 === 0 ? recklessPolicy : balancedPolicy;
-    let s = createLife({}, seed * 7919);
+  for (let seed = 1; seed <= LIVES + SCENARIO_LIVES.length * 3; seed++) {
+    const scenario = seed > LIVES ? SCENARIO_LIVES[(seed - LIVES - 1) % SCENARIO_LIVES.length] : undefined;
+    const policy = seed % 5 === 0 && !scenario ? recklessPolicy : balancedPolicy;
+    let s = createLife(scenario ? { scenario } : {}, seed * 7919);
     states.push(s);
     s = beginLife(s, EVENT_REGISTRY);
     const rng = new Rng(seed);

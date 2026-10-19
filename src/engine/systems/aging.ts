@@ -2,6 +2,7 @@ import { Rng } from '../rng';
 import type { GameState, Person } from '../types';
 import { personRef } from '../events/text';
 import { addMoney, addStats, bump, clampStat, clearCoupleFlags, deathPhrase, fullName, log, money } from '../util';
+import { fosterRelation } from './scenarios';
 
 /** Yearly stat drift. Numbers are tuned so a passive life slowly declines. */
 export function driftStats(state: GameState, rng: Rng): GameState {
@@ -102,15 +103,16 @@ export function onNpcDeath(state: GameState, p: Person, rng: Rng, opts: { announ
   const announce = opts.announce ?? true;
   const close = p.relationship >= 50;
   const male = p.gender === 'male';
-  const label = p.kind === 'spouse' ? (male ? 'husband' : 'wife') : p.kind === 'child' ? (male ? 'son' : 'daughter') : p.kind === 'sibling' ? (male ? 'brother' : 'sister') : p.kind === 'pet' ? (p.species ?? 'pet') : p.kind === 'bestFriend' ? 'best friend' : p.kind === 'lover' ? (male ? 'boyfriend' : 'girlfriend') : p.kind;
+  const label = fosterRelation(p) ?? (p.kind === 'spouse' ? (male ? 'husband' : 'wife') : p.kind === 'child' ? (male ? 'son' : 'daughter') : p.kind === 'sibling' ? (male ? 'brother' : 'sister') : p.kind === 'pet' ? (p.species ?? 'pet') : p.kind === 'bestFriend' ? 'best friend' : p.kind === 'lover' ? (male ? 'boyfriend' : 'girlfriend') : p.kind === 'grandparent' ? (male ? 'grandfather' : 'grandmother') : p.kind === 'grandchild' ? (male ? 'grandson' : 'granddaughter') : p.kind);
   // Pets go by their first name only; people by their full name.
   const name = p.kind === 'pet' ? p.firstName : fullName(p);
   if (announce) {
     // An event that kills someone writes its own line and grief instead.
-    // A parent is Mom or Dad here too, as everywhere else in the journal.
-    const who = p.kind === 'mother' || p.kind === 'father' ? personRef(p) : `My ${label} ${name}`;
+    // Parents and grandparents go by what the player calls them (Mom, Grandma Rosa), as everywhere else in the journal.
+    const who = p.kind === 'mother' || p.kind === 'father' || p.kind === 'grandparent' ? personRef(p) : `My ${label} ${name}`;
     s = log(s, `${who} ${deathPhrase(p.deathCause)} at ${p.age}.`, 'bad');
-    const grief = p.kind === 'spouse' || p.kind === 'child' ? -25 : p.kind === 'mother' || p.kind === 'father' ? -15 : p.kind === 'pet' ? -8 : close ? -10 : -3;
+    // A grandparent's death is a smaller grief than a parent's; a grandchild's a deep one.
+    const grief = p.kind === 'spouse' || p.kind === 'child' ? -25 : p.kind === 'mother' || p.kind === 'father' ? -15 : p.kind === 'grandchild' ? -12 : p.kind === 'grandparent' ? -8 : p.kind === 'pet' ? -8 : close ? -10 : -3;
     s = addStats(s, { happiness: Math.round(grief * (close ? 1 : 0.5)) });
   }
   if ((p.kind === 'mother' || p.kind === 'father' || p.kind === 'spouse') && p.money > 0 && s.character.age >= 18) {
@@ -121,11 +123,32 @@ export function onNpcDeath(state: GameState, p: Person, rng: Rng, opts: { announ
       s = log(s, `I inherited ${money(s, share)} from ${personRef(p)}'s estate.`, 'money');
     }
   }
+  if (p.kind === 'grandparent' && p.money > 0) s = grandparentEstate(s, p, rng);
   if ((p.kind === 'mother' || p.kind === 'father') && s.character.age < 18) {
     const otherParent = Object.values(s.people).some((x) => (x.kind === 'mother' || x.kind === 'father') && x.alive);
     if (!otherParent) s = log(s, 'With both my parents gone, I was taken in by relatives.', 'bad');
   }
   return s;
+}
+
+/** Share of a grandparent's estate left to the grandchildren (the player and siblings); most goes to their own child. */
+export const GRANDPARENT_BEQUEST = 0.15;
+
+/**
+ * A grandparent's estate: most of it passes to the player's parent on that side, and a small bequest to the
+ * player, split with their siblings, when they were close (or, sometimes, anyway). A minor's bequest goes into
+ * their own savings, which only their own choices spend (see guardians.ts).
+ */
+function grandparentEstate(state: GameState, p: Person, rng: Rng): GameState {
+  let s = state;
+  const parent = p.viaId ? s.people[p.viaId] : undefined;
+  if (parent?.alive) s = { ...s, people: { ...s.people, [parent.id]: { ...parent, money: parent.money + Math.round(p.money * 0.6) } } };
+  const siblings = Object.values(s.people).filter((x) => x.kind === 'sibling' && x.alive).length;
+  const share = Math.round((p.money * GRANDPARENT_BEQUEST) / (siblings + 1));
+  if (share <= 0 || !(p.relationship >= 40 || rng.chance(0.3))) return s;
+  s = addMoney(s, share);
+  const pp = p.gender === 'male' ? 'his' : 'her';
+  return log(s, s.character.age < 18 ? `${personRef(p)} left me ${money(s, share)} in ${pp} will. It went into my savings.` : `${personRef(p)} left me ${money(s, share)} in ${pp} will.`, 'money');
 }
 
 /** Yearly social-energy budget by age (GAME_DESIGN §2). */

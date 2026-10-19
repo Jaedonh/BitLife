@@ -143,3 +143,88 @@ describe('migrateSave', () => {
     expect(migrateSave(played)!.flavorSeen).toEqual(played.flavorSeen);
   });
 });
+
+describe('saves from before grandparents, coworker links and children growing up (S1)', () => {
+  /** An older save: no grandparents or grandchildren, no family links, milestones or coworker workplaces. */
+  function oldShapeSave(): GameState {
+    const save = playedSave(45) as unknown as Record<string, unknown> & GameState;
+    const people: Record<string, unknown> = {};
+    for (const [id, p] of Object.entries(save.people)) {
+      if (p.kind === 'grandparent' || p.kind === 'grandchild') continue;
+      const { viaId: _v, growth: _g, workplace: _w, ...rest } = p;
+      people[id] = rest;
+    }
+    // A grown child and a coworker as they were stored back then.
+    people.kid_old = { id: 'kid_old', firstName: 'Ada', lastName: save.character.lastName, gender: 'female', age: 30, alive: true, kind: 'child', relationship: 70, looks: 50, smarts: 50, health: 90, craziness: 10, occupation: 'Student', money: 0, memory: { lastInteractionAge: 44, insults: 0, compliments: 0, gifts: 0, fights: 0, yearsNeglected: 0 }, metAtAge: 15 };
+    people.mate_old = { ...(people.kid_old as object), id: 'mate_old', firstName: 'Bo', kind: 'coworker', age: 44, metAtAge: 40 };
+    const flags = { ...save.flags };
+    delete flags.grandchildren;
+    return JSON.parse(JSON.stringify({ ...save, people, flags })) as GameState;
+  }
+
+  it('loads unchanged and keeps playing', () => {
+    const old = oldShapeSave();
+    const loaded = migrateSave(old);
+    expect(loaded).toEqual(old);
+    let g = loaded!;
+    const linesBefore = g.log.length;
+    for (let i = 0; i < 5 && g.alive; i++) {
+      g = ageUp(g);
+      while (g.pendingEvent) g = resolveChoice(g, g.pendingEvent.choices[0]!.id, EVENT_REGISTRY);
+    }
+    // A child past 26 with no record has long since moved out: no move-out line for them now.
+    expect(g.log.slice(linesBefore).some((l) => l.text.startsWith('My daughter Ada moved out'))).toBe(false);
+    // A coworker with no workplace link stays where they are.
+    if (g.alive) expect(g.people.mate_old?.kind).toBe('coworker');
+  });
+
+  it('rejects a mistyped family link or milestone record', () => {
+    const save = playedSave(20);
+    const id = Object.keys(save.people)[0]!;
+    expect(migrateSave(withField(save, `people.${id}.growth`, 'grown'))).toBeNull();
+    expect(migrateSave(withField(save, `people.${id}.viaId`, 7))).toBeNull();
+    expect(migrateSave(withField(save, `people.${id}.workplace`, { jobId: 'x' }))).toBeNull();
+    expect(migrateSave(withField(save, `people.${id}.growth`, { movedOut: true }))).not.toBeNull();
+  });
+});
+
+describe('saves from before starting scenarios (S2)', () => {
+  /** A life saved before scenarios: no scenario or move plan on the character, no scenario flag, no foster links. */
+  function preScenarioSave(): GameState {
+    const save = playedSave(12) as unknown as GameState;
+    const { scenario: _s, moveAbroad: _m, ...character } = save.character;
+    const flags = Object.fromEntries(Object.entries(save.flags).filter(([k]) => !k.startsWith('scenario:')));
+    const people = Object.fromEntries(Object.entries(save.people).map(([id, p]) => {
+      const { foster: _f, ...rest } = p;
+      return [id, rest];
+    }));
+    return JSON.parse(JSON.stringify({ ...save, character, flags, people })) as GameState;
+  }
+
+  it('loads unchanged and keeps playing with no scenario rules', () => {
+    const old = preScenarioSave();
+    expect(old.character.scenario).toBeUndefined();
+    const loaded = migrateSave(old);
+    expect(loaded).toEqual(old);
+    let g = loaded!;
+    for (let i = 0; i < 8 && g.alive; i++) {
+      g = ageUp(g);
+      while (g.pendingEvent) g = resolveChoice(g, g.pendingEvent.choices[0]!.id, EVENT_REGISTRY);
+    }
+    expect(g.character.countryCode).toBe('US');
+    expect(g.flags.immigrant).toBeUndefined();
+  });
+
+  it('loads an orphan and an immigrant life, and rejects mistyped scenario fields', () => {
+    for (const scenario of ['orphan', 'immigrant'] as const) {
+      const save = JSON.parse(JSON.stringify(createLife({ scenario }, 21, 1_700_000_000_000))) as GameState;
+      expect(migrateSave(save)).toEqual(save);
+    }
+    const save = playedSave(5);
+    const id = Object.keys(save.people)[0]!;
+    expect(migrateSave(withField(save, 'character.scenario', 7))).toBeNull();
+    expect(migrateSave(withField(save, 'character.moveAbroad', { age: 9 }))).toBeNull();
+    expect(migrateSave(withField(save, `people.${id}.foster`, 'yes'))).toBeNull();
+    expect(migrateSave(withField(save, 'character.moveAbroad', { age: 9, countryCode: 'CA' }))).not.toBeNull();
+  });
+});

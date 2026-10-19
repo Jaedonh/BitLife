@@ -4,7 +4,7 @@
  * provider can be plugged in later by implementing `setAnalyticsSink`.
  */
 export type AnalyticsEvent =
-  | { name: 'life_started'; generation: number; custom: boolean }
+  | { name: 'life_started'; generation: number; custom: boolean; scenario: string }
   | { name: 'age_up'; age: number }
   | { name: 'event_choice'; eventId: string; choiceId: string }
   | { name: 'life_ended'; age: number; ribbon: string; cause: string }

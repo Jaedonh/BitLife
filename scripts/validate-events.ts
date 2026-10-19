@@ -27,7 +27,7 @@ import { varyLife } from './varied-lives';
 import { applyEffects } from '../src/engine/events/effects';
 import { advanceYear } from '../src/engine/systems/aging';
 import { flavorFits, validateFlavor } from '../src/engine/systems/flavor';
-import type { GameState } from '../src/engine/types';
+import type { GameState, ScenarioId } from '../src/engine/types';
 
 async function loadFile(file: string): Promise<EventDef[]> {
   const mod = (await import(pathToFileURL(path.resolve(file)).href)) as Record<string, unknown>;
@@ -50,6 +50,8 @@ function buyHomeAndCar(s: GameState, seed: number): GameState {
 
 /** Each sampled year as the flavor picker sees it: its start (the birthday just passed) and how it ended. */
 const flavorYears: { start: GameState; now: GameState }[] = [];
+/** Every special start gets a couple of lives, so events gated on `scenario:<id>`, `foster_care`, `immigrant` or `farm` are reachable. */
+const SCENARIO_LIVES: readonly ScenarioId[] = ['orphan', 'big_family', 'single_parent', 'immigrant', 'prodigy', 'farm_kid', 'wealthy'];
 
 /**
  * Plays seeded lives and keeps every year's state. With the default empty registry no events
@@ -61,10 +63,13 @@ function sampleStates(n: number, recklessLives = 20, registry = makeRegistry([])
   const choiceRng = new Rng(seedOffset + 99);
   // Seeds 1..n play a sensible life; the extra seeds play recklessly so that
   // states with a criminal record or in prison are represented.
-  for (let i = 1; i <= n + recklessLives; i++) {
+  for (let i = 1; i <= n + recklessLives + SCENARIO_LIVES.length * 2; i++) {
     const seed = i + seedOffset;
-    const policy = i > n ? recklessPolicy : balancedPolicy;
-    let s = createLife({}, seed * 7919);
+    // After the standard and reckless lives come two lives per starting scenario, played sensibly.
+    const extra = i - n - recklessLives;
+    const scenario = extra > 0 ? SCENARIO_LIVES[(extra - 1) % SCENARIO_LIVES.length] : undefined;
+    const policy = i > n && !scenario ? recklessPolicy : balancedPolicy;
+    let s = createLife(scenario ? { scenario } : {}, seed * 7919);
     // The newborn state (age 0) is where a new life's first card is rolled (beginLife).
     states.push(s);
     s = beginLife(s, registry);

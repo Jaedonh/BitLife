@@ -128,7 +128,13 @@ export type Effect =
   /** Code-defined court card (sys_trial) only: settles the case stored in the card's context. */
   | { trial: TrialPlea }
   /** Code-defined parole card (sys_parole) only: the board decides on early release. */
-  | { paroleHearing: ParoleApproach };
+  | { paroleHearing: ParoleApproach }
+  /**
+   * For an event bound to one of the player's children (person kind ['child']): a milestone the engine would
+   * otherwise roll (systems/family.ts) happens now: they move out, marry, or have a baby on the way (born next
+   * year; namedAfterMe gives the baby the player's name).
+   */
+  | { childMilestone: 'movedOut' | 'married' | 'expecting'; namedAfterMe?: boolean };
 
 export type TrialPlea = 'plea' | 'public' | 'lawyer' | 'self';
 export const TRIAL_PLEAS: readonly TrialPlea[] = ['plea', 'public', 'lawyer', 'self'];
@@ -169,6 +175,13 @@ export interface PersonSelector {
   maxRelationship?: number;
   minAge?: number;
   maxAge?: number;
+  /** Only people of this gender, e.g. a grandmother: { kind: ['grandparent'], gender: 'female' }. */
+  gender?: Gender;
+  /** The player's children only (kind ['child']): whether they have moved out or married yet. */
+  movedOut?: boolean;
+  married?: boolean;
+  /** The player's children only: their own children so far, counting babies on the way (at most 3). */
+  kids?: Comparator;
 }
 
 export interface EventDef {
@@ -197,6 +210,7 @@ export interface EventDef {
 const PLACEHOLDER_RE = /\{\{([^}]+)\}\}/g;
 const KNOWN_PLACEHOLDERS = new Set([
   'name', 'fullName', 'city', 'country', 'age', 'person', 'personFull', 'they', 'them', 'their', 'They', 'job', 'company', 'spouse', 'mother', 'father', 'parents', 'he', 'she', 'his', 'him', 'demonym', 'year',
+  'grandma', 'grandpa',
 ]);
 
 /** Returns a list of human-readable problems; empty means valid. */
@@ -300,6 +314,18 @@ export function validateEvent(def: EventDef, knownIds: Set<string>): string[] {
   }
   if (def.vars?.length && !def.id.startsWith('sys_')) errors.push(`${where}: only the engine's own sys_ cards can declare vars`);
   const known = def.vars?.length ? new Set([...KNOWN_PLACEHOLDERS, ...def.vars]) : KNOWN_PLACEHOLDERS;
+  // Children's milestones and their selector filters only mean something for the player's own children.
+  const childOnly = def.person?.kind.length === 1 && def.person.kind[0] === 'child';
+  if (def.person && (def.person.movedOut !== undefined || def.person.married !== undefined || def.person.kids !== undefined) && !childOnly) {
+    errors.push(`${where}: movedOut/married/kids in the person selector need person: { kind: ['child'] }`);
+  }
+  for (const list of effectLists(def.choices.flatMap((c) => [c.effects ?? []]))) {
+    for (const e of list) {
+      if ('childMilestone' in e && !childOnly) errors.push(`${where}: childMilestone needs the event bound to a child (person: { kind: ['child'] })`);
+      // Grandparents and grandchildren are family by birth: the engine creates and links them (systems/family.ts).
+      if ('newPerson' in e && (e.newPerson.kind === 'grandparent' || e.newPerson.kind === 'grandchild')) errors.push(`${where}: newPerson cannot create a ${e.newPerson.kind}; the engine adds them`);
+    }
+  }
   const usesPerson = /\{\{(person|personFull|they|them|their|They)\}\}/.test(def.text + def.choices.map((c) => c.label + (c.hint ?? '')).join(' '));
   if (usesPerson && !def.person) errors.push(`${where}: uses person placeholders but has no person selector`);
   for (const text of [def.title, def.text, ...def.choices.map((c) => c.label), ...def.choices.map((c) => c.hint ?? '')]) {

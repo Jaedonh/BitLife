@@ -1,3 +1,4 @@
+import { hasMovedOut, isMarried, kidsCount } from '../systems/family';
 import type { GameState, Person } from '../types';
 import { netWorth } from '../util';
 import type { Comparator, Condition, PersonSelector } from './schema';
@@ -105,6 +106,11 @@ export function candidatesFor(state: GameState, sel: PersonSelector): Person[] {
     if (sel.minAge !== undefined && p.age < sel.minAge) return false;
     if (sel.maxAge !== undefined && p.age > sel.maxAge) return false;
     if (sel.household && !livesWithPlayer(state, p)) return false;
+    if (sel.gender !== undefined && p.gender !== sel.gender) return false;
+    // A grown child's milestones (systems/family.ts).
+    if (sel.movedOut !== undefined && hasMovedOut(p) !== sel.movedOut) return false;
+    if (sel.married !== undefined && isMarried(p) !== sel.married) return false;
+    if (sel.kids !== undefined && !cmp(kidsCount(p), sel.kids)) return false;
     return true;
   });
 }
