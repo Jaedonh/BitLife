@@ -130,6 +130,9 @@ describe('gameStore', () => {
   it('premium rewards are instant but share the daily caps', async () => {
     useSettingsStore.getState().setPremium(true);
     useGameStore.getState().newLife({ countryCode: 'US' }, { birthCard: false });
+    // A random newborn can start at 100 happiness, where a happiness boost is refused; leave it room.
+    const g = useGameStore.getState().game!;
+    useGameStore.setState({ game: { ...g, character: { ...g.character, stats: { ...g.character.stats, happiness: 50 } } } });
     const results: string[] = [];
     for (let i = 0; i < 5; i++) results.push(await useGameStore.getState().rewarded('cashBoost'));
     expect(results).toEqual(['granted', 'granted', 'granted', 'capped', 'capped']);
