@@ -109,7 +109,8 @@ export function renderText(template: string, state: GameState, ctx: TextContext 
 
   function placeholder(key: string): string {
     if (ctx.vars && Object.prototype.hasOwnProperty.call(ctx.vars, key)) return ctx.vars[key]!;
-    if (key.startsWith('$')) return formatMoney(scaleMoney(state, Number(key.slice(1))), c.countryCode);
+    // In the life's year, as the journal shows it (util.money): lire, marks, francs or pesetas before the euro.
+    if (key.startsWith('$')) return formatMoney(scaleMoney(state, Number(key.slice(1))), c.countryCode, state.year);
     switch (key) {
       case 'name': return c.firstName;
       case 'fullName': return `${c.firstName} ${c.lastName}`;

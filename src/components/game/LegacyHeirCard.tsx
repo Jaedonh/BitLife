@@ -13,6 +13,8 @@ type Props = {
   /** The heir's share of the estate (0 when there is nothing to inherit). */
   inheritance: number;
   countryCode: string;
+  /** The year of the death: the inheritance shows in that year's currency. */
+  year?: number;
   /** Free play's generation limit is reached: the card opens the premium screen instead. */
   locked: boolean;
   onPress: () => void;
@@ -23,10 +25,10 @@ function bondColor(v: number): string {
 }
 
 /** A child who can carry on the family line: who they are, how close you were, and what they inherit. */
-export function LegacyHeirCard({ heir, inheritance, countryCode, locked, onPress }: Props) {
+export function LegacyHeirCard({ heir, inheritance, countryCode, year, locked, onPress }: Props) {
   const name = `${heir.firstName} ${heir.lastName}`;
   const details = [heirLabel(heir), heir.age === 0 ? 'newborn' : String(heir.age), heirOccupationLabel(heir)].filter(Boolean).join(' · ');
-  const money = inheritance > 0 ? `Inherits ${formatMoney(inheritance, countryCode)}` : 'No inheritance';
+  const money = inheritance > 0 ? `Inherits ${formatMoney(inheritance, countryCode, year)}` : 'No inheritance';
   const label = `Continue as ${name}, ${details}. Relationship ${heir.relationship} percent. ${money}.${locked ? ' Requires Premium.' : ''}`;
   return (
     <Pressable

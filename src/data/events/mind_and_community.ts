@@ -1,4 +1,5 @@
 import { JURY_TRIALS } from '@/data/events/justice_and_reentry';
+import { HAS_A_BOSS } from '@/data/events/work_life';
 import type { EventDef } from '@/engine/events/schema';
 
 /**
@@ -1580,7 +1581,8 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     weight: 1,
     // The same chart and dotted line: at most twice in a life (CONTENT_STYLE).
     cooldown: 26,
-    conditions: [{ hasJob: true }, { jobCategory: ['office'] }, { jobLevel: { lte: 2 } }],
+    // My box reports to someone, and the 'ask' choice finds my new boss: not the office manager at the top (HAS_A_BOSS).
+    conditions: [{ hasJob: true }, { jobCategory: ['office'] }, { jobLevel: { lte: 2 } }, HAS_A_BOSS],
     choices: [
       {
         id: 'volunteer',
@@ -1888,6 +1890,8 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
       {
         id: 'flag',
         label: 'Flag it to my manager',
+        // A manager above me: not the branch or agency manager at the top of the ladder.
+        conditions: [HAS_A_BOSS],
         effects: [
           {
             chance: 0.6,
@@ -1940,7 +1944,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ jobPerformance: 3 }, { log: 'The inspector thanked me for being straight and gave us a month to fix things.', kind: 'good' }],
-            else: [{ jobPerformance: -4 }, { log: 'Honesty earned us a failing grade and a second visit. My boss has been cool toward me.', kind: 'bad' }],
+            else: [{ jobPerformance: -4 }, { log: 'Honesty earned us a failing grade and a second visit. The whole floor has been cool toward me.', kind: 'bad' }],
           },
         ],
       },

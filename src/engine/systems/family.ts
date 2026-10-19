@@ -63,10 +63,11 @@ function myChild(p: Person): string {
  * parent, a sibling or me (a baby named after me is the one deliberate exception, see addGrandchild).
  */
 function namesToAvoid(state: GameState, child: Person, gender: Gender, reserved: ReadonlySet<string> = new Set()): Set<string> {
-  const all = new Set([...reserved, ...namesInLife(state)]);
+  // Nor that household's surname, which a baby carries and a spouse may take: no Thomas Thomas.
+  const all = new Set([...reserved, ...namesInLife(state), child.lastName]);
   const pool = NAMES[getCountry(state.character.countryCode).namePool];
   if ((gender === 'male' ? pool.male : pool.female).some((n) => !all.has(n))) return all;
-  const household = new Set([state.character.firstName, child.firstName]);
+  const household = new Set([state.character.firstName, child.firstName, child.lastName]);
   if (child.growth?.spouse) household.add(child.growth.spouse.firstName);
   for (const p of Object.values(state.people)) if (p.kind === 'grandchild' && p.viaId === child.id) household.add(p.firstName);
   return household;

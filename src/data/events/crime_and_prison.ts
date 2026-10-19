@@ -1,3 +1,4 @@
+import { ANSWERS_TO_A_BOSS } from '@/data/events/work_life';
 import type { EventDef } from '@/engine/events/schema';
 
 /**
@@ -136,7 +137,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
       {
         id: 'drive',
         label: 'Drive the van',
-        hint: '{{$600}} cash',
+        hint: '{{$600}} in cash',
         effects: [
           { karma: -4 },
           { counter: 'crimes' },
@@ -444,7 +445,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
       {
         id: 'plea',
         label: 'Take the deal',
-        hint: '{{$500}} fine, a record',
+        hint: 'A fine of {{$500}}, a record',
         effects: [{ arrest: true }, { money: -500 }, { stat: 'happiness', delta: -8 }, { karma: -1 }, { log: 'I admitted to something I did not do because it was cheaper. It is on my record now.', kind: 'bad' }],
       },
       {
@@ -730,7 +731,8 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 0.8,
     cooldown: 6,
-    conditions: [{ criminalRecord: true }, { hasJob: true }, { inPrison: false }],
+    // HR and my manager: an employer above me, not the owner or the top rung, an elected seat, a bench or a rank.
+    conditions: [{ criminalRecord: true }, { hasJob: true }, { inPrison: false }, ANSWERS_TO_A_BOSS],
     choices: [
       {
         id: 'honest',

@@ -69,6 +69,7 @@ const SEQUENCES: readonly { card: string; others: readonly string[]; why: string
     why: 'a grown child moving their family in does not land in the year of baby news; the news can follow the move',
   },
   { card: 'gc_child_expecting_again', others: ['ll_grandchild_born', 'lf_grandparent_news'], why: 'another baby is not announced in the year of the last one' },
+  { card: 'ya_first_apartment', others: ['ya_move_back_home'], why: 'a first lease comes before rent going up; anyone who got ya_move_back_home was already renting' },
 ];
 const ONE_WAY = new Set(SEQUENCES.flatMap((s) => s.others.map((o) => `${s.card}>${o}`)));
 

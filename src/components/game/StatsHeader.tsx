@@ -101,8 +101,8 @@ export function StatsHeader({ game, onOpenProfile }: { game: GameState; onOpenPr
   const country = getCountry(c.countryCode);
   const subtitle = lifeStatus(game);
   const debt = totalDebt(game);
-  const cash = formatMoney(game.finances.cash, c.countryCode);
-  const debtText = formatMoney(debt, c.countryCode);
+  const cash = formatMoney(game.finances.cash, c.countryCode, game.year);
+  const debtText = formatMoney(debt, c.countryCode, game.year);
   const spoken = [
     `${c.firstName} ${c.lastName}, age ${c.age}, ${subtitle}`,
     `${cash} cash${debt > 0 ? `, ${debtText} debt` : ''}`,

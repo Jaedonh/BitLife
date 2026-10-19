@@ -24,10 +24,11 @@ function EntryRow({ entry }: { entry: LogEntry }) {
   );
 }
 
-function cardPills(change: YearChange | null, countryCode: string): Pill[] {
+function cardPills(change: YearChange | null, countryCode: string, year: number | null): Pill[] {
   if (!change) return [];
   const pills = statPills(change.stats);
-  const worth = moneyPill('worth', change.worth, countryCode, { label: 'Net worth', compact: true });
+  // In that year's currency, as its lines show it (marks before the euro).
+  const worth = moneyPill('worth', change.worth, countryCode, { label: 'Net worth', compact: true, year: year ?? undefined });
   if (worth) pills.push(worth);
   return pills;
 }
@@ -35,7 +36,7 @@ function cardPills(change: YearChange | null, countryCode: string): Pill[] {
 type CardProps = { group: YearGroup; current: boolean; change: YearChange | null; countryCode: string };
 
 function YearCardView({ group, current, change, countryCode }: CardProps) {
-  const pills = cardPills(change, countryCode);
+  const pills = cardPills(change, countryCode, group.year);
   return (
     <View style={[styles.card, current && styles.cardCurrent]} testID={`year-card-${group.age}`}>
       <View style={styles.cardHead}>

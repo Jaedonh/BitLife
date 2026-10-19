@@ -65,6 +65,12 @@ export const NOT_ELECTED_OR_ENLISTED: Condition = {
   not: { any: [{ all: [{ jobId: ['politician'] }, { jobLevel: { gte: 1 } }] }, { jobId: ['judge', 'military'] }] },
 };
 
+/**
+ * Someone at {{company}} I answer to ("my boss", "my manager", "the boss's boss"): below the top rung (HAS_A_BOSS) and
+ * not an elected seat, a bench or a rank (NOT_ELECTED_OR_ENLISTED). One Condition, for cards in other files too.
+ */
+export const ANSWERS_TO_A_BOSS: Condition = { all: [HAS_A_BOSS, NOT_ELECTED_OR_ENLISTED] };
+
 /** A career on a set, a stage, a tour or a team roster: no employee of the month and no layoff memo. */
 const NOT_A_FAME_CAREER: Condition = { not: { jobId: ['actor', 'musician', 'athlete', 'chef_tv'] } };
 
@@ -263,7 +269,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     // The same partner and box of files: a second request would be the same scene (CONTENT_STYLE).
     cooldown: 26,
     // A partner and the auditors: a firm, not a courtroom (judges are in the law category).
-    conditions: [{ hasJob: true }, { jobCategory: ['law', 'finance', 'office'] }, { inPrison: false }, NOT_ELECTED_OR_ENLISTED],
+    // A partner above me asks: not the managing partner or the CEO at the top (HAS_A_BOSS).
+    conditions: [{ hasJob: true }, { jobCategory: ['law', 'finance', 'office'] }, { inPrison: false }, NOT_ELECTED_OR_ENLISTED, HAS_A_BOSS],
     choices: [
       {
         id: 'shred',
@@ -393,13 +400,15 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1.5,
     cooldown: 6,
-    conditions: [{ hasJob: true }],
+    // The new hire is young (18-35): a first job or an early one, not a newcomer of 71. The title fits the age drawn, so
+    // not on the bench, where the first rung (a magistrate) starts at 40 (as coworkers' cw_mentor_new_hire).
+    conditions: [{ hasJob: true }, { not: { jobId: ['judge'] } }],
     choices: [
       {
         id: 'help',
         label: 'Show them the ropes',
         effects: [
-          { newPerson: { kind: 'coworker', relationship: 70, log: 'I showed {{person}} around. {{They}} bought me a coffee by Friday.' } },
+          { newPerson: { kind: 'coworker', relationship: 70, minAge: 18, maxAge: 35, log: 'I showed {{person}} around. {{They}} bought me a coffee by Friday.' } },
           { karma: 2 },
           { energy: -1 },
           { stat: 'happiness', delta: 2 },
@@ -408,7 +417,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
       {
         id: 'ignore',
         label: 'Let them figure it out',
-        effects: [{ newPerson: { kind: 'coworker', relationship: 40, log: '{{person}} found the printer eventually. We nod at each other now.' } }, { log: 'I was busy. The new hire survived.', kind: 'info' }],
+        effects: [{ newPerson: { kind: 'coworker', relationship: 40, minAge: 18, maxAge: 35, log: '{{person}} found the printer eventually. We nod at each other now.' } }, { log: 'I was busy. The new hire survived.', kind: 'info' }],
       },
       {
         id: 'haze',
@@ -416,7 +425,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
         effects: [
           { karma: -2 },
           { stat: 'happiness', delta: 2 },
-          { newPerson: { kind: 'coworker', relationship: 30, log: '{{person}} took forty minutes to figure it out and still brings it up at lunch.' } },
+          { newPerson: { kind: 'coworker', relationship: 30, minAge: 18, maxAge: 35, log: '{{person}} took forty minutes to figure it out and still brings it up at lunch.' } },
           { chance: 0.7, then: [], else: [{ jobPerformance: -2 }, { log: 'Word of the stapler got around. "Grow up" was the kindest thing anyone said.', kind: 'bad' }] },
         ],
       },
@@ -474,7 +483,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 0.8,
     cooldown: 6,
-    conditions: [{ hasJob: true }],
+    // A senior manager above us both: not an owner or the top rung, an elected seat, a bench or a rank.
+    conditions: [{ hasJob: true }, ANSWERS_TO_A_BOSS],
     person: { kind: ['coworker'], minAge: 18 },
     choices: [
       {
@@ -673,7 +683,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     id: 'wk_retiring_colleague',
     category: 'work',
     title: 'The door-sized card',
-    text: 'After decades at {{company}}, {{person}} is retiring. There is a cake, a card the size of a door, and a speech from a manager who had to check {{their}} last name.',
+    text: 'After decades at {{company}}, {{person}} is retiring. There is a cake, a card the size of a door, and a speech from someone senior who had to check {{their}} last name.',
     minAge: 20,
     maxAge: 70,
     weight: 0.8,
@@ -821,8 +831,9 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1.5,
     cooldown: 3,
-    // Customers come to the counter, the table or the chair: not to a warehouse floor or an engineer's desk. Owners have no manager to hand it to.
-    conditions: [{ hasJob: true }, { jobId: SERVES_CUSTOMERS }, NOT_AN_OWNER],
+    // Customers come to the counter, the table or the chair: not to a warehouse floor or an engineer's desk. Owners and the
+    // manager at the top (a restaurant, branch or district manager) have no manager to hand it to (HAS_A_BOSS).
+    conditions: [{ hasJob: true }, { jobId: SERVES_CUSTOMERS }, NOT_AN_OWNER, HAS_A_BOSS],
     choices: [
       {
         id: 'calm',
@@ -901,7 +912,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ money: 60 }, { log: 'They would not take it all back and made me keep half. Honesty paid, just less.', kind: 'good' }],
-            else: [{ log: 'They thanked me and left. My manager said I was an idiot, warmly.', kind: 'info' }],
+            else: [{ log: 'They thanked me and left. A coworker called me an idiot, warmly.', kind: 'info' }],
           },
         ],
       },
@@ -925,7 +936,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.45,
-            then: [{ money: 2500 }, { stat: 'happiness', delta: 6 }, { jobPerformance: 2 }, { log: 'I made my case. My boss "found room in the budget" for a one-time {{$2500}} adjustment.', kind: 'money' }],
+            then: [{ money: 2500 }, { stat: 'happiness', delta: 6 }, { jobPerformance: 2 }, { log: 'I made my case. My boss "found room in the budget" for a one-time adjustment of {{$2500}}.', kind: 'money' }],
             else: [{ stat: 'happiness', delta: -7 }, { jobPerformance: -3 }, { log: 'My boss said pay is confidential and I should not have been listening. I was in an elevator.', kind: 'bad' }],
           },
         ],
@@ -981,7 +992,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.4,
-            then: [{ money: 2000 }, { jobPerformance: 3 }, { stat: 'happiness', delta: 5 }, { log: 'I made my case with numbers. The raise is "under review," but a {{$2000}} bonus came through.', kind: 'money' }],
+            then: [{ money: 2000 }, { jobPerformance: 3 }, { stat: 'happiness', delta: 5 }, { log: 'I made my case with numbers. The raise is "under review," but a bonus of {{$2000}} came through.', kind: 'money' }],
             else: [{ jobPerformance: -3 }, { stat: 'happiness', delta: -3 }, { log: 'I asked. The answer was a long sentence that ended in "next cycle."', kind: 'bad' }],
           },
         ],
@@ -1167,6 +1178,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
       {
         id: 'talk',
         label: 'Talk to my manager',
+        // A manager above me: not an owner, the top rung, an elected seat, a bench or a rank (as ad_burnout's 'talk').
+        conditions: [ANSWERS_TO_A_BOSS],
         effects: [
           {
             chance: 0.55,
@@ -1281,7 +1294,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     weight: 0.8,
     // A corporate retreat for desk teams; the same facilitator and ropes course rest more than half the age range (CONTENT_STYLE).
     cooldown: 26,
-    conditions: [{ hasJob: true }, { partTime: false }, DESK_WORK],
+    // {{company}} sends me on it: not the CEO or managing partner who signs off on it (HAS_A_BOSS).
+    conditions: [{ hasJob: true }, { partTime: false }, DESK_WORK, HAS_A_BOSS],
     choices: [
       {
         id: 'allin',
@@ -1330,7 +1344,9 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     weight: 1,
     // The same laminated schedule and rebuttal: once or twice in a working life (CONTENT_STYLE).
     cooldown: 27,
-    conditions: [{ hasJob: true }, { jobCategory: ['office', 'tech', 'finance', 'law', 'education', 'science', 'creative'] }],
+    // Someone put me on it, and the office manager can put me on it three times: not the CEO at the top, a judge or a
+    // council member (ANSWERS_TO_A_BOSS).
+    conditions: [{ hasJob: true }, { jobCategory: ['office', 'tech', 'finance', 'law', 'education', 'science', 'creative'] }, ANSWERS_TO_A_BOSS],
     choices: [
       {
         id: 'comply',
@@ -1621,6 +1637,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
       {
         id: 'leverage',
         label: 'Use it as leverage',
+        // "My boss matched it": someone above me to match it (not the top rung).
+        conditions: [HAS_A_BOSS],
         effects: [
           {
             chance: 0.5,

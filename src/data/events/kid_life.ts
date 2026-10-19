@@ -331,6 +331,8 @@ export const KID_LIFE_EVENTS: EventDef[] = [
     maxAge: 12,
     weight: 0.4,
     once: true,
+    // An appendix comes out once: not after appendicitis was had (the engine's roll) or health_events' hl_appendix_pain.
+    conditions: [{ flag: 'had:appendicitis', exists: false }, { eventNotFired: 'hl_appendix_pain' }],
     person: PARENTS,
     choices: [
       {

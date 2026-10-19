@@ -292,7 +292,8 @@ export const HEALTH_EVENTS: EventDef[] = [
     maxAge: 45,
     weight: 0.5,
     once: true,
-    conditions: [{ hasPerson: ['mother'] }, { inPrison: false }],
+    // An appendix comes out once: not after appendicitis was had (the engine's roll) or kid_life's kl_appendicitis.
+    conditions: [{ hasPerson: ['mother'] }, { inPrison: false }, { flag: 'had:appendicitis', exists: false }, { eventNotFired: 'kl_appendicitis' }],
     choices: [
       {
         id: 'er',
@@ -316,7 +317,7 @@ export const HEALTH_EVENTS: EventDef[] = [
             then: [{ stat: 'happiness', delta: 1 }, { log: 'It passed by morning. I will never know what it was and I am choosing not to think about it.' }],
             else: [
               { chance: 0.03, then: [{ death: 'a burst appendix' }] },
-              { illness: 'appendicitis' },
+              // The surgery is the line below: the appendix is out, so no illness is left to treat.
               { injury: 10 },
               { money: -5000 },
               { counter: 'surgeries' },
@@ -334,7 +335,7 @@ export const HEALTH_EVENTS: EventDef[] = [
           {
             random: [
               { weight: 6, effects: [{ money: -2500 }, { counter: 'surgeries' }, { injury: 4 }, { relationship: 'mother', delta: 4 }, { log: '{{mother}} took one look and drove me straight to the hospital. Appendicitis, out the same night.', kind: 'milestone' }] },
-              { weight: 4, effects: [{ illness: 'appendicitis' }, { injury: 10 }, { money: -5000 }, { counter: 'surgeries' }, { stat: 'happiness', delta: -6 }, { log: '{{mother}} said it was something I ate. It was not. It burst two days later.', kind: 'bad' }] },
+              { weight: 4, effects: [{ injury: 10 }, { money: -5000 }, { counter: 'surgeries' }, { stat: 'happiness', delta: -6 }, { log: '{{mother}} said it was something I ate. It was not. It burst two days later: emergency surgery.', kind: 'bad' }] },
             ],
           },
         ],

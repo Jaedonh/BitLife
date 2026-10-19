@@ -67,13 +67,23 @@ export const INTERACTIONS: readonly InteractionDef[] = [
   { id: 'walk', label: 'Go for a walk', emoji: '🐕', kinds: ['pet'], species: ['dog'], minAge: 6, energy: 0, perYear: 3 },
 ];
 
+/** The person no longer lives far away (a partner who moves in at the wedding). */
+function withoutFarAway(state: GameState, id: string): GameState {
+  const p = state.people[id];
+  if (!p?.farAway) return state;
+  const near: Person = { ...p };
+  delete near.farAway;
+  return { ...state, people: { ...state.people, [id]: near } };
+}
+
 /** What still works from a cell: a phone call or the visiting room. */
 const PRISON_INTERACTIONS: ReadonlySet<InteractionId> = new Set(['conversation', 'compliment', 'insult', 'breakUp']);
 /**
  * What only works in the same room. Someone who lives far away (a friend or grandparent left behind by a move
- * abroad, `farAway`) is not offered these; everything else reaches them by phone, mail or a bank transfer.
+ * abroad, `farAway`, or a partner left behind by a move to another city: no baby by phone) is not offered these;
+ * everything else reaches them by phone, mail or a bank transfer.
  */
-const IN_PERSON: ReadonlySet<InteractionId> = new Set(['spendTime', 'visit', 'date', 'playWith', 'walk']);
+const IN_PERSON: ReadonlySet<InteractionId> = new Set(['spendTime', 'visit', 'date', 'haveChild', 'playWith', 'walk']);
 /** Romantic acts, gated on both ages (see romance.ts); marriage and children need two adults. */
 const ROMANTIC: ReadonlySet<InteractionId> = new Set(['date', 'propose', 'haveChild']);
 
@@ -325,6 +335,8 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
         return setResult(s, text, 'bad');
       }
       s = updatePerson(s, personId, { kind: 'spouse', marriedAtAge: s.character.age, ...takeSurname(person, rng.chance(0.5), s.character.lastName) });
+      // A spouse never lives far away: one met far from home (or left behind by a move) moves in at the wedding.
+      if (person.farAway) s = withoutFarAway(s, personId);
       s = adjustRelationship(s, personId, 10);
       s = bump(s, 'marriages');
       s = addStats(s, { happiness: 15 });

@@ -9,7 +9,7 @@ import { markChildMilestone } from '../systems/family';
 import { payForMinor } from '../systems/guardians';
 import { onParole, revokeParole, settleParole, settleTrial, stayLength, verdictNote } from '../systems/justice';
 import { markDeath } from '../systems/death';
-import { ADULT_AGE, clampRange, griefFactor, markBereaved, partnerAgeRange, tooSoonLine } from '../systems/romance';
+import { ADULT_AGE, clampRange, griefFactor, markBereaved, partnerAgeRange, partnerGender, tooSoonLine } from '../systems/romance';
 import type { GameState, Illness, JobHistoryEntry, Person } from '../types';
 import { addKarma, addMoney, addStats, bump, clampStat, clearCoupleFlags, incFlag, log, setFlag, withFame } from '../util';
 import { settleHomeWithParents } from './conditions';
@@ -148,11 +148,21 @@ function griefBlocks(state: GameState, np: NewPersonSpec): boolean {
  * The age range for a person an event introduces, or null when nobody of that kind can join the life now.
  * Partners follow the legal-age band (romance.ts), and none joins the life in prison or in the year of losing one.
  * A step-parent is about the age of the parent they marry, and always at least 16 years older than the player.
- * Content ranges are kept where they fit those bands.
+ * Content ranges are kept where they fit those bands. Without one the person is about my age (four years either
+ * way); a card that gives only `minAge` (or only `maxAge`) sets a floor (or a ceiling) on that, so "minAge: 18" for a
+ * grown-up stranger does not make a 70-year-old's new friend anyone from 18 up.
  */
 function newPersonAgeRange(state: GameState, np: NewPersonSpec, bound: Person | undefined): [number, number] | null {
   const me = state.character.age;
-  const range: [number, number] = [np.minAge ?? Math.max(1, me - 4), np.maxAge ?? me + 4];
+  const near: [number, number] = [Math.max(1, me - 4), me + 4];
+  const range: [number, number] =
+    np.minAge !== undefined && np.maxAge !== undefined
+      ? [np.minAge, np.maxAge]
+      : np.minAge !== undefined
+        ? [Math.max(np.minAge, near[0]), Math.max(np.minAge, near[1])]
+        : np.maxAge !== undefined
+          ? [Math.min(np.maxAge, near[0]), Math.min(np.maxAge, near[1])]
+          : near;
   if (np.kind === 'lover' || np.kind === 'spouse') {
     const band = state.crime.inPrison || griefFactor(state) === 0 ? null : partnerAgeRange(me);
     return band && clampRange(range, band);
@@ -274,10 +284,13 @@ export function applyEffect(state: GameState, rng: Rng, e: Effect, ctx: EffectCo
     // A baby belongs to the partner the event is about, else to the player's current partner.
     const boundPartner = person?.alive && (person.kind === 'lover' || person.kind === 'spouse') ? person : undefined;
     const otherParent = np.kind === 'child' ? (boundPartner ?? currentPartner(s)) : undefined;
-    // A coworker an event introduces holds a post on the player's own career ladder, like the ones a hire brings.
-    const occupation = np.kind === 'coworker' && s.career.job ? coworkerTitle(rng, s.career.job, s) : np.occupation && age >= 18 ? np.occupation : undefined;
+    // A coworker an event introduces holds a post on the player's own career ladder, like the ones a hire brings, one
+    // that fits the age the card drew (a new hire of 25 is not the chief).
+    const occupation = np.kind === 'coworker' && s.career.job ? coworkerTitle(rng, s.career.job, s, age) : np.occupation && age >= 18 ? np.occupation : undefined;
+    // A partner a card brings follows the player's leaning, as the yearly roll does (romance.ts): one draw either way.
+    const gender = np.gender ?? (np.kind === 'lover' || np.kind === 'spouse' ? partnerGender(rng, s) : undefined);
     const p = makePerson(rng, {
-      kind: np.kind, age, countryCode: s.character.countryCode, playerAge: s.character.age, relationship: np.relationship ?? rng.int(45, 80), gender: np.gender, species: np.species,
+      kind: np.kind, age, countryCode: s.character.countryCode, playerAge: s.character.age, relationship: np.relationship ?? rng.int(45, 80), gender, species: np.species,
       // Nor a name this year's journal mentions: someone who left since the birthday is not met again under it.
       occupation, taken: new Set([...(ctx.reservedNames ?? []), ...namesInLife(s), ...namesInJournalThisYear(s)]),
       lastName: np.kind === 'child' || np.kind === 'sibling' ? s.character.lastName : undefined,

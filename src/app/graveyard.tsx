@@ -131,7 +131,7 @@ function GraveCard({ entry, onPress }: { entry: GraveyardEntry; onPress: () => v
           {country.flag} {entry.birthYear}–{entry.deathYear} · {entry.age === 0 ? 'under a year old' : `aged ${entry.age}`} · gen {entry.generation}
         </Text>
         <Text style={typography.small} numberOfLines={1}>
-          <Text style={styles.ribbonInline}>{ribbon?.name ?? entry.ribbonId}</Text> · {formatMoney(entry.netWorth, entry.countryCode)}
+          <Text style={styles.ribbonInline}>{ribbon?.name ?? entry.ribbonId}</Text> · {formatMoney(entry.netWorth, entry.countryCode, entry.deathYear)}
         </Text>
       </View>
       <Text style={styles.chevron}>›</Text>
@@ -191,7 +191,7 @@ function GraveDetails({ entry, graveyard, game }: { entry: GraveyardEntry; grave
         <T kind="label">FAMILY</T>
         <KV label="Generation" value={String(entry.generation)} />
         <KV label="Country" value={`${country.flag} ${country.name}`} />
-        <KV label="Net worth" value={formatMoneyFull(entry.netWorth, entry.countryCode)} />
+        <KV label="Net worth" value={formatMoneyFull(entry.netWorth, entry.countryCode, entry.deathYear)} />
         {children.length ? <KV label="Left behind" value={children.map((p) => `${p.firstName} (${heirLabel(p).toLowerCase()}, ${p.age})`).join(', ')} /> : null}
       </View>
 

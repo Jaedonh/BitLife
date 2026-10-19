@@ -1946,7 +1946,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
       {
         id: 'insurance',
         label: 'File an insurance claim',
-        hint: '{{$1000}} deductible',
+        hint: '{{$1000}} for the deductible',
         effects: [
           { asset: 'damage', kind: 'house', amount: 10 },
           {
@@ -2018,7 +2018,7 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
       {
         id: 'insurance',
         label: 'Swap insurance details',
-        hint: '{{$500}} deductible',
+        hint: '{{$500}} for the deductible',
         effects: [{ money: -500 }, { karma: 1 }, { stat: 'happiness', delta: -2 }, { log: 'We swapped details politely. My premium went up, and so did my blood pressure.', kind: 'money' }],
       },
       {

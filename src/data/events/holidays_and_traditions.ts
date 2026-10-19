@@ -1,3 +1,4 @@
+import { ANSWERS_TO_A_BOSS } from '@/data/events/work_life';
 import type { EventDef } from '@/engine/events/schema';
 
 /**
@@ -109,12 +110,10 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
         ],
       },
       {
+        // A dinner at home costs nothing: a second free choice, so a broke birthday is still a real one (CONTENT_STYLE).
         id: 'dinner',
         label: 'Quiet dinner with family',
-        hint: '{{$60}}',
-        conditions: [{ money: { gte: 60 } }],
         effects: [
-          { money: -60, payer: 'self' },
           { stat: 'happiness', delta: 4 },
           { relationship: 'mother', delta: 3 },
           { relationship: 'father', delta: 3 },
@@ -1416,6 +1415,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
       {
         id: 'network',
         label: 'Work the room',
+        // Talking to the boss: someone has to be above me (not the owner, the top rung, an office, a bench or a rank).
+        conditions: [ANSWERS_TO_A_BOSS],
         effects: [
           {
             chance: 0.6,
@@ -1444,7 +1445,7 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 3 },
           {
             chance: 0.4,
-            then: [{ jobPerformance: -8 }, { stat: 'happiness', delta: -5 }, { log: 'I told a senior manager what I really thought of the new logo. In detail. Monday will be a long day.', kind: 'bad' }],
+            then: [{ jobPerformance: -8 }, { stat: 'happiness', delta: -5 }, { log: "I told the new logo's designer what I really thought of it. In detail. Monday will be a long day.", kind: 'bad' }],
             else: [{ relationship: 'coworker', delta: 3 }, { log: 'I had a few too many and told everyone I loved them. Forgiven, mostly, by Monday, and oddly popular.' }],
           },
         ],
@@ -1469,7 +1470,8 @@ export const HOLIDAYS_AND_TRADITIONS_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1.2,
     cooldown: 3,
-    conditions: [{ hasJob: true }, { inPrison: false }],
+    // A manager filling a holiday rota: not for the owner or the top rung, an elected seat, a bench or a rank.
+    conditions: [{ hasJob: true }, { inPrison: false }, ANSWERS_TO_A_BOSS],
     choices: [
       {
         id: 'take',

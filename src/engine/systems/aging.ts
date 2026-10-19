@@ -161,14 +161,16 @@ function lossPhrase(state: GameState, lost: readonly Person[]): string {
 
 /**
  * A first name and surname for someone joining the family, not shared with anyone already in it (a few draws),
- * from the names of `countryCode`.
+ * from the names of `countryCode`. Nobody's first name is their own surname (a few names are in both pools): an
+ * uncle from the Bello side is never Bello Bello.
  */
 function freshName(rng: Rng, state: GameState, p: Person, countryCode: string, surname?: string): void {
   const taken = new Set([state.character.firstName, ...Object.values(state.people).map((x) => x.firstName)]);
-  for (let i = 0; i < 6 && taken.has(p.firstName); i++) p.firstName = randomName(rng, p.gender, countryCode).firstName;
+  const own = surname ?? p.lastName;
+  for (let i = 0; i < 6 && (taken.has(p.firstName) || p.firstName === own); i++) p.firstName = randomName(rng, p.gender, countryCode, own).firstName;
   if (surname) p.lastName = surname;
   // A foster family is not the child's own: a shared surname would read as a relative.
-  else for (let i = 0; i < 6 && p.lastName === state.character.lastName; i++) p.lastName = randomName(rng, p.gender, countryCode).lastName;
+  else for (let i = 0; i < 6 && (p.lastName === state.character.lastName || p.lastName === p.firstName); i++) p.lastName = randomName(rng, p.gender, countryCode).lastName;
 }
 
 /**

@@ -628,6 +628,18 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
         ],
       },
       {
+        // Free: a second choice for a player with no commissary money (CONTENT_STYLE).
+        id: 'plan',
+        label: 'Plan a real beach trip',
+        effects: [
+          {
+            chance: 0.6,
+            then: [{ relationship: 'person', delta: 3 }, { stat: 'happiness', delta: 4 }, { log: '{{person}} and I planned a beach trip for when I am out. We argued about sunscreen like free people.', kind: 'good' }],
+            else: [{ stat: 'happiness', delta: -3 }, { log: 'Talking about a real beach made the painted one worse. We both went quiet until time was called.', kind: 'bad' }],
+          },
+        ],
+      },
+      {
         id: 'skip',
         label: 'Skip it and just talk',
         effects: [{ relationship: 'person', delta: 3 }, { stat: 'happiness', delta: 1 }, { log: 'I did not want a picture of me in here. We talked the whole hour, facing the painted beach.', kind: 'info' }],
@@ -1351,7 +1363,7 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
       {
         id: 'file',
         label: 'Fill out all eleven pages',
-        hint: '{{$100}} filing fee',
+        hint: '{{$100}} to file',
         conditions: [{ money: { gte: 100 } }],
         effects: [{ money: -100 }, { stat: 'smarts', delta: 2 }, { stat: 'happiness', delta: 3 }, { flag: 'pl_record_petition', set: true }, { log: 'I filled in all eleven pages and filed them. Now I wait, which I am good at.', kind: 'good' }],
       },
@@ -1366,6 +1378,18 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
             chance: 0.6,
             then: [{ stat: 'happiness', delta: 5 }, { log: 'The lawyer said my odds are decent, in a few years. Decent is the best word I have heard lately.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -3 }, { log: 'The lawyer said mine is the kind of record that stays. {{$600}} to learn the word "ineligible."', kind: 'bad' }],
+          },
+        ],
+      },
+      {
+        // Free: the clinic can waive the fee, sometimes (a second choice for a player without the {{$100}}).
+        id: 'waiver',
+        label: 'Ask for a fee waiver',
+        effects: [
+          {
+            chance: 0.4,
+            then: [{ stat: 'happiness', delta: 2 }, { flag: 'pl_record_petition', set: true }, { log: 'The clinic got the fee waived. I filled in all eleven pages and filed them for nothing.', kind: 'good' }],
+            else: [{ stat: 'happiness', delta: -3 }, { log: 'The waiver had its own form, which needed a document I do not have. The pamphlet went in a drawer.', kind: 'bad' }],
           },
         ],
       },

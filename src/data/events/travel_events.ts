@@ -1,4 +1,5 @@
 import { DESK_JOB } from '@/data/events/technology_and_media';
+import { ANSWERS_TO_A_BOSS, NOT_ELECTED_OR_ENLISTED } from '@/data/events/work_life';
 import type { Condition, EventDef } from '@/engine/events/schema';
 
 /**
@@ -812,7 +813,8 @@ export const TRAVEL_EVENTS: EventDef[] = [
     maxAge: 55,
     weight: 0.6,
     once: true,
-    conditions: [{ inPrison: false }, NOT_ON_PAROLE, { hasJob: true }, DESK_JOB, { money: { gte: 12000 } }],
+    // Unpaid leave or quitting for six months: a job, not an elected seat, a judgeship or a commission.
+    conditions: [{ inPrison: false }, NOT_ON_PAROLE, { hasJob: true }, DESK_JOB, NOT_ELECTED_OR_ENLISTED, { money: { gte: 12000 } }],
     choices: [
       {
         id: 'quit',
@@ -1184,7 +1186,8 @@ export const TRAVEL_EVENTS: EventDef[] = [
     maxAge: 65,
     weight: 1.2,
     cooldown: 23,
-    conditions: [{ inPrison: false }, NOT_ON_PAROLE, { hasJob: true }, DESK_JOB],
+    // {{company}} sends me, and my boss (and my boss's boss) are about: not the top rung, an elected seat or a bench.
+    conditions: [{ inPrison: false }, NOT_ON_PAROLE, { hasJob: true }, DESK_JOB, ANSWERS_TO_A_BOSS],
     // A current coworker only (coworkers belong to the job I hold now).
     person: { kind: ['coworker'] },
     choices: [

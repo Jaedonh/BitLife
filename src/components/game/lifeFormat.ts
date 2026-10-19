@@ -69,21 +69,24 @@ export function statPills(deltas: Partial<Stats> | undefined): Pill[] {
   return out;
 }
 
-/** A signed amount in the life's local currency ("+£1,200", "−€680"). Compact for big sums. */
-export function moneyText(amount: number, countryCode: string, compact = false): string {
-  const body = compact ? formatMoney(Math.abs(amount), countryCode) : formatMoneyFull(Math.abs(amount), countryCode);
+/**
+ * A signed amount in the life's local currency ("+£1,200", "−€680"). Compact for big sums. With the year, in the
+ * currency of that year ("+1,800 lire" before the euro), as the journal shows it.
+ */
+export function moneyText(amount: number, countryCode: string, compact = false, year?: number): string {
+  const body = compact ? formatMoney(Math.abs(amount), countryCode, year) : formatMoneyFull(Math.abs(amount), countryCode, year);
   return `${amount > 0 ? '+' : amount < 0 ? '−' : ''}${body}`;
 }
 
-export function moneyPill(key: string, amount: number, countryCode: string, opts: { label?: string; compact?: boolean } = {}): Pill | null {
+export function moneyPill(key: string, amount: number, countryCode: string, opts: { label?: string; compact?: boolean; year?: number } = {}): Pill | null {
   if (!amount) return null;
-  const value = moneyText(amount, countryCode, opts.compact);
+  const value = moneyText(amount, countryCode, opts.compact, opts.year);
   return {
     key,
     label: opts.label,
     value,
     tone: amount > 0 ? 'up' : 'down',
-    a11y: `${opts.label ?? 'Money'} ${amount > 0 ? 'up' : 'down'} ${formatMoneyFull(Math.abs(amount), countryCode)}`,
+    a11y: `${opts.label ?? 'Money'} ${amount > 0 ? 'up' : 'down'} ${formatMoneyFull(Math.abs(amount), countryCode, opts.year)}`,
   };
 }
 

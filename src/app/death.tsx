@@ -70,6 +70,7 @@ export default function DeathScreen() {
                 heir={h}
                 inheritance={inheritance}
                 countryCode={c.countryCode}
+                year={game.year}
                 locked={!canContinue}
                 onPress={
                   canContinue
@@ -140,7 +141,7 @@ export default function DeathScreen() {
           </Card>
           <Card style={styles.card} testID="life-in-numbers">
             <T kind="label">LIFE IN NUMBERS</T>
-            <Stat label="Net worth" value={formatMoneyFull(d.netWorth, c.countryCode)} />
+            <Stat label="Net worth" value={formatMoneyFull(d.netWorth, c.countryCode, game.year)} />
             <Stat label="Country" value={`${country.flag} ${country.name}`} />
             <Stat label="Generation" value={String(game.generation)} />
             <Stat label="Jobs held" value={String(game.counters.jobsHeld)} />

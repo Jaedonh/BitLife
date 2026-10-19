@@ -68,7 +68,7 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
       {
         id: 'find',
         label: "Let's find a place",
-        hint: '{{$1500}} deposit',
+        hint: '{{$1500}} for the deposit',
         effects: [
           { money: -1500 },
           { flag: 'lf_living_together', set: true },
@@ -107,7 +107,9 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 50,
     weight: 1,
-    cooldown: 4,
+    // The same handshake, questions and judging dog: it rests more than half its age range (CONTENT_STYLE), so a
+    // second partner's family can still have me over, decades later, but never a third.
+    cooldown: 18,
     // The same Sunday-lunch scene as young_adult's ya_meet_the_parents and prison_life's pl_meet_parents: years apart.
     // A first visit belongs early in a relationship: a partner of at most three years (so never a couple together for a
     // decade, nor the same partner twice, with the cooldown), and not someone I see behind a spouse's back.
@@ -1544,6 +1546,18 @@ export const LOVE_AND_FAMILY_EVENTS: EventDef[] = [
         hint: '{{$3000}}',
         conditions: [{ money: { gte: 3000 } }],
         effects: [{ childMilestone: 'married' }, { money: -3000 }, { relationship: 'person', delta: 8 }, { stat: 'happiness', delta: 5 }, { log: "I chipped in what I could. It covered the cake and the band, and the wedding was lovely.", kind: 'good' }],
+      },
+      {
+        // Time instead of money: a second free choice, so a parent with nothing to give still has a real one.
+        id: 'plan',
+        label: 'Help plan it instead',
+        effects: [
+          { childMilestone: 'married' },
+          { energy: -1 },
+          { relationship: 'person', delta: 6 },
+          { stat: 'happiness', delta: -1 },
+          { log: 'Every weekend I folded place cards and argued with caterers. {{person}} called me the real planner.', kind: 'good' },
+        ],
       },
       {
         id: 'speech',

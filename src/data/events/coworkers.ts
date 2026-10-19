@@ -538,7 +538,8 @@ export const COWORKERS_EVENTS: EventDef[] = [
     weight: 1,
     cooldown: 4,
     conditions: [...FULL_TIME, SHIFT_WORK, NOT_A_MANAGER],
-    person: { kind: ['coworker'], minAge: 24 },
+    // Small kids at home who need watching before nine: a parent of young children, not a coworker of 67.
+    person: { kind: ['coworker'], minAge: 24, maxAge: 50 },
     choices: [
       {
         id: 'all',
@@ -1281,7 +1282,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
     id: 'cw_gift_exchange',
     category: 'work',
     title: 'The gift exchange',
-    text: 'The holiday gift exchange at work has a {{$25}} limit, and I drew {{person}}. I know exactly one thing about {{them}}: {{they}} owns a very large mug, and {{they}} guards it.',
+    text: 'The holiday gift exchange at work has a limit of {{$25}}, and I drew {{person}}. I know exactly one thing about {{them}}: {{they}} owns a very large mug, and {{they}} guards it.',
     minAge: 18,
     maxAge: 75,
     weight: 1,
@@ -1429,7 +1430,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
     maxAge: 75,
     weight: 1,
     cooldown: 6,
-    // A boss assigns the new hire: not a judge (as cw_new_boss).
+    // A boss assigns the new hire: not a judge (as cw_new_boss). The new hire is early in their career (20-40).
     conditions: [...FULL_TIME, NOT_GIG, CIVILIAN, HAS_A_BOSS, { jobLevel: { gte: 1 } }, { not: { jobId: ['judge'] } }],
     choices: [
       {
@@ -1439,7 +1440,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
           { energy: -1 },
           { karma: 2 },
           { jobPerformance: 3 },
-          { newPerson: { kind: 'coworker', relationship: 75, log: 'I taught {{person}} everything I know. Now {{they}} teaches me things, which is the point.' } },
+          { newPerson: { kind: 'coworker', relationship: 75, minAge: 20, maxAge: 40, log: 'I taught {{person}} everything I know. Now {{they}} teaches me things, which is the point.' } },
         ],
       },
       {
@@ -1448,7 +1449,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
         effects: [
           { stat: 'smarts', delta: 1 },
           { jobPerformance: 1 },
-          { newPerson: { kind: 'coworker', relationship: 60, log: 'I thanked {{person}} for catching my mistake. {{They}} looked stunned, then relieved.' } },
+          { newPerson: { kind: 'coworker', relationship: 60, minAge: 20, maxAge: 40, log: 'I thanked {{person}} for catching my mistake. {{They}} looked stunned, then relieved.' } },
         ],
       },
       {
@@ -1459,11 +1460,11 @@ export const COWORKERS_EVENTS: EventDef[] = [
             chance: 0.5,
             then: [
               { jobPerformance: 4 },
-              { newPerson: { kind: 'coworker', relationship: 70, log: '{{person}} ran the project brilliantly and credited me in the meeting. Mentoring is easy.' } },
+              { newPerson: { kind: 'coworker', relationship: 70, minAge: 20, maxAge: 40, log: '{{person}} ran the project brilliantly and credited me in the meeting. Mentoring is easy.' } },
             ],
             else: [
               { jobPerformance: -4 },
-              { newPerson: { kind: 'coworker', relationship: 60, log: '{{person}} ran the project into a wall. We fixed it together, late, and became friends.' } },
+              { newPerson: { kind: 'coworker', relationship: 60, minAge: 20, maxAge: 40, log: '{{person}} ran the project into a wall. We fixed it together, late, and became friends.' } },
             ],
           },
         ],
@@ -1473,7 +1474,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
         label: 'Hand over the manual',
         effects: [
           { stat: 'happiness', delta: 2 },
-          { newPerson: { kind: 'coworker', relationship: 40, log: 'I gave {{person}} the manual {{they}} had already read. {{They}} asks other people now.' } },
+          { newPerson: { kind: 'coworker', relationship: 40, minAge: 20, maxAge: 40, log: 'I gave {{person}} the manual {{they}} had already read. {{They}} asks other people now.' } },
         ],
       },
     ],

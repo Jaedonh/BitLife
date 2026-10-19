@@ -57,13 +57,13 @@ export function ScreenHeader({ title, subtitle, onBack, showMoney }: { title: st
         ) : null}
       </View>
       {money ? (
-        <View style={styles.moneyCol} accessible accessibilityLabel={`${formatMoney(money.finances.cash, money.character.countryCode)} cash${debt > 0 ? `, ${formatMoney(debt, money.character.countryCode)} debt` : ''}`}>
+        <View style={styles.moneyCol} accessible accessibilityLabel={`${formatMoney(money.finances.cash, money.character.countryCode, money.year)} cash${debt > 0 ? `, ${formatMoney(debt, money.character.countryCode, money.year)} debt` : ''}`}>
           <Text style={styles.money} testID="header-money">
-            {formatMoney(money.finances.cash, money.character.countryCode)}
+            {formatMoney(money.finances.cash, money.character.countryCode, money.year)}
           </Text>
           {debt > 0 ? (
             <Text style={styles.debt} testID="header-debt">
-              {formatMoney(debt, money.character.countryCode)} debt
+              {formatMoney(debt, money.character.countryCode, money.year)} debt
             </Text>
           ) : null}
         </View>

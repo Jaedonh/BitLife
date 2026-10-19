@@ -122,13 +122,20 @@ describe('feedback toasts', () => {
     expect(toastFromResult({ text: '2011 · Age 12', kind: 'year', statDeltas: {} }, g, null, 2)).toBeNull();
   });
 
-  it('says when an action was paid for on credit', () => {
-    const before = life(5, 'FR');
+  it('says when an action was paid for on credit, in the currency of the year', () => {
+    const before = { ...life(5, 'FR'), year: 2010 };
     const after = { ...before, finances: { ...before.finances, debt: before.finances.debt + 680 } };
     const t = toastFromResult({ text: 'Paid the audit.', kind: 'bad', moneyDelta: -680 }, after, before, 1)!;
     expect(t.pills.map((p) => [p.key, p.value])).toEqual([
       ['money', '−€626'],
       ['credit', '€626'],
+    ]);
+    // Before the euro notes of 2002 a French life pays in francs, as its journal does.
+    const old = { ...after, year: 1990 };
+    const f = toastFromResult({ text: 'Paid the audit.', kind: 'bad', moneyDelta: -680 }, old, { ...before, year: 1990 }, 2)!;
+    expect(f.pills.map((p) => [p.key, p.value])).toEqual([
+      ['money', '−4,100 francs'],
+      ['credit', '4,100 francs'],
     ]);
   });
 });

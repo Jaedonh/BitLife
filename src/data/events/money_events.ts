@@ -232,7 +232,7 @@ export const MONEY_EVENTS: EventDef[] = [
       {
         id: 'move',
         label: 'Move somewhere cheaper',
-        hint: '{{$900}} moving costs',
+        hint: '{{$900}} in moving costs',
         effects: [
           { money: -900 },
           { stat: 'happiness', delta: -4 },
@@ -350,7 +350,7 @@ export const MONEY_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 2 },
           {
             chance: 0.3,
-            then: [{ money: 100 }, { log: 'I called it in. The clerk was so surprised she sent a {{$100}} thank-you. Honesty sometimes pays.', kind: 'good' }],
+            then: [{ money: 100 }, { log: 'I called it in. The clerk was so surprised she sent {{$100}} as a thank-you. Honesty sometimes pays.', kind: 'good' }],
             else: [{ log: 'I reported it. The money vanished the next day, along with a small weight on my conscience.', kind: 'good' }],
           },
         ],
@@ -389,7 +389,7 @@ export const MONEY_EVENTS: EventDef[] = [
     id: 'mn_scratch_card',
     category: 'money',
     title: 'The joke gift',
-    text: 'As a joke birthday present, {{person}} gave me a {{$40}} gift card for a store that sells only novelty socks. "Don\'t spend it all at once," {{they}} said. It expires next month.',
+    text: 'As a joke birthday present, {{person}} gave me a gift card worth {{$40}} for a store that sells only novelty socks. "Don\'t spend it all at once," {{they}} said. It expires next month.',
     minAge: 18,
     maxAge: 85,
     weight: 0.8,
@@ -401,7 +401,7 @@ export const MONEY_EVENTS: EventDef[] = [
       {
         id: 'scratch',
         label: 'Go spend it',
-        hint: '{{$20}} bus fare',
+        hint: '{{$20}} for the bus',
         effects: [
           { money: -20 },
           {
@@ -706,7 +706,7 @@ export const MONEY_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 3 },
           {
             chance: 0.55,
-            then: [{ money: 1500 }, { stat: 'happiness', delta: 6 }, { jobPerformance: 2 }, { log: 'I asked. My boss blinked, checked a spreadsheet, and found me a {{$1500}} bonus. {{person}} was right.', kind: 'good' }],
+            then: [{ money: 1500 }, { stat: 'happiness', delta: 6 }, { jobPerformance: 2 }, { log: 'I asked. My boss blinked, checked a spreadsheet, and found me a bonus of {{$1500}}. {{person}} was right.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -3 }, { log: 'I asked. My boss said, "Let\'s circle back," which in office terms means no.', kind: 'bad' }],
           },
         ],
@@ -720,7 +720,7 @@ export const MONEY_EVENTS: EventDef[] = [
           { energy: -1 },
           {
             chance: 0.7,
-            then: [{ money: 1200 }, { stat: 'happiness', delta: 5 }, { log: 'I brought numbers. Numbers worked: a {{$1200}} bonus, properly argued.', kind: 'good' }],
+            then: [{ money: 1200 }, { stat: 'happiness', delta: 5 }, { log: 'I brought numbers. Numbers worked: a bonus of {{$1200}}, properly argued.', kind: 'good' }],
             else: [{ log: 'I presented my case beautifully. The bonus pool had already been spent on a new coffee machine.', kind: 'info' }],
           },
         ],

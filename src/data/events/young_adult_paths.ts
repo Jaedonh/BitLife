@@ -198,7 +198,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
       {
         id: 'farm',
         label: 'Work on a farm abroad',
-        hint: '{{$900}} flights',
+        hint: '{{$900}} for flights',
         conditions: [NOT_ON_PAROLE],
         effects: [
           { money: -900 },
@@ -1142,7 +1142,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     id: 'yp_new_management',
     category: 'money',
     title: 'New management',
-    text: 'My building was sold to a company with a logo shaped like a leaf. It renamed the building "The Fernwood," swapped my door key for an app and added a {{$40}} monthly amenity fee. The amenity is a bench.',
+    text: 'My building was sold to a company with a logo shaped like a leaf. It renamed the building "The Fernwood," swapped my door key for an app and added an amenity fee of {{$40}} a month. The amenity is a bench.',
     minAge: 20,
     maxAge: 59,
     weight: 1,
@@ -1463,7 +1463,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
       {
         id: 'court',
         label: 'Take it to small claims',
-        hint: '{{$75}} filing fee',
+        hint: '{{$75}} to file',
         effects: [
           { money: -75 },
           { energy: -1 },

@@ -1,5 +1,6 @@
 import { DESK_JOB } from '@/data/events/technology_and_media';
 import { NOT_ON_PAROLE } from '@/data/events/travel_events';
+import { ANSWERS_TO_A_BOSS } from '@/data/events/work_life';
 import type { EventDef } from '@/engine/events/schema';
 
 /**
@@ -350,8 +351,9 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     maxAge: 26,
     weight: 2,
     once: true,
-    // Not for someone who has moved back in with their parents (ya_move_back_home): that was not a first apartment.
-    conditions: [{ inPrison: false }, { any: [{ hasJob: true }, { enrolled: true }] }, { flag: 'home_with_parents', exists: false }],
+    // Not for anyone who got ya_move_back_home: they were already renting when the rent went up, so a later place
+    // (once the old room is behind them) is not a first apartment either.
+    conditions: [{ inPrison: false }, { any: [{ hasJob: true }, { enrolled: true }] }, { eventNotFired: 'ya_move_back_home' }],
     choices: [
       {
         id: 'party',
@@ -932,7 +934,8 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     maxAge: 29,
     weight: 2,
     cooldown: 5,
-    conditions: [{ hasJob: true }, DESK_JOB],
+    // "My boss heard about it": someone above me (not the top rung, an elected seat or a bench).
+    conditions: [{ hasJob: true }, DESK_JOB, ANSWERS_TO_A_BOSS],
     choices: [
       {
         id: 'work',
@@ -1284,8 +1287,9 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     maxAge: 29,
     weight: 1,
     followUpOnly: true,
-    // Still living back home when it opens (the engine clears home_with_parents once that is over).
-    conditions: [{ inPrison: false }, { flag: 'home_with_parents' }],
+    // Still living back home when it opens (the engine clears home_with_parents once that is over, and atHome is false
+    // the moment a home, a wedding or a partner moved in with ends it): never for someone married or a home owner.
+    conditions: [{ inPrison: false }, { flag: 'home_with_parents' }, { atHome: true }],
     person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {

@@ -49,7 +49,7 @@ export function toastDuration(text: string, title = '', pills = 0): number {
 export function toastFromResult(result: LastResult, game: GameState, prev: GameState | null, id: number): ToastItem | null {
   const cc = game.character.countryCode;
   const pills: Pill[] = statPills(result.statDeltas);
-  const money = moneyPill('money', result.moneyDelta ?? 0, cc, { label: result.kind === 'year' ? 'Cash' : undefined });
+  const money = moneyPill('money', result.moneyDelta ?? 0, cc, { label: result.kind === 'year' ? 'Cash' : undefined, year: game.year });
   if (money) pills.push(money);
   let title: string | undefined;
   let text = result.text;
@@ -62,7 +62,7 @@ export function toastFromResult(result: LastResult, game: GameState, prev: GameS
     if (!text && !pills.length) return null;
   } else if (prev && prev.character.id === game.character.id) {
     const borrowed = game.finances.debt - prev.finances.debt;
-    if (borrowed > 0) pills.push({ key: 'credit', label: 'On credit', value: formatMoneyFull(borrowed, cc), tone: 'down', a11y: `${formatMoneyFull(borrowed, cc)} added to debt` });
+    if (borrowed > 0) pills.push({ key: 'credit', label: 'On credit', value: formatMoneyFull(borrowed, cc, game.year), tone: 'down', a11y: `${formatMoneyFull(borrowed, cc, game.year)} added to debt` });
   }
   return { id, kind: result.kind, title, text, pills, count: 1, duration: toastDuration(text, title, pills.length) };
 }

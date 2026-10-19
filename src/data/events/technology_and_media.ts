@@ -1,3 +1,4 @@
+import { ANSWERS_TO_A_BOSS, NOT_ELECTED_OR_ENLISTED } from '@/data/events/work_life';
 import type { Condition, EventDef } from '@/engine/events/schema';
 
 /**
@@ -996,7 +997,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 65,
     weight: 1,
     once: true,
-    conditions: [{ hasJob: true }, DESK_JOB, { year: { gte: 2010 } }],
+    // HR and "the boss": someone above me (not the top rung, an elected seat or a bench).
+    conditions: [{ hasJob: true }, DESK_JOB, ANSWERS_TO_A_BOSS, { year: { gte: 2010 } }],
     choices: [
       {
         id: 'laugh',
@@ -1037,7 +1039,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 65,
     weight: 1,
     cooldown: 24,
-    conditions: [{ hasJob: true }, DESK_JOB, { year: { gte: 1997 } }],
+    // My manager's monitor and the payroll system: an employee's desk, not a mayor's, a judge's or the CEO's.
+    conditions: [{ hasJob: true }, DESK_JOB, ANSWERS_TO_A_BOSS, { year: { gte: 1997 } }],
     choices: [
       {
         id: 'tell',
@@ -1086,7 +1089,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 65,
     weight: 1.2,
     cooldown: 24,
-    conditions: [{ hasJob: true }, DESK_JOB, { year: { gte: 1997 } }],
+    // A quarterly meeting and a reply-all to the building: a company's, not a council chamber or a courthouse.
+    conditions: [{ hasJob: true }, DESK_JOB, NOT_ELECTED_OR_ENLISTED, { year: { gte: 1997 } }],
     choices: [
       {
         id: 'recall',
@@ -1136,7 +1140,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 65,
     weight: 1.5,
     cooldown: 24,
-    conditions: [{ hasJob: true }, DESK_JOB, { year: { gte: 2010 } }],
+    // The boss mid-sentence on the call: someone above me (not the top rung, an elected seat or a bench).
+    conditions: [{ hasJob: true }, DESK_JOB, ANSWERS_TO_A_BOSS, { year: { gte: 2010 } }],
     choices: [
       {
         id: 'own',

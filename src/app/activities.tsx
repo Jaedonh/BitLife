@@ -46,6 +46,7 @@ export default function ActivitiesScreen() {
   if (!game) return <Redirect href="/" />;
   const boost = canUseRewarded('statBoost');
   const cc = game.character.countryCode;
+  const yr = game.year;
   const age = game.character.age;
   const { energy, energyMax } = game.character;
   const soon = (a: ActivityDef) => a.minAge - age <= PREVIEW_YEARS;
@@ -123,7 +124,7 @@ export default function ActivitiesScreen() {
                     title={a.name}
                     subtitle={avail.available ? a.description : locked ? `Unlocks at ${a.minAge} · ${inYears(a.minAge - age)}` : avail.reason}
                     badges={badges}
-                    value={cost > 0 ? formatMoney(cost, cc) : 'Free'}
+                    value={cost > 0 ? formatMoney(cost, cc, yr) : 'Free'}
                     valueColor={cost > 0 ? colors.money : colors.textMuted}
                     onPress={() => act({ type: 'activity', id: a.id })}
                     disabled={!avail.available}

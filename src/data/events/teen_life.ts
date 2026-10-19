@@ -456,7 +456,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     id: 'tl_scam_dm',
     category: 'money',
     title: 'Easy money',
-    text: 'A message from an account with no followers: "Earn {{$500}} a week from your phone! No experience needed! Just pay the {{$25}} starter fee and send your login." The profile picture is a sports car parked in front of a different sports car.',
+    text: 'A message from an account with no followers: "Earn {{$500}} a week from your phone! No experience needed! Just pay a starter fee of {{$25}} and send your login." The profile picture is a sports car parked in front of a different sports car.',
     minAge: 13,
     maxAge: 17,
     weight: 1.5,

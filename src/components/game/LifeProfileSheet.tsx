@@ -12,9 +12,9 @@ import { colors, lifeTints, radius, spacing, typography, violetSoft } from '@/th
 import { avatarFor, scenarioChipText, zodiacGlyph } from './lifeFormat';
 import { lifeStatus } from './StatsHeader';
 
-function MoneyRow({ label, amount, cc, tone, strong, testID }: { label: string; amount: number; cc: string; tone?: 'up' | 'down'; strong?: boolean; testID?: string }) {
+function MoneyRow({ label, amount, cc, year, tone, strong, testID }: { label: string; amount: number; cc: string; year: number; tone?: 'up' | 'down'; strong?: boolean; testID?: string }) {
   const color = tone === 'down' ? colors.danger : tone === 'up' ? colors.money : colors.text;
-  const value = `${tone === 'down' && amount > 0 ? '−' : amount < 0 ? '−' : ''}${formatMoneyFull(Math.abs(amount), cc)}`;
+  const value = `${tone === 'down' && amount > 0 ? '−' : amount < 0 ? '−' : ''}${formatMoneyFull(Math.abs(amount), cc, year)}`;
   return (
     <View style={[styles.moneyRow, strong && styles.moneyRowStrong]} testID={testID} accessible accessibilityLabel={`${label} ${value}`}>
       <Text style={[styles.moneyLabel, strong && styles.moneyLabelStrong]}>{label}</Text>
@@ -138,13 +138,13 @@ export function LifeProfileSheet({ game, visible, onClose }: { game: GameState; 
 
             <Heading>Money</Heading>
             <View style={styles.money}>
-              <MoneyRow label="Cash" amount={f.cash} cc={cc} tone="up" testID="profile-cash" />
-              {investments ? <MoneyRow label="Investments" amount={investments} cc={cc} /> : null}
-              {property ? <MoneyRow label="Property & vehicles" amount={property} cc={cc} /> : null}
-              {mortgages ? <MoneyRow label="Mortgages" amount={mortgages} cc={cc} tone="down" /> : null}
-              <MoneyRow label="Debt" amount={Math.max(0, f.debt)} cc={cc} tone={f.debt > 0 ? 'down' : undefined} testID="profile-debt" />
-              {game.education.studentDebt > 0 ? <MoneyRow label="Student loans" amount={game.education.studentDebt} cc={cc} tone="down" /> : null}
-              <MoneyRow label="Net worth" amount={worth} cc={cc} tone={worth < 0 ? 'down' : 'up'} strong testID="profile-networth" />
+              <MoneyRow label="Cash" amount={f.cash} cc={cc} year={game.year} tone="up" testID="profile-cash" />
+              {investments ? <MoneyRow label="Investments" amount={investments} cc={cc} year={game.year} /> : null}
+              {property ? <MoneyRow label="Property & vehicles" amount={property} cc={cc} year={game.year} /> : null}
+              {mortgages ? <MoneyRow label="Mortgages" amount={mortgages} cc={cc} year={game.year} tone="down" /> : null}
+              <MoneyRow label="Debt" amount={Math.max(0, f.debt)} cc={cc} year={game.year} tone={f.debt > 0 ? 'down' : undefined} testID="profile-debt" />
+              {game.education.studentDebt > 0 ? <MoneyRow label="Student loans" amount={game.education.studentDebt} cc={cc} year={game.year} tone="down" /> : null}
+              <MoneyRow label="Net worth" amount={worth} cc={cc} year={game.year} tone={worth < 0 ? 'down' : 'up'} strong testID="profile-networth" />
             </View>
           </ScrollView>
           <Button title="Close" variant="secondary" onPress={onClose} testID="profile-close" style={styles.close} />

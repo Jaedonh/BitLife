@@ -64,7 +64,7 @@ export function commitCrime(state: GameState, rng: Rng, id: string): GameState {
       const text = !minor
         ? `I was caught ${def.gerund} and fined ${money(s, fine)}. It's on my record now.`
         : parentsPay
-          ? `I was caught ${def.gerund}. ${capitalize(parentsRef(s))} had to pay a ${money(s, fine)} fine, and it's on my record now.`
+          ? `I was caught ${def.gerund}. ${capitalize(parentsRef(s))} had to pay a fine of ${money(s, fine)}, and it's on my record now.`
           : `I was caught ${def.gerund}. I was too young to be fined, but it's on my record now.`;
       s = log(s, text, 'bad');
       return setResult(s, text, 'bad', { moneyDelta: minor ? 0 : -fine });

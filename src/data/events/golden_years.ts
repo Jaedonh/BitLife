@@ -1142,7 +1142,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 2 },
           {
             chance: 0.4,
-            then: [{ money: -500 }, { log: 'Somewhere between my questions I agreed to a {{$500}} urn. He is better at this than I am.', kind: 'bad' }],
+            then: [{ money: -500 }, { log: 'Somewhere between my questions I agreed to an urn costing {{$500}}. He is better at this than I am.', kind: 'bad' }],
             else: [{ log: 'I asked to be buried with my good reading glasses, just in case. He wrote it down without blinking.' }],
           },
         ],
@@ -1787,7 +1787,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
           { karma: -4 },
           {
             chance: 0.4,
-            then: [{ arrest: true }, { money: -2000 }, { stat: 'happiness', delta: -10 }, { log: 'The last job was a sting. At my age the handcuffs came with a chair, and a {{$2000}} fine.', kind: 'bad' }],
+            then: [{ arrest: true }, { money: -2000 }, { stat: 'happiness', delta: -10 }, { log: 'The last job was a sting. At my age the handcuffs came with a chair, and a fine of {{$2000}}.', kind: 'bad' }],
             else: [{ money: 1500 }, { counter: 'crimes' }, { stat: 'happiness', delta: 2 }, { log: 'Two old-timers in cardigans, and we pulled it off. I felt alive, then terrified for a month.' }],
           },
         ],
@@ -1908,7 +1908,7 @@ export const GOLDEN_YEARS_EVENTS: EventDef[] = [
           { karma: 2 },
           {
             chance: 0.2,
-            then: [{ money: -400 }, { log: 'We hit the recycling bins once. A {{$400}} bumper later, {{person}} passed anyway.' }],
+            then: [{ money: -400 }, { log: 'We hit the recycling bins once. One bumper and {{$400}} later, {{person}} passed anyway.' }],
             else: [{ stat: 'happiness', delta: 4 }, { log: 'Twelve lessons, two gray hairs, one pass. {{person}} hugged me in the test center lot.', kind: 'good' }],
           },
         ],

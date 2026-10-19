@@ -193,7 +193,11 @@ function leaveCoworkers(state: GameState): GameState {
   const kept: string[] = [];
   for (const p of coworkers) {
     if (p.alive && p.relationship >= COWORKER_FRIEND_AT) {
-      const friend: Person = { ...p, kind: 'friend', farAway: true };
+      // We worked side by side until the move, and said goodbye at it: a silence on their page counts from now (as
+      // settleCoworkers does on a last day), and the goodbye is this year's contact.
+      const age = state.character.age;
+      const memory = { ...p.memory, togetherUntil: age, lastInteractionAge: age, yearsNeglected: 0 };
+      const friend: Person = { ...p, kind: 'friend', farAway: true, memory };
       delete friend.workplace;
       people[p.id] = friend;
       kept.push(p.firstName);

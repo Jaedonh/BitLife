@@ -7,34 +7,37 @@ import type { InteractionTile } from './people';
 
 type Badge = { key: string; text: string; bg: string; color: string };
 
-function badges(tile: InteractionTile, countryCode: string): Badge[] {
+function badges(tile: InteractionTile, countryCode: string, year?: number): Badge[] {
   const out: Badge[] = [];
-  if (tile.cost) out.push({ key: 'cost', text: formatMoney(tile.cost, countryCode), bg: peopleColors.moneyBg, color: colors.money });
+  if (tile.cost) out.push({ key: 'cost', text: formatMoney(tile.cost, countryCode, year), bg: peopleColors.moneyBg, color: colors.money });
   if (tile.def.energy) out.push({ key: 'energy', text: `⚡${tile.def.energy}`, bg: peopleColors.energyBg, color: colors.warning });
   if (tile.usesLeft !== undefined) out.push({ key: 'uses', text: `${tile.usesLeft} left`, bg: peopleColors.usesBg, color: colors.textMuted });
   return out;
 }
 
-/** What a screen reader says for a tile: the action, then its price, energy and uses, or why it is unavailable. */
-export function tileAccessibilityLabel(tile: InteractionTile, countryCode: string): string {
+/**
+ * What a screen reader says for a tile: the action, then its price (in the year's currency), energy and uses, or why it
+ * is unavailable.
+ */
+export function tileAccessibilityLabel(tile: InteractionTile, countryCode: string, year?: number): string {
   const { def } = tile;
   if (!tile.available) return `${def.label}. Unavailable: ${tile.reason}.`;
   const parts = [
-    tile.cost ? `costs ${formatMoney(tile.cost, countryCode)}` : null,
+    tile.cost ? `costs ${formatMoney(tile.cost, countryCode, year)}` : null,
     def.energy ? `uses ${def.energy} energy` : null,
     tile.usesLeft !== undefined ? `${tile.usesLeft} left this year` : null,
   ].filter(Boolean);
   return parts.length ? `${def.label}, ${parts.join(', ')}.` : `${def.label}.`;
 }
 
-function Tile({ tile, countryCode, onPress }: { tile: InteractionTile; countryCode: string; onPress: (tile: InteractionTile) => void }) {
+function Tile({ tile, countryCode, year, onPress }: { tile: InteractionTile; countryCode: string; year?: number; onPress: (tile: InteractionTile) => void }) {
   const { def, available, risky } = tile;
-  const list = badges(tile, countryCode);
+  const list = badges(tile, countryCode, year);
   return (
     <Pressable
       testID={`interact-${def.id}`}
       accessibilityRole="button"
-      accessibilityLabel={tileAccessibilityLabel(tile, countryCode)}
+      accessibilityLabel={tileAccessibilityLabel(tile, countryCode, year)}
       accessibilityState={{ disabled: !available }}
       disabled={!available}
       onPress={() => onPress(tile)}
@@ -66,7 +69,7 @@ function Tile({ tile, countryCode, onPress }: { tile: InteractionTile; countryCo
 }
 
 /** Interaction tiles in two columns that wrap; the last row keeps tile widths even. */
-export function PeopleInteractionGrid({ tiles, countryCode, onPress }: { tiles: InteractionTile[]; countryCode: string; onPress: (tile: InteractionTile) => void }) {
+export function PeopleInteractionGrid({ tiles, countryCode, year, onPress }: { tiles: InteractionTile[]; countryCode: string; year?: number; onPress: (tile: InteractionTile) => void }) {
   const rows: InteractionTile[][] = [];
   for (let i = 0; i < tiles.length; i += 2) rows.push(tiles.slice(i, i + 2));
   return (
@@ -74,7 +77,7 @@ export function PeopleInteractionGrid({ tiles, countryCode, onPress }: { tiles: 
       {rows.map((row) => (
         <View key={row.map((t) => t.def.id).join('-')} style={styles.row}>
           {row.map((t) => (
-            <Tile key={t.def.id} tile={t} countryCode={countryCode} onPress={onPress} />
+            <Tile key={t.def.id} tile={t} countryCode={countryCode} year={year} onPress={onPress} />
           ))}
           {row.length === 1 ? <View style={styles.spacer} /> : null}
         </View>

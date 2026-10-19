@@ -40,7 +40,7 @@ function confirmCopy(tile: InteractionTile, p: Person, game: GameState): [string
   if (tile.def.id === 'divorce') {
     const settlement = divorceSettlement(game);
     const message = settlement > 0
-      ? `The settlement will cost about ${formatMoney(settlement, game.character.countryCode)} (30% of your cash), and ${p.firstName} becomes your ex. You can't take this back.`
+      ? `The settlement will cost about ${formatMoney(settlement, game.character.countryCode, game.year)} (30% of your cash), and ${p.firstName} becomes your ex. You can't take this back.`
       : `${p.firstName} becomes your ex. You can't take this back.`;
     return [`Divorce ${p.firstName}?`, message, 'Divorce'];
   }
@@ -48,9 +48,9 @@ function confirmCopy(tile: InteractionTile, p: Person, game: GameState): [string
 }
 
 /** The outcome of the last interaction, shown right above the tiles (also covers refusals). */
-function Notice({ result, countryCode }: { result: LastResult; countryCode: string }) {
+function Notice({ result, countryCode, year }: { result: LastResult; countryCode: string; year: number }) {
   const border = result.kind === 'good' ? colors.success : result.kind === 'bad' ? colors.danger : colors.info;
-  const money = result.moneyDelta ? `${result.moneyDelta > 0 ? '+' : '-'}${formatMoneyFull(Math.abs(result.moneyDelta), countryCode)}` : null;
+  const money = result.moneyDelta ? `${result.moneyDelta > 0 ? '+' : '-'}${formatMoneyFull(Math.abs(result.moneyDelta), countryCode, year)}` : null;
   return (
     <View style={[styles.notice, { borderLeftColor: border }]} testID="person-notice" accessibilityRole="alert" accessibilityLiveRegion="polite">
       <Text style={styles.noticeText}>{result.text}</Text>
@@ -139,12 +139,12 @@ export default function PersonScreen() {
             }
           >
             {game.crime.inPrison ? <T kind="small">🔒 You are in {game.crime.juvenile ? 'juvenile detention' : 'prison'}: only phone calls and visits until you are released.</T> : null}
-            {notice ? <Notice result={notice} countryCode={cc} /> : null}
-            {friendly.length ? <PeopleInteractionGrid tiles={friendly} countryCode={cc} onPress={run} /> : null}
+            {notice ? <Notice result={notice} countryCode={cc} year={game.year} /> : null}
+            {friendly.length ? <PeopleInteractionGrid tiles={friendly} countryCode={cc} year={game.year} onPress={run} /> : null}
             {risky.length ? (
               <>
                 <Text style={styles.riskyCaption}>RISKY</Text>
-                <PeopleInteractionGrid tiles={risky} countryCode={cc} onPress={run} />
+                <PeopleInteractionGrid tiles={risky} countryCode={cc} year={game.year} onPress={run} />
               </>
             ) : null}
             {!tiles.length ? <T kind="small">{`There is nothing you can do with ${called} yet.`}</T> : null}

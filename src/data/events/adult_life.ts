@@ -1,5 +1,6 @@
 import { ASSETS } from '@/data/assets';
 import { JURY_TRIALS } from '@/data/events/justice_and_reentry';
+import { ANSWERS_TO_A_BOSS } from '@/data/events/work_life';
 import type { Condition, EventDef } from '@/engine/events/schema';
 
 /**
@@ -72,7 +73,9 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     minAge: 30,
     maxAge: 59,
     weight: 1,
-    cooldown: 5,
+    // A fixed premise (the same blue door and hearing): it rests more than half its age range,
+    // so it never opens a third time in one life (CONTENT_STYLE).
+    cooldown: 15,
     // A homeowners' association with fines and hearings (and a cul-de-sac) is an American institution.
     conditions: [{ inPrison: false }, { country: ['US'] }, ...LIVES_IN_HOUSE_WITH_YARD],
     choices: [
@@ -117,7 +120,9 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     minAge: 30,
     maxAge: 59,
     weight: 1,
-    cooldown: 5,
+    // A fixed premise (the same fence eating the same strip of yard): it rests more than half its age range,
+    // so it never opens a third time in one life (CONTENT_STYLE).
+    cooldown: 15,
     conditions: [{ inPrison: false }, ...LIVES_IN_HOUSE_WITH_YARD],
     choices: [
       {
@@ -171,7 +176,9 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     minAge: 30,
     maxAge: 59,
     weight: 1.5,
-    cooldown: 4,
+    // A fixed premise (the same teenager and the same drums): it rests more than half its age range,
+    // so it never opens a third time in one life (CONTENT_STYLE).
+    cooldown: 15,
     // Not within a few years of neighbours_and_community's nc_noisy_neighbour, the other noise through the wall.
     conditions: [{ inPrison: false }, { not: { sinceEvent: 'nc_noisy_neighbour', lte: 3 } }],
     choices: [
@@ -227,7 +234,9 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     minAge: 30,
     maxAge: 59,
     weight: 1.5,
-    cooldown: 4,
+    // A fixed premise (the same truck, piano and nervous dog): it rests more than half its age range,
+    // so it never opens a third time in one life (CONTENT_STYLE).
+    cooldown: 15,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -308,7 +317,9 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     minAge: 30,
     maxAge: 59,
     weight: 1,
-    cooldown: 8,
+    // A fixed premise (the same contractor and missing sink): it rests more than half its age range,
+    // so it never opens a third time in one life (CONTENT_STYLE).
+    cooldown: 15,
     conditions: [{ inPrison: false }, { ownsAsset: 'house' }, { money: { gte: 4000 } }],
     choices: [
       {
@@ -1649,6 +1660,8 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
       {
         id: 'talk',
         label: 'Talk to my manager',
+        // A manager above me: not an owner, the top rung, an elected seat, a bench or a rank.
+        conditions: [ANSWERS_TO_A_BOSS],
         effects: [
           {
             chance: 0.5,

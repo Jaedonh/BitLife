@@ -622,7 +622,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
           {
             random: [
               { weight: 5, effects: [{ log: 'I filled three bags and earned a pleasant ache. The canal path looks like a canal path again.', kind: 'good' }] },
-              { weight: 3, effects: [{ log: 'I found a {{$20}} bill under a bush. Nobody claimed it. Cleanup day pays.', kind: 'money' }, { money: 20 }] },
+              { weight: 3, effects: [{ log: 'I found {{$20}} under a bush. Nobody claimed it. Cleanup day pays.', kind: 'money' }, { money: 20 }] },
               { weight: 2, effects: [{ log: 'I found the other roller skate. The organizer wept.', kind: 'good' }, { stat: 'happiness', delta: 3 }] },
             ],
           },
@@ -1057,7 +1057,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
             random: [
               { weight: 4, effects: [{ log: 'I caught him in the act and sat on him until the police came. The street threw me a barbecue.', kind: 'milestone' }, { stat: 'happiness', delta: 6 }, { fame: 2 }, { karma: 2 }, { injury: 2 }] },
               { weight: 5, effects: [{ log: 'I tackled a man in a hoodie. He was a plumber, collecting his own tools. He was gracious. I was not.', kind: 'bad' }, { stat: 'happiness', delta: -5 }, { karma: -3 }] },
-              { weight: 1, effects: [{ log: 'I tackled a plumber collecting his own tools. He pressed charges. I got a year for assault.', kind: 'bad' }, { prison: 1 }, { stat: 'happiness', delta: -10 }] },
+              { weight: 1, effects: [{ log: 'I tackled a plumber collecting his own tools. He pressed charges. I got a year for assault.', kind: 'bad' }, { counter: 'crimes' }, { prison: 1 }, { stat: 'happiness', delta: -10 }] },
             ],
           },
         ],

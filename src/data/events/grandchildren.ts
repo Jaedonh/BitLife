@@ -1688,7 +1688,7 @@ export const GRANDCHILDREN_EVENTS: EventDef[] = [
           { karma: 2 },
           { stat: 'happiness', delta: 5 },
           { relationship: 'person', delta: 12 },
-          { log: 'I covered the {{$10000}} gap. In the empty living room, {{person}} called it our house. It was nice.', kind: 'money' },
+          { log: 'I covered the missing {{$10000}}. In the empty living room, {{person}} called it our house. It was nice.', kind: 'money' },
         ],
       },
       {

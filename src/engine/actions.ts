@@ -1,3 +1,4 @@
+import { settleHomeWithParents } from './events/conditions';
 import { personRef, scaleMoney } from './events/text';
 import { Rng } from './rng';
 import { buyAsset, repairAsset, sellAsset, toggleRentOut } from './systems/assets';
@@ -47,8 +48,9 @@ export function applyAction(state: GameState, action: PlayerAction): GameState {
     case 'rewarded': s = rewardedBoost(s, rng, action.placement, action.option); break;
     default: break;
   }
-  // Quitting, retiring, switching jobs or a crime that ends in prison parts the player from the old job's coworkers.
-  s = settleCoworkers(s);
+  // Quitting, retiring, switching jobs or a crime that ends in prison parts the player from the old job's coworkers;
+  // buying a home, a wedding or a prison sentence ends living back home with my parents now, not at the next birthday.
+  s = settleHomeWithParents(settleCoworkers(s));
   // The toast reports what actually changed: caps and hidden potential can swallow some or all of a nominal gain.
   if (s.lastResult) s = { ...s, lastResult: withAppliedStatDeltas(s.lastResult, state.character.stats, s.character.stats) };
   return { ...s, rng: rng.snapshot() };

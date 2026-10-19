@@ -1148,7 +1148,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
     id: 'sl_scholarship_essay',
     category: 'school',
     title: 'Scholarship essay',
-    text: "A local foundation is offering a {{$2500}} scholarship for the best essay on 'what I would change about my town'. The deadline is Sunday. I have opinions about my town.",
+    text: "A local foundation is offering a scholarship of {{$2500}} for the best essay on 'what I would change about my town'. The deadline is Sunday. I have opinions about my town.",
     minAge: 16,
     maxAge: 18,
     weight: 0.8,

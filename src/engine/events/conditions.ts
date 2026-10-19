@@ -208,7 +208,8 @@ export function livesWithPlayer(state: GameState, p: Person): boolean {
     case 'sibling': return livesAtHome(state) && p.age < 24;
     case 'spouse': case 'pet': return true;
     case 'lover': return state.flags.lf_living_together === true;
-    case 'child': return p.age < 18;
+    // A grown child who has not moved out yet still lives at home (as the person page's seesDaily has it).
+    case 'child': return !hasMovedOut(p);
     default: return false;
   }
 }
