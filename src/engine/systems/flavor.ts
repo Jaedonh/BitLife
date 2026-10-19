@@ -89,9 +89,10 @@ function recentlySeen(state: GameState): Record<string, number> {
 /**
  * A quiet line ("nothing happened") is chosen at the birthday, before the player has done anything that year. When
  * the year brought news after all (a crime and its court card, a visit, a baby), the line no longer holds, so it is
- * dropped from that year's journal once the year is over: at the next birthday, or wherever a life ends (the caller
- * passes `end`, where that year's journal stops; by default the latest year). A quiet line that is still its year's
- * only line stays, so no year is left empty. Quiet lines carry no placeholders, so their text finds them.
+ * dropped from that year's journal once the year is over: at the next birthday (yearlyFlavor, or ageUp itself when
+ * the player dies at that birthday), or when a death ends it during the year (markDeath). The caller passes `end`,
+ * where that year's journal stops (by default the latest year). A quiet line that is still its year's only line
+ * stays, so no year is left empty. Quiet lines carry no placeholders, so their text finds them.
  */
 export function settleQuietYear(state: GameState, end = state.log.length, lines: readonly FlavorLine[] = FLAVOR): GameState {
   let header = end - 1;

@@ -76,7 +76,6 @@ export function simulateLife(seed: number, policy: Policy, maxYears = 130): { st
   let emptyYears = 0;
   let peakSmarts = s.character.stats.smarts;
   while (s.alive && years < maxYears) {
-    const before = s.log.length;
     s = ageUp(s);
     years++;
     let guard = 0;
@@ -91,7 +90,8 @@ export function simulateLife(seed: number, policy: Policy, maxYears = 130): { st
     while (s.pendingEvent && guard++ < 40) s = resolveChoice(s, rng.pick(s.pendingEvent.choices).id, EVENT_REGISTRY);
     if (!s.alive) break;
     checkInvariants(s);
-    const added = s.log.length - before;
+    // Counted from the year's header, not as growth since last year: the birthday can take back last year's quiet line.
+    const added = s.log.length - lastYearHeader(s.log);
     maxLogPerYear = Math.max(maxLogPerYear, added);
     if (added <= 1) emptyYears++;
     peakSmarts = Math.max(peakSmarts, s.character.stats.smarts);
@@ -117,6 +117,12 @@ export function simulateLife(seed: number, policy: Policy, maxYears = 130): { st
       bankrupt: s.finances.bankrupt,
     },
   };
+}
+
+/** Index of the latest year header ("2031: Age 40"), or -1 before the first. */
+function lastYearHeader(log: GameState['log']): number {
+  for (let i = log.length - 1; i >= 0; i--) if (log[i]!.kind === 'year') return i;
+  return -1;
 }
 
 export function checkInvariants(s: GameState): void {

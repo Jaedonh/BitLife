@@ -1,13 +1,18 @@
 /**
- * Pure helpers behind the journal's year cards: grouping the append-only life log
- * into one card per year of age, and the stat/net-worth change of each year.
+ * Pure helpers behind the journal's year cards: grouping the life log into one card per
+ * year of age, and the stat/net-worth change of each year.
  */
 import type { LogEntry, StatId, Stats } from '@/engine/types';
 import { STAT_IDS } from '@/engine/types';
 import type { LedgerMark } from '@/store/lifeLedger';
 
 export interface YearGroup {
-  /** Stable across renders: the log only grows, so the index of a year's first line never changes. */
+  /**
+   * Stable across renders. The log only grows, except that a quiet line ("nothing happened") is taken back once the
+   * player's own doings filled its year (settleQuietYear in engine/systems/flavor.ts). That happens at the next
+   * birthday or when the life ends, so at most it shifts the header of the year just started; the index of every
+   * earlier year's header, and so its key, never changes.
+   */
   key: string;
   age: number;
   /** Calendar year, when the log recorded one. */

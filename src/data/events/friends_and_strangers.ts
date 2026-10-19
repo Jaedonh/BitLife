@@ -714,7 +714,8 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
   {
     id: 'fs_powder_pitch',
     category: 'friends',
-    // The end of a pitch, not another pitch (ad_friend_mlm and mn_mlm_pitch are the sales evenings), and never within two years of one.
+    // The end of a pitch, not another pitch: never within two years of mn_mlm_pitch (the sales evening) or ad_friend_mlm
+    // (a friend's charity walk, another favor asked), which both guard against this one too.
     title: 'A garage of powder',
     text: '{{person}} has quit selling the wellness powder, but the company would not take the stock back, so {{their}} garage is full of it. {{They}} asked, with great dignity, whether I would take some at cost.',
     minAge: 18,
@@ -1484,7 +1485,8 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 1.5,
     once: true,
-    conditions: [{ inPrison: false }],
+    // Not soon after pet_events' pt_stray_cat_rain, the other animal that followed me home (it guards against this one too).
+    conditions: [{ inPrison: false }, { not: { sinceEvent: 'pt_stray_cat_rain', lte: 3 } }],
     choices: [
       {
         id: 'call',

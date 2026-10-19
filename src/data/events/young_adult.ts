@@ -1536,7 +1536,8 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     maxAge: 29,
     weight: 1.5,
     once: true,
-    conditions: [{ inPrison: false }, { hasLover: true }, { married: false }],
+    // Not within a few years of love_and_family's lf_meet_their_parents, the same dinner with a partner's parents (it guards against this one too).
+    conditions: [{ inPrison: false }, { hasLover: true }, { married: false }, { not: { sinceEvent: 'lf_meet_their_parents', lte: 4 } }],
     person: { kind: ['lover'] },
     choices: [
       {
@@ -1694,7 +1695,8 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     maxAge: 29,
     weight: 2,
     cooldown: 3,
-    conditions: [{ inPrison: false }, { hasLover: true }],
+    // Not within two years of love_and_family's lf_anniversary_slip, the same forgotten date (it guards against this one too).
+    conditions: [{ inPrison: false }, { hasLover: true }, { not: { sinceEvent: 'lf_anniversary_slip', lte: 2 } }],
     person: { kind: ['lover', 'spouse'] },
     choices: [
       {

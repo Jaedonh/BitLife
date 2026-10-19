@@ -966,8 +966,9 @@ export const ADULT_LIFE_EVENTS: EventDef[] = [
     maxAge: 59,
     weight: 1,
     once: true,
-    // A friend signing me up for something: not within a few years of money_events' wellness-oil pitch.
-    conditions: [{ inPrison: false }, { not: { sinceEvent: 'mn_mlm_pitch', lte: 3 } }],
+    // A friend signing me up for something: not within a few years of money_events' wellness-oil pitch or
+    // friends_and_strangers' garage of powder (both guard against this one too).
+    conditions: [{ inPrison: false }, { not: { sinceEvent: 'mn_mlm_pitch', lte: 3 } }, { not: { sinceEvent: 'fs_powder_pitch', lte: 2 } }],
     person: { kind: ['friend', 'bestFriend', 'sibling'] },
     choices: [
       {

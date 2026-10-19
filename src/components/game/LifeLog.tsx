@@ -65,7 +65,10 @@ function sameChange(a: YearChange | null, b: YearChange | null): boolean {
   return ka.length === Object.keys(b.stats).length && ka.every((k) => a.stats[k] === b.stats[k]);
 }
 
-/** Lines are append-only, so a card only re-renders when its year grew or its numbers moved. */
+/**
+ * A year's lines only change by growing, or by losing the quiet line its year outgrew (settleQuietYear), which changes
+ * their count too, so a card only re-renders when its line count or its numbers moved.
+ */
 const YearCard = memo(
   YearCardView,
   (a, b) =>

@@ -2,6 +2,7 @@ import { getCountry } from '@/data/countries';
 import { GRAD_BY_ID, majorProse } from '@/data/majors';
 import type { GameState, Person } from '../types';
 import { deathPhrase, formatMoneyFull, fullName, joinList, log, netWorth, numberWord, pronouns, roleWithArticle, sentence } from '../util';
+import { settleQuietYear } from './flavor';
 import { awardRibbon } from './ribbons';
 import { fosterRelation } from './scenarios';
 
@@ -24,7 +25,10 @@ const CHILD_EPITAPHS = [
   'Forever young.',
 ];
 
-/** Ends the life: computes ribbon, obituary, and writes the final log lines. Idempotent. */
+/**
+ * Ends the life: computes ribbon, obituary, and writes the final log lines. Idempotent. A death during the year
+ * (an event card) fills that year, so a quiet line ("nothing happened") written at its birthday is taken back.
+ */
 export function markDeath(state: GameState, cause: string): GameState {
   if (!state.alive) return state;
   const c = state.character;
@@ -44,7 +48,7 @@ export function markDeath(state: GameState, cause: string): GameState {
   };
   s = log(s, c.age === 0 ? `I ${deathPhrase(cause)} before my first birthday.` : `I ${deathPhrase(cause)} at the age of ${c.age}.`, 'death');
   s = log(s, `${fullName(c)} · ${c.birthYear} – ${state.year} · ${ribbon.emoji} ${ribbon.name}`, 'death');
-  return s;
+  return settleQuietYear(s);
 }
 
 /** A degree as an obituary would name it: "a degree in nursing", "an MBA", "a PhD". */

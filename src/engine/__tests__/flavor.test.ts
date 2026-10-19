@@ -1,10 +1,12 @@
 import { FLAVOR, type FlavorLine } from '@/data/flavor';
+import { ageUp } from '../ageUp';
 import { evaluateCondition } from '../events/conditions';
 import { giveIllness, sendToPrison } from '../events/effects';
 import { validateEvent, type Condition, type EventDef } from '../events/schema';
 import { Rng } from '../rng';
 import { balancedPolicy, recklessPolicy, simulateLife } from '../simulate';
 import { createLife, makePerson } from '../systems/character';
+import { markDeath } from '../systems/death';
 import { FLAVOR_RULES, flavorFits, isSituational, settleQuietYear, validateFlavor, yearlyFlavor, type FlavorYear } from '../systems/flavor';
 import type { GameState, Person, RelationshipKind } from '../types';
 
@@ -313,6 +315,38 @@ describe('choosing the yearly flavor line', () => {
     expect(settleQuietYear(base, base.log.length, [QUIET])).toBe(base);
   });
 
+  it('settles the quiet line when the life ends: a death at the next birthday, or one during the year', () => {
+    // The engine settles with the real catalog, so this uses a real quiet line.
+    const quiet = FLAVOR.find((l) => l.quiet)!.text;
+    const base = adult(40);
+    const line = (age: number, text: string, kind: 'info' | 'bad' | 'year' = 'info') => ({ age, year: base.character.birthYear + age, text, kind });
+    const header = (age: number) => line(age, `${base.character.birthYear + age}: Age ${age}`, 'year');
+    const arrest = 'I was arrested for shoplifting. My case went to court.';
+    const texts = (s: GameState) => s.log.map((e) => e.text);
+    const busy: GameState = { ...base, log: [...base.log, header(40), line(40, quiet), line(40, arrest, 'bad')] };
+
+    // The doctor's last warning runs out at the next birthday: the life ends before the flavor pass that settles last
+    // year, so ageUp settles it itself. Last year keeps its header and its news.
+    const failing: GameState = { ...busy, character: { ...busy.character, stats: { ...busy.character.stats, health: 1 } }, health: { ...busy.health, criticalYears: 1 } };
+    const died = ageUp(failing);
+    expect(died.alive).toBe(false);
+    expect(died.character.age).toBe(41);
+    expect(texts(died)).not.toContain(quiet);
+    expect(texts(died).slice(base.log.length, base.log.length + 3)).toEqual([header(40).text, arrest, header(41).text]);
+
+    // A death during the year (an event card) fills that year, so its own quiet line goes, even when it was the only one.
+    const midYear = markDeath(busy, 'a car accident');
+    expect(texts(midYear)).not.toContain(quiet);
+    expect(texts(midYear).slice(base.log.length, base.log.length + 2)).toEqual([header(40).text, arrest]);
+    const calmYear = markDeath({ ...base, log: [...base.log, header(40), line(40, quiet)] }, 'a car accident');
+    expect(texts(calmYear)).not.toContain(quiet);
+    expect(calmYear.log.slice(base.log.length + 1).map((e) => e.kind)).toEqual(['death', 'death']);
+
+    // An earlier year that stayed quiet was settled at its own birthday and keeps its line.
+    const earlier: GameState = { ...base, log: [...base.log, header(39), line(39, quiet), header(40), line(40, arrest, 'bad')] };
+    expect(texts(markDeath(earlier, 'a car accident'))).toContain(quiet);
+  });
+
   it('adds nothing to a busy year that brought a death, a severe diagnosis or the doctor warning', () => {
     const mother = person('mother');
     const start = withPeople(adult(40), mother);
@@ -413,38 +447,31 @@ describe('flavor lines over whole lives', () => {
     return out;
   }
 
-  /** Quiet years a later birthday settled: all but the year a life ended in and the one before. */
-  const settledQuiet = (s: GameState) => years(s).filter((y, n, all) => n < all.length - 2 && y.some((e) => quiet.has(e.text))).length;
+  /** Years that kept a quiet line. */
+  const quietYears = (s: GameState) => years(s).filter((y) => y.some((e) => quiet.has(e.text))).length;
   // Quiet years are rare (a handful in the lives above), so more lives are played until enough turn up: the check
   // below never runs on nothing, whatever the seeds and the content's dice.
   const quietLives = [...lives];
-  for (let seed = 1000, found = lives.reduce((n, s) => n + settledQuiet(s), 0); found < 5 && seed < 1400; seed++) {
+  for (let seed = 1000, found = lives.reduce((n, s) => n + quietYears(s), 0); found < 5 && seed < 1400; seed++) {
     const s = simulateLife(seed, seed % 3 ? balancedPolicy : recklessPolicy).state;
-    found += settledQuiet(s);
+    found += quietYears(s);
     quietLives.push(s);
   }
 
   it('a "nothing happened" line never shares its year with other news or an event card', () => {
     let seen = 0;
-    let settled = 0;
     for (const life of quietLives) {
-      const all = years(life);
-      all.forEach((year, n) => {
+      for (const year of years(life)) {
         const i = year.findIndex((e) => quiet.has(e.text));
-        if (i < 0) return;
+        if (i < 0) continue;
         seen++;
-        expect(i).toBe(1);
-        // The line is chosen at the birthday and taken back at the next one if the player's own doings (a crime, its
-        // court card, a visit) filled the year. That holds by construction for every year a later birthday settled,
-        // whatever the seed: all but the year the life ended in and the one before (a death at the next birthday).
-        if (n < all.length - 2) {
-          settled++;
-          expect(year.map((e) => e.text)).toEqual([year[0]!.text, year[1]!.text]);
-        }
-      });
+        // The line is chosen at the birthday and taken back if the player's own doings (a crime, its court card, a
+        // visit) filled the year: at the next birthday, or when the life ends (a death at that birthday, or during
+        // the year). So every year of every life, its last two included, keeps it only as its one line.
+        expect(year.map((e) => e.text)).toEqual([year[0]!.text, year[i]!.text]);
+      }
     }
-    expect(seen).toBeGreaterThanOrEqual(settled);
-    expect(settled).toBeGreaterThanOrEqual(5);
+    expect(seen).toBeGreaterThanOrEqual(5);
   });
 
   it('no line comes back within ten years, and situational lines show up', () => {

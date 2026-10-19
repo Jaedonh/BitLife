@@ -565,7 +565,9 @@ export const MONEY_EVENTS: EventDef[] = [
     maxAge: 85,
     weight: 0.3,
     once: true,
-    conditions: [{ inPrison: false }],
+    // Not within ten years of adult_life's ad_surprise_inheritance, the other will from a relative I barely knew, nor within
+    // a few years of pet_events' pt_inherit_parrot, the will with a parrot in it (both guard against this one too).
+    conditions: [{ inPrison: false }, { not: { sinceEvent: 'ad_surprise_inheritance', lte: 10 } }, { not: { sinceEvent: 'pt_inherit_parrot', lte: 3 } }],
     choices: [
       {
         id: 'accept',
@@ -748,8 +750,9 @@ export const MONEY_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1.2,
     cooldown: 4,
-    // One pyramid pitch per life: adult_life's ad_friend_mlm is the same scene.
-    conditions: [{ inPrison: false }, { money: { gte: 200 } }, { eventNotFired: 'ad_friend_mlm' }, { not: { sinceEvent: 'fs_powder_pitch', lte: 2 } }],
+    // A friend roping me into something: not within a few years of adult_life's ad_friend_mlm (the charity walk) or
+    // friends_and_strangers' fs_powder_pitch (the end of another pitch), which both guard against this one too.
+    conditions: [{ inPrison: false }, { money: { gte: 200 } }, { not: { sinceEvent: 'ad_friend_mlm', lte: 3 } }, { not: { sinceEvent: 'fs_powder_pitch', lte: 2 } }],
     person: { kind: ['friend', 'bestFriend', 'coworker', 'sibling'], minAge: 18, minRelationship: 25 },
     choices: [
       {
@@ -798,7 +801,8 @@ export const MONEY_EVENTS: EventDef[] = [
     maxAge: 80,
     weight: 1.5,
     cooldown: 10,
-    conditions: [{ inPrison: false }, { money: { gte: 500 } }],
+    // Not within a few years of love_and_family's lf_sibling_loan, the same rent money asked by a sibling (it guards against this one too).
+    conditions: [{ inPrison: false }, { money: { gte: 500 } }, { not: { sinceEvent: 'lf_sibling_loan', lte: 3 } }],
     // Asked and sent by phone, so a friend left behind by a move abroad can ask too (the follow-up binds them the same way).
     person: { kind: ['friend', 'bestFriend'], minAge: 18, minRelationship: 30, farAway: 'any' },
     choices: [

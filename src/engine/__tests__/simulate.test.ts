@@ -42,6 +42,19 @@ describe('whole-life simulation', () => {
     }
   });
 
+  it("counts a year as empty only when its finished journal is, even after a birthday took back last year's quiet line", () => {
+    // The count starts at the year's header. Counted as growth since last year instead, a year looked one line short
+    // whenever its birthday took back last year's quiet line (balanced seed 260 reported a false empty year).
+    for (let seed = 255; seed <= 265; seed++) {
+      const { state, summary } = simulateLife(seed, balancedPolicy);
+      const headers = state.log.flatMap((e, i) => (e.kind === 'year' ? [i] : []));
+      // Every year but the first (the newborn year, before the first birthday) and the last (the life ended in it).
+      const empty = headers.slice(1, -1).filter((h, k) => headers[k + 2]! - h <= 1).length;
+      expect([seed, summary.emptyYears]).toEqual([seed, empty]);
+      expect([seed, summary.emptyYears]).toEqual([seed, 0]);
+    }
+  });
+
   it('reckless play leads to arrests sometimes', () => {
     expect(reckless.some((x) => x.arrests > 0)).toBe(true);
   });

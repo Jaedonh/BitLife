@@ -687,6 +687,8 @@ export const KID_YEARS_EVENTS: EventDef[] = [
     maxAge: 12,
     weight: 1,
     once: true,
+    // Not soon after pet_events' pt_stray_cat_rain, the other cat that followed me home (it guards against this one too).
+    conditions: [{ not: { sinceEvent: 'pt_stray_cat_rain', lte: 6 } }],
     choices: [
       {
         id: 'beg',

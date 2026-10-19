@@ -337,12 +337,17 @@ describe('twins', () => {
     expect(isEligible({ ...ready, firedEvents: { [twin]: age - years - 1 } }, def)).toBe(true);
   });
 
-  it('one pyramid pitch per life: no wellness oils after the triangle-shaped one', () => {
-    const def = byId('mn_mlm_pitch');
+  it('the charity walk is no pyramid pitch: the wellness oils and the walk keep three years apart, not a lifetime', () => {
     const friend = makePerson(new Rng(4), { kind: 'friend', age: 40, countryCode: 'US', playerAge: 40, relationship: 60 });
     const s = withPeople(adult(40), friend);
     const ready: GameState = { ...s, finances: { ...s.finances, cash: 5000 } };
-    expect(isEligible(ready, def)).toBe(true);
-    expect(isEligible({ ...ready, firedEvents: { ad_friend_mlm: 33 } }, def)).toBe(false);
+    const oils = byId('mn_mlm_pitch');
+    const walk = byId('ad_friend_mlm');
+    expect(walk.text).toMatch(/charity walk/);
+    for (const [def, other, years] of [[oils, 'ad_friend_mlm', 3], [walk, 'mn_mlm_pitch', 3], [walk, 'fs_powder_pitch', 2]] as const) {
+      expect([def.id, isEligible(ready, def)]).toEqual([def.id, true]);
+      expect([def.id, other, isEligible({ ...ready, firedEvents: { [other]: 40 - years } }, def)]).toEqual([def.id, other, false]);
+      expect([def.id, other, isEligible({ ...ready, firedEvents: { [other]: 40 - years - 1 } }, def)]).toEqual([def.id, other, true]);
+    }
   });
 });

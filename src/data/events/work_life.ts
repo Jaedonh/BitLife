@@ -1140,7 +1140,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1.5,
     cooldown: 6,
-    conditions: [{ hasJob: true }],
+    // Not within a few years of holidays_and_traditions' hd_office_party, the same party with an open bar (it guards against this one too).
+    conditions: [{ hasJob: true }, { not: { sinceEvent: 'hd_office_party', lte: 3 } }],
     choices: [
       {
         id: 'mingle',

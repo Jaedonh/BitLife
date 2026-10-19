@@ -1538,7 +1538,8 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
       {
         id: 'text',
         label: 'Text her a thank-you',
-        conditions: [{ year: { gte: 2000 } }],
+        // A text message, so the era must have them (texts from 2003, as everywhere else in the content).
+        conditions: [{ year: { gte: 2003 } }],
         effects: [{ money: 20 }, { stat: 'happiness', delta: 1 }, { log: 'I texted thanks with a heart. She replied "WHO IS THIS." She does not save numbers.' }],
       },
       {

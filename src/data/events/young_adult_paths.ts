@@ -1539,6 +1539,8 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     maxAge: 29,
     weight: 2,
     cooldown: 3,
+    // Not within a few years of grown_up_life's gu_baby_three_am, the same wide-awake baby (it guards against this one too).
+    conditions: [{ not: { sinceEvent: 'gu_baby_three_am', lte: 3 } }],
     person: { kind: ['child'], maxAge: 1 },
     choices: [
       {
@@ -1580,7 +1582,8 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     maxAge: 29,
     weight: 1.5,
     cooldown: 4,
-    conditions: [{ hasJob: true }],
+    // Not within a few years of grown_up_life's gu_daycare_bill, the same bill (it guards against this one too).
+    conditions: [{ hasJob: true }, { not: { sinceEvent: 'gu_daycare_bill', lte: 4 } }],
     person: { kind: ['child'], maxAge: 3 },
     choices: [
       {
@@ -1628,6 +1631,8 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     maxAge: 29,
     weight: 1.5,
     cooldown: 5,
+    // Not within a few years of grown_up_life's gu_cereal_aisle, the same tantrum in the same aisle (it guards against this one too).
+    conditions: [{ not: { sinceEvent: 'gu_cereal_aisle', lte: 6 } }],
     person: { kind: ['child'], minAge: 2, maxAge: 4 },
     choices: [
       {
@@ -1744,6 +1749,8 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     maxAge: 29,
     weight: 1.5,
     once: true,
+    // grown_up_life's gu_hallway_mural tells the same marker on the same wall: one per life (it guards against this one too).
+    conditions: [{ eventNotFired: 'gu_hallway_mural' }],
     person: { kind: ['child'], minAge: 3, maxAge: 4 },
     choices: [
       {

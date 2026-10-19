@@ -670,7 +670,8 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     maxAge: 64,
     weight: 1.5,
     once: true,
-    conditions: [...WIDOWED, { hasLover: false }],
+    // golden_years' gy_widow_closet is the same closet, later in life: one per life (it guards against this one too).
+    conditions: [...WIDOWED, { hasLover: false }, { eventNotFired: 'gy_widow_closet' }],
     person: { kind: ['spouse'], alive: false },
     choices: [
       {
@@ -741,8 +742,9 @@ export const GROWN_UP_LIFE_EVENTS: EventDef[] = [
     maxAge: 64,
     weight: 1,
     once: true,
-    // A date: not in the first two years after the loss (the grief window, GAME_DESIGN §10).
-    conditions: [...WIDOWED, { hasLover: false }, { flag: 'grieving', exists: false }],
+    // A date: not in the first two years after the loss (the grief window, GAME_DESIGN §10), and one per life with
+    // golden_years' gy_widow_dinner_invite, the same invitation later in life (it guards against this one too).
+    conditions: [...WIDOWED, { hasLover: false }, { flag: 'grieving', exists: false }, { eventNotFired: 'gy_widow_dinner_invite' }],
     person: { kind: ['spouse'], alive: false },
     choices: [
       {

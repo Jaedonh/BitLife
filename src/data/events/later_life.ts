@@ -425,7 +425,9 @@ export const LATER_LIFE_EVENTS: EventDef[] = [
     maxAge: 95,
     weight: 1.5,
     once: true,
-    conditions: [{ inPrison: false }, { not: { flag: 'gy_hearing_aids' } }],
+    // golden_years' gy_hearing_aid_gift is the same discovery, with the aids already in a box: one per life, whatever
+    // I did with the gift (it guards against this one too).
+    conditions: [{ inPrison: false }, { eventNotFired: 'gy_hearing_aid_gift' }],
     choices: [
       {
         id: 'fit',

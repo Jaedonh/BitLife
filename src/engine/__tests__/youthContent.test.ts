@@ -52,8 +52,10 @@ describe('era: technology waits for its year (players are born 1975-2010)', () =
   const ERA: readonly [RegExp, number][] = [
     [/\bvap(e|es|ing)\b|rocket emoji/i, 2013],
     [/screen time|video[- ]call|\bstreamer\b|\bapps?\b|smartphone|emoji|screenshot|followers|group chat|\bviral\b|social media|two-factor|smart speaker|data breach|message request|\bfeed\b|\bonline\b(?! game)|on read/i, 2010],
-    [/online game|leaderboard/i, 2003],
-    [/\btext(s|ed|ing)?\b|voicemail|\binbox\b/i, 2000],
+    // Texting as an everyday habit, the same cut-off as the adult and family files (at 2000, tl_birthday_15 let me text
+    // my great-aunt in 2001).
+    [/online game|leaderboard|\btext(s|ed|ing)?\b/i, 2003],
+    [/voicemail|\binbox\b/i, 2000],
     [/e-?mail|website|reply all|internet|spam folder/i, 1997],
   ];
   const needs = (lines: readonly string[]): { year: number; term: string } => {

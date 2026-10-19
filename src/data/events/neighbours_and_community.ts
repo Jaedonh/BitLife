@@ -17,7 +17,8 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 2,
     cooldown: 15,
-    conditions: [{ inPrison: false }],
+    // Not within a few years of adult_life's ad_neighbour_noise, the other noise through the wall (it guards against this one too).
+    conditions: [{ inPrison: false }, { not: { sinceEvent: 'ad_neighbour_noise', lte: 3 } }],
     choices: [
       {
         id: 'ask',
@@ -1302,7 +1303,8 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     maxAge: 75,
     weight: 0.8,
     cooldown: 10,
-    conditions: [{ inPrison: false }, { criminalRecord: false }],
+    // Not within a few years of adult_life's ad_jury_duty, the other summons (it guards against this one too).
+    conditions: [{ inPrison: false }, { criminalRecord: false }, { not: { sinceEvent: 'ad_jury_duty', lte: 6 } }],
     choices: [
       {
         id: 'serve',

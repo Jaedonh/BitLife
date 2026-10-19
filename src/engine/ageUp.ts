@@ -10,7 +10,7 @@ import { yearlyPrison } from './systems/crime';
 import { yearlyEducation } from './systems/education';
 import { yearlyFamily } from './systems/family';
 import { yearlyFinance } from './systems/finance';
-import { yearlyFlavor } from './systems/flavor';
+import { settleQuietYear, yearlyFlavor } from './systems/flavor';
 import { yearlyHealth } from './systems/health';
 import { rollMortality } from './systems/mortality';
 import { yearlyRelationships } from './systems/relationships';
@@ -49,7 +49,8 @@ export function ageUp(state: GameState, registry: EventRegistry = EVENT_REGISTRY
   s = yearlyFamily(s, rng, yearNames);
   if (s.character.age >= 14) s = rollListings(s, rng);
   s = rollMortality(s, rng);
-  if (!s.alive) return { ...s, rng: rng.snapshot() };
+  // A death at the birthday skips the flavor pass, which is where last year's quiet line is settled, so settle it here.
+  if (!s.alive) return { ...settleQuietYear(s, headerIndex), rng: rng.snapshot() };
   s = { ...s, rng: rng.snapshot(), updatedAt: state.updatedAt };
   s = scheduleYearEvents(s, registry);
   // Chosen once the year's systems have run and its cards are scheduled, so the line fits both (no "quiet year" line in a year with a card).
