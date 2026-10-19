@@ -239,7 +239,8 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 1.5,
     once: true,
-    conditions: [...ON_PAROLE],
+    // An orphan has no cousin (the foster_care scenario).
+    conditions: [...ON_PAROLE, { not: { flag: 'foster_care' } }],
     // My side of the family (a spouse would simply come along).
     // Asked by phone or letter, from wherever they live.
     person: { kind: ['mother', 'father', 'stepmother', 'stepfather', 'grandparent', 'sibling'], minAge: 12, farAway: 'any' },
@@ -898,7 +899,8 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 80,
     weight: 0.6,
-    cooldown: 10,
+    // Someone's sentencing, told the same way: once a life (no card can remember who was already sentenced).
+    once: true,
     conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend', 'sibling'], minAge: 18, minRelationship: 40 },
     choices: [
@@ -949,6 +951,7 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
         id: 'fee',
         label: 'Take the consulting fee',
         effects: [
+          { counter: 'crimes' },
           { money: 2000 },
           { karma: -6 },
           {
@@ -973,7 +976,8 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
     minAge: 15,
     maxAge: 60,
     weight: 0.7,
-    cooldown: 8,
+    // The same Friday-night alibi: at most twice in a life (CONTENT_STYLE).
+    cooldown: 23,
     conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend', 'sibling'], minAge: 14 },
     choices: [
@@ -981,6 +985,7 @@ export const JUSTICE_AND_REENTRY_EVENTS: EventDef[] = [
         id: 'lie',
         label: 'Back up the story',
         effects: [
+          { counter: 'crimes' },
           { relationship: 'person', delta: 6 },
           { karma: -4 },
           {

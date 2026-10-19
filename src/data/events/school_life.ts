@@ -1045,6 +1045,7 @@ export const SCHOOL_LIFE_EVENTS: EventDef[] = [
         id: 'skim',
         label: 'Skim a little off',
         effects: [
+          { counter: 'crimes' },
           { karma: -5 },
           {
             chance: 0.7,

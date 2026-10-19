@@ -19,7 +19,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     id: 'mc_school_counselor',
     category: 'school',
     title: 'A note from the counselor',
-    text: "A note in homeroom asked me to stop by the counselor's office. Apparently a teacher mentioned I have seemed 'quieter than usual' lately. The office has a beanbag and a box of tissues.",
+    text: "A note in class asked me to stop by the counselor's office. Apparently a teacher mentioned I have seemed 'quieter than usual' lately. The office has a beanbag and a box of tissues.",
     minAge: 13,
     maxAge: 17,
     weight: 1,
@@ -200,7 +200,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
         effects: [
           { stat: 'happiness', delta: -1 },
           { stat: 'health', delta: 1 },
-          { log: 'I begged the driver to open the doors and walked the last two miles home, slowly.' },
+          { log: 'I begged the driver to open the doors and walked the rest of the way home, slowly.' },
           { chance: 0.3, then: [{ illness: 'anxiety' }, { log: 'I started avoiding buses, then trains, then malls. My doctor called it a pattern and made a plan.', kind: 'bad' }] },
         ],
       },
@@ -850,6 +850,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
         id: 'answer',
         label: 'Answer it',
         effects: [
+          { counter: 'crimes' },
           { addiction: 'drugs', delta: 10 },
           { money: -200 },
           { stat: 'health', delta: -5 },
@@ -1080,7 +1081,7 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
           { fame: 2 },
           {
             chance: 0.7,
-            then: [{ stat: 'smarts', delta: 1 }, { log: 'I made one clear point about the meters. A cousin called to say I looked "very official".', kind: 'good' }],
+            then: [{ stat: 'smarts', delta: 1 }, { log: 'I made one clear point about the meters. A neighbor said I looked "very official".', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -2 }, { log: "They aired only the part where I said 'um' for four seconds. My point was cut for time." }],
           },
         ],
@@ -1164,7 +1165,8 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 1,
-    cooldown: 6,
+    // The same street, chainsaw and trampoline in a tree: at most twice in a life (CONTENT_STYLE).
+    cooldown: 34,
     choices: [
       {
         id: 'haul',
@@ -1211,7 +1213,8 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 90,
     weight: 1,
-    cooldown: 10,
+    // The same congregation and Thursday supper: at most twice in a life (CONTENT_STYLE).
+    cooldown: 37,
     choices: [
       {
         id: 'serve',
@@ -1254,7 +1257,8 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 90,
     weight: 1,
-    cooldown: 8,
+    // "I do not know the songs" each time: at most twice in a life (CONTENT_STYLE).
+    cooldown: 39,
     person: { kind: ['friend', 'bestFriend', 'coworker', 'classmate'] },
     choices: [
       {
@@ -1306,7 +1310,8 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 65,
     maxAge: 95,
     weight: 1,
-    cooldown: 5,
+    // The same ninth day of heat and library cots: at most twice in a life (CONTENT_STYLE).
+    cooldown: 16,
     choices: [
       {
         id: 'library',
@@ -1347,7 +1352,8 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 1,
-    cooldown: 10,
+    // The worst snowstorm in years: at most twice in a life (CONTENT_STYLE).
+    cooldown: 34,
     // Not the US: its cities include Miami, Phoenix and Los Angeles. A big storm once in years fits mild GB and FR.
     conditions: [{ country: ['CA', 'DE', 'GB', 'FR', 'JP'] }],
     choices: [
@@ -1489,7 +1495,8 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 70,
     weight: 1,
-    cooldown: 4,
+    // The same busiest day of the year: at most twice in a life (CONTENT_STYLE).
+    cooldown: 27,
     conditions: [{ hasJob: true }, { jobCategory: ['service'] }, { jobLevel: { lte: 2 } }],
     choices: [
       {
@@ -1524,7 +1531,8 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 70,
     weight: 1,
-    cooldown: 5,
+    // The same 41-days sign: at most twice in a life (CONTENT_STYLE).
+    cooldown: 27,
     conditions: [{ hasJob: true }, { jobCategory: ['trade'] }, { jobLevel: { lte: 2 } }],
     choices: [
       {
@@ -1570,7 +1578,8 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 70,
     weight: 1,
-    cooldown: 6,
+    // The same chart and dotted line: at most twice in a life (CONTENT_STYLE).
+    cooldown: 26,
     conditions: [{ hasJob: true }, { jobCategory: ['office'] }, { jobLevel: { lte: 2 } }],
     choices: [
       {
@@ -1609,7 +1618,8 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 70,
     weight: 1,
-    cooldown: 5,
+    // The same nine-day launch date: at most twice in a life (CONTENT_STYLE).
+    cooldown: 26,
     conditions: [{ hasJob: true }, { jobCategory: ['tech'] }, { jobLevel: { lte: 3 } }],
     choices: [
       {
@@ -1656,7 +1666,8 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 75,
     weight: 1,
-    cooldown: 4,
+    // The same man at the same barbecue: at most twice in a life (CONTENT_STYLE).
+    cooldown: 28,
     conditions: [{ hasJob: true }, { jobCategory: ['health'] }],
     choices: [
       {
@@ -1692,7 +1703,8 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 22,
     maxAge: 75,
     weight: 1,
-    cooldown: 6,
+    // The same evidence binder, tab by tab: at most twice in a life (CONTENT_STYLE).
+    cooldown: 27,
     conditions: [{ hasJob: true }, { jobCategory: ['law'] }],
     choices: [
       {
@@ -1726,7 +1738,8 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 75,
     weight: 1,
-    cooldown: 5,
+    // The same quiet student in the same hoodie: at most twice in a life (CONTENT_STYLE).
+    cooldown: 28,
     conditions: [{ hasJob: true }, { jobCategory: ['education'] }],
     choices: [
       {
@@ -1770,7 +1783,8 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 75,
     weight: 1,
-    cooldown: 4,
+    // The same three weeks and alphabetized pens: at most twice in a life (CONTENT_STYLE).
+    cooldown: 29,
     conditions: [{ hasJob: true }, { jobCategory: ['creative'] }],
     choices: [
       {
@@ -1818,7 +1832,8 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1,
     cooldown: 6,
-    conditions: [{ hasJob: true }, { jobCategory: ['public'] }, { jobLevel: { lte: 1 } }],
+    // Told to do more with less: staff, not a city councilor who votes on the budget.
+    conditions: [{ hasJob: true }, { jobCategory: ['public'] }, { jobLevel: { lte: 1 } }, { not: { all: [{ jobId: ['politician'] }, { jobLevel: { gte: 1 } }] } }],
     choices: [
       {
         id: 'speak',
@@ -1852,7 +1867,8 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 70,
     weight: 1,
-    cooldown: 5,
+    // The same {{$10000}} gap at 4:55 on a Friday: at most twice in a life (CONTENT_STYLE).
+    cooldown: 26,
     conditions: [{ hasJob: true }, { jobCategory: ['finance'] }, { jobLevel: { lte: 2 } }],
     choices: [
       {
@@ -1902,7 +1918,8 @@ export const MIND_AND_COMMUNITY_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 70,
     weight: 1,
-    cooldown: 6,
+    // The same binder under the same wobbly table: at most twice in a life (CONTENT_STYLE).
+    cooldown: 26,
     conditions: [{ hasJob: true }, { jobCategory: ['science'] }],
     choices: [
       {

@@ -1,3 +1,5 @@
+import { LIVES_IN_HOUSE_WITH_YARD } from '@/data/events/neighbours_and_community';
+import { NOT_ON_PAROLE } from '@/data/events/travel_events';
 import type { EventDef } from '@/engine/events/schema';
 
 /**
@@ -332,7 +334,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1.2,
     cooldown: 27,
-    conditions: [{ inPrison: false }],
+    conditions: [{ inPrison: false }, NOT_ON_PAROLE],
     person: { kind: ['friend', 'bestFriend'], minRelationship: 40 },
     choices: [
       {
@@ -1070,7 +1072,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 2 },
           { log: 'We found the street. It did exist, under a different name, in the other direction.', kind: 'good' },
           { chance: 0.3, then: [{ money: 20 }, { log: 'They insisted on buying me lunch. The lunch was excellent.', kind: 'money' }] },
-          { chance: 0.2, then: [{ newPerson: { kind: 'friend', relationship: 45, farAway: true, log: '{{person}}, the lost tourist, turned out to be great company. We stayed in touch after {{they}} flew home.' } }] },
+          { chance: 0.2, then: [{ newPerson: { kind: 'friend', relationship: 45, minAge: 18, farAway: true, log: '{{person}}, the lost tourist, turned out to be great company. We stayed in touch after {{they}} flew home.' } }] },
         ],
       },
       {
@@ -1175,7 +1177,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
           { energy: -1 },
           {
             chance: 0.35,
-            then: [{ stat: 'happiness', delta: 4 }, { newPerson: { kind: 'friend', relationship: 50, log: 'I caught up with {{person}}, who paid for my coffee, and we became friends.' } }],
+            then: [{ stat: 'happiness', delta: 4 }, { newPerson: { kind: 'friend', relationship: 50, minAge: 18, log: 'I caught up with {{person}}, who paid for my coffee, and we became friends.' } }],
             else: [{ stat: 'happiness', delta: 1 }, { log: 'I lost them at the crosswalk. Somewhere out there is a stranger I owe.' }],
           },
         ],
@@ -1236,7 +1238,8 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
     maxAge: 90,
     weight: 1.2,
     once: true,
-    conditions: [{ inPrison: false }],
+    // A hedge between my yard and the neighbor's: a house with a yard of my own, not a studio or a condo.
+    conditions: [{ inPrison: false }, LIVES_IN_HOUSE_WITH_YARD],
     choices: [
       {
         id: 'escalate',
@@ -1258,7 +1261,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
           { money: -20 },
           {
             chance: 0.6,
-            then: [{ stat: 'happiness', delta: 4 }, { newPerson: { kind: 'friend', relationship: 50, log: 'The cake worked. My neighbor {{person}} is now a friend who co-owns a hedge.' } }],
+            then: [{ stat: 'happiness', delta: 4 }, { newPerson: { kind: 'friend', relationship: 50, minAge: 21, log: 'The cake worked. My neighbor {{person}} is now a friend who co-owns a hedge.' } }],
             else: [{ stat: 'happiness', delta: -1 }, { log: 'They took the cake and kept the diagram. Progress, of a kind.' }],
           },
         ],
@@ -1266,7 +1269,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
       {
         id: 'ignore',
         label: 'Let the hedge grow',
-        effects: [{ stat: 'happiness', delta: -2 }, { log: 'The hedge is now twelve feet tall. Neither of us can see the other. Peace.' }],
+        effects: [{ stat: 'happiness', delta: -2 }, { log: 'The hedge is now taller than both our houses. Neither of us can see the other. Peace.' }],
       },
     ],
   },
@@ -1424,7 +1427,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
             random: [
               { weight: 5, effects: [{ stat: 'happiness', delta: 3 }, { log: 'We changed it together. They waved until I was out of sight.', kind: 'good' }] },
               { weight: 2, effects: [{ money: 50 }, { log: 'They pressed some cash into my hand and would not take no.', kind: 'money' }] },
-              { weight: 2, effects: [{ stat: 'happiness', delta: 3 }, { newPerson: { kind: 'friend', relationship: 50, log: '{{person}} with the flat tire turned out to live nearby. We are friends now.' } }] },
+              { weight: 2, effects: [{ stat: 'happiness', delta: 3 }, { newPerson: { kind: 'friend', relationship: 50, minAge: 18, log: '{{person}} with the flat tire turned out to live nearby. We are friends now.' } }] },
               { weight: 1, effects: [{ stat: 'happiness', delta: -1 }, { log: 'Grease up to my elbows, then the jack slipped. Nobody was hurt but my shirt.' }] },
             ],
           },
@@ -1520,7 +1523,7 @@ export const FRIENDS_AND_STRANGERS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 5 },
           {
             chance: 0.3,
-            then: [{ karma: -3 }, { stat: 'happiness', delta: -4 }, { log: 'The owner spotted the dog in my yard. We argued. The whole street knows.', kind: 'bad' }],
+            then: [{ karma: -3 }, { stat: 'happiness', delta: -4 }, { log: 'The owner spotted the dog on my doorstep. We argued. The whole street knows.', kind: 'bad' }],
             else: [{ log: 'Nobody came looking. I took the tag off and told myself a story about it.' }],
           },
         ],

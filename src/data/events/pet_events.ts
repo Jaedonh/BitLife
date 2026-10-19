@@ -1,3 +1,4 @@
+import { DESK_JOB } from '@/data/events/technology_and_media';
 import type { EventDef } from '@/engine/events/schema';
 
 /**
@@ -10,6 +11,9 @@ import type { EventDef } from '@/engine/events/schema';
  * dog, dander for something with fur), and move that bond with
  * `relationship: 'person'`. Follow-ups queued from adoption are not bound to the
  * new pet, so they use `relationship: 'pet'`.
+ *
+ * A choice with a money condition is hidden from a player without the money, so every card keeps at least two
+ * choices with no condition at all: a broke owner still decides something.
  */
 export const PET_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ getting a pet
@@ -252,7 +256,7 @@ export const PET_EVENTS: EventDef[] = [
     id: 'pt_parrot_rude_word',
     category: 'family',
     title: 'A new word',
-    text: 'The parrot has learned a word. Not a nice word. It says it clearly, confidently, and only when there are guests, and it said it twice to a visiting aunt.',
+    text: 'The parrot has learned a word. Not a nice word. It says it clearly, confidently, and only when there are guests, and it said it twice to a neighbor who came to borrow a ladder.',
     minAge: 16,
     maxAge: 85,
     weight: 1,
@@ -433,22 +437,15 @@ export const PET_EVENTS: EventDef[] = [
         ],
       },
       {
-        id: 'cheaper',
-        label: 'Ask for the cheap option',
-        hint: '{{$180}}',
-        conditions: [{ money: { gte: 180 } }],
+        id: 'clinic',
+        label: 'Find a low-cost clinic',
+        hint: 'A long wait',
         effects: [
-          { money: -180, payer: 'self' },
+          { energy: -2 },
           {
-            chance: 0.55,
-            then: [{ relationship: 'person', delta: 4 }, { stat: 'happiness', delta: 2 }, { log: 'The basic treatment did the trick, slowly. {{person}} forgave the vet before I did.', kind: 'good' }],
-            else: [
-              {
-                chance: 0.5,
-                then: [{ stat: 'happiness', delta: -12 }, { log: 'It was not enough. {{person}} slipped away a week later, at home, on the good blanket.', kind: 'bad' }, { personDies: true, cause: 'illness' }],
-                else: [{ money: -400, payer: 'self' }, { stat: 'happiness', delta: -5 }, { log: 'It got worse and I paid for the full treatment anyway. {{person}} pulled through.', kind: 'bad' }],
-              },
-            ],
+            chance: 0.5,
+            then: [{ relationship: 'person', delta: 4 }, { stat: 'happiness', delta: 2 }, { log: 'The low-cost clinic had a three-hour line and a kind vet. {{person}} came home on pills.', kind: 'good' }],
+            else: [{ stat: 'happiness', delta: -12 }, { log: 'The clinic did what it could. {{person}} slipped away a week later, at home, on the good blanket.', kind: 'bad' }, { personDies: true, cause: 'illness' }],
           },
         ],
       },
@@ -541,7 +538,7 @@ export const PET_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.6,
-            then: [{ relationship: 'person', delta: 2 }, { stat: 'happiness', delta: -1 }, { log: 'Everything came out eventually, in the yard, in an order I will not describe.' }],
+            then: [{ relationship: 'person', delta: 2 }, { stat: 'happiness', delta: -1 }, { log: 'Everything came out eventually, on our next walk, in an order I will not describe.' }],
             else: [
               {
                 chance: 0.75,
@@ -782,6 +779,18 @@ export const PET_EVENTS: EventDef[] = [
         ],
       },
       {
+        id: 'talk',
+        label: 'Knock and talk it over',
+        effects: [
+          { energy: -1 },
+          {
+            chance: 0.5,
+            then: [{ karma: 1 }, { stat: 'happiness', delta: 1 }, { log: 'I knocked and listened. We agreed on a radio for {{person}} while I am out. Truce.', kind: 'good' }],
+            else: [{ stat: 'happiness', delta: -2 }, { log: 'I knocked to explain. The neighbor explained louder. We now nod at each other like rivals.', kind: 'bad' }],
+          },
+        ],
+      },
+      {
         id: 'trainer',
         label: 'Hire a trainer',
         hint: '{{$120}}',
@@ -869,7 +878,7 @@ export const PET_EVENTS: EventDef[] = [
       {
         id: 'rehome',
         label: 'Rehome {{person}}',
-        effects: [{ log: 'My cousin took {{person}}. I visit. {{They}} greets me like a stranger who smells familiar.', kind: 'bad' }, { removePerson: true }, { stat: 'happiness', delta: -9 }, { karma: -1 }],
+        effects: [{ log: 'A family nearby took {{person}}. I visit. {{They}} greets me like a stranger who smells familiar.', kind: 'bad' }, { removePerson: true }, { stat: 'happiness', delta: -9 }, { karma: -1 }],
       },
     ],
   },
@@ -920,7 +929,7 @@ export const PET_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 0.8,
     cooldown: 27,
-    conditions: [{ hasJob: true }, { inPrison: false }],
+    conditions: [{ hasJob: true }, DESK_JOB, { inPrison: false }],
     person: { kind: ['pet'], species: ['dog'] },
     choices: [
       {
@@ -967,7 +976,7 @@ export const PET_EVENTS: EventDef[] = [
           {
             chance: 0.6,
             then: [
-              { newPerson: { kind: 'friend', relationship: 50, log: 'The greyhound man turned out to be called {{person}}. We are, somehow, friends now.' } },
+              { newPerson: { kind: 'friend', relationship: 50, gender: 'male', minAge: 25, maxAge: 80, log: 'The greyhound man turned out to be called {{person}}. We are, somehow, friends now.' } },
               { stat: 'happiness', delta: 4 },
               { log: 'Mornings have a purpose now. {{person}} is suspicious of the greyhounds but tolerates the man.', kind: 'good' },
             ],
@@ -1041,9 +1050,14 @@ export const PET_EVENTS: EventDef[] = [
         id: 'camera',
         label: 'Install a pet camera',
         hint: '{{$60}}',
-        // Watching from my desk: a camera that streams to my phone.
+        // Watching on my phone: a camera that streams to it (whatever my job, or none).
         conditions: [{ year: { gte: 2014 } }],
-        effects: [{ money: -60 }, { stat: 'happiness', delta: -1 }, { stat: 'smarts', delta: 1 }, { log: 'I now watch {{person}} wait for me from my desk. It has made nothing better and everything clearer.' }],
+        effects: [{ money: -60 }, { stat: 'happiness', delta: -1 }, { stat: 'smarts', delta: 1 }, { log: 'I now watch {{person}} wait for me on my phone. It made nothing better and everything clearer.' }],
+      },
+      {
+        id: 'radio',
+        label: 'Leave the radio on',
+        effects: [{ relationship: 'person', delta: 2 }, { stat: 'happiness', delta: 1 }, { log: 'I leave the radio on for {{person}} now. The neighbors say the window is still occupied.' }],
       },
     ],
   },

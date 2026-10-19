@@ -1,3 +1,4 @@
+import { NOT_ON_PAROLE } from '@/data/events/travel_events';
 import type { EventDef } from '@/engine/events/schema';
 
 /**
@@ -9,9 +10,10 @@ import type { EventDef } from '@/engine/events/schema';
  * - renters 20-59 (no home of my own, a job or a spouse, and { atHome: false });
  * - young parenthood with a child under five, from the parent's side.
  * Job portals, email and apps wait for their era with a { year } gate; the rest reads the same in 1995 and 2025.
- * The engine has no "lives with parents" state, so the childhood-bedroom events require that I have
- * no job, spouse, child or house, and either never had my own place (ya_first_apartment,
- * ya_move_in_together) or moved back home (ya_house_rules is only queued by that choice).
+ * The childhood-bedroom events require that I have no job, spouse, child or house, that I live at home
+ * ({ atHome: true }), and that I either never had my own place (ya_first_apartment, ya_move_in_together)
+ * or moved back home and am still there (ya_move_back_home sets the home_with_parents flag, which the
+ * engine clears when that ends, and queues ya_house_rules).
  */
 export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
   // ------------------------------------------------- neither studying nor working
@@ -150,7 +152,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
     id: 'yp_reading_volunteer',
     category: 'random',
     title: 'Reading partner',
-    text: "With my days wide open, I volunteered for the library's adult reading program. My first partner is a retired bus driver learning to read at sixty-three. He brought two sharpened pencils and a lot of nerve.",
+    text: "With my days wide open, I volunteered for the library's adult reading program. My first partner is a retired bus driver learning to read at sixty-seven. He brought two sharpened pencils and a lot of nerve.",
     minAge: 18,
     maxAge: 29,
     weight: 1,
@@ -166,7 +168,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 4 },
           { stat: 'smarts', delta: 1 },
           { log: 'I showed up every Tuesday. By summer he was reading street signs out loud, just because.', kind: 'good' },
-          { chance: 0.6, then: [{ newPerson: { kind: 'friend', relationship: 60, gender: 'male', minAge: 63, maxAge: 63, log: '{{person}}, my reading partner, read me a whole page in June. We are friends now.' } }] },
+          { chance: 0.6, then: [{ newPerson: { kind: 'friend', relationship: 60, gender: 'male', minAge: 67, maxAge: 67, occupation: 'Bus Driver', log: '{{person}}, my reading partner, read me a whole page in June. We are friends now.' } }] },
         ],
       },
       {
@@ -197,6 +199,7 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
         id: 'farm',
         label: 'Work on a farm abroad',
         hint: '{{$900}} flights',
+        conditions: [NOT_ON_PAROLE],
         effects: [
           { money: -900 },
           { stat: 'health', delta: 3 },
@@ -242,7 +245,10 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
       { noAsset: 'house' },
       { married: false },
       { hasChildren: false },
-      { any: [{ all: [{ eventNotFired: 'ya_first_apartment' }, { eventNotFired: 'ya_move_in_together' }] }, { eventFired: 'ya_house_rules' }] },
+      // Living at home now, as the engine counts it (the living-with-parents housing): never moved out, or moved back
+      // and still there (home_with_parents, which ends with a home, a wedding, a partner, a move or prison).
+      { atHome: true },
+      { any: [{ all: [{ eventNotFired: 'ya_first_apartment' }, { eventNotFired: 'ya_move_in_together' }] }, { flag: 'home_with_parents' }] },
     ],
     person: { kind: ['mother', 'father'] },
     choices: [
@@ -290,7 +296,10 @@ export const YOUNG_ADULT_PATHS_EVENTS: EventDef[] = [
       { noAsset: 'house' },
       { married: false },
       { hasChildren: false },
-      { any: [{ all: [{ eventNotFired: 'ya_first_apartment' }, { eventNotFired: 'ya_move_in_together' }] }, { eventFired: 'ya_house_rules' }] },
+      // Living at home now, as the engine counts it (the living-with-parents housing): never moved out, or moved back
+      // and still there (home_with_parents, which ends with a home, a wedding, a partner, a move or prison).
+      { atHome: true },
+      { any: [{ all: [{ eventNotFired: 'ya_first_apartment' }, { eventNotFired: 'ya_move_in_together' }] }, { flag: 'home_with_parents' }] },
     ],
     person: { kind: ['mother', 'father'] },
     choices: [

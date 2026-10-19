@@ -1,3 +1,4 @@
+import { TEEN_DRIVERS } from '@/data/events/teen_life';
 import type { EventDef } from '@/engine/events/schema';
 
 /**
@@ -517,6 +518,8 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     maxAge: 17,
     weight: 2,
     once: true,
+    // Behind the wheel at 16 with a parent beside me: where teens learn that young (the driving test follows).
+    conditions: [TEEN_DRIVERS],
     person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
@@ -526,7 +529,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 2 },
           { relationship: 'person', delta: 4 },
           { stat: 'happiness', delta: 2 },
-          { log: 'I crawled around the lot at ten miles an hour. {{person}} said I was a natural. A kind lie.' },
+          { log: 'I crawled around the lot at walking pace. {{person}} said I was a natural. A kind lie.' },
           { queue: 'tn_driving_test' },
         ],
       },
@@ -558,6 +561,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     maxAge: 17,
     weight: 1,
     followUpOnly: true,
+    conditions: [TEEN_DRIVERS],
     person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
@@ -673,7 +677,8 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     maxAge: 17,
     weight: 2,
     once: true,
-    conditions: [{ enrolled: true }, { stage: ['high'] }],
+    // A prom is a North American and British school tradition.
+    conditions: [{ enrolled: true }, { stage: ['high'] }, { country: ['US', 'CA', 'GB'] }],
     person: { kind: ['friend', 'bestFriend'], minRelationship: 30 },
     choices: [
       {
@@ -755,7 +760,7 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     id: 'tn_college_apps',
     category: 'school',
     title: 'College applications',
-    text: 'Senior year, and college applications are due. The counselor keeps saying "reach, match, safety" like it is a spell. At home, every dinner ends with "Well?"',
+    text: 'My last year of school, and the college applications are due. A teacher keeps saying "reach, match, safety" like it is a spell. At home, every dinner ends with "Well?"',
     minAge: 17,
     maxAge: 17,
     weight: 3,

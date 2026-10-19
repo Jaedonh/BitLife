@@ -731,6 +731,8 @@ export const KID_YEARS_EVENTS: EventDef[] = [
     maxAge: 12,
     weight: 0.7,
     once: true,
+    // A farm family's parents run the farm: nobody lays them off.
+    conditions: [{ not: { flag: 'farm' } }],
     person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
@@ -807,9 +809,10 @@ export const KID_YEARS_EVENTS: EventDef[] = [
     maxAge: 12,
     weight: 0.6,
     once: true,
-    // An immigrant family's move is the one abroad (scenarios.ts): not another city first, which would leave this
-    // town's new friends behind at the emigration and keep the far-away ones from before.
-    conditions: [{ not: { all: [{ flag: 'scenario:immigrant' }, { flag: 'immigrant', exists: false }] } }],
+    // An immigrant family's move is the one abroad (scenarios.ts): not another city before it, which would leave this
+    // town's new friends behind at the emigration, nor a second move in the year of the arrival or the next. A farm
+    // family stays on its farm: the farm cards (starting_scenarios.ts) assume the family still works it.
+    conditions: [{ not: { flag: 'scenario:immigrant' } }, { not: { flag: 'farm' } }],
     // The family moves whatever I choose (relocate: a new city; friends and grandparents stay behind, far away).
     // Goodbyes come before the move, while everyone is still nearby.
     choices: [
@@ -860,7 +863,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
       {
         id: 'explore',
         label: 'Explore alone',
-        effects: [{ stat: 'smarts', delta: 2 }, { stat: 'happiness', delta: 2 }, { chance: 0.3, then: [{ log: 'I found a creek behind the new house with actual frogs. The move is forgiven.', kind: 'good' }, { stat: 'happiness', delta: 3 }], else: [{ log: 'I mapped every street within a mile. It is a very normal town.' }] }],
+        effects: [{ stat: 'smarts', delta: 2 }, { stat: 'happiness', delta: 2 }, { chance: 0.3, then: [{ log: 'I found a creek behind the new house with actual frogs. The move is forgiven.', kind: 'good' }, { stat: 'happiness', delta: 3 }], else: [{ log: 'I mapped every street within walking distance. It is a very normal town.' }] }],
       },
     ],
   },
@@ -1172,7 +1175,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
           {
             chance: 0.7,
             then: [{ log: 'Nineteen kids, one cake, zero survivors among the balloons. Incredible.', kind: 'good' }, { stat: 'happiness', delta: 8 }, { newPerson: { kind: 'friend', relationship: 50, log: 'A kid called {{person}} stayed to help clean up. We have been friends ever since.' } }],
-            else: [{ log: 'Three people came. One was my cousin. {{person}} ate most of the cake out of loyalty.', kind: 'bad' }, { stat: 'happiness', delta: -6 }, { relationship: 'person', delta: 3 }],
+            else: [{ log: 'Three people came. One was only returning a ball. {{person}} ate most of the cake out of loyalty.', kind: 'bad' }, { stat: 'happiness', delta: -6 }, { relationship: 'person', delta: 3 }],
           },
         ],
       },

@@ -11,9 +11,8 @@ import type { Condition, EventDef } from '@/engine/events/schema';
  * unfairly, the holiday gift exchange, a retirement handover, mentoring a new hire, grief, a baby
  * shower, the thermostat and a school fundraiser.
  *
- * A coworker who leaves, retires or is let go is removed with removePerson after the choice's own
- * line. No effect can turn them into a friend yet, so those cards bind coworkers below 70 (the
- * relationship at which the engine keeps a coworker as a friend when the player leaves). The mentee
+ * A coworker who leaves, retires or is let go ends with coworkerLeaves after the choice's own line:
+ * a close one (50+) stays in my life as a friend, anyone else drops out of it (CONTENT_STYLE). The mentee
  * is a new person (newPerson), so the mentoring card has no follow-up: a queued card would bind the
  * event's person, not the new hire. Follow-ups (followUpOnly): cw_carpool_late (from
  * cw_carpool_driver) and cw_boss_off_record (from cw_new_boss).
@@ -31,9 +30,6 @@ const HAS_A_BOSS: Condition = {
 
 /** Notice, references, interviews, promotions applied for and new hires: soldiers serve a term and are posted, not hired. */
 const CIVILIAN: Condition = { not: { jobId: ['military'] } };
-
-/** Coworkers who leave are removed, so a close one (who would stay a friend) is never bound. */
-const NOT_CLOSE = 69;
 
 /** Real cars: the 'car' asset kind also covers the bicycle and the scooter. */
 const REAL_CARS = ['old_hatchback', 'sedan', 'pickup', 'ev', 'luxury_sedan', 'sports_car', 'supercar', 'classic_car'];
@@ -72,7 +68,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
     weight: 1,
     cooldown: 4,
     conditions: [...FULL_TIME, NOT_GIG, CIVILIAN],
-    person: { kind: ['coworker'], maxRelationship: NOT_CLOSE },
+    person: { kind: ['coworker'] },
     choices: [
       {
         id: 'organize',
@@ -85,7 +81,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 3 },
           { karma: 2 },
           { log: 'I organized cake, a card and a slideshow. {{person}} laughed at every photo and cried at the last.', kind: 'good' },
-          { removePerson: true },
+          { coworkerLeaves: true },
         ],
       },
       {
@@ -97,7 +93,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
             then: [{ stat: 'happiness', delta: 3 }, { log: 'My toast got a real laugh and one tear. {{person}} left with the card under {{their}} arm.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -2 }, { log: 'My toast ran long and mentioned the printer twice. {{person}} clapped anyway, kindly.' }],
           },
-          { removePerson: true },
+          { coworkerLeaves: true },
         ],
       },
       {
@@ -108,7 +104,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: -2 },
           { karma: -1 },
           { log: 'I kept working through the send-off. {{person}} waved goodbye from the door. I waved back, too late.' },
-          { removePerson: true },
+          { coworkerLeaves: true },
         ],
       },
       {
@@ -121,7 +117,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
               { weight: 1, effects: [{ stat: 'happiness', delta: 2 }, { log: '{{person}} said it was simply time for something new. I wished {{them}} luck and meant it.', kind: 'good' }] },
             ],
           },
-          { removePerson: true },
+          { coworkerLeaves: true },
         ],
       },
     ],
@@ -136,12 +132,13 @@ export const COWORKERS_EVENTS: EventDef[] = [
     weight: 0.8,
     cooldown: 4,
     conditions: [...FULL_TIME, DESK_WORK],
-    person: { kind: ['coworker'], maxRelationship: 50 },
+    // Someone I have spoken to four times: below 50, where coworkerLeaves would keep them on as a friend.
+    person: { kind: ['coworker'], maxRelationship: 49 },
     choices: [
       {
         id: 'generic',
         label: 'Write something generic',
-        effects: [{ stat: 'happiness', delta: -1 }, { log: 'I wrote "Best of luck!" in the only gap left. It looked very lonely among the paragraphs.' }, { removePerson: true }],
+        effects: [{ stat: 'happiness', delta: -1 }, { log: 'I wrote "Best of luck!" in the only gap left. It looked very lonely among the paragraphs.' }, { coworkerLeaves: true }],
       },
       {
         id: 'invent',
@@ -153,7 +150,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
             then: [{ stat: 'happiness', delta: 2 }, { log: 'I wrote about "that time in the elevator." {{person}} read it and laughed. I think it worked.' }],
             else: [{ stat: 'happiness', delta: -3 }, { log: '{{person}} read my card out loud, frowned and asked which elevator. Everyone heard.', kind: 'bad' }],
           },
-          { removePerson: true },
+          { coworkerLeaves: true },
         ],
       },
       {
@@ -164,7 +161,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 3 },
           { karma: 2 },
           { log: 'I said a proper goodbye to {{person}}. We talked for twenty minutes. I wish we had started sooner.', kind: 'good' },
-          { removePerson: true },
+          { coworkerLeaves: true },
         ],
       },
     ],
@@ -226,7 +223,8 @@ export const COWORKERS_EVENTS: EventDef[] = [
     maxAge: 75,
     weight: 1,
     cooldown: 5,
-    conditions: [...FULL_TIME, NOT_GIG, HAS_A_BOSS],
+    // "My boss" in front of the team: not a judge (as cw_new_boss) or a soldier, whose superiors are no boss in this sense.
+    conditions: [...FULL_TIME, NOT_GIG, HAS_A_BOSS, { not: { jobId: ['judge', 'military'] } }],
     person: { kind: ['coworker'] },
     choices: [
       {
@@ -372,9 +370,11 @@ export const COWORKERS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 75,
     weight: 1,
-    cooldown: 4,
+    // A coworker's wedding happens once, and no card can tell who already married, so the card is once a life; "a
+    // dozen real conversations" is someone I have known a few years at most.
+    once: true,
     conditions: [...FULL_TIME, { not: { sinceEvent: 'cw_wedding_speech', lte: 2 } }],
-    person: { kind: ['coworker'], minAge: 20, maxRelationship: 64 },
+    person: { kind: ['coworker'], minAge: 20, maxRelationship: 64, knownFor: { lte: 5 } },
     choices: [
       {
         id: 'go',
@@ -417,7 +417,8 @@ export const COWORKERS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 75,
     weight: 0.6,
-    cooldown: 8,
+    // A coworker's wedding happens once (as cw_wedding_invite).
+    once: true,
     conditions: [...FULL_TIME, { not: { sinceEvent: 'cw_wedding_invite', lte: 2 } }],
     person: { kind: ['coworker'], minAge: 20, minRelationship: 65 },
     choices: [
@@ -461,7 +462,8 @@ export const COWORKERS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 75,
     weight: 1,
-    cooldown: 4,
+    // The same two cake factions: at most twice in a life (CONTENT_STYLE).
+    cooldown: 29,
     conditions: [...FULL_TIME, NOT_GIG],
     person: { kind: ['coworker'] },
     choices: [
@@ -536,7 +538,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
     weight: 1,
     cooldown: 4,
     conditions: [...FULL_TIME, SHIFT_WORK, NOT_A_MANAGER],
-    person: { kind: ['coworker'], minAge: 24, maxRelationship: NOT_CLOSE },
+    person: { kind: ['coworker'], minAge: 24 },
     choices: [
       {
         id: 'all',
@@ -552,7 +554,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ relationship: 'person', delta: 3 }, { log: 'One week gave {{person}} time to find a sitter. {{They}} kept the job, just barely.', kind: 'good' }],
-            else: [{ stat: 'happiness', delta: -3 }, { log: 'One week was not enough. {{person}} was late the Thursday after and lost the job.', kind: 'bad' }, { removePerson: true }],
+            else: [{ stat: 'happiness', delta: -3 }, { log: 'One week was not enough. {{person}} was late the Thursday after and lost the job.', kind: 'bad' }, { coworkerLeaves: true }],
           },
         ],
       },
@@ -563,7 +565,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ relationship: 'person', delta: 3 }, { log: 'The supervisor moved {{person}} to afternoons. {{They}} said asking was the hardest part.', kind: 'good' }],
-            else: [{ stat: 'happiness', delta: -2 }, { log: 'The supervisor said rules are rules. {{person}} was let go at the end of the month.', kind: 'bad' }, { removePerson: true }],
+            else: [{ stat: 'happiness', delta: -2 }, { log: 'The supervisor said rules are rules. {{person}} was let go at the end of the month.', kind: 'bad' }, { coworkerLeaves: true }],
           },
         ],
       },
@@ -575,7 +577,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 1 },
           {
             chance: 0.4,
-            then: [{ stat: 'happiness', delta: -4 }, { log: 'I said no. Two weeks later {{person}} was let go. I keep thinking about that schedule.', kind: 'bad' }, { removePerson: true }],
+            then: [{ stat: 'happiness', delta: -4 }, { log: 'I said no. Two weeks later {{person}} was let go. I keep thinking about that schedule.', kind: 'bad' }, { coworkerLeaves: true }],
             else: [{ log: 'I said no. {{person}} found a neighbor to help with the kids. We are fine, mostly.' }],
           },
         ],
@@ -781,7 +783,8 @@ export const COWORKERS_EVENTS: EventDef[] = [
     maxAge: 75,
     weight: 1,
     followUpOnly: true,
-    conditions: [...FULL_TIME, NOT_GIG],
+    // Queued by cw_new_boss: still below the old lunch partner, so not if I have since reached the top rung.
+    conditions: [...FULL_TIME, NOT_GIG, HAS_A_BOSS],
     person: { kind: ['coworker'] },
     choices: [
       {
@@ -901,7 +904,8 @@ export const COWORKERS_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 75,
     weight: 0.6,
-    cooldown: 6,
+    // A coworker loses a mother once.
+    once: true,
     conditions: [...FULL_TIME],
     person: { kind: ['coworker'], minAge: 25 },
     choices: [
@@ -1076,7 +1080,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
     weight: 1,
     cooldown: 4,
     conditions: [...FULL_TIME, NOT_GIG, CIVILIAN],
-    person: { kind: ['coworker'], maxRelationship: NOT_CLOSE },
+    person: { kind: ['coworker'] },
     choices: [
       {
         id: 'glowing',
@@ -1086,7 +1090,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
           { relationship: 'person', delta: 8 },
           {
             chance: 0.65,
-            then: [{ stat: 'happiness', delta: 1 }, { log: '{{person}} got the job and called me first to tell me. Work is quieter without {{them}}.', kind: 'good' }, { removePerson: true }],
+            then: [{ stat: 'happiness', delta: 1 }, { log: '{{person}} got the job and called me first to tell me. Work is quieter without {{them}}.', kind: 'good' }, { coworkerLeaves: true }],
             else: [{ log: '{{person}} did not get it. {{They}} thanked me anyway and stayed, a little sad, a little relieved.' }],
           },
         ],
@@ -1098,7 +1102,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
           { karma: 3 },
           {
             chance: 0.4,
-            then: [{ relationship: 'person', delta: 2 }, { log: 'I mentioned the mornings. {{person}} got the job anyway. The new place starts at ten.', kind: 'good' }, { removePerson: true }],
+            then: [{ relationship: 'person', delta: 2 }, { log: 'I mentioned the mornings. {{person}} got the job anyway. The new place starts at ten.', kind: 'good' }, { coworkerLeaves: true }],
             else: [{ relationship: 'person', delta: -4 }, { log: 'I was honest about the mornings. {{person}} did not get it and suspects my honesty was why.', kind: 'bad' }],
           },
         ],
@@ -1110,7 +1114,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
           {
             chance: 0.4,
             then: [{ relationship: 'person', delta: 6 }, { stat: 'happiness', delta: 2 }, { log: 'I told {{person}} the team would fall apart without {{them}}. {{They}} stayed. The team agrees.', kind: 'good' }],
-            else: [{ stat: 'happiness', delta: -2 }, { log: '{{person}} said that was sweet, took the new job anyway and left on good terms.' }, { removePerson: true }],
+            else: [{ stat: 'happiness', delta: -2 }, { log: '{{person}} said that was sweet, took the new job anyway and left on good terms.' }, { coworkerLeaves: true }],
           },
         ],
       },
@@ -1130,7 +1134,8 @@ export const COWORKERS_EVENTS: EventDef[] = [
     maxAge: 75,
     weight: 0.8,
     cooldown: 5,
-    conditions: [...FULL_TIME, NOT_GIG, CIVILIAN, HAS_A_BOSS],
+    // The boss stopping by: not a judge's chambers (as cw_new_boss).
+    conditions: [...FULL_TIME, NOT_GIG, CIVILIAN, HAS_A_BOSS, { not: { jobId: ['judge'] } }],
     person: { kind: ['coworker'] },
     choices: [
       {
@@ -1374,7 +1379,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
     cooldown: 5,
     // wk_retiring_colleague (work_life.ts) throws a coworker's retirement party; two retirements back to back read as one told twice.
     conditions: [...FULL_TIME, { not: { sinceEvent: 'wk_retiring_colleague', lte: 2 } }],
-    person: { kind: ['coworker'], minAge: 60, maxRelationship: NOT_CLOSE },
+    person: { kind: ['coworker'], minAge: 60 },
     choices: [
       {
         id: 'binder',
@@ -1384,7 +1389,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 3 },
           { jobPerformance: 5 },
           { log: "I read {{person}}'s binder cover to cover. Half is gold. The other half is about the coffee machine.", kind: 'good' },
-          { removePerson: true },
+          { coworkerLeaves: true },
         ],
       },
       {
@@ -1395,7 +1400,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
           { money: -50 },
           { stat: 'happiness', delta: 4 },
           { log: 'Over a long lunch {{person}} told me the stories that never made the binder. I took napkin notes.', kind: 'good' },
-          { removePerson: true },
+          { coworkerLeaves: true },
         ],
       },
       {
@@ -1408,7 +1413,7 @@ export const COWORKERS_EVENTS: EventDef[] = [
             then: [{ stat: 'happiness', delta: 3 }, { log: 'The plant lived. It is the greenest thing at work now, and I named it after {{person}}.', kind: 'good' }],
             else: [{ stat: 'happiness', delta: -2 }, { log: 'The plant died within a month. I think it missed {{person}}. I did too.' }],
           },
-          { removePerson: true },
+          { coworkerLeaves: true },
         ],
       },
     ],
@@ -1424,7 +1429,8 @@ export const COWORKERS_EVENTS: EventDef[] = [
     maxAge: 75,
     weight: 1,
     cooldown: 6,
-    conditions: [...FULL_TIME, NOT_GIG, CIVILIAN, HAS_A_BOSS, { jobLevel: { gte: 1 } }],
+    // A boss assigns the new hire: not a judge (as cw_new_boss).
+    conditions: [...FULL_TIME, NOT_GIG, CIVILIAN, HAS_A_BOSS, { jobLevel: { gte: 1 } }, { not: { jobId: ['judge'] } }],
     choices: [
       {
         id: 'everything',

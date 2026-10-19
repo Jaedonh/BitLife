@@ -70,6 +70,7 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
         id: 'rent',
         label: 'Charge rent in commissary',
         effects: [
+          { counter: 'crimes' },
           { karma: -4 },
           {
             chance: 0.7,
@@ -178,6 +179,7 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
         id: 'hide',
         label: 'Hide it',
         effects: [
+          { counter: 'crimes' },
           { karma: -3 },
           {
             random: [
@@ -796,6 +798,7 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
         id: 'keep',
         label: 'Keep it in my sock',
         effects: [
+          { counter: 'crimes' },
           { karma: -2 },
           {
             chance: 0.3,
@@ -895,7 +898,7 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
     id: 'pl_college_class',
     category: 'prison',
     title: 'Tuesday nights',
-    text: 'A community college sends a professor in on Tuesday nights. Twelve seats, forty applications, and one essay question: what do you want to understand?',
+    text: 'A local college sends a lecturer in on Tuesday nights. Twelve seats, forty applications, and one essay question: what do you want to understand?',
     minAge: 18,
     maxAge: 75,
     weight: 0.8,
@@ -1552,7 +1555,8 @@ export const PRISON_LIFE_EVENTS: EventDef[] = [
     weight: 1,
     once: true,
     conditions: [{ criminalRecord: true }, { inPrison: false }, { married: false }, { not: { sinceEvent: 'lf_meet_their_parents', lte: 5 } }],
-    person: { kind: ['lover'], minAge: 25, maxAge: 50 },
+    // Meeting the parents for the first time belongs early in a relationship, not after years together.
+    person: { kind: ['lover'], minAge: 25, maxAge: 50, knownFor: { lte: 3 } },
     choices: [
       {
         id: 'keep_quiet',

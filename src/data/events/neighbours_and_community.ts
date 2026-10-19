@@ -1,5 +1,6 @@
+import { ASSETS } from '@/data/assets';
 import { JURY_TRIALS } from '@/data/events/justice_and_reentry';
-import type { EventDef } from '@/engine/events/schema';
+import type { Condition, EventDef } from '@/engine/events/schema';
 
 /**
  * Ages 10+: neighbours, the street and the town of {{city}}. Noise, floods,
@@ -10,6 +11,19 @@ import type { EventDef } from '@/engine/events/schema';
  * A card opens once or rests for more than half its age range, so the same
  * street scene never comes back a third time.
  */
+
+/** Houses with a front door and a yard of their own (not a studio, condo or penthouse), as in adult_life.ts. */
+const HOUSE_WITH_YARD = ['townhouse', 'suburban', 'farmhouse', 'beach_house', 'mansion'];
+/**
+ * Living in a house with a yard: a front lawn, a garage, a hedge between me and the neighbor. Conditions see only
+ * what I own, so every home I own has a yard (then the one I live in does too); a renter or an apartment owner has none.
+ */
+export const LIVES_IN_HOUSE_WITH_YARD: Condition = {
+  all: [
+    { ownsAssetId: HOUSE_WITH_YARD },
+    { not: { ownsAssetId: ASSETS.filter((a) => a.kind === 'house' && !HOUSE_WITH_YARD.includes(a.id)).map((a) => a.id) } },
+  ],
+};
 
 export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ neighbours
@@ -55,7 +69,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 5 },
           { energy: -1 },
           { log: 'If I cannot beat them, I can dance in their kitchen. The bass is better from the inside.', kind: 'good' },
-          { chance: 0.4, then: [{ newPerson: { kind: 'friend', relationship: 55, log: 'I met {{person}} by the speakers and we became friends.' } }] },
+          { chance: 0.4, then: [{ newPerson: { kind: 'friend', relationship: 55, minAge: 18, log: 'I met {{person}} by the speakers and we became friends.' } }] },
           { chance: 0.25, then: [{ stat: 'health', delta: -2 }, { log: 'I got home at 3 a.m. with a headache and a new favorite song.' }] },
         ],
       },
@@ -66,7 +80,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
           { karma: -3 },
           {
             random: [
-              { weight: 5, effects: [{ log: 'I started an arms race. By Friday the whole street hated both of us.', kind: 'bad' }, { stat: 'happiness', delta: -4 }, { chance: 0.5, then: [{ newPerson: { kind: 'enemy', relationship: 10, log: 'My neighbor {{person}} is now officially my enemy.' } }] }] },
+              { weight: 5, effects: [{ log: 'I started an arms race. By Friday the whole street hated both of us.', kind: 'bad' }, { stat: 'happiness', delta: -4 }, { chance: 0.5, then: [{ newPerson: { kind: 'enemy', relationship: 10, minAge: 18, log: 'My neighbor {{person}} is now officially my enemy.' } }] }] },
               { weight: 3, effects: [{ log: 'They got the message and turned it down. We have never spoken since.' }, { stat: 'happiness', delta: 2 }] },
               { weight: 2, effects: [{ log: 'The police visited me, not them. I received a noise warning and a lecture.', kind: 'bad' }, { stat: 'happiness', delta: -3 }, { money: -100 }] },
             ],
@@ -886,13 +900,14 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
     category: 'random',
     title: 'Yard sale',
     text: 'I dragged a lifetime of clutter onto the front lawn and stuck prices on it. {{person}} came to help, which mostly meant {{they}} sat in a lawn chair offering commentary.',
-    // A lifetime of clutter takes decades in a home of my own, and someone out of prison a few years ago walked out
-    // with a paper bag (sinceRelease: never released, or more than five years ago).
+    // A lifetime of clutter takes decades in a home of my own, with a front lawn and a garage (not a studio or a
+    // condo), and someone out of prison a few years ago walked out with a paper bag (sinceRelease: never released, or
+    // more than five years ago).
     minAge: 35,
     maxAge: 90,
     weight: 1,
     cooldown: 28,
-    conditions: [{ inPrison: false }, { atHome: false }, { not: { sinceRelease: 'any', lte: 5 } }],
+    conditions: [{ inPrison: false }, { atHome: false }, LIVES_IN_HOUSE_WITH_YARD, { not: { sinceRelease: 'any', lte: 5 } }],
     person: { kind: ['mother', 'father', 'sibling', 'friend', 'bestFriend', 'spouse'], minRelationship: 30 },
     choices: [
       {
@@ -1029,7 +1044,7 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
           { karma: -3 },
           {
             chance: 0.4,
-            then: [{ log: 'I learned a great deal about my neighbors. Then they learned that I had been learning it.', kind: 'bad' }, { stat: 'happiness', delta: -4 }, { newPerson: { kind: 'enemy', relationship: 15, log: 'The neighbor at number fourteen, {{person}}, now considers me an enemy.' } }],
+            then: [{ log: 'I learned a great deal about my neighbors. Then they learned that I had been learning it.', kind: 'bad' }, { stat: 'happiness', delta: -4 }, { newPerson: { kind: 'enemy', relationship: 15, minAge: 18, log: 'The neighbor at number fourteen, {{person}}, now considers me an enemy.' } }],
             else: [{ log: "I learned everyone's business. It turned out to be mostly about recycling." }, { stat: 'happiness', delta: 1 }, { stat: 'smarts', delta: 1 }],
           },
         ],
@@ -1433,13 +1448,12 @@ export const NEIGHBOURS_AND_COMMUNITY_EVENTS: EventDef[] = [
         ],
       },
       {
+        // Everyone brings something, so a broke player can host it too; hosting costs the evening's energy instead.
         id: 'party',
-        label: 'Host a storm party',
-        hint: 'Costs {{$60}}',
-        conditions: [{ money: { gte: 60 } }],
+        label: 'Host a storm potluck',
         effects: [
+          { energy: -1 },
           { stat: 'happiness', delta: 5 },
-          { money: -60 },
           {
             random: [
               { weight: 5, effects: [{ log: 'Six friends, one storm, a lot of noise on both sides of the glass. I would not change a thing.', kind: 'good' }] },

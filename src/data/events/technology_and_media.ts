@@ -1,4 +1,4 @@
-import type { EventDef } from '@/engine/events/schema';
+import type { Condition, EventDef } from '@/engine/events/schema';
 
 /**
  * Ages 10+: phones, apps and life online. Going viral by accident, group chat
@@ -15,6 +15,17 @@ import type { EventDef } from '@/engine/events/schema';
  * smartphones, apps, feeds, streaming and video calls from 2010, two-factor codes
  * and dating apps from 2012, smart speakers from 2016, deepfakes from 2018.
  */
+/**
+ * A desk job: an office, a work inbox, meetings, video calls and conferences. Office, tech, finance and law jobs,
+ * and the desk-bound jobs of other ladders; never a barista, a warehouse shift, a babysitter or a firefighter.
+ */
+export const DESK_JOB: Condition = {
+  any: [
+    { jobCategory: ['office', 'tech', 'finance', 'law'] },
+    { jobId: ['teacher', 'professor', 'librarian', 'scientist', 'engineer', 'lab_tech', 'graphic_designer', 'journalist', 'writer', 'civil_servant', 'politician'] },
+  ],
+};
+
 export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ going viral
   {
@@ -329,7 +340,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
           {
             chance: 0.35,
             then: [{ log: 'Within a month there was a drama with a classmate and I was reading messages I did not understand.', kind: 'bad' }, { stat: 'happiness', delta: -4 }, { relationship: 'person', delta: -2 }],
-            else: [{ log: '{{person}} mostly posts pictures of the dog. The slideshow was accurate.', kind: 'good' }],
+            else: [{ log: '{{person}} mostly posts pictures of the sky. The slideshow was accurate.', kind: 'good' }],
           },
         ],
       },
@@ -347,7 +358,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ log: '{{person}} sulked for a week and then made an account anyway under a name I did not know.', kind: 'bad' }, { stat: 'happiness', delta: -3 }],
-            else: [{ log: '{{person}} grumbled and went back to the dog. The slideshow was saved for next year.' }, { stat: 'happiness', delta: 2 }],
+            else: [{ log: '{{person}} grumbled and went back to {{their}} comics. The slideshow was saved for next year.' }, { stat: 'happiness', delta: 2 }],
           },
         ],
       },
@@ -755,8 +766,8 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
   {
     id: 'tm_smart_speaker_rice',
     category: 'random',
-    title: 'Ninety pounds of rice',
-    text: 'My smart speaker misheard the television and ordered ninety pounds of rice. It arrived this morning in four sacks. The delivery driver asked if I was opening a restaurant.',
+    title: "A year's worth of rice",
+    text: "My smart speaker misheard the television and ordered a year's worth of rice. It arrived this morning in four sacks. The delivery driver asked if I was opening a restaurant.",
     minAge: 20,
     maxAge: 100,
     weight: 1,
@@ -985,7 +996,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 65,
     weight: 1,
     once: true,
-    conditions: [{ hasJob: true }, { year: { gte: 2010 } }],
+    conditions: [{ hasJob: true }, DESK_JOB, { year: { gte: 2010 } }],
     choices: [
       {
         id: 'laugh',
@@ -1026,7 +1037,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 65,
     weight: 1,
     cooldown: 24,
-    conditions: [{ hasJob: true }, { year: { gte: 1997 } }],
+    conditions: [{ hasJob: true }, DESK_JOB, { year: { gte: 1997 } }],
     choices: [
       {
         id: 'tell',
@@ -1075,7 +1086,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 65,
     weight: 1.2,
     cooldown: 24,
-    conditions: [{ hasJob: true }, { year: { gte: 1997 } }],
+    conditions: [{ hasJob: true }, DESK_JOB, { year: { gte: 1997 } }],
     choices: [
       {
         id: 'recall',
@@ -1125,7 +1136,7 @@ export const TECHNOLOGY_AND_MEDIA_EVENTS: EventDef[] = [
     maxAge: 65,
     weight: 1.5,
     cooldown: 24,
-    conditions: [{ hasJob: true }, { year: { gte: 2010 } }],
+    conditions: [{ hasJob: true }, DESK_JOB, { year: { gte: 2010 } }],
     choices: [
       {
         id: 'own',

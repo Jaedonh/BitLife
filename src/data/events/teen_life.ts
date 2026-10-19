@@ -1,4 +1,4 @@
-import type { EventDef } from '@/engine/events/schema';
+import type { Condition, EventDef } from '@/engine/events/schema';
 
 /**
  * Ages 12-17, told by the teen: money of my own (allowance, saving up, lunch
@@ -16,6 +16,14 @@ import type { EventDef } from '@/engine/events/schema';
  * (texting from 2000, smartphones, apps and posting from 2010) and the rest are
  * written so they read the same in 1990 and in 2025.
  */
+/** A foster child never knew their birth family, so no aunt, great-aunt or cousin turns up (CONTENT_STYLE). */
+const KNOWS_THEIR_FAMILY: Condition = { not: { flag: 'foster_care' } };
+/**
+ * A learner's permit at 16 (a written test, then driving with a licensed adult beside me) is how the United
+ * States, Canada and Australia do it; elsewhere a teen waits until 17 or 18 and learns at a driving school.
+ */
+export const TEEN_DRIVERS: Condition = { country: ['US', 'CA', 'AU'] };
+
 export const TEEN_LIFE_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ early teens
   {
@@ -138,8 +146,8 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
   {
     id: 'tl_growth_spurt',
     category: 'family',
-    title: 'Four inches',
-    text: 'I grew four inches over the summer. My jeans stop above my ankles, my sleeves end at my wrists, and my feet now enter rooms before I do. {{person}} noticed when I hit my head on the kitchen light.',
+    title: 'Growth spurt',
+    text: 'I shot up over the summer. My jeans stop above my ankles, my sleeves end at my wrists, and my feet now enter rooms before I do. {{person}} noticed when I hit my head on the kitchen light.',
     minAge: 13,
     maxAge: 15,
     weight: 1.5,
@@ -1522,6 +1530,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     maxAge: 15,
     weight: 2,
     once: true,
+    conditions: [KNOWS_THEIR_FAMILY],
     choices: [
       {
         id: 'letter',
@@ -2003,7 +2012,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ money: 80 }, { energy: -1 }, { log: 'They needed someone to unload a truck on Saturday. {{$80}} in cash and very sore arms.', kind: 'money' }],
-            else: [{ stat: 'happiness', delta: -1 }, { log: 'She handed me an application that wanted three references. I have a cousin.' }],
+            else: [{ stat: 'happiness', delta: -1 }, { log: 'She handed me an application that wanted three references. I have a library card.' }],
           },
         ],
       },
@@ -2098,7 +2107,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
   },
 
   // ------------------------------------------------------------ driving
-  // The permit test is for every teen. Passing it queues the aunt's lessons, which only open when both
+  // The permit test is for every teen where teens drive at 16 (TEEN_DRIVERS). Passing it queues the aunt's lessons, which only open when both
   // parents (and any step-parents) are gone: teens with parents learn in tn_learning_to_drive instead.
   {
     id: 'tl_permit_test',
@@ -2109,7 +2118,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     maxAge: 17,
     weight: 1.5,
     once: true,
-    conditions: [{ flag: 'tn_license', exists: false }, { eventNotFired: 'tn_learning_to_drive' }],
+    conditions: [TEEN_DRIVERS, { flag: 'tn_license', exists: false }, { eventNotFired: 'tn_learning_to_drive' }],
     choices: [
       {
         id: 'study',
@@ -2157,7 +2166,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     maxAge: 17,
     weight: 1,
     followUpOnly: true,
-    conditions: [{ noPerson: ['mother', 'father', 'stepmother', 'stepfather'] }, { flag: 'tn_license', exists: false }],
+    conditions: [{ noPerson: ['mother', 'father', 'stepmother', 'stepfather'] }, { flag: 'tn_license', exists: false }, KNOWS_THEIR_FAMILY],
     choices: [
       {
         id: 'slow',
@@ -2165,7 +2174,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
         effects: [
           { stat: 'smarts', delta: 2 },
           { stat: 'happiness', delta: 2 },
-          { log: 'Ten miles an hour, both hands on the wheel. My aunt called me a natural, very kindly.' },
+          { log: 'Walking pace, both hands on the wheel. My aunt called me a natural, very kindly.' },
           { queue: 'tl_aunt_driving_test' },
         ],
       },
@@ -2207,7 +2216,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     maxAge: 17,
     weight: 1,
     followUpOnly: true,
-    conditions: [{ noPerson: ['mother', 'father', 'stepmother', 'stepfather'] }],
+    conditions: [{ noPerson: ['mother', 'father', 'stepmother', 'stepfather'] }, KNOWS_THEIR_FAMILY],
     choices: [
       {
         id: 'taught',

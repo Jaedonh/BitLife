@@ -11,6 +11,8 @@ import type { Condition, EventDef } from '@/engine/events/schema';
  */
 const PARENTS: EventDef['person'] = { kind: ['mother', 'father', 'stepmother', 'stepfather'] };
 const HAS_PARENT: Condition = { hasPerson: ['mother', 'father', 'stepmother', 'stepfather'] };
+/** A foster child never knew their birth family, so no aunt, great-aunt, uncle or cousin turns up (CONTENT_STYLE). */
+const KNOWS_THEIR_FAMILY: Condition = { not: { flag: 'foster_care' } };
 
 export const KID_LIFE_EVENTS: EventDef[] = [
   // ------------------------------------------------------------------ health
@@ -527,6 +529,7 @@ export const KID_LIFE_EVENTS: EventDef[] = [
     maxAge: 12,
     weight: 1.2,
     cooldown: 4,
+    conditions: [KNOWS_THEIR_FAMILY],
     choices: [
       {
         id: 'spend',
@@ -1298,7 +1301,7 @@ export const KID_LIFE_EVENTS: EventDef[] = [
     weight: 1.2,
     once: true,
     // A knitted sweater at the holidays wants a cold December.
-    conditions: [{ climate: ['snowy', 'mild'] }, { southern: false }],
+    conditions: [{ climate: ['snowy', 'mild'] }, { southern: false }, KNOWS_THEIR_FAMILY],
     person: PARENTS,
     choices: [
       {
@@ -1631,7 +1634,7 @@ export const KID_LIFE_EVENTS: EventDef[] = [
     weight: 1.2,
     // A video call on a phone, and one particular great-uncle.
     once: true,
-    conditions: [HAS_PARENT, { year: { gte: 2010 } }],
+    conditions: [HAS_PARENT, { year: { gte: 2010 } }, KNOWS_THEIR_FAMILY],
     choices: [
       {
         id: 'teach',
@@ -2027,7 +2030,8 @@ export const KID_LIFE_EVENTS: EventDef[] = [
     weight: 1.2,
     once: true,
     conditions: [{ enrolled: true }],
-    person: { kind: ['stepfather', 'stepmother'] },
+    // A step-parent (or an aunt or uncle who took me in) new to my life: never a foster parent who has raised me since birth.
+    person: { kind: ['stepfather', 'stepmother'], knownFor: { lte: 3 } },
     choices: [
       {
         id: 'introduce',

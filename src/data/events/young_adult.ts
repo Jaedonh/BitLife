@@ -1,3 +1,5 @@
+import { DESK_JOB } from '@/data/events/technology_and_media';
+import { NOT_ON_PAROLE } from '@/data/events/travel_events';
 import type { EventDef } from '@/engine/events/schema';
 
 /**
@@ -52,7 +54,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
             then: [
               { log: 'Housing moved me in with a quiet physics student who only speaks before exams. Bliss.', kind: 'good' },
               { stat: 'happiness', delta: 5 },
-              { newPerson: { kind: 'friend', relationship: 50, log: 'My new roommate {{person}} and I actually got along.' } },
+              { newPerson: { kind: 'friend', relationship: 50, minAge: 18, maxAge: 24, occupation: 'Student', log: 'My new roommate {{person}} and I actually got along.' } },
             ],
             else: [{ log: 'Housing said the waiting list was eleven people long. I learned to love the drums.' }, { stat: 'happiness', delta: -2 }, { stat: 'smarts', delta: 1 }],
           },
@@ -129,7 +131,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 4 },
           { stat: 'happiness', delta: 2 },
           { log: 'I joined debate. I now argue about everything, including things I agree with.', kind: 'good' },
-          { chance: 0.5, then: [{ newPerson: { kind: 'friend', relationship: 55, log: 'I met {{person}} at debate and we argued ourselves into friendship.' } }] },
+          { chance: 0.5, then: [{ newPerson: { kind: 'friend', relationship: 55, minAge: 18, maxAge: 26, occupation: 'Student', log: 'I met {{person}} at debate and we argued ourselves into friendship.' } }] },
         ],
       },
       {
@@ -152,7 +154,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
             then: [
               { stat: 'happiness', delta: 6 },
               { log: 'Improv club. Yes-and-ing my way to confidence and some truly terrible scenes.', kind: 'good' },
-              { newPerson: { kind: 'friend', relationship: 55, log: 'The dinosaur turned out to be {{person}}. We became friends.' } },
+              { newPerson: { kind: 'friend', relationship: 55, minAge: 18, maxAge: 26, occupation: 'Student', log: 'The dinosaur turned out to be {{person}}. We became friends.' } },
             ],
             else: [{ stat: 'happiness', delta: -2 }, { log: 'Improv was mostly one man doing accents. I lasted one session.' }],
           },
@@ -348,7 +350,8 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     maxAge: 26,
     weight: 2,
     once: true,
-    conditions: [{ inPrison: false }, { any: [{ hasJob: true }, { enrolled: true }] }],
+    // Not for someone who has moved back in with their parents (ya_move_back_home): that was not a first apartment.
+    conditions: [{ inPrison: false }, { any: [{ hasJob: true }, { enrolled: true }] }, { flag: 'home_with_parents', exists: false }],
     choices: [
       {
         id: 'party',
@@ -358,7 +361,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
           { money: -250 },
           { stat: 'happiness', delta: 7 },
           { log: 'I threw a housewarming. The neighbors came, then complained, then came back for the dip.', kind: 'good' },
-          { chance: 0.6, then: [{ newPerson: { kind: 'friend', relationship: 50, log: 'A neighbor named {{person}} came to the housewarming and stayed a friend.' } }] },
+          { chance: 0.6, then: [{ newPerson: { kind: 'friend', relationship: 50, minAge: 18, log: 'A neighbor named {{person}} came to the housewarming and stayed a friend.' } }] },
         ],
       },
       {
@@ -487,9 +490,16 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     maxAge: 29,
     weight: 2,
     cooldown: 6,
-    person: { kind: ['friend', 'bestFriend', 'sibling'], minAge: 18 },
-    // A shared flat, not the family home.
-    conditions: [{ inPrison: false }, { atHome: false }, { not: { sinceEvent: 'sl_dorm_fridge', lte: 2 } }],
+    person: { kind: ['friend', 'bestFriend', 'sibling'], minAge: 18, maxAge: 35 },
+    // A shared flat, not the family home, and not the home I share with a spouse, a partner or my children.
+    conditions: [
+      { inPrison: false },
+      { atHome: false },
+      { married: false },
+      { hasChildren: false },
+      { not: { flag: 'lf_living_together' } },
+      { not: { sinceEvent: 'sl_dorm_fridge', lte: 2 } },
+    ],
     choices: [
       {
         id: 'note',
@@ -527,7 +537,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     weight: 1.5,
     once: true,
     person: { kind: ['friend', 'bestFriend', 'sibling'], minRelationship: 40 },
-    conditions: [{ inPrison: false }],
+    conditions: [{ inPrison: false }, NOT_ON_PAROLE],
     choices: [
       {
         id: 'go',
@@ -579,7 +589,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     maxAge: 29,
     weight: 1,
     followUpOnly: true,
-    conditions: [{ inPrison: false }],
+    conditions: [{ inPrison: false }, NOT_ON_PAROLE],
     person: { kind: ['friend', 'bestFriend', 'sibling'] },
     choices: [
       {
@@ -839,7 +849,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     weight: 1.5,
     cooldown: 5,
     person: { kind: ['friend', 'bestFriend', 'ex', 'classmate'], maxRelationship: 60 },
-    conditions: [{ inPrison: false }],
+    conditions: [{ inPrison: false }, NOT_ON_PAROLE],
     choices: [
       {
         id: 'catchup',
@@ -891,6 +901,8 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
             then: [
               { stat: 'happiness', delta: 5 },
               { log: 'We met. Half the stories matched, the other half were better in their version.', kind: 'good' },
+              // From my elementary school, so about my age (the default: within four years of mine). A minAge would
+              // replace that lower bound, and a 29-year-old's old school friend could then be 18.
               { newPerson: { kind: 'friend', relationship: 55, log: 'My old school friend {{person}} and I picked up right where we left off.' } },
             ],
             else: [{ stat: 'happiness', delta: -2 }, { log: 'We met. They mostly wanted to talk about a "business opportunity." I left early.', kind: 'bad' }],
@@ -920,7 +932,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     maxAge: 29,
     weight: 2,
     cooldown: 5,
-    conditions: [{ hasJob: true }],
+    conditions: [{ hasJob: true }, DESK_JOB],
     choices: [
       {
         id: 'work',
@@ -1187,15 +1199,11 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
         ],
       },
       {
-        id: 'grind',
-        label: 'Double down on work',
-        conditions: [{ hasJob: true }],
+        id: 'call',
+        label: 'Call an old classmate',
         effects: [
-          { jobPerformance: 8 },
-          { stat: 'happiness', delta: -4 },
-          { stat: 'health', delta: -2 },
-          { log: 'I decided the answer was working harder. My boss loved it. My friends stopped calling.' },
-          { chance: 0.5, then: [{ money: 1500 }, { log: 'The overtime at least paid.', kind: 'money' }] },
+          { stat: 'happiness', delta: 3 },
+          { log: 'I called an old classmate. Her house has mold, her marathon was a fun run, and the wedding is off.', kind: 'good' },
         ],
       },
     ],
@@ -1209,7 +1217,19 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     maxAge: 29,
     weight: 1.5,
     cooldown: 6,
-    conditions: [{ inPrison: false }, { atHome: false }, { any: [{ hasJob: false }, { money: { lt: 2500 } }] }],
+    // Moving back sets home_with_parents, which the engine reads as living at home (the living-with-parents housing,
+    // atHome) while a parent nearby lives, and clears once I move out (a home, a wedding, a partner, a move, prison),
+    // so the card does not offer the move again to someone already back in their old room. A renter on their own: not
+    // someone married, living with a partner or owning a home, for whom the move would end the moment it began.
+    conditions: [
+      { inPrison: false },
+      { atHome: false },
+      { flag: 'home_with_parents', exists: false },
+      { married: false },
+      { not: { flag: 'lf_living_together' } },
+      { noAsset: 'house' },
+      { any: [{ hasJob: false }, { money: { lt: 2500 } }] },
+    ],
     person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
@@ -1220,6 +1240,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: -5 },
           { relationship: 'person', delta: 6 },
           { log: 'I moved back into my childhood room. The posters are still up. So is the curfew, apparently.', kind: 'money' },
+          { flag: 'home_with_parents', set: true },
           { queue: 'ya_house_rules' },
         ],
       },
@@ -1247,6 +1268,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
               { stat: 'health', delta: -2 },
               { relationship: 'person', delta: 2 },
               { log: "I didn't make it. I borrowed, skipped meals and ended up home anyway, three months later.", kind: 'bad' },
+              { flag: 'home_with_parents', set: true },
             ],
           },
         ],
@@ -1262,7 +1284,8 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     maxAge: 29,
     weight: 1,
     followUpOnly: true,
-    conditions: [{ inPrison: false }],
+    // Still living back home when it opens (the engine clears home_with_parents once that is over).
+    conditions: [{ inPrison: false }, { flag: 'home_with_parents' }],
     person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
@@ -1327,7 +1350,6 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
       {
         id: 'scrap',
         label: 'Scrap it, take the bus',
-        conditions: [{ ownsAssetId: ['old_hatchback', 'sedan', 'pickup', 'ev', 'luxury_sedan', 'sports_car', 'supercar', 'classic_car'] }],
         effects: [
           { asset: 'lose', kind: 'car' },
           { money: 250 },
@@ -1540,7 +1562,8 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
     once: true,
     // Not within a few years of love_and_family's lf_meet_their_parents, the same dinner with a partner's parents (it guards against this one too).
     conditions: [{ inPrison: false }, { hasLover: true }, { married: false }, { not: { sinceEvent: 'lf_meet_their_parents', lte: 4 } }],
-    person: { kind: ['lover'] },
+    // The first dinner with a partner's parents comes early: not after years together.
+    person: { kind: ['lover'], knownFor: { lte: 3 } },
     choices: [
       {
         id: 'charm',
@@ -1779,7 +1802,7 @@ export const YOUNG_ADULT_EVENTS: EventDef[] = [
                   { stat: 'happiness', delta: 3 },
                   { relationship: 'person', delta: 3 },
                   { log: 'No spark, but the three of us laughed until closing. {{person}} claims a new friend counts as a win.' },
-                  { newPerson: { kind: 'friend', relationship: 50, log: 'The setup became a friend instead: {{person}}.' } },
+                  { newPerson: { kind: 'friend', relationship: 50, minAge: 18, log: 'The setup became a friend instead: {{person}}.' } },
                 ],
               },
             ],

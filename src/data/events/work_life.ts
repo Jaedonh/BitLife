@@ -7,7 +7,7 @@ import type { Condition, EventDef } from '@/engine/events/schema';
  */
 
 /** Not on an Owner or Contractor rung: someone who runs their own salon, shop or practice is not poached for a desk. */
-const NOT_AN_OWNER: Condition = {
+export const NOT_AN_OWNER: Condition = {
   not: {
     any: JOBS.flatMap((d) => d.ladder.flatMap((r, i): Condition[] => (/\b(Owner|Contractor)$/.test(r.title) ? [{ all: [{ jobId: [d.id] }, { jobLevel: { gte: i } }] }] : []))),
   },
@@ -19,8 +19,11 @@ const SERVES_CUSTOMERS = ['pt_cashier', 'pt_barista', 'fast_food', 'retail', 'wa
 /** Jobs where a customer tips: the counter, the table, the bar and the salon chair. */
 const TIPPED = ['pt_barista', 'fast_food', 'waiter', 'bartender', 'hairdresser'];
 
-/** Below the top rung, so there is a boss to answer to: owners, chiefs and CEOs have nobody above them. */
-const HAS_A_BOSS: Condition = { not: { any: JOBS.map((d): Condition => ({ all: [{ jobId: [d.id] }, { jobLevel: { gte: d.ladder.length - 1 } }] })) } };
+/**
+ * Below the top rung, so there is a boss to answer to: owners, chiefs and CEOs have nobody above them. A part-time
+ * job has a single rung and a manager above it.
+ */
+export const HAS_A_BOSS: Condition = { not: { any: JOBS.filter((d) => !d.partTime).map((d): Condition => ({ all: [{ jobId: [d.id] }, { jobLevel: { gte: d.ladder.length - 1 } }] })) } };
 
 /** Jobs where a client places an order that has to be made, shipped or delivered (and can be late). */
 const TAKES_ORDERS = ['retail', 'warehouse', 'driver', 'electrician', 'plumber', 'carpenter', 'mechanic', 'construction', 'admin', 'sales', 'marketing', 'executive', 'it_support', 'software_dev', 'web_designer', 'graphic_designer', 'photographer', 'engineer', 'lab_tech'];
@@ -51,6 +54,29 @@ const COMPANY_CAN_PROMOTE: Condition = {
     ],
   },
 };
+
+/**
+ * Not a seat I was elected or appointed to (city councilor up to minister, any judge) and not a rank in the armed
+ * forces. Nobody gives a mayor, a judge or a colonel an annual review, employee of the month, a year-end bonus, a
+ * drug test for "my department" or a layoff with a severance check, so the corporate cards here and in money_events
+ * leave them out (as wk_counter_offer and COMPANY_CAN_PROMOTE do). A campaign aide is still staff.
+ */
+export const NOT_ELECTED_OR_ENLISTED: Condition = {
+  not: { any: [{ all: [{ jobId: ['politician'] }, { jobLevel: { gte: 1 } }] }, { jobId: ['judge', 'military'] }] },
+};
+
+/** A career on a set, a stage, a tour or a team roster: no employee of the month and no layoff memo. */
+const NOT_A_FAME_CAREER: Condition = { not: { jobId: ['actor', 'musician', 'athlete', 'chef_tv'] } };
+
+/**
+ * Jobs with a desk, email and meetings (as coworkers' DESK_WORK), plus the engineers and scientists who write
+ * proposals: a card about a proposal, a meeting, an expense report or a corporate retreat is for these, not for a
+ * warehouse floor, a kitchen or a fire station.
+ */
+const DESK_WORK: Condition = {
+  any: [{ jobCategory: ['office', 'tech', 'finance'] }, { jobId: ['paralegal', 'lawyer', 'civil_servant', 'journalist', 'writer', 'graphic_designer', 'engineer', 'scientist'] }],
+};
+
 export const WORK_LIFE_EVENTS: EventDef[] = [
   // ───────────────────────────────── bosses & ethics ─────────────────────────────────
   {
@@ -116,7 +142,9 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1,
     cooldown: 6,
-    conditions: [{ hasJob: true }, { partTime: false }],
+    // "My boss docked part of the loss from my pay": someone with a boss, not an owner, an elected or enlisted post or a
+    // fame career (a star's mistake is not docked from a paycheck).
+    conditions: [{ hasJob: true }, { partTime: false }, HAS_A_BOSS, NOT_AN_OWNER, NOT_ELECTED_OR_ENLISTED, NOT_A_FAME_CAREER],
     choices: [
       {
         id: 'own',
@@ -172,12 +200,14 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1,
     cooldown: 4,
-    conditions: [{ hasJob: true }, { partTime: false }, { inPrison: false }],
+    // Work trips and expense reports belong to desk jobs.
+    conditions: [{ hasJob: true }, { partTime: false }, { inPrison: false }, DESK_WORK],
     choices: [
       {
         id: 'pad',
         label: 'Pad it a little',
         effects: [
+          { counter: 'crimes' },
           { karma: -5 },
           {
             chance: 0.75,
@@ -197,6 +227,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
         id: 'big',
         label: 'Pad it a lot',
         effects: [
+          { counter: 'crimes' },
           { karma: -8 },
           {
             chance: 0.5,
@@ -229,13 +260,16 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 70,
     weight: 0.8,
-    cooldown: 6,
-    conditions: [{ hasJob: true }, { jobCategory: ['law', 'finance', 'office'] }, { inPrison: false }],
+    // The same partner and box of files: a second request would be the same scene (CONTENT_STYLE).
+    cooldown: 26,
+    // A partner and the auditors: a firm, not a courtroom (judges are in the law category).
+    conditions: [{ hasJob: true }, { jobCategory: ['law', 'finance', 'office'] }, { inPrison: false }, NOT_ELECTED_OR_ENLISTED],
     choices: [
       {
         id: 'shred',
         label: 'Shred them',
         effects: [
+          { counter: 'crimes' },
           { karma: -6 },
           {
             chance: 0.75,
@@ -279,7 +313,9 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 65,
     weight: 0.3,
     once: true,
-    conditions: [{ hasJob: true }, { partTime: false }],
+    // "The business", its executives and a settlement: an employer above me, not my own business, the top rung, an
+    // elected seat, a bench, a rank or a fame career.
+    conditions: [{ hasJob: true }, { partTime: false }, HAS_A_BOSS, NOT_AN_OWNER, NOT_ELECTED_OR_ENLISTED, NOT_A_FAME_CAREER],
     choices: [
       {
         id: 'blow',
@@ -312,7 +348,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1,
     followUpOnly: true,
-    conditions: [{ hasJob: true }],
+    conditions: [{ hasJob: true }, HAS_A_BOSS, NOT_AN_OWNER, NOT_ELECTED_OR_ENLISTED, NOT_A_FAME_CAREER],
     choices: [
       {
         id: 'public',
@@ -381,7 +417,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
           { karma: -2 },
           { stat: 'happiness', delta: 2 },
           { newPerson: { kind: 'coworker', relationship: 30, log: '{{person}} took forty minutes to figure it out and still brings it up at lunch.' } },
-          { chance: 0.7, then: [], else: [{ jobPerformance: -2 }, { log: 'My manager heard about the stapler. "Grow up" was the whole conversation.', kind: 'bad' }] },
+          { chance: 0.7, then: [], else: [{ jobPerformance: -2 }, { log: 'Word of the stapler got around. "Grow up" was the kindest thing anyone said.', kind: 'bad' }] },
         ],
       },
     ],
@@ -395,7 +431,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1.2,
     cooldown: 4,
-    conditions: [{ hasJob: true }, { partTime: false }],
+    // A proposal and a meeting: desk work, not a warehouse floor, a kitchen or a fire station.
+    conditions: [{ hasJob: true }, { partTime: false }, DESK_WORK, HAS_A_BOSS],
     person: { kind: ['coworker'] },
     choices: [
       {
@@ -431,8 +468,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
   {
     id: 'wk_harassment_witness',
     category: 'work',
-    title: 'By the printers',
-    text: 'I watched a senior manager corner {{person}} by the printers and make remarks that made {{them}} shrink, then laugh when {{they}} tried to leave. {{person}} saw me watching.',
+    title: 'In the hallway',
+    text: 'I watched a senior manager corner {{person}} in a back hallway and make remarks that made {{them}} shrink, then laugh when {{they}} tried to leave. {{person}} saw me watching.',
     minAge: 18,
     maxAge: 70,
     weight: 0.8,
@@ -538,7 +575,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 2,
     cooldown: 6,
-    conditions: [{ hasJob: true }],
+    // Shifts to cover and a boss to tell: not the top rung, an elected seat, a bench or a rank.
+    conditions: [{ hasJob: true }, HAS_A_BOSS, NOT_ELECTED_OR_ENLISTED],
     person: { kind: ['coworker'] },
     choices: [
       {
@@ -567,7 +605,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1,
     cooldown: 6,
-    conditions: [{ hasJob: true }],
+    // A boss who blames me for a delivery: not my own business, the top rung, an elected seat, a bench or a rank.
+    conditions: [{ hasJob: true }, HAS_A_BOSS, NOT_AN_OWNER, NOT_ELECTED_OR_ENLISTED],
     person: { kind: ['coworker'] },
     choices: [
       {
@@ -664,7 +703,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     id: 'wk_workplace_flirt',
     category: 'work',
     title: 'Something at work',
-    text: 'Someone from another department keeps finding reasons to walk past my desk. Today they asked if I wanted dinner after work, then blushed at their own question.',
+    text: 'Someone from another department keeps finding reasons to walk past me at work. Today they asked if I wanted dinner after work, then blushed at their own question.',
     minAge: 18,
     maxAge: 60,
     weight: 1,
@@ -679,7 +718,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.6,
             then: [{ newPerson: { kind: 'lover', relationship: 65, log: 'Dinner became a second dinner. I am now dating {{personFull}}, which HR will have thoughts about.' } }, { stat: 'happiness', delta: 8 }],
-            else: [{ stat: 'happiness', delta: -3 }, { log: 'We ran out of things to say before the bread arrived. Now they take the long way around my desk.', kind: 'bad' }],
+            else: [{ stat: 'happiness', delta: -3 }, { log: 'We ran out of things to say before the bread arrived. Now they take the long way around me.', kind: 'bad' }],
           },
         ],
       },
@@ -747,7 +786,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 2,
     cooldown: 6,
-    conditions: [{ hasJob: true }],
+    // A boss who hands out shifts: not the top rung, an elected seat, a bench or a rank.
+    conditions: [{ hasJob: true }, HAS_A_BOSS, NOT_ELECTED_OR_ENLISTED],
     choices: [
       {
         id: 'yes',
@@ -876,7 +916,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1,
     cooldown: 5,
-    conditions: [{ hasJob: true }, { partTime: false }],
+    // An elected seat, a judgeship and a military rank have a published pay scale and nobody to ask for a raise.
+    conditions: [{ hasJob: true }, { partTime: false }, NOT_ELECTED_OR_ENLISTED, HAS_A_BOSS],
     choices: [
       {
         id: 'raise',
@@ -918,7 +959,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1.5,
     cooldown: 3,
-    conditions: [{ hasJob: true }, { partTime: false }],
+    // A boss with a folder: not an owner, the top rung, an elected seat, a bench, a rank or a fame career.
+    conditions: [{ hasJob: true }, { partTime: false }, HAS_A_BOSS, NOT_AN_OWNER, NOT_ELECTED_OR_ENLISTED, NOT_A_FAME_CAREER],
     choices: [
       {
         id: 'listen',
@@ -967,7 +1009,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 0.8,
     cooldown: 4,
-    conditions: [{ hasJob: true }],
+    // An employer that names an employee of the month: not my own business, the top rung, an elected seat, a bench, a rank or a fame career.
+    conditions: [{ hasJob: true }, HAS_A_BOSS, NOT_AN_OWNER, NOT_ELECTED_OR_ENLISTED, NOT_A_FAME_CAREER],
     choices: [
       {
         id: 'accept',
@@ -1002,7 +1045,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 0.8,
     cooldown: 5,
-    conditions: [{ hasJob: true }],
+    // Management calls the meeting: not the owner or the top rung, an elected seat, a bench or a rank.
+    conditions: [{ hasJob: true }, HAS_A_BOSS, NOT_AN_OWNER, NOT_ELECTED_OR_ENLISTED],
     choices: [
       {
         id: 'investigate',
@@ -1042,7 +1086,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 0.6,
     cooldown: 3,
-    conditions: [{ hasJob: true }, { partTime: false }],
+    // An employer testing "my department": not my own business, the top rung, an elected seat, a bench or a rank.
+    conditions: [{ hasJob: true }, { partTime: false }, HAS_A_BOSS, NOT_AN_OWNER, NOT_ELECTED_OR_ENLISTED],
     choices: [
       {
         id: 'take_clean',
@@ -1146,7 +1191,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 60,
     weight: 0.8,
     cooldown: 5,
-    conditions: [{ hasJob: true }, { partTime: false }, { jobCategory: ['service', 'trade', 'public', 'health', 'tech'] }],
+    // An employer that moves staff between shifts: not my own business, the top rung, an elected seat or a rank.
+    conditions: [{ hasJob: true }, { partTime: false }, { jobCategory: ['service', 'trade', 'public', 'health', 'tech'] }, HAS_A_BOSS, NOT_AN_OWNER, NOT_ELECTED_OR_ENLISTED],
     choices: [
       {
         id: 'take',
@@ -1207,7 +1253,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
           {
             random: [
               { weight: 5, effects: [{ stat: 'happiness', delta: 5 }, { log: 'I had a great time and only regret the dancing.', kind: 'good' }] },
-              { weight: 3, effects: [{ stat: 'happiness', delta: -4 }, { jobPerformance: -5 }, { log: 'I told my boss what I really think of the schedule. He remembered. I did not.', kind: 'bad' }] },
+              { weight: 3, effects: [{ stat: 'happiness', delta: -4 }, { jobPerformance: -5 }, { log: 'I told half the party what I really think of the schedule. They remembered. I did not.', kind: 'bad' }] },
               { weight: 2, effects: [{ stat: 'health', delta: -3 }, { log: 'I woke up with a headache and a toaster from the gift swap. I do not remember swapping for it.', kind: 'info' }] },
             ],
           },
@@ -1233,8 +1279,9 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 70,
     weight: 0.8,
-    cooldown: 5,
-    conditions: [{ hasJob: true }, { partTime: false }],
+    // A corporate retreat for desk teams; the same facilitator and ropes course rest more than half the age range (CONTENT_STYLE).
+    cooldown: 26,
+    conditions: [{ hasJob: true }, { partTime: false }, DESK_WORK],
     choices: [
       {
         id: 'allin',
@@ -1281,7 +1328,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 70,
     weight: 1,
-    cooldown: 3,
+    // The same laminated schedule and rebuttal: once or twice in a working life (CONTENT_STYLE).
+    cooldown: 27,
     conditions: [{ hasJob: true }, { jobCategory: ['office', 'tech', 'finance', 'law', 'education', 'science', 'creative'] }],
     choices: [
       {
@@ -1298,7 +1346,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.6,
             then: [{ log: 'The schedule disappeared and so did the issue. Office legend says it was me.', kind: 'info' }],
-            else: [{ jobPerformance: -2 }, { log: 'The schedule maker was my manager. We have a new schedule. I am on it three times.', kind: 'bad' }],
+            else: [{ jobPerformance: -2 }, { log: 'The schedule maker was the office manager. We have a new schedule. I am on it three times.', kind: 'bad' }],
           },
         ],
       },
@@ -1318,7 +1366,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 65,
     weight: 0.6,
     once: true,
-    conditions: [{ hasJob: true }, { partTime: false }],
+    // Staff organizing against management: not the owner or the top rung, and not an elected seat, a bench or a rank.
+    conditions: [{ hasJob: true }, { partTime: false }, HAS_A_BOSS, NOT_AN_OWNER, NOT_ELECTED_OR_ENLISTED],
     choices: [
       {
         id: 'sign',
@@ -1351,7 +1400,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1,
     followUpOnly: true,
-    conditions: [{ hasJob: true }],
+    // As wk_union_drive: staff against management, so not if I have since become the owner, the top rung or an office.
+    conditions: [{ hasJob: true }, HAS_A_BOSS, NOT_AN_OWNER, NOT_ELECTED_OR_ENLISTED],
     choices: [
       {
         id: 'board',
@@ -1405,7 +1455,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1,
     cooldown: 8,
-    conditions: [{ hasJob: true }, { partTime: false }],
+    // An employer that lays staff off with severance: not my own business, the top rung, an elected seat, a bench, a rank or a fame career.
+    conditions: [{ hasJob: true }, { partTime: false }, HAS_A_BOSS, NOT_AN_OWNER, NOT_ELECTED_OR_ENLISTED, NOT_A_FAME_CAREER],
     choices: [
       {
         id: 'resume',
@@ -1445,7 +1496,7 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1,
     followUpOnly: true,
-    conditions: [{ hasJob: true }],
+    conditions: [{ hasJob: true }, HAS_A_BOSS, NOT_AN_OWNER, NOT_ELECTED_OR_ENLISTED, NOT_A_FAME_CAREER],
     choices: [
       {
         id: 'wait',
@@ -1596,7 +1647,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1.2,
     cooldown: 3,
-    conditions: [{ hasJob: true }, { jobCategory: ['trade', 'service', 'public', 'sports', 'science'] }],
+    // "My supervisor is watching the clock": someone with a supervisor, not an owner, a chief, a minister or a colonel.
+    conditions: [{ hasJob: true }, { jobCategory: ['trade', 'service', 'public', 'sports', 'science'] }, HAS_A_BOSS, NOT_AN_OWNER, NOT_ELECTED_OR_ENLISTED],
     choices: [
       {
         id: 'quick',
@@ -1714,8 +1766,10 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 60,
     weight: 0.8,
-    cooldown: 4,
-    conditions: [{ hasJob: true }, { jobCategory: ['public'] }],
+    // A car on fire with someone inside is not a scene for every few years (CONTENT_STYLE), and "home from a shift" is
+    // for uniformed shift workers who commute, not a mayor, a city clerk or a soldier on base.
+    cooldown: 22,
+    conditions: [{ hasJob: true }, { jobId: ['police', 'firefighter', 'paramedic', 'security', 'mail_carrier'] }],
     choices: [
       {
         id: 'go',
@@ -1772,7 +1826,8 @@ export const WORK_LIFE_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1.2,
     cooldown: 3,
-    conditions: [{ hasJob: true }, { jobCategory: ['trade'] }],
+    // "{{company}} has a rule about that" and a boss who hears of it: not a contractor or shop owner with their own clients.
+    conditions: [{ hasJob: true }, { jobCategory: ['trade'] }, HAS_A_BOSS, NOT_AN_OWNER],
     choices: [
       {
         id: 'take',

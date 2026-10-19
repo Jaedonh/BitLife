@@ -57,7 +57,8 @@ export const HEALTH_EVENTS: EventDef[] = [
     minAge: 13,
     maxAge: 90,
     weight: 1.5,
-    cooldown: 15,
+    // The same free seafood at the same buffet: at most twice in a life (CONTENT_STYLE).
+    cooldown: 39,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -300,7 +301,7 @@ export const HEALTH_EVENTS: EventDef[] = [
         effects: [
           {
             random: [
-              { weight: 7, effects: [{ money: -3000 }, { counter: 'surgeries' }, { injury: 4 }, { stat: 'happiness', delta: -3 }, { log: 'Appendicitis. They took it out that night. I have a scar, a story and {{$3000}} less.', kind: 'milestone' }] },
+              { weight: 7, effects: [{ money: -3000 }, { counter: 'surgeries' }, { injury: 4 }, { stat: 'happiness', delta: -3 }, { log: 'Appendicitis. They took it out that night. I have a scar, and a story to go with it.', kind: 'milestone' }] },
               { weight: 3, effects: [{ money: -600 }, { stat: 'happiness', delta: -1 }, { log: 'Gas. {{$600}} for a scan and a doctor trying very hard not to smile.' }] },
             ],
           },
@@ -717,7 +718,8 @@ export const HEALTH_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 90,
     weight: 1,
-    cooldown: 6,
+    // The same "cellular reset" patches and founder: at most twice in a life (CONTENT_STYLE).
+    cooldown: 37,
     conditions: [{ inPrison: false }, { year: { gte: 2010 } }],
     choices: [
       {
@@ -1001,7 +1003,8 @@ export const HEALTH_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 90,
     weight: 0.8,
-    cooldown: 6,
+    // The same van running the same red light: at most twice in a life (CONTENT_STYLE).
+    cooldown: 38,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -1071,7 +1074,8 @@ export const HEALTH_EVENTS: EventDef[] = [
     minAge: 16,
     maxAge: 90,
     weight: 1.2,
-    cooldown: 8,
+    // The same truck and side mirror: at most twice in a life (CONTENT_STYLE).
+    cooldown: 38,
     conditions: [{ inPrison: false }, { ownsAssetId: REAL_CARS }],
     choices: [
       {

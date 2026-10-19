@@ -1,4 +1,5 @@
-import type { EventDef } from '@/engine/events/schema';
+import { HAS_A_BOSS, NOT_AN_OWNER, NOT_ELECTED_OR_ENLISTED } from '@/data/events/work_life';
+import type { Condition, EventDef } from '@/engine/events/schema';
 
 /**
  * Ages 18+: the financial weather of an adult life. Audits, surprise bills,
@@ -10,6 +11,10 @@ import type { EventDef } from '@/engine/events/schema';
  * Follow-ups (followUpOnly) are queued by the events that set them up and
  * never fire on their own.
  */
+
+/** No foster child grows up with a known aunt, great-aunt or cousin (the orphan scenario, GAME_DESIGN §4a). */
+const HAS_RELATIVES: Condition = { not: { flag: 'foster_care' } };
+
 export const MONEY_EVENTS: EventDef[] = [
   // ------------------------------------------------------------ the taxman & bills
   {
@@ -20,7 +25,8 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 80,
     weight: 0.8,
-    cooldown: 8,
+    // The same envelope and the same three "discrepancies": at most twice in a life (CONTENT_STYLE).
+    cooldown: 31,
     conditions: [{ inPrison: false }, { any: [{ hasJob: true }, { money: { gte: 20000 } }] }],
     choices: [
       {
@@ -69,8 +75,10 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 2,
-    cooldown: 15,
-    conditions: [{ inPrison: false }],
+    // A clinic bill with a "facility fee" belongs where the doctor is not public (US, Nigeria); with public
+    // healthcare the visit costs little (GAME_DESIGN §12). The same chair joke rests half the age range.
+    cooldown: 34,
+    conditions: [{ inPrison: false }, { country: ['US', 'NG'] }],
     choices: [
       {
         id: 'pay',
@@ -112,7 +120,8 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 85,
     weight: 1,
-    cooldown: 8,
+    // The same {{$640}} from the same gym: at most twice in a life (CONTENT_STYLE).
+    cooldown: 33,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -384,7 +393,8 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 0.8,
-    cooldown: 8,
+    // The same novelty-sock store and joke: at most twice in a life (CONTENT_STYLE).
+    cooldown: 34,
     conditions: [{ inPrison: false }],
     person: { kind: ['friend', 'bestFriend', 'sibling', 'lover', 'spouse', 'mother', 'father', 'child'], minAge: 16 },
     choices: [
@@ -475,7 +485,8 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 0.8,
-    cooldown: 6,
+    // The same patio furniture in the same city: at most twice in a life (CONTENT_STYLE).
+    cooldown: 34,
     conditions: [{ inPrison: false }, { money: { gte: 300 } }],
     choices: [
       {
@@ -518,8 +529,9 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 75,
     weight: 1,
-    cooldown: 5,
-    conditions: [{ inPrison: false }, { money: { gte: 1000 } }, { year: { gte: 2014 } }],
+    // The same cousin and the same dog coin rest half the age range (CONTENT_STYLE); an orphan has no cousin.
+    cooldown: 29,
+    conditions: [{ inPrison: false }, { money: { gte: 1000 } }, { year: { gte: 2014 } }, HAS_RELATIVES],
     choices: [
       {
         id: 'small',
@@ -530,7 +542,7 @@ export const MONEY_EVENTS: EventDef[] = [
           {
             random: [
               { weight: 35, effects: [{ money: 1500 }, { stat: 'happiness', delta: 6 }, { log: 'The dog coin tripled. My cousin is insufferable now, and I helped.', kind: 'money' }] },
-              { weight: 45, effects: [{ money: 150 }, { log: 'It drifted sideways for months. I cashed out {{$150}} and some mild embarrassment.', kind: 'info' }] },
+              { weight: 45, effects: [{ money: 450 }, { log: 'It drifted sideways for months. I cashed out {{$450}} and some mild embarrassment.', kind: 'info' }] },
               { weight: 20, effects: [{ stat: 'happiness', delta: -4 }, { log: "The coin's creator vanished along with the money. The dog, as far as anyone knows, is fine.", kind: 'bad' }] },
             ],
           },
@@ -545,7 +557,7 @@ export const MONEY_EVENTS: EventDef[] = [
           { money: -5000 },
           {
             random: [
-              { weight: 20, effects: [{ money: 18000 }, { stat: 'happiness', delta: 12 }, { log: 'Ten-x. Actual ten-x. I screenshotted the balance before I believed it.', kind: 'money' }] },
+              { weight: 20, effects: [{ money: 20000 }, { stat: 'happiness', delta: 12 }, { log: 'Not ten-x, but four-x. I screenshotted the balance before I believed it.', kind: 'money' }] },
               { weight: 45, effects: [{ money: 2000 }, { log: 'It wobbled, I panicked, I sold. Got {{$2000}} back and a new respect for index funds.', kind: 'info' }] },
               { weight: 35, effects: [{ stat: 'happiness', delta: -10 }, { log: 'It went to zero in a weekend. My cousin has stopped replying.', kind: 'bad' }] },
             ],
@@ -570,7 +582,8 @@ export const MONEY_EVENTS: EventDef[] = [
     once: true,
     // Not within ten years of adult_life's ad_surprise_inheritance, the other will from a relative I barely knew, nor within
     // a few years of pet_events' pt_inherit_parrot, the will with a parrot in it (both guard against this one too).
-    conditions: [{ inPrison: false }, { not: { sinceEvent: 'ad_surprise_inheritance', lte: 10 } }, { not: { sinceEvent: 'pt_inherit_parrot', lte: 3 } }],
+    // An orphan has no great-aunt to leave them anything.
+    conditions: [{ inPrison: false }, { not: { sinceEvent: 'ad_surprise_inheritance', lte: 10 } }, { not: { sinceEvent: 'pt_inherit_parrot', lte: 3 } }, HAS_RELATIVES],
     choices: [
       {
         id: 'accept',
@@ -597,7 +610,8 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 25,
     maxAge: 75,
     weight: 0.7,
-    cooldown: 6,
+    // The same friend of a friend and the same bistro: at most twice in a life (CONTENT_STYLE).
+    cooldown: 26,
     conditions: [{ inPrison: false }, { money: { gte: 60000 } }],
     choices: [
       {
@@ -652,7 +666,8 @@ export const MONEY_EVENTS: EventDef[] = [
     maxAge: 70,
     weight: 1.2,
     cooldown: 2,
-    conditions: [{ inPrison: false }, { hasJob: true }, { partTime: false }],
+    // An employer's bonus round and "my boss": not my own business, the top rung, an elected seat, a bench or a rank.
+    conditions: [{ inPrison: false }, { hasJob: true }, { partTime: false }, HAS_A_BOSS, NOT_AN_OWNER, NOT_ELECTED_OR_ENLISTED],
     choices: [
       {
         id: 'save',
@@ -681,7 +696,7 @@ export const MONEY_EVENTS: EventDef[] = [
     maxAge: 65,
     weight: 1,
     cooldown: 3,
-    conditions: [{ inPrison: false }, { hasJob: true }, { partTime: false }],
+    conditions: [{ inPrison: false }, { hasJob: true }, { partTime: false }, HAS_A_BOSS, NOT_AN_OWNER, NOT_ELECTED_OR_ENLISTED],
     person: { kind: ['coworker'], minAge: 18, minRelationship: 40 },
     choices: [
       {
@@ -725,7 +740,8 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 70,
     weight: 1.2,
-    cooldown: 6,
+    // The same neighbor's cousin and the same onion van: at most twice in a life (CONTENT_STYLE).
+    cooldown: 27,
     conditions: [{ inPrison: false }, { hasJob: true }, { hustle: false }],
     choices: [
       {
@@ -753,7 +769,8 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 70,
     weight: 1.2,
-    cooldown: 4,
+    // The same "wellness oils" and downline: at most twice in a life (CONTENT_STYLE).
+    cooldown: 27,
     // A friend roping me into something: not within a few years of adult_life's ad_friend_mlm (the charity walk) or
     // friends_and_strangers' fs_powder_pitch (the end of another pitch), which both guard against this one too.
     conditions: [{ inPrison: false }, { money: { gte: 200 } }, { not: { sinceEvent: 'ad_friend_mlm', lte: 3 } }, { not: { sinceEvent: 'fs_powder_pitch', lte: 2 } }],
@@ -804,7 +821,8 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 80,
     weight: 1.5,
-    cooldown: 10,
+    // The same {{$1200}} for rent and the same promise: at most twice in a life (CONTENT_STYLE).
+    cooldown: 32,
     // Not within a few years of love_and_family's lf_sibling_loan, the same rent money asked by a sibling (it guards against this one too).
     conditions: [{ inPrison: false }, { money: { gte: 500 } }, { not: { sinceEvent: 'lf_sibling_loan', lte: 3 } }],
     // Asked and sent by phone, so a friend left behind by a move abroad can ask too (the follow-up binds them the same way).
@@ -893,7 +911,8 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 80,
     weight: 1.2,
-    cooldown: 6,
+    // The same registry joke, and no card can tell who already married: at most twice in a life (CONTENT_STYLE).
+    cooldown: 31,
     conditions: [{ inPrison: false }, { money: { gte: 100 } }],
     person: { kind: ['friend', 'bestFriend', 'sibling', 'coworker'], minAge: 20, minRelationship: 30 },
     choices: [
@@ -937,7 +956,8 @@ export const MONEY_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 85,
     weight: 1.5,
-    cooldown: 8,
+    // The same volunteer, clipboard and hospice: at most twice in a life (CONTENT_STYLE).
+    cooldown: 34,
     conditions: [{ inPrison: false }],
     choices: [
       {

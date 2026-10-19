@@ -26,6 +26,7 @@ import { openNextEvent, resolveChoice } from '../events/select';
 import { Rng } from '../rng';
 import { createLife } from '../systems/character';
 import { availableInteractions } from '../systems/relationships';
+import { applyAction } from '../actions';
 import type { GameState, Person } from '../types';
 
 /** The files this group owns. */
@@ -148,14 +149,14 @@ describe('the family move changes the city and leaves my friends behind', () => 
     expect(kinds.indexOf('relocate')).toBeLessThan(kinds.indexOf('queue'));
   });
 
-  it('an immigrant family makes its move abroad, not a move to another city before it', () => {
+  it('an immigrant family makes its move abroad, not a move to another city before it or right after it', () => {
     const s = { ...createLife({ scenario: 'immigrant' }, 5), firedEvents: {} };
     expect(s.flags['scenario:immigrant']).toBe(true);
     expect(s.flags.immigrant).toBeUndefined();
     const at8 = { ...s, character: { ...s.character, age: 8 } };
     expect(evaluateAll(at8, ev('kd_moving_house').conditions)).toBe(false);
-    // After the move abroad a move inside the new country can still happen.
-    expect(evaluateAll({ ...at8, flags: { ...at8.flags, immigrant: 'IN' } }, ev('kd_moving_house').conditions)).toBe(true);
+    // The move abroad is the family's big move (at 6-14, and the card is for 6-12): no second one the same year or the next.
+    expect(evaluateAll({ ...at8, flags: { ...at8.flags, immigrant: 'IN' } }, ev('kd_moving_house').conditions)).toBe(false);
     expect(evaluateAll(atAge('US', 97531, 8), ev('kd_moving_house').conditions)).toBe(true);
   });
 
@@ -268,7 +269,10 @@ describe('cold-weather cards stay out of hot countries', () => {
 describe('the yard sale', () => {
   const sale = () => ev('nc_yard_sale');
   const at = (age: number, lastRelease?: { age: number; juvenile: boolean }): GameState => {
-    const s = atAge('US', 5, age);
+    // A suburban house: the sale is on the front lawn.
+    const rich = atAge('US', 5, age);
+    const s = applyAction({ ...rich, finances: { ...rich.finances, cash: 2_000_000 } }, { type: 'buyAsset', defId: 'suburban', financing: 'cash' });
+    expect(s.assets.map((a) => a.defId)).toEqual(['suburban']);
     return { ...s, crime: { ...s.crime, inPrison: false, lastRelease } };
   };
 

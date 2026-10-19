@@ -129,7 +129,8 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
     minAge: 17,
     maxAge: 60,
     weight: 1,
-    cooldown: 4,
+    // The same man I half know and the same van: at most twice in a life (CONTENT_STYLE).
+    cooldown: 22,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -175,7 +176,8 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 75,
     weight: 1,
-    cooldown: 8,
+    // The same guy at the market with a bag full of phones: at most twice in a life (CONTENT_STYLE).
+    cooldown: 31,
     // The newest phone, blocked by the network once reported stolen: smartphones (CONTENT_STYLE, about 2010).
     conditions: [{ inPrison: false }, { money: { gte: 120 } }, { year: { gte: 2008 } }],
     choices: [
@@ -184,6 +186,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
         label: 'Buy it',
         hint: '{{$120}}',
         effects: [
+          { counter: 'crimes' },
           { money: -120 },
           { karma: -2 },
           {
@@ -279,9 +282,11 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
       {
         id: 'testify',
         label: 'Tell the truth',
+        // A day on a hallway bench waiting to be called: the honest choice costs time the others do not.
         effects: [
           { karma: 4 },
           { stat: 'happiness', delta: -2 },
+          { energy: -1 },
           {
             chance: 0.75,
             then: [{ stat: 'happiness', delta: 4 }, { log: 'I said what I saw, slowly, with my hands shaking. The judge thanked me. That was that.', kind: 'good' }],
@@ -296,7 +301,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
           { karma: -4 },
           {
             chance: 0.8,
-            then: [{ stat: 'happiness', delta: 1 }, { log: 'It was dark, I said. I could not be sure. The case fell apart and I went home early.', kind: 'info' }],
+            then: [{ stat: 'happiness', delta: 3 }, { log: 'It was dark, I said. I could not be sure. The case fell apart and I went home early.', kind: 'info' }],
             else: [{ money: -400 }, { stat: 'happiness', delta: -6 }, { log: "The prosecutor read my original statement back to me. Fined for wasting the court's time.", kind: 'bad' }],
           },
         ],
@@ -308,7 +313,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
           { karma: -2 },
           {
             chance: 0.6,
-            then: [{ log: 'Nobody followed up. The letter is still on the fridge under a magnet.', kind: 'info' }],
+            then: [{ stat: 'happiness', delta: 1 }, { log: 'Nobody followed up. The letter is still on the fridge under a magnet.', kind: 'info' }],
             else: [{ arrest: true }, { money: -300 }, { stat: 'happiness', delta: -6 }, { log: 'Two officers walked me to court in the morning. Contempt, a fine, and a very long day.', kind: 'bad' }],
           },
         ],
@@ -380,7 +385,8 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 80,
     weight: 0.8,
-    cooldown: 10,
+    // The same store, the same milk and the same manager: at most twice in a life (CONTENT_STYLE).
+    cooldown: 34,
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -431,6 +437,8 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
     maxAge: 80,
     weight: 1,
     followUpOnly: true,
+    // A wrongful charge: the arrest and any sentence go on the record, but no crime was committed, so nothing here
+    // bumps the crimes counter (Clean Hands counts crimes, not arrests; every card choice that commits one bumps it).
     conditions: [{ inPrison: false }],
     choices: [
       {
@@ -470,6 +478,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
         hint: '{{$150}}',
         conditions: [{ money: { gte: 150 } }],
         effects: [
+          { counter: 'crimes' },
           { money: -150 },
           { karma: -3 },
           {
@@ -520,7 +529,8 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
     minAge: 18,
     maxAge: 80,
     weight: 1,
-    cooldown: 5,
+    // The same clumsy tax-agency routine: at most twice in a life (CONTENT_STYLE).
+    cooldown: 32,
     // Not within two years of young_adult's ya_scam_call, the other scam call.
     conditions: [{ inPrison: false }, { not: { sinceEvent: 'ya_scam_call', lte: 2 } }],
     choices: [
@@ -575,7 +585,9 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
         label: 'Buy one',
         hint: '{{$80}}',
         effects: [
-          { money: -80 },
+          { counter: 'crimes' },
+          // Bought with my own savings (the card needs the cash), not my parents' money.
+          { money: -80, payer: 'self' },
           { karma: -2 },
           {
             random: [
@@ -613,7 +625,8 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
     minAge: 14,
     maxAge: 85,
     weight: 1,
-    cooldown: 8,
+    // The same packed train and the same polite thief: at most twice in a life (CONTENT_STYLE).
+    cooldown: 36,
     conditions: [{ inPrison: false }, { money: { gte: 60 } }],
     choices: [
       {
@@ -662,7 +675,8 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
     minAge: 20,
     maxAge: 65,
     weight: 0.8,
-    cooldown: 5,
+    // The same warehouse with a broken alarm: at most twice in a life (CONTENT_STYLE).
+    cooldown: 23,
     conditions: [{ criminalRecord: true }, { inPrison: false }],
     choices: [
       {
@@ -998,6 +1012,7 @@ export const CRIME_AND_PRISON_EVENTS: EventDef[] = [
         id: 'join',
         label: 'Join the riot',
         effects: [
+          { counter: 'crimes' },
           { karma: -5 },
           { flag: 'cp_prison_infraction', inc: 2 },
           {
