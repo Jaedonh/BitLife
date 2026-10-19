@@ -18,6 +18,7 @@ import { SCHEMA_VERSION } from '../types';
 import { personRef } from '../events/text';
 import { article, capitalize, clampStat, daysInMonth, deathPhrase, fullName, joinList, log, lowerTitle, money, numberWord, withArticle, zodiacFor } from '../util';
 import { energyMaxFor } from './aging';
+import { rollListings } from './careers';
 import { farmTown, fosterRelation, MOVE_ABROAD_AGES, pickDestination, scenarioFlags, startingScenario } from './scenarios';
 
 const ALL_TRAITS: readonly TraitId[] = [
@@ -51,8 +52,33 @@ export function emptyCounters(): LifetimeCounters {
 }
 
 export function randomName(rng: Rng, gender: Gender, countryCode: string): { firstName: string; lastName: string } {
+  const firstName = freshFirstName(rng, gender, countryCode);
+  return { firstName, lastName: rng.pick(NAMES[getCountry(countryCode).namePool].surnames) };
+}
+
+/**
+ * Every first name already in a life (GAME_DESIGN §10): the player's, and everyone's they know or remember, alive
+ * or dead (parents, siblings, children, partners, exes, friends, coworkers, pets), plus their children's spouses.
+ */
+export function namesInLife(state: Pick<GameState, 'character' | 'people'>): Set<string> {
+  const out = new Set([state.character.firstName]);
+  for (const p of Object.values(state.people)) {
+    out.add(p.firstName);
+    if (p.growth?.spouse) out.add(p.growth.spouse.firstName);
+  }
+  return out;
+}
+
+/**
+ * A first name from the country's pool that nobody in `taken` has, while the pool still has one (then any name).
+ * The one helper behind every new person's name. Always a single draw, like an unchecked one, so everything rolled
+ * after it uses the same dice as before.
+ */
+export function freshFirstName(rng: Rng, gender: Gender, countryCode: string, taken?: ReadonlySet<string>): string {
   const pool = NAMES[getCountry(countryCode).namePool];
-  return { firstName: rng.pick(gender === 'male' ? pool.male : pool.female), lastName: rng.pick(pool.surnames) };
+  const names = gender === 'male' ? pool.male : pool.female;
+  const free = taken?.size ? names.filter((n) => !taken.has(n)) : names;
+  return rng.pick(free.length ? free : names);
 }
 
 export function randomCompany(rng: Rng): string {
@@ -87,15 +113,22 @@ export function makePerson(
     money?: number;
     biological?: boolean;
     species?: string;
+    /**
+     * First names already in the life (namesInLife): the new person gets one nobody has while the pool allows,
+     * and theirs is added to the set, so several people made in a row stay distinct.
+     */
+    taken?: Set<string>;
   },
 ): Person {
   const gender = opts.gender ?? rng.pick<Gender>(['male', 'female']);
-  const name = randomName(rng, gender, opts.countryCode);
+  const firstName = freshFirstName(rng, gender, opts.countryCode, opts.taken);
+  const surname = rng.pick(NAMES[getCountry(opts.countryCode).namePool].surnames);
+  opts.taken?.add(firstName);
   const adult = opts.age >= 18;
   return {
     id: rng.id('p_'),
-    firstName: name.firstName,
-    lastName: opts.lastName ?? name.lastName,
+    firstName,
+    lastName: opts.lastName ?? surname,
     gender,
     age: opts.age,
     alive: true,
@@ -112,6 +145,16 @@ export function makePerson(
     biological: opts.biological,
     species: opts.species,
   };
+}
+
+/**
+ * How old a new friend can be (GAME_DESIGN §10): a small child befriends children within a year of their own age
+ * (3 at the youngest), a teenager someone within two years, an adult someone within three (16 at the youngest).
+ */
+export function friendAgeRange(age: number): [number, number] {
+  if (age < 13) return [Math.max(3, age - 1), Math.max(3, age + 1)];
+  if (age < 18) return [age - 2, age + 2];
+  return [Math.max(16, age - 3), age + 3];
 }
 
 /** Chance that a grandparent of this age is still alive when the player is born: fewer when the parents are older. */
@@ -132,11 +175,9 @@ function rollGrandparents(rng: Rng, parents: readonly Person[], familyName: stri
     const grandpaAge = Math.min(99, Math.max(parent.age + 18, grandmaAge + rng.int(-3, 6)));
     for (const [gender, age] of [['female', grandmaAge], ['male', grandpaAge]] as const) {
       if (!rng.chance(grandparentAliveChance(age))) continue;
-      const gp = makePerson(rng, { kind: 'grandparent', gender, age, countryCode, lastName: line, playerAge: 0, relationship: rng.int(50, 90) });
+      const gp = makePerson(rng, { kind: 'grandparent', gender, age, countryCode, lastName: line, playerAge: 0, relationship: rng.int(50, 90), taken });
       gp.health = clampStat(rng.int(45, 95) - Math.max(0, age - 65));
       gp.viaId = parent.id;
-      for (let i = 0; i < 4 && taken.has(gp.firstName); i++) gp.firstName = randomName(rng, gender, countryCode).firstName;
-      taken.add(gp.firstName);
       out.push(gp);
     }
   }
@@ -151,7 +192,7 @@ function rollGrandparents(rng: Rng, parents: readonly Person[], familyName: stri
 function fosterFamily(rng: Rng, countryCode: string, taken: Set<string>, familyName: string): Person[] {
   const mult = getCountry(countryCode).salaryMultiplier;
   const gender: Gender = rng.chance(0.7) ? 'female' : 'male';
-  const parent = makePerson(rng, { kind: gender === 'female' ? 'stepmother' : 'stepfather', gender, age: rng.int(30, 55), countryCode, playerAge: 0, relationship: rng.int(35, 75), money: Math.round(rng.int(0, 12_000) * mult) });
+  const parent = makePerson(rng, { kind: gender === 'female' ? 'stepmother' : 'stepfather', gender, age: rng.int(30, 55), countryCode, playerAge: 0, relationship: rng.int(35, 75), money: Math.round(rng.int(0, 12_000) * mult), taken });
   parent.foster = true;
   // A foster family is not the child's own: a shared surname would read as a relative.
   const ownName = (p: Person) => {
@@ -160,13 +201,10 @@ function fosterFamily(rng: Rng, countryCode: string, taken: Set<string>, familyN
   ownName(parent);
   const out = [parent];
   const kids = rng.weighted([0, 1, 2], (n) => [40, 40, 20][n]!);
-  taken.add(parent.firstName);
   for (let i = 0; i < kids; i++) {
-    const kid = makePerson(rng, { kind: 'sibling', age: rng.int(1, 14), countryCode, playerAge: 0, relationship: rng.int(30, 70), biological: false });
-    for (let n = 0; n < 6 && taken.has(kid.firstName); n++) kid.firstName = randomName(rng, kid.gender, countryCode).firstName;
+    const kid = makePerson(rng, { kind: 'sibling', age: rng.int(1, 14), countryCode, playerAge: 0, relationship: rng.int(30, 70), biological: false, taken });
     kid.foster = true;
     ownName(kid);
-    taken.add(kid.firstName);
     out.push(kid);
   }
   return out;
@@ -255,13 +293,18 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
   const parentMoney = () => (wealthy ? rng.int(400_000, 3_000_000) : poor ? rng.int(0, 8_000) : rng.int(5_000, 150_000)) * country.salaryMultiplier;
 
   if (prev) {
-    // Family tree carried over from the previous generation.
+    // Family tree carried over from the previous generation (GAME_DESIGN §16): everyone stays who they were, and
+    // only how they are related changes. The heir has known their parents and older siblings since birth.
     const prevChar = prev.character;
     const otherParent = heir?.otherParentId ? prev.people[heir.otherParentId] : undefined;
     const parentKind = (g: Gender): RelationshipKind => (g === 'female' ? 'mother' : 'father');
-    // The deceased player becomes a dead parent in the new tree.
-    const deceased = makePerson(rng, { kind: parentKind(prevChar.gender), gender: prevChar.gender, age: prevChar.age, countryCode, lastName, playerAge: startAge, relationship: rng.int(60, 95), money: 0 });
-    deceased.firstName = prevChar.firstName; deceased.alive = false; deceased.deathAge = prevChar.age; deceased.deathCause = prev.death?.cause;
+    // The deceased player becomes a dead parent in the new tree, with the looks, smarts, health and job they died
+    // with, and the bond they had with this child.
+    const deceased = makePerson(rng, { kind: parentKind(prevChar.gender), gender: prevChar.gender, age: prevChar.age, countryCode, lastName: prevChar.lastName, playerAge: startAge, relationship: heir?.relationship ?? rng.int(60, 95), money: 0 });
+    Object.assign(deceased, {
+      firstName: prevChar.firstName, alive: false, deathAge: prevChar.age, deathCause: prev.death?.cause, metAtAge: 0,
+      looks: prevChar.stats.looks, smarts: prevChar.stats.smarts, health: prevChar.stats.health, occupation: lastOccupation(prev),
+    });
     people[deceased.id] = deceased;
     // The other parent carries over as they were (two mothers or two fathers included). A child with no
     // recorded other parent gets none: nobody is invented.
@@ -269,13 +312,16 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
       const survivor = makePerson(rng, {
         kind: parentKind(otherParent.gender), gender: otherParent.gender, age: otherParent.age, countryCode, lastName: otherParent.lastName, playerAge: startAge, relationship: rng.int(60, 95), money: otherParent.money,
       });
-      survivor.firstName = otherParent.firstName; survivor.alive = otherParent.alive; survivor.deathAge = otherParent.deathAge; survivor.deathCause = otherParent.deathCause;
+      carryOver(survivor, otherParent);
+      survivor.metAtAge = 0;
       people[survivor.id] = survivor;
     }
     for (const p of Object.values(prev.people)) {
       if (p.kind === 'child' && p.id !== heirId && p.alive) {
         const sib = makePerson(rng, { kind: 'sibling', gender: p.gender, age: p.age, countryCode, lastName: p.lastName, playerAge: startAge, relationship: rng.int(40, 85) });
-        sib.firstName = p.firstName;
+        carryOver(sib, p);
+        // An older sibling (or a twin) was there from the start; a younger one was born when the heir was that much older.
+        sib.metAtAge = Math.max(0, startAge - p.age);
         people[sib.id] = sib;
       }
     }
@@ -287,24 +333,22 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
     const single = scenario === 'single_parent';
     const motherAge = big ? rng.int(26, 42) : rng.int(18, 42);
     const fatherAge = clampStat(motherAge + rng.int(-4, 10));
+    // Nobody at home shares a first name, the player's included (five children in one house need five names).
+    const taken = new Set([firstName]);
     // A single parent is a mother three times in four, otherwise a father.
     const singleDad = single && rng.chance(0.25);
     if (!singleDad) {
-      const mother = makePerson(rng, { kind: 'mother', gender: 'female', age: motherAge, countryCode, lastName: rng.chance(0.85) ? lastName : undefined, playerAge: 0, relationship: rng.int(60, 100), money: parentMoney() });
+      const mother = makePerson(rng, { kind: 'mother', gender: 'female', age: motherAge, countryCode, lastName: rng.chance(0.85) ? lastName : undefined, playerAge: 0, relationship: rng.int(60, 100), money: parentMoney(), taken });
       people[mother.id] = mother;
     }
     if (singleDad || (!single && rng.chance(0.88))) {
-      const father = makePerson(rng, { kind: 'father', gender: 'male', age: Math.max(18, fatherAge), countryCode, lastName, playerAge: 0, relationship: rng.int(55, 100), money: parentMoney() });
+      const father = makePerson(rng, { kind: 'father', gender: 'male', age: Math.max(18, fatherAge), countryCode, lastName, playerAge: 0, relationship: rng.int(55, 100), money: parentMoney(), taken });
       people[father.id] = father;
     }
     const siblings = big ? rng.int(3, 5) : rng.weighted([0, 1, 2, 3], (n) => [35, 40, 18, 7][n]!);
     const eldestParent = singleDad ? Math.max(18, fatherAge) : motherAge;
-    const sibNames = new Set([firstName]);
     for (let i = 0; i < siblings; i++) {
-      const sib = makePerson(rng, { kind: 'sibling', age: rng.int(1, Math.min(16, eldestParent - 17)), countryCode, lastName, playerAge: 0, relationship: rng.int(40, 90), biological: true });
-      // Five children in one house need five different names.
-      if (big) for (let n = 0; n < 6 && sibNames.has(sib.firstName); n++) sib.firstName = randomName(rng, sib.gender, countryCode).firstName;
-      sibNames.add(sib.firstName);
+      const sib = makePerson(rng, { kind: 'sibling', age: rng.int(1, Math.min(16, eldestParent - 17)), countryCode, lastName, playerAge: 0, relationship: rng.int(40, 90), biological: true, taken });
       people[sib.id] = sib;
     }
     const parents = Object.values(people).filter((p) => p.kind === 'mother' || p.kind === 'father');
@@ -313,7 +357,6 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
       const father = parents.find((p) => p.kind === 'father');
       for (const p of parents) if (p === father || !father || rng.chance(0.5)) p.occupation = 'Farmer';
     }
-    const taken = new Set([firstName, ...Object.values(people).map((p) => p.firstName)]);
     for (const gp of rollGrandparents(rng, parents, lastName, countryCode, taken)) people[gp.id] = gp;
     if (wealthy) traits.push('lucky');
   }
@@ -322,6 +365,8 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
   const estate = prev ? Math.max(0, prev.death?.netWorth ?? 0) : 0;
   const coHeirs = prev ? Object.values(prev.people).filter((p) => p.kind === 'child' && p.alive).length : 0;
   const inheritance = heir && estate > 0 ? Math.round((estate * 0.8) / Math.max(1, coHeirs)) : 0;
+  // A grown heir had a working life before taking over, so the years nobody played are not judged as idle.
+  const workYears = prev ? priorWorkYears(startAge, country) : 0;
 
   const state: GameState = {
     schemaVersion: SCHEMA_VERSION,
@@ -334,7 +379,7 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
     education: heir?.growth?.school === 'droppedOut' && startAge >= country.highSchoolEndAge
       ? { ...startingEducation(0, country, stats.smarts), stage: 'done', droppedOut: true }
       : startingEducation(startAge, country, stats.smarts),
-    career: { job: null, history: [], totalYearsWorked: 0, retired: false, experience: {}, listings: [], listingsYear: -1, hustle: null },
+    career: { job: null, history: [], totalYearsWorked: workYears, retired: false, experience: {}, listings: [], listingsYear: -1, hustle: null },
     finances: { cash: (heir?.money ?? 0) + inheritance, debt: 0, investments: [], lastYear: { income: 0, salary: 0, passive: 0, expenses: 0, taxes: 0 }, incomeBoostYears: 0, bankrupt: false },
     health: { illnesses: [], addictions: {}, criticalYears: 0, doctorVisitsThisYear: 0, injuries: 0 },
     crime: { record: false, arrests: 0, convictions: 0, crimesCommitted: 0, inPrison: false, sentenceYearsLeft: 0, prisonYearsTotal: 0, notoriety: 0 },
@@ -346,7 +391,7 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
     flags: { ...(wealthy ? { wealthyFamily: true } : poor ? { poorFamily: true } : {}), ...(scenario ? scenarioFlags(scenario) : {}) },
     firedEvents: {},
     actionsThisYear: {},
-    counters: heirCounters(people),
+    counters: heirCounters(people, workYears),
     alive: true,
     death: null,
     generation: prev ? prev.generation + 1 : 1,
@@ -367,7 +412,42 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
     lastResult: null,
   };
 
-  return prev ? writeHeirLog(state, prev, inheritance) : writeBirthLog(state);
+  if (!prev) return writeBirthLog(state);
+  const begun = writeHeirLog(state, prev, inheritance);
+  // An heir old enough to work can apply right away rather than wait a year for the listings ageUp rolls from 14.
+  if (startAge < 14) return begun;
+  return { ...rollListings(begun, rng), rng: rng.snapshot() };
+}
+
+/**
+ * The working years an heir brings into the life (GAME_DESIGN §16): every adult year since leaving school counts,
+ * as years worked (so the obituary and the Lazy ribbon judge only the years played) and as general experience. No
+ * job or employer is carried over: the previous life never gives the player's children one (their milestones are
+ * school, moving out, marriage and children), so a grown heir starts between jobs with this year's listings open.
+ */
+function priorWorkYears(age: number, country: ReturnType<typeof getCountry>): number {
+  return Math.max(0, age - Math.max(18, country.highSchoolEndAge));
+}
+
+/**
+ * Someone the last life knew stays who they were in the heir's (GAME_DESIGN §16): name, gender, age, job, looks,
+ * smarts, health, temper and money, and whether and how they died. `p` is the heir's new record of them (their
+ * relation to the heir, a fresh bond and memory); it is updated in place and returned.
+ */
+function carryOver(p: Person, was: Person): Person {
+  Object.assign(p, {
+    firstName: was.firstName, lastName: was.lastName, gender: was.gender, age: was.age, alive: was.alive,
+    occupation: was.occupation, looks: was.looks, smarts: was.smarts, health: was.health, craziness: was.craziness, money: was.money,
+  });
+  if (was.deathAge !== undefined) p.deathAge = was.deathAge;
+  if (was.deathCause !== undefined) p.deathCause = was.deathCause;
+  return p;
+}
+
+/** What the previous player did for a living, as their children remember it: the job they died in, else the last one they held. */
+function lastOccupation(prev: GameState): string {
+  const history = prev.career.history;
+  return prev.career.job?.title ?? history[history.length - 1]?.title ?? 'Unemployed';
 }
 
 /**
@@ -376,12 +456,10 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
  */
 function heirFamily(rng: Rng, prev: GameState, heir: Person | undefined, deceasedId: string, countryCode: string, startAge: number): Person[] {
   const out: Person[] = [];
-  // Someone the last life knew stays who they were: the same job, looks, smarts, health and temper.
-  const keep = (p: Person, was: Person) => Object.assign(p, { firstName: was.firstName, occupation: was.occupation, looks: was.looks, smarts: was.smarts, health: was.health, craziness: was.craziness });
   for (const p of Object.values(prev.people)) {
     if ((p.kind !== 'mother' && p.kind !== 'father') || !p.alive) continue;
     const gp = makePerson(rng, { kind: 'grandparent', gender: p.gender, age: p.age, countryCode, lastName: p.lastName, playerAge: startAge, relationship: rng.int(55, 90), money: p.money });
-    keep(gp, p);
+    carryOver(gp, p);
     gp.viaId = deceasedId;
     gp.metAtAge = 0;
     out.push(gp);
@@ -398,11 +476,15 @@ function heirFamily(rng: Rng, prev: GameState, heir: Person | undefined, decease
   for (const g of Object.values(prev.people)) {
     if (g.kind !== 'grandchild' || g.viaId !== heir.id || !g.alive) continue;
     const kid = makePerson(rng, { kind: 'child', gender: g.gender, age: g.age, countryCode, lastName: g.lastName, playerAge: Math.max(0, startAge - g.age), relationship: rng.int(60, 95), money: 0, biological: married && married.gender === heir.gender ? undefined : true });
-    keep(kid, g);
+    carryOver(kid, g);
     kid.memory = emptyMemory(startAge);
     if (spouse) kid.otherParentId = spouse.id;
     out.push(kid);
   }
+  // The spouse is the other parent of those children, so the heir has known them at least since the eldest was born
+  // (the last life kept no wedding date; without children it is the takeover year).
+  const eldest = Math.max(0, ...out.filter((p) => p.kind === 'child').map((p) => p.age));
+  if (spouse) spouse.metAtAge = Math.max(0, startAge - eldest);
   return out;
 }
 
@@ -416,11 +498,14 @@ function startingEducation(age: number, country: ReturnType<typeof getCountry>, 
   return { ...base, stage, enrolled: true, grade: clampStat(50 + (smarts - 50) / 2), yearsInStage: Math.max(0, age - stageStart) };
 }
 
-/** A new life's counters: an heir who arrives married with children counts the marriage and the children as theirs. */
-function heirCounters(people: Record<string, Person>): LifetimeCounters {
+/**
+ * A new life's counters: an heir who arrives married with children counts the marriage and the children as theirs,
+ * and a grown heir the years they worked before taking over.
+ */
+function heirCounters(people: Record<string, Person>, workYears: number): LifetimeCounters {
   const counters = emptyCounters();
   const all = Object.values(people);
-  return { ...counters, children: all.filter((p) => p.kind === 'child').length, marriages: all.some((p) => p.kind === 'spouse') ? 1 : 0 };
+  return { ...counters, children: all.filter((p) => p.kind === 'child').length, marriages: all.some((p) => p.kind === 'spouse') ? 1 : 0, yearsEmployed: workYears };
 }
 
 /** "Grandma Rosa and Grandpa Joe were first in line to hold me." */

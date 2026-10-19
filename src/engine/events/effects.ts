@@ -2,13 +2,13 @@ import { ILLNESS_BY_ID } from '@/data/illnesses';
 import type { Rng } from '../rng';
 import { onNpcDeath } from '../systems/aging';
 import { switchEmployer } from '../systems/careers';
-import { makePerson } from '../systems/character';
-import { workplaceOf } from '../systems/coworkers';
+import { friendAgeRange, makePerson, namesInLife } from '../systems/character';
+import { coworkerTitle, workplaceOf } from '../systems/coworkers';
 import { markChildMilestone } from '../systems/family';
 import { payForMinor } from '../systems/guardians';
 import { onParole, revokeParole, settleParole, settleTrial, stayLength, verdictNote } from '../systems/justice';
 import { markDeath } from '../systems/death';
-import { ADULT_AGE, clampRange, partnerAgeRange } from '../systems/romance';
+import { ADULT_AGE, clampRange, griefFactor, markBereaved, partnerAgeRange, tooSoonLine } from '../systems/romance';
 import type { GameState, Illness, Person } from '../types';
 import { addKarma, addMoney, addStats, bump, clampStat, clearCoupleFlags, incFlag, log, setFlag, withFame } from '../util';
 import type { Effect } from './schema';
@@ -33,6 +33,18 @@ export function adjustRelationship(state: GameState, id: string, delta: number):
   const p = state.people[id];
   if (!p) return state;
   return updatePerson(state, id, { relationship: clampStat(p.relationship + delta) });
+}
+
+/**
+ * The player was with this person this year: an interaction, or an event card about them. It ends any silence
+ * ("You haven't spoken in 5 years") and spares them this year's neglect decay (aging.ts).
+ */
+export function markContact(state: GameState, id: string): GameState {
+  const p = state.people[id];
+  if (!p?.alive) return state;
+  const age = state.character.age;
+  if (p.memory.lastInteractionAge === age && p.memory.yearsNeglected === 0) return state;
+  return updatePerson(state, id, { memory: { ...p.memory, lastInteractionAge: age, yearsNeglected: 0 } });
 }
 
 export function giveIllness(state: GameState, defId: string): GameState {
@@ -106,16 +118,22 @@ function currentPartner(state: GameState): Person | undefined {
   return living.find((p) => p.kind === 'spouse') ?? living.find((p) => p.kind === 'lover');
 }
 
+/** Only grief keeps this new partner out: the player is old enough and free, but lost a partner this year. */
+function griefBlocks(state: GameState, np: NewPersonSpec): boolean {
+  return (np.kind === 'lover' || np.kind === 'spouse') && !state.crime.inPrison && !!partnerAgeRange(state.character.age) && griefFactor(state) === 0;
+}
+
 /**
  * The age range for a person an event introduces, or null when nobody of that kind can join the life now.
- * Partners follow the legal-age band (romance.ts). A step-parent is about the age of the parent they marry,
- * and always at least 16 years older than the player. Content ranges are kept where they fit those bands.
+ * Partners follow the legal-age band (romance.ts), and none joins the life in prison or in the year of losing one.
+ * A step-parent is about the age of the parent they marry, and always at least 16 years older than the player.
+ * Content ranges are kept where they fit those bands.
  */
 function newPersonAgeRange(state: GameState, np: NewPersonSpec, bound: Person | undefined): [number, number] | null {
   const me = state.character.age;
   const range: [number, number] = [np.minAge ?? Math.max(1, me - 4), np.maxAge ?? me + 4];
   if (np.kind === 'lover' || np.kind === 'spouse') {
-    const band = state.crime.inPrison ? null : partnerAgeRange(me);
+    const band = state.crime.inPrison || griefFactor(state) === 0 ? null : partnerAgeRange(me);
     return band && clampRange(range, band);
   }
   if (np.kind === 'stepfather' || np.kind === 'stepmother') {
@@ -124,6 +142,11 @@ function newPersonAgeRange(state: GameState, np: NewPersonSpec, bound: Person | 
     const floor = Math.max(18, me + 16);
     const lo = Math.max(floor, parent ? parent.age - 10 : floor);
     return clampRange(range, [lo, Math.max(lo, Math.min(95, parent ? parent.age + 10 : lo + 25))]);
+  }
+  // A child's friends and classmates are children close to their age (as in relationships.ts), unless the card
+  // asks for a grown-up ("the man I saved").
+  if ((np.kind === 'friend' || np.kind === 'bestFriend' || np.kind === 'classmate') && me < ADULT_AGE && range[0] < ADULT_AGE) {
+    return clampRange(range, friendAgeRange(me));
   }
   // A coworker is old enough for the job: an adult beside a full-time one, 14+ (the youngest age with a job) beside a teen one.
   if (np.kind === 'coworker') {
@@ -140,6 +163,8 @@ export function applyEffects(state: GameState, rng: Rng, effects: readonly Effec
     if (!s.alive) break;
     s = applyEffect(s, rng, e, ctx);
   }
+  // A card about someone is time spent with them, whatever the choice.
+  if (ctx.personId) s = markContact(s, ctx.personId);
   // A sentence in this list: after the event's own verdict line, say how parole or juvenile court changed it.
   const jail = effects.find((e) => 'prison' in e);
   return jail && 'prison' in jail ? verdictNote(state, s, jail.prison) : s;
@@ -197,7 +222,9 @@ export function applyEffect(state: GameState, rng: Rng, e: Effect, ctx: EffectCo
     if (!person?.alive) return s;
     // Inheritance and orphan care as for a natural death; the event's own lines announce and grieve it.
     const dead: Person = { ...person, alive: false, deathAge: person.age, deathCause: e.cause ?? 'natural causes' };
-    return onNpcDeath({ ...s, people: { ...s.people, [dead.id]: dead } }, dead, rng, { announce: false });
+    s = onNpcDeath({ ...s, people: { ...s.people, [dead.id]: dead } }, dead, rng, { announce: false });
+    // Losing a partner starts the grief window (romance.ts): no new partner by chance for a while.
+    return dead.kind === 'lover' || dead.kind === 'spouse' ? markBereaved(s, dead.id) : s;
   }
   if ('newPerson' in e) {
     const np = e.newPerson;
@@ -206,15 +233,19 @@ export function applyEffect(state: GameState, rng: Rng, e: Effect, ctx: EffectCo
     else if (np.kind === 'pet') age = rng.int(0, 3);
     else {
       const range = newPersonAgeRange(s, np, person);
-      // No partner joins the life of someone under 16 or in prison, whatever the content says.
-      if (!range) return s;
+      // No partner joins the life of someone under 16, in prison or just bereaved, whatever the content says. A date
+      // the player chose in the year of a loss still gets its line: it was too soon.
+      if (!range) return griefBlocks(s, np) ? log(s, tooSoonLine(s)) : s;
       age = rng.int(range[0], range[1]);
     }
     // A baby belongs to the partner the event is about, else to the player's current partner.
     const boundPartner = person?.alive && (person.kind === 'lover' || person.kind === 'spouse') ? person : undefined;
     const otherParent = np.kind === 'child' ? (boundPartner ?? currentPartner(s)) : undefined;
+    // A coworker an event introduces holds a post on the player's own career ladder, like the ones a hire brings.
+    const occupation = np.kind === 'coworker' && s.career.job ? coworkerTitle(rng, s.career.job) : undefined;
     const p = makePerson(rng, {
       kind: np.kind, age, countryCode: s.character.countryCode, playerAge: s.character.age, relationship: np.relationship ?? rng.int(45, 80), gender: np.gender, species: np.species,
+      occupation, taken: namesInLife(s),
       lastName: np.kind === 'child' || np.kind === 'sibling' ? s.character.lastName : undefined,
       // With a same-sex partner the child came by adoption or a donor, so it is not marked as the player's biological child.
       biological: np.kind === 'child' && otherParent?.gender !== s.character.gender ? true : undefined,

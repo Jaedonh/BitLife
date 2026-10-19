@@ -76,7 +76,7 @@ export default function PersonScreen() {
   const risky = tiles.filter((t) => t.risky);
   const memories = personMemories(game, person);
   const facts = [
-    sinceLine(person),
+    sinceLine(person, game.character.age),
     ...familyFacts(person, game),
     neglectLine(person, game.character.age),
     person.marriedAtAge !== undefined ? `Married when you were ${person.marriedAtAge}.` : null,

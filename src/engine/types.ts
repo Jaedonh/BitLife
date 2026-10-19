@@ -154,6 +154,8 @@ export interface Person {
    * selectors that ask for them ({ farAway: true }) bind them, so they never turn up in an in-person scene.
    */
   farAway?: boolean;
+  /** A lover or spouse who died: their death has started the grief window (systems/romance.ts). Older saves count every such death as mourned. */
+  mourned?: boolean;
 }
 
 /** Milestones of one of the player's children. Every field is optional so older saves need no migration. */

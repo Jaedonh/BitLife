@@ -3,7 +3,7 @@ import { personRef, scaleMoney } from '@/engine/events/text';
 import type { InteractionDef, InteractionId } from '@/engine/systems/relationships';
 import { fosterRelation } from '@/engine/systems/scenarios';
 import type { GameState, LogEntry, LogKind, Person, RelationshipKind } from '@/engine/types';
-import { actionCount, capitalize, deathPhrase } from '@/engine/util';
+import { actionCount, capitalize, deathPhrase, lowerTitle } from '@/engine/util';
 import { colors } from '@/theme';
 
 export function kindLabel(p: Person): string {
@@ -100,7 +100,8 @@ export function occupationLabel(p: Person): string | null {
     if (p.age < 23) return 'Student';
     return null;
   }
-  if (p.age >= 67 && p.occupation !== 'Unemployed') return `Retired ${p.occupation.toLowerCase()}`;
+  // "Retired IT specialist": acronyms keep their capitals.
+  if (p.age >= 67 && p.occupation !== 'Unemployed') return `Retired ${lowerTitle(p.occupation)}`;
   return p.occupation;
 }
 
@@ -109,11 +110,16 @@ export function personSubtitle(p: Person, kind: string): string {
   return [kind, String(p.age), occupationLabel(p)].filter(Boolean).join(' · ');
 }
 
-/** How long someone has been in your life: "Known since you were born.", "Born when you were 31." */
-export function sinceLine(p: Person): string {
+/**
+ * How long someone has been in your life: "Known since you were born.", "Born when you were 31." A brother or sister
+ * who arrived as a baby (a younger sibling of an heir, say) was born when you were that age; `playerAge` tells them
+ * apart from a step-sibling met later.
+ */
+export function sinceLine(p: Person, playerAge?: number): string {
   if (p.metAtAge === 0 && p.kind !== 'child' && p.kind !== 'grandchild') return 'Known since you were born.';
   if (p.kind === 'child' || p.kind === 'grandchild') return `Born when you were ${p.metAtAge}.`;
   if (p.kind === 'pet') return `Part of the family since you were ${p.metAtAge}.`;
+  if (p.kind === 'sibling' && p.alive && playerAge !== undefined && p.age === playerAge - p.metAtAge) return `Born when you were ${p.metAtAge}.`;
   return `Known since you were ${p.metAtAge}.`;
 }
 

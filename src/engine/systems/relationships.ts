@@ -1,10 +1,10 @@
-import { adjustRelationship, updatePerson } from '../events/effects';
+import { adjustRelationship, markContact, updatePerson } from '../events/effects';
 import { personRef, scaleMoney } from '../events/text';
 import type { Rng } from '../rng';
 import type { GameState, Person, RelationshipKind } from '../types';
-import { addKarma, addMoney, addStats, bump, clampStat, clearCoupleFlags, countAction, actionCount, fullName, log, lowerTitle, money, setResult, withArticle } from '../util';
-import { makePerson } from './character';
-import { ADULT_AGE, partnerAgeRange, romanceAllowed } from './romance';
+import { addKarma, addMoney, addStats, bump, clampStat, clearCoupleFlags, countAction, actionCount, fullName, log, lowerTitle, money, pronouns, setResult, withArticle } from '../util';
+import { friendAgeRange, makePerson, namesInLife } from './character';
+import { ADULT_AGE, griefFactor, partnerAgeRange, romanceAllowed, yearlyGrief } from './romance';
 import { fosterRelation } from './scenarios';
 
 export type InteractionId =
@@ -32,6 +32,8 @@ export interface InteractionDef {
   minAge: number;
   /** A later minimum age for some kinds, e.g. asking a grandparent for money from 10. */
   minAgeFor?: Partial<Record<RelationshipKind, number>>;
+  /** Pets only: the species it suits (nobody walks a pigeon). Absent means every pet. */
+  species?: readonly string[];
   energy: number;
   cost?: number;
   perYear?: number;
@@ -52,7 +54,7 @@ export const INTERACTIONS: readonly InteractionDef[] = [
   { id: 'divorce', label: 'Divorce', emoji: '📜', kinds: ['spouse'], minAge: 18, energy: 1, perYear: 1 },
   { id: 'haveChild', label: 'Try for a baby', emoji: '👶', kinds: ['spouse', 'lover'], minAge: 18, energy: 1, perYear: 1 },
   { id: 'playWith', label: 'Play', emoji: '🎾', kinds: ['pet'], minAge: 3, energy: 0, perYear: 3 },
-  { id: 'walk', label: 'Go for a walk', emoji: '🐕', kinds: ['pet'], minAge: 6, energy: 0, perYear: 3 },
+  { id: 'walk', label: 'Go for a walk', emoji: '🐕', kinds: ['pet'], species: ['dog'], minAge: 6, energy: 0, perYear: 3 },
 ];
 
 /** What still works from a cell: a phone call or the visiting room. */
@@ -73,9 +75,28 @@ function unavailableReason(state: GameState, person: Person, def: InteractionDef
   return null;
 }
 
+/** Whether the interaction is meant for this kind of person (and, for a pet, this species). */
+function suits(def: InteractionDef, person: Person): boolean {
+  return def.kinds.includes(person.kind) && (!def.species || def.species.includes(person.species ?? ''));
+}
+
 export function availableInteractions(state: GameState, person: Person): InteractionDef[] {
   if (!person.alive) return [];
-  return INTERACTIONS.filter((i) => i.kinds.includes(person.kind) && unavailableReason(state, person, i) === null);
+  return INTERACTIONS.filter((i) => suits(i, person) && unavailableReason(state, person, i) === null);
+}
+
+/** "I played with Biscuit until we were both exhausted.", in the way this pet plays. */
+function playLine(pet: Person, who: string): string {
+  const pp = pronouns(pet.gender);
+  switch (pet.species) {
+    case 'dog': return `I threw a ball for ${who} until we were both exhausted.`;
+    case 'cat': return `I dragged a string around for ${who}, who pounced on it every single time.`;
+    case 'hamster': return `I built ${who} a cardboard maze. ${pp.Subject} ignored it and stuffed both cheeks.`;
+    case 'rabbit': return `I let ${who} hop around the living room and inspect every corner.`;
+    case 'parrot': return `I tried to teach ${who} a new word. ${pp.Subject} taught me two whistles instead.`;
+    case 'pigeon': return `I sat by the open window with ${who} and a handful of seeds.`;
+    default: return `I played with ${who} until we were both exhausted.`;
+  }
 }
 
 function touch(state: GameState, person: Person, patch: Partial<Person['memory']> = {}): GameState {
@@ -108,11 +129,13 @@ function relLabel(p: Person): string {
 }
 
 export function interact(state: GameState, rng: Rng, personId: string, interactionId: string): GameState {
-  const out = interactOnce(state, rng, personId, interactionId);
+  let out = interactOnce(state, rng, personId, interactionId);
   // A paid interaction that went ahead reports its cost in the toast, whatever the outcome (a ring for a 'no').
   const def = INTERACTIONS.find((i) => i.id === interactionId);
   const key = `${interactionId}:${personId}`;
   const done = actionCount(out, key) > actionCount(state, key);
+  // Whatever it was (a proposal, a break-up, a no to a loan), we spoke this year.
+  if (done) out = markContact(out, personId);
   if (def?.cost && done && out.lastResult && out.lastResult.moneyDelta === undefined) {
     return { ...out, lastResult: { ...out.lastResult, moneyDelta: -scaleMoney(state, def.cost) } };
   }
@@ -123,7 +146,7 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
   const person = state.people[personId];
   if (!person || !person.alive) return setResult(state, 'They are no longer around.', 'bad');
   const def = INTERACTIONS.find((i) => i.id === interactionId);
-  if (!def || !def.kinds.includes(person.kind)) return state;
+  if (!def || !suits(def, person)) return state;
   const unavailable = unavailableReason(state, person, def);
   if (unavailable) return setResult(state, unavailable, 'info');
   const key = `${def.id}:${personId}`;
@@ -293,7 +316,8 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
         s = log(s, text);
         return setResult(s, text, 'info');
       }
-      const baby = makePerson(rng, { kind: 'child', age: 0, countryCode: me.countryCode, lastName: me.lastName, playerAge: me.age, relationship: rng.int(70, 95), biological: !adopting });
+      // A name nobody in the family has: two sons called David read as one.
+      const baby = makePerson(rng, { kind: 'child', age: 0, countryCode: me.countryCode, lastName: me.lastName, playerAge: me.age, relationship: rng.int(70, 95), biological: !adopting, taken: namesInLife(s) });
       baby.otherParentId = personId;
       baby.occupation = 'Baby';
       s = { ...s, people: { ...s.people, [baby.id]: baby } };
@@ -332,7 +356,7 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
       s = adjustRelationship(s, personId, rng.int(4, 8));
       s = addStats(s, { happiness: 3, health: def.id === 'walk' ? 1 : 0 });
       s = touch(s, s.people[personId]!);
-      const text = def.id === 'walk' ? `I took ${who} for a long walk.` : `I played with ${who} until we were both exhausted.`;
+      const text = def.id === 'walk' ? `I took ${who} for a long walk.` : playLine(person, who);
       s = log(s, text, 'good');
       return setResult(s, text, 'good');
     }
@@ -345,6 +369,11 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
 export function yearlyRelationships(state: GameState, rng: Rng): GameState {
   let s = state;
   const age = s.character.age;
+  // Names stay reserved all year: a friend who drifts apart is not replaced by a new one of the same name.
+  const taken = namesInLife(state);
+  // A partner who died this year (ageNpcs runs just before) starts the grief window (an event death already has),
+  // and a window that has run its course closes.
+  s = yearlyGrief(s);
   // Partners may leave when neglected or unhappy.
   for (const p of Object.values(s.people)) {
     if (!p.alive) continue;
@@ -364,16 +393,19 @@ export function yearlyRelationships(state: GameState, rng: Rng): GameState {
   // Meeting people.
   const friends = Object.values(s.people).filter((p) => p.alive && (p.kind === 'friend' || p.kind === 'bestFriend')).length;
   if (age >= 4 && age < 80 && friends < 4 && rng.chance(age < 25 ? 0.4 : 0.2)) {
-    const f = makePerson(rng, { kind: 'friend', age: Math.max(1, age + rng.int(-3, 3)), countryCode: s.character.countryCode, playerAge: age, relationship: rng.int(45, 70) });
+    const [youngest, oldest] = friendAgeRange(age);
+    const f = makePerson(rng, { kind: 'friend', age: rng.int(youngest, oldest), countryCode: s.character.countryCode, playerAge: age, relationship: rng.int(45, 70), taken });
     s = { ...s, people: { ...s.people, [f.id]: f } };
     s = bump(s, 'friendsMade');
     s = log(s, `I made a new friend, ${fullName(f)}.`, 'good');
   }
   const hasPartner = Object.values(s.people).some((p) => p.alive && (p.kind === 'lover' || p.kind === 'spouse'));
   const band = partnerAgeRange(age);
-  if (!hasPartner && band && age < 75 && !s.crime.inPrison && rng.chance(0.25 + s.character.stats.looks / 400)) {
+  // Nobody new in the year of losing a partner, and less likely the year after (the grief window, romance.ts).
+  const grief = griefFactor(s);
+  if (!hasPartner && band && age < 75 && !s.crime.inPrison && grief > 0 && rng.chance((0.25 + s.character.stats.looks / 400) * grief)) {
     const partnerGender = rng.chance(0.9) ? (s.character.gender === 'male' ? 'female' : 'male') : s.character.gender;
-    const lover = makePerson(rng, { kind: 'lover', gender: partnerGender, age: rng.int(band[0], band[1]), countryCode: s.character.countryCode, playerAge: age, relationship: rng.int(50, 75) });
+    const lover = makePerson(rng, { kind: 'lover', gender: partnerGender, age: rng.int(band[0], band[1]), countryCode: s.character.countryCode, playerAge: age, relationship: rng.int(50, 75), taken });
     lover.love = rng.int(50, 80);
     s = { ...s, people: { ...s.people, [lover.id]: lover } };
     s = bump(s, 'lovers');

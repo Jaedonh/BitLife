@@ -136,6 +136,15 @@ describe('grandparents, grandchildren and coworkers on the People screens', () =
     expect(sinceLine({ ...grandma, metAtAge: 0 })).toBe('Known since you were born.');
   });
 
+  it("an heir's family reads as known since birth, and a younger brother or sister as born later", () => {
+    // A 44-year-old heir: an older sister there from the start, a sister of 33 born when the heir was 11.
+    expect(sinceLine(person('sibling', { age: 50, metAtAge: 0 }), 44)).toBe('Known since you were born.');
+    expect(sinceLine(person('sibling', { age: 33, metAtAge: 11 }), 44)).toBe('Born when you were 11.');
+    expect(sinceLine(person('mother', { age: 78, metAtAge: 0 }), 44)).toBe('Known since you were born.');
+    // A step-sibling who joined the family at 9, aged 12: met, not born.
+    expect(sinceLine(person('sibling', { age: 15, metAtAge: 9 }), 12)).toBe('Known since you were 9.');
+  });
+
   it('puts them in Family: parents, grandparents, siblings, children, grandchildren', () => {
     const groups = groupPeople([person('grandchild', { age: 3 }), person('child', { age: 30 }), person('grandparent', { age: 80 }), person('mother', { age: 55 }), person('sibling', { age: 25 }), person('coworker')]);
     expect(groups.map((g) => [g.title, g.people.map((p) => p.kind)])).toEqual([

@@ -7,7 +7,7 @@ import { JOB_BY_ID } from '@/data/jobs';
 import type { Rng } from '../rng';
 import type { GameState, Job, Person } from '../types';
 import { log } from '../util';
-import { makePerson, randomName } from './character';
+import { makePerson, namesInLife } from './character';
 
 /** Relationship at which a coworker stays a friend after the job ends. */
 export const COWORKER_FRIEND_AT = 70;
@@ -23,21 +23,25 @@ export function worksWithMe(state: GameState, p: Person): boolean {
   return !!job && !!p.workplace && p.workplace.jobId === job.defId && p.workplace.company === job.company;
 }
 
+/** A coworker's title: a rung of the player's own career ladder, at most one above theirs. */
+export function coworkerTitle(rng: Rng, job: Pick<Job, 'defId' | 'level' | 'title'>): string {
+  const def = JOB_BY_ID[job.defId];
+  return def ? def.ladder[rng.int(0, Math.min(def.ladder.length - 1, job.level + 1))]!.title : job.title;
+}
+
 /** Two or three new coworkers for the job just taken: adults near the player's age, on the same career ladder. */
 export function hireCoworkers(state: GameState, rng: Rng): GameState {
   const job = state.career.job;
   if (!job || job.partTime) return state;
-  const def = JOB_BY_ID[job.defId];
   const me = state.character;
   const people = { ...state.people };
+  // First names nobody in my life has yet (a coworker called Willow beside a wife called Willow reads as one person).
+  const taken = namesInLife(state);
   const count = rng.int(2, 3);
   for (let i = 0; i < count; i++) {
     const age = Math.max(18, Math.min(70, me.age + rng.int(-6, 8)));
-    const title = def ? def.ladder[rng.int(0, Math.min(def.ladder.length - 1, job.level + 1))]!.title : job.title;
-    const p = makePerson(rng, { kind: 'coworker', age, countryCode: me.countryCode, playerAge: me.age, relationship: rng.int(35, 60), occupation: title });
-    // A first name nobody in my life has yet (a coworker called Willow beside a wife called Willow reads as one person).
-    const taken = new Set([me.firstName, ...Object.values(people).map((x) => x.firstName)]);
-    for (let n = 0; n < 8 && taken.has(p.firstName); n++) p.firstName = randomName(rng, p.gender, me.countryCode).firstName;
+    const title = coworkerTitle(rng, job);
+    const p = makePerson(rng, { kind: 'coworker', age, countryCode: me.countryCode, playerAge: me.age, relationship: rng.int(35, 60), occupation: title, taken });
     p.workplace = workplaceOf(job);
     people[p.id] = p;
   }

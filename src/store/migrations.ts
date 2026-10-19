@@ -53,6 +53,7 @@ function isGameStateShape(s: Rec): boolean {
   if (!recordOf(s.people, (p) => isRec(p) && nullOr(p.foster, isBool))) return false;
   // A relative who took the player in and people left behind by a move abroad are optional too (older saves have neither).
   if (!recordOf(s.people, (p) => isRec(p) && nullOr(p.relative, isBool) && nullOr(p.farAway, isBool))) return false;
+  if (!recordOf(s.people, (p) => isRec(p) && nullOr(p.mourned, isBool))) return false;
   if (!arrayOf(s.assets, (a) => isRec(a) && isStr(a.id) && isNum(a.value))) return false;
   if (!arrayOf(s.log, (l) => isRec(l) && isStr(l.text) && isStr(l.kind) && isNum(l.age))) return false;
   if (!arrayOf(s.eventQueue, (q) => isRec(q) && isStr(q.eventId))) return false;
@@ -123,6 +124,13 @@ export function migrateSave(raw: unknown): GameState | null {
   if (s.flavorSeen !== undefined && !recordOf(s.flavorSeen, isNum)) {
     s = { ...s };
     delete s.flavorSeen;
+  }
+  // The grief window (romance.ts) starts when a partner's death is first counted. A save from before it has
+  // partners who died long ago and were never counted: they count as mourned, so loading starts no window.
+  const people = s.people as Record<string, Rec>;
+  const unmourned = (p: Rec) => p.alive === false && (p.kind === 'lover' || p.kind === 'spouse') && p.mourned === undefined;
+  if (Object.values(people).some(unmourned)) {
+    s = { ...s, people: Object.fromEntries(Object.entries(people).map(([id, p]) => [id, unmourned(p) ? { ...p, mourned: true } : p])) };
   }
   return carryDebtCalls(repairCareerAndSchool(upgradeJusticeState(s as unknown as GameState)));
 }
