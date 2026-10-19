@@ -85,6 +85,11 @@ export function evaluateCondition(state: GameState, c: Condition): boolean {
   if ('climate' in c) return c.climate.includes(getCountry(ch.countryCode).climate);
   if ('southern' in c) return (getCountry(ch.countryCode).southern === true) === c.southern;
   if ('atHome' in c) return livesAtHome(state) === c.atHome;
+  if ('sinceRetired' in c) {
+    const last = state.career.history.at(-1);
+    if (!state.career.retired || state.career.job || last?.reason !== 'retired') return false;
+    return cmp(state.character.age - last.toAge, c);
+  }
   if ('retired' in c) return state.career.retired === c.retired;
   if ('illnessCount' in c) return cmp(state.health.illnesses.length, c.illnessCount);
   if ('juvenile' in c) return (state.crime.inPrison && state.crime.juvenile === true) === c.juvenile;

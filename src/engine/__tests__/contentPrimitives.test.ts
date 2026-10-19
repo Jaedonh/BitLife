@@ -28,6 +28,17 @@ describe('conditions for era, climate and home', () => {
   });
 });
 
+describe('sinceRetired', () => {
+  it('counts years from the retirement and is false before it or after going back to work', () => {
+    const base = at('US', 70, 2040);
+    expect(evaluateCondition(base, { sinceRetired: true, lte: 0 })).toBe(false);
+    const entry = { title: 'Accountant', company: 'Granite & Sons', fromAge: 30, toAge: 67, salary: 90_000, reason: 'retired' as const };
+    const retired: GameState = { ...base, career: { ...base.career, retired: true, job: null, history: [...base.career.history, entry] } };
+    expect(evaluateCondition(retired, { sinceRetired: true, eq: 3 })).toBe(true);
+    expect(evaluateCondition(retired, { sinceRetired: true, lte: 0 })).toBe(false);
+  });
+});
+
 describe('switchEmployer', () => {
   it('keeps the job and rung at a new company for a raise, and records the old job as left', () => {
     const base = at('US', 30, 2010);
