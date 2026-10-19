@@ -24,6 +24,8 @@ function isGameStateShape(s: Rec): boolean {
   const stats = c.stats;
   if (!isRec(stats) || !STAT_IDS.every((k) => isNum(stats[k]))) return false;
   if (!isRec(c.potential) || !arrayOf(c.traits, isStr) || !isNum(c.karma) || !isNum(c.fame) || !isNum(c.energy) || !isNum(c.energyMax)) return false;
+  // Starting scenarios (S2) are optional: saves from before them, and heirs, have none.
+  if (!nullOr(c.scenario, isStr) || !nullOr(c.moveAbroad, (m) => isRec(m) && isNum(m.age) && isStr(m.countryCode))) return false;
   for (const k of ['seed', 'createdAt', 'updatedAt', 'year', 'generation'] as const) if (!isNum(s[k])) return false;
   if (!isRec(s.rng) || !isNum(s.rng.s) || !isBool(s.alive)) return false;
   const e = s.education;
@@ -38,6 +40,9 @@ function isGameStateShape(s: Rec): boolean {
   const cr = s.crime;
   if (!isRec(cr) || !isBool(cr.inPrison) || !isNum(cr.sentenceYearsLeft) || !isNum(cr.notoriety)) return false;
   if (!recordOf(s.people, (p) => isRec(p) && isStr(p.id) && isStr(p.firstName) && isStr(p.kind) && isBool(p.alive) && isNum(p.age) && isNum(p.relationship))) return false;
+  // Family links and children's milestones (S1) are optional: saves from before them simply have none.
+  if (!recordOf(s.people, (p) => isRec(p) && nullOr(p.viaId, isStr) && nullOr(p.growth, isRec) && nullOr(p.workplace, (w) => isRec(w) && isStr(w.jobId) && isStr(w.company)))) return false;
+  if (!recordOf(s.people, (p) => isRec(p) && nullOr(p.foster, isBool))) return false;
   if (!arrayOf(s.assets, (a) => isRec(a) && isStr(a.id) && isNum(a.value))) return false;
   if (!arrayOf(s.log, (l) => isRec(l) && isStr(l.text) && isStr(l.kind) && isNum(l.age))) return false;
   if (!arrayOf(s.eventQueue, (q) => isRec(q) && isStr(q.eventId))) return false;

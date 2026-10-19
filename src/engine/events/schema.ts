@@ -104,7 +104,13 @@ export type Effect =
   | { chance: number; then: Effect[]; else?: Effect[] }
   | { asset: 'damage' | 'lose'; kind?: AssetKind; amount?: number }
   | { achievement: string }
-  | { energy: number };
+  | { energy: number }
+  /**
+   * For an event bound to one of the player's children (person kind ['child']): a milestone the engine would
+   * otherwise roll (systems/family.ts) happens now: they move out, marry, or have a baby on the way (born next
+   * year; namedAfterMe gives the baby the player's name).
+   */
+  | { childMilestone: 'movedOut' | 'married' | 'expecting'; namedAfterMe?: boolean };
 
 export interface ChoiceDef {
   id: string;
@@ -138,6 +144,13 @@ export interface PersonSelector {
   maxRelationship?: number;
   minAge?: number;
   maxAge?: number;
+  /** Only people of this gender, e.g. a grandmother: { kind: ['grandparent'], gender: 'female' }. */
+  gender?: Gender;
+  /** The player's children only (kind ['child']): whether they have moved out or married yet. */
+  movedOut?: boolean;
+  married?: boolean;
+  /** The player's children only: their own children so far, counting babies on the way (at most 3). */
+  kids?: Comparator;
 }
 
 export interface EventDef {
@@ -164,6 +177,7 @@ export interface EventDef {
 const PLACEHOLDER_RE = /\{\{([^}]+)\}\}/g;
 const KNOWN_PLACEHOLDERS = new Set([
   'name', 'fullName', 'city', 'country', 'age', 'person', 'personFull', 'they', 'them', 'their', 'They', 'job', 'company', 'spouse', 'mother', 'father', 'he', 'she', 'his', 'him', 'demonym', 'year',
+  'grandma', 'grandpa',
 ]);
 
 /** Returns a list of human-readable problems; empty means valid. */
@@ -224,6 +238,18 @@ export function validateEvent(def: EventDef, knownIds: Set<string>): string[] {
   for (const k of ['mother', 'father'] as const) {
     const bound = def.person?.kind.length === 1 && def.person.kind[0] === k;
     if (blob.includes(`{{${k}}}`) && !bound && !requiresPerson(def.conditions, k)) errors.push(`${where}: uses {{${k}}} but does not require a living ${k} ({ hasPerson: ['${k}'] })`);
+  }
+  // Children's milestones and their selector filters only mean something for the player's own children.
+  const childOnly = def.person?.kind.length === 1 && def.person.kind[0] === 'child';
+  if (def.person && (def.person.movedOut !== undefined || def.person.married !== undefined || def.person.kids !== undefined) && !childOnly) {
+    errors.push(`${where}: movedOut/married/kids in the person selector need person: { kind: ['child'] }`);
+  }
+  for (const list of effectLists(def.choices.flatMap((c) => [c.effects ?? []]))) {
+    for (const e of list) {
+      if ('childMilestone' in e && !childOnly) errors.push(`${where}: childMilestone needs the event bound to a child (person: { kind: ['child'] })`);
+      // Grandparents and grandchildren are family by birth: the engine creates and links them (systems/family.ts).
+      if ('newPerson' in e && (e.newPerson.kind === 'grandparent' || e.newPerson.kind === 'grandchild')) errors.push(`${where}: newPerson cannot create a ${e.newPerson.kind}; the engine adds them`);
+    }
   }
   const usesPerson = /\{\{(person|personFull|they|them|their|They)\}\}/.test(def.text + def.choices.map((c) => c.label + (c.hint ?? '')).join(' '));
   if (usesPerson && !def.person) errors.push(`${where}: uses person placeholders but has no person selector`);

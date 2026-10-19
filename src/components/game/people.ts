@@ -1,11 +1,14 @@
 import { availableInteractions } from '@/engine';
 import { personRef, scaleMoney } from '@/engine/events/text';
 import type { InteractionDef, InteractionId } from '@/engine/systems/relationships';
+import { fosterRelation } from '@/engine/systems/scenarios';
 import type { GameState, LogEntry, LogKind, Person, RelationshipKind } from '@/engine/types';
 import { actionCount, capitalize, deathPhrase } from '@/engine/util';
 import { colors } from '@/theme';
 
 export function kindLabel(p: Person): string {
+  const foster = fosterRelation(p);
+  if (foster) return capitalize(foster);
   switch (p.kind) {
     case 'mother': return 'Mother';
     case 'father': return 'Father';
@@ -22,6 +25,8 @@ export function kindLabel(p: Person): string {
     case 'coworker': return 'Coworker';
     case 'classmate': return 'Classmate';
     case 'enemy': return 'Enemy';
+    case 'grandparent': return p.gender === 'male' ? 'Grandfather' : 'Grandmother';
+    case 'grandchild': return p.gender === 'male' ? 'Grandson' : 'Granddaughter';
     default: return p.kind;
   }
 }
@@ -43,6 +48,8 @@ export function kindEmoji(p: Person): string {
     case 'ex': return '💔';
     case 'pet': return '🐾';
     case 'enemy': return '😠';
+    case 'grandparent': return p.gender === 'male' ? '👴' : '👵';
+    case 'grandchild': return p.age < 3 ? '👶' : p.gender === 'male' ? '👦' : '👧';
     default: return '👤';
   }
 }
@@ -104,10 +111,37 @@ export function personSubtitle(p: Person, kind: string): string {
 
 /** How long someone has been in your life: "Known since you were born.", "Born when you were 31." */
 export function sinceLine(p: Person): string {
-  if (p.metAtAge === 0 && p.kind !== 'child') return 'Known since you were born.';
-  if (p.kind === 'child') return `Born when you were ${p.metAtAge}.`;
+  if (p.metAtAge === 0 && p.kind !== 'child' && p.kind !== 'grandchild') return 'Known since you were born.';
+  if (p.kind === 'child' || p.kind === 'grandchild') return `Born when you were ${p.metAtAge}.`;
   if (p.kind === 'pet') return `Part of the family since you were ${p.metAtAge}.`;
   return `Known since you were ${p.metAtAge}.`;
+}
+
+/**
+ * What the family tree says about someone, for the person screen: whose parent a grandparent is, whose child a
+ * grandchild is, how one of your children is getting on, and where a coworker works with you.
+ */
+export function familyFacts(p: Person, state: Pick<GameState, 'people' | 'career'>): string[] {
+  const via = p.viaId ? state.people[p.viaId] : undefined;
+  if (p.kind === 'grandparent' && via) return [`${via.kind === 'mother' ? "Mom's" : via.kind === 'father' ? "Dad's" : `${via.firstName}'s`} ${p.gender === 'male' ? 'father' : 'mother'}.`];
+  if (p.kind === 'grandchild' && via) return [`${via.firstName}'s ${p.gender === 'male' ? 'son' : 'daughter'}.`];
+  if (p.kind === 'coworker' && p.workplace && state.career.job?.defId === p.workplace.jobId && state.career.job.company === p.workplace.company) {
+    // Prose, so the employer keeps its article ("at the Ember Grill"); the Army is served in, not worked at.
+    const company = p.workplace.company;
+    return [company === 'the Army' ? 'Serves with you in the Army.' : `Works with you at ${company}.`];
+  }
+  if (p.kind !== 'child' || !p.growth) return [];
+  const g = p.growth;
+  const out: string[] = [];
+  if (g.school === 'graduated') out.push('Finished high school.');
+  if (g.school === 'droppedOut') out.push('Left high school without a diploma.');
+  if (g.movedOut) out.push('Has moved out.');
+  if (g.spouse) out.push(`Married to ${g.spouse.firstName}.`);
+  const kids = g.kids ?? 0;
+  const own = p.gender === 'male' ? 'his' : 'her';
+  if (kids) out.push(kids === 1 ? `Has a child of ${own} own.` : `Has ${kids} children of ${own} own.`);
+  if (g.expecting) out.push('Has a baby on the way.');
+  return out;
 }
 
 /** "Died of cancer at 71", "Died in a car accident at 40". */
@@ -124,7 +158,9 @@ const HOUSEHOLD: ReadonlySet<RelationshipKind> = new Set(['mother', 'father', 's
 export function neglectLine(p: Person, playerAge: number): string | null {
   if (!p.alive) return null;
   if (p.kind === 'child' && p.age < 18) return null;
-  const sharedHomeUntil = HOUSEHOLD.has(p.kind) ? 18 : p.kind === 'child' ? p.metAtAge + 18 : 0;
+  // A small grandchild is seen with their parents; a young child sees their grandparents the same way.
+  if (p.kind === 'grandchild' && p.age < 6) return null;
+  const sharedHomeUntil = HOUSEHOLD.has(p.kind) ? 18 : p.kind === 'child' ? p.metAtAge + 18 : p.kind === 'grandparent' ? 12 : 0;
   const since = Math.max(p.memory.lastInteractionAge, p.metAtAge, Math.min(sharedHomeUntil, playerAge));
   const years = playerAge - since;
   if (years < 2) return null;
@@ -164,7 +200,7 @@ export interface PeopleGroup {
 }
 
 const GROUPS: { key: string; title: string; kinds: RelationshipKind[] }[] = [
-  { key: 'family', title: 'Family', kinds: ['mother', 'father', 'stepmother', 'stepfather', 'sibling', 'child'] },
+  { key: 'family', title: 'Family', kinds: ['mother', 'father', 'stepmother', 'stepfather', 'grandparent', 'sibling', 'child', 'grandchild'] },
   { key: 'partner', title: 'Partner', kinds: ['spouse', 'lover'] },
   { key: 'friends', title: 'Friends', kinds: ['bestFriend', 'friend'] },
   { key: 'work', title: 'Work', kinds: ['coworker', 'classmate'] },
@@ -177,7 +213,7 @@ export function groupPeople(people: readonly Person[]): PeopleGroup[] {
   const alive = people.filter((p) => p.alive);
   const out: PeopleGroup[] = [];
   for (const g of GROUPS) {
-    // Within a group: by relation (parents first, then siblings, then children), then oldest first.
+    // Within a group: by relation (parents, grandparents, siblings, children, grandchildren), then oldest first.
     const members = alive.filter((p) => g.kinds.includes(p.kind)).sort((a, b) => g.kinds.indexOf(a.kind) - g.kinds.indexOf(b.kind) || b.age - a.age);
     if (!members.length) continue;
     let title = g.title;
@@ -266,6 +302,8 @@ function memoryTerms(p: Person, state: Pick<GameState, 'people' | 'character'>):
   if (!shared) terms.push(p.firstName);
   if (p.kind === 'mother') terms.push('Mom', 'my mother', 'My mother');
   if (p.kind === 'father') terms.push('Dad', 'my father', 'My father');
+  // "Grandma Rosa" even when another Rosa in the family keeps the first name out of the terms.
+  if (p.kind === 'grandparent') terms.push(personRef(p));
   return terms;
 }
 

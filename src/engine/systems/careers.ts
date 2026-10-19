@@ -8,6 +8,7 @@ import { scaleMoney } from '../events/text';
 import { Rng } from '../rng';
 import type { GameState, Job, JobListing } from '../types';
 import { addStats, bump, capitalize, clampStat, formatMoney, log, lowerTitle, plural, roleWithArticle, sentence, setResult, withArticle, withFame } from '../util';
+import { hireCoworkers } from './coworkers';
 import { bachelorMajor, hasDegree, hasHighSchool } from './education';
 
 export function meetsRequirements(state: GameState, def: JobDef): { ok: boolean; reason?: string } {
@@ -212,6 +213,7 @@ export function applyForJob(state: GameState, rng: Rng, listingId: string): Game
   s = bump(s, 'jobsHeld');
   s = addStats(s, { happiness: 5 });
   s = log(s, def.id === 'military' ? `I enlisted in the Army as ${roleWithArticle(job.title)}.` : sentence(`I was hired as ${roleWithArticle(job.title)} at ${job.company}`), 'milestone');
+  s = hireCoworkers(s, rng);
   return setResult(s, def.id === 'military' ? `Enlisted! ${job.title} in the Army.` : sentence(`Hired! ${job.title} at ${job.company}`), 'good');
 }
 

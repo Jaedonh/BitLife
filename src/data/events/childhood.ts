@@ -38,7 +38,7 @@ export const CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 8,
     weight: 2,
     cooldown: 3,
-    person: { kind: ['mother', 'father'] },
+    person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
         id: 'confess',
@@ -123,7 +123,7 @@ export const CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 7,
     weight: 2,
     cooldown: 3,
-    person: { kind: ['mother', 'father'] },
+    person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
         id: 'cut',
@@ -159,7 +159,7 @@ export const CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 9,
     weight: 2,
     cooldown: 2,
-    person: { kind: ['mother', 'father'] },
+    person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
         id: 'one',
@@ -203,7 +203,7 @@ export const CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 7,
     weight: 2,
     cooldown: 2,
-    person: { kind: ['mother', 'father'] },
+    person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
         id: 'read',
@@ -246,7 +246,7 @@ export const CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 8,
     weight: 2,
     cooldown: 3,
-    person: { kind: ['mother', 'father'] },
+    person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
         id: 'stay',
@@ -280,7 +280,7 @@ export const CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 10,
     weight: 2,
     cooldown: 2,
-    person: { kind: ['mother', 'father'] },
+    person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
         id: 'ask',
@@ -373,7 +373,7 @@ export const CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 8,
     weight: 2,
     once: true,
-    person: { kind: ['mother', 'father'] },
+    person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
         id: 'pedal',
@@ -500,7 +500,7 @@ export const CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 11,
     weight: 2,
     cooldown: 3,
-    person: { kind: ['mother', 'father'] },
+    person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
         id: 'knock',
@@ -746,27 +746,28 @@ export const CHILDHOOD_EVENTS: EventDef[] = [
     id: 'ch_grandma_passing',
     category: 'childhood',
     title: 'A quiet morning',
-    text: '{{mother}} answered the phone, sat down slowly, and stayed sitting. Grandma died in the night. It was peaceful and not a surprise, the grown-ups keep saying.',
+    text: '{{mother}} answered the phone, sat down slowly, and stayed sitting. {{person}} died in the night. It was peaceful and not a surprise, the grown-ups keep saying.',
     minAge: 4,
     maxAge: 12,
     weight: 0.6,
     once: true,
     conditions: [{ hasPerson: ['mother'] }],
+    person: { kind: ['grandparent'], gender: 'female', minAge: 60 },
     choices: [
       {
         id: 'ask',
         label: 'Ask what happens now',
-        effects: [{ stat: 'smarts', delta: 2 }, { stat: 'happiness', delta: -2 }, { relationship: 'mother', delta: 2 }, { log: 'I asked a lot of questions. {{mother}} answered every one, even the hard ones, and held my hand.' }],
+        effects: [{ stat: 'smarts', delta: 2 }, { stat: 'happiness', delta: -2 }, { relationship: 'mother', delta: 2 }, { log: 'I asked a lot of questions. {{mother}} answered every one, even the hard ones, and held my hand.' }, { personDies: true, cause: 'natural causes' }],
       },
       {
         id: 'card',
         label: 'Make a card for her',
-        effects: [{ karma: 1 }, { stat: 'happiness', delta: -1 }, { relationship: 'mother', delta: 2 }, { log: 'I drew Grandma in her garden under a very large sun. It went in with her. {{mother}} cried.' }],
+        effects: [{ karma: 1 }, { stat: 'happiness', delta: -1 }, { relationship: 'mother', delta: 2 }, { log: 'I drew {{person}} in her garden under a very large sun. It went in with her. {{mother}} cried.' }, { personDies: true, cause: 'natural causes' }],
       },
       {
         id: 'quiet',
         label: 'Stay very quiet',
-        effects: [{ stat: 'happiness', delta: -3 }, { relationship: 'mother', delta: 3 }, { log: 'I did not know what to say, so I said nothing and sat close. Sometimes that is enough.' }],
+        effects: [{ stat: 'happiness', delta: -3 }, { relationship: 'mother', delta: 3 }, { log: 'I did not know what to say, so I said nothing and sat close. Sometimes that is enough.' }, { personDies: true, cause: 'natural causes' }],
       },
     ],
   },

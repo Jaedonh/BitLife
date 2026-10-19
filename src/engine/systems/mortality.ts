@@ -4,6 +4,7 @@ import type { Rng } from '../rng';
 import type { GameState } from '../types';
 import { log } from '../util';
 import { markDeath } from './death';
+import { caregiversInProse } from './guardians';
 
 export function baseMortality(age: number): number {
   if (age < 1) return 0.004;
@@ -79,7 +80,7 @@ export function rollMortality(state: GameState, rng: Rng): GameState {
   if (h <= 8) {
     if (s.health.criticalYears === 0) {
       s = { ...s, health: { ...s.health, criticalYears: 2 } };
-      s = log(s, s.character.age < 13 ? 'The doctors told my parents bluntly: if my health does not turn around within two years, I will not survive.' : 'My doctor told me bluntly: if I do not turn my health around within two years, I will not survive.', 'bad');
+      s = log(s, s.character.age < 13 ? `The doctors told ${caregiversInProse(s)} bluntly: if my health does not turn around within two years, I will not survive.` : 'My doctor told me bluntly: if I do not turn my health around within two years, I will not survive.', 'bad');
     } else {
       const left = s.health.criticalYears - 1;
       s = { ...s, health: { ...s.health, criticalYears: left } };

@@ -196,7 +196,8 @@ describe('children and heirs come from the real family', () => {
     const parents = Object.values(s.people).filter((p) => p.kind === 'mother' || p.kind === 'father');
     expect(parents).toHaveLength(1);
     expect(parents[0]).toMatchObject({ kind: 'mother', firstName: prev.character.firstName, alive: false });
-    expect(s.log.some((l) => l.text.includes('still with us'))).toBe(false);
+    // The dead player's own parents may still be alive, as the heir's grandparents; no living parent is invented.
+    expect(s.log.some((l) => /\b(mother|father) .*still with us/.test(l.text))).toBe(false);
   });
 
   it('a same-sex couple adopts, and their heir has two mothers', () => {

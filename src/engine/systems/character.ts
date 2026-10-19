@@ -11,11 +11,14 @@ import type {
   Person,
   PersonMemory,
   RelationshipKind,
+  ScenarioId,
   TraitId,
 } from '../types';
 import { SCHEMA_VERSION } from '../types';
-import { article, clampStat, daysInMonth, deathPhrase, fullName, joinList, log, lowerTitle, money, numberWord, withArticle, zodiacFor } from '../util';
+import { personRef } from '../events/text';
+import { article, capitalize, clampStat, daysInMonth, deathPhrase, fullName, joinList, log, lowerTitle, money, numberWord, withArticle, zodiacFor } from '../util';
 import { energyMaxFor } from './aging';
+import { farmTown, fosterRelation, MOVE_ABROAD_AGES, pickDestination, scenarioFlags, startingScenario } from './scenarios';
 
 const ALL_TRAITS: readonly TraitId[] = [
   'quick_learner', 'charming', 'iron_constitution', 'lucky', 'hot_headed', 'thrifty', 'creative', 'athletic', 'anxious', 'rebellious',
@@ -111,6 +114,64 @@ export function makePerson(
   };
 }
 
+/** Chance that a grandparent of this age is still alive when the player is born: fewer when the parents are older. */
+export function grandparentAliveChance(age: number): number {
+  return age <= 55 ? 0.75 : age <= 65 ? 0.6 : age <= 75 ? 0.4 : age <= 85 ? 0.2 : 0.07;
+}
+
+/**
+ * A newborn's living grandparents (GAME_DESIGN §10): each parent has up to two, 20-35 years older than them,
+ * with health for their age and the surname of that parent's line. A mother who took the family name has a
+ * maiden name of her own for her parents. Usually one to three survive; siblings share them.
+ */
+function rollGrandparents(rng: Rng, parents: readonly Person[], familyName: string, countryCode: string, taken: Set<string>): Person[] {
+  const out: Person[] = [];
+  for (const parent of parents) {
+    const line = parent.kind === 'mother' && parent.lastName === familyName ? randomName(rng, 'female', countryCode).lastName : parent.lastName;
+    const grandmaAge = Math.min(99, parent.age + rng.int(20, 35));
+    const grandpaAge = Math.min(99, Math.max(parent.age + 18, grandmaAge + rng.int(-3, 6)));
+    for (const [gender, age] of [['female', grandmaAge], ['male', grandpaAge]] as const) {
+      if (!rng.chance(grandparentAliveChance(age))) continue;
+      const gp = makePerson(rng, { kind: 'grandparent', gender, age, countryCode, lastName: line, playerAge: 0, relationship: rng.int(50, 90) });
+      gp.health = clampStat(rng.int(45, 95) - Math.max(0, age - 65));
+      gp.viaId = parent.id;
+      for (let i = 0; i < 4 && taken.has(gp.firstName); i++) gp.firstName = randomName(rng, gender, countryCode).firstName;
+      taken.add(gp.firstName);
+      out.push(gp);
+    }
+  }
+  return out;
+}
+
+/**
+ * An orphan's household (GAME_DESIGN §4a): no parents, a foster parent aged 30-55 of modest means (kind
+ * stepmother/stepfather, so they act as a guardian: they pay for the child, take them to the doctor and
+ * share parent events) and sometimes one or two other foster kids. All carry their own surnames.
+ */
+function fosterFamily(rng: Rng, countryCode: string, taken: Set<string>, familyName: string): Person[] {
+  const mult = getCountry(countryCode).salaryMultiplier;
+  const gender: Gender = rng.chance(0.7) ? 'female' : 'male';
+  const parent = makePerson(rng, { kind: gender === 'female' ? 'stepmother' : 'stepfather', gender, age: rng.int(30, 55), countryCode, playerAge: 0, relationship: rng.int(35, 75), money: Math.round(rng.int(0, 12_000) * mult) });
+  parent.foster = true;
+  // A foster family is not the child's own: a shared surname would read as a relative.
+  const ownName = (p: Person) => {
+    for (let n = 0; n < 6 && p.lastName === familyName; n++) p.lastName = randomName(rng, p.gender, countryCode).lastName;
+  };
+  ownName(parent);
+  const out = [parent];
+  const kids = rng.weighted([0, 1, 2], (n) => [40, 40, 20][n]!);
+  taken.add(parent.firstName);
+  for (let i = 0; i < kids; i++) {
+    const kid = makePerson(rng, { kind: 'sibling', age: rng.int(1, 14), countryCode, playerAge: 0, relationship: rng.int(30, 70), biological: false });
+    for (let n = 0; n < 6 && taken.has(kid.firstName); n++) kid.firstName = randomName(rng, kid.gender, countryCode).firstName;
+    kid.foster = true;
+    ownName(kid);
+    taken.add(kid.firstName);
+    out.push(kid);
+  }
+  return out;
+}
+
 function rollTraits(rng: Rng): TraitId[] {
   const n = rng.chance(0.7) ? 1 : rng.chance(0.5) ? 2 : 0;
   return rng.shuffle(ALL_TRAITS).slice(0, n);
@@ -132,6 +193,8 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
   const firstName = heir?.firstName ?? (options.firstName?.trim() || generated.firstName);
   const lastName = heir?.lastName ?? (options.lastName?.trim() || (prev ? prev.character.lastName : generated.lastName));
   const startAge = heir?.age ?? 0;
+  // How a new life starts (GAME_DESIGN §4a); an heir's life simply continues.
+  const scenario: ScenarioId | undefined = prev ? undefined : startingScenario(options);
 
   // Birth date: a random year within living memory so the era is part of the story.
   const birthYear = prev ? prev.year - startAge : rng.int(1975, 2010);
@@ -148,6 +211,11 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
   for (const k of Object.keys(stats) as (keyof typeof stats)[]) stats[k] = clampStat(stats[k]);
 
   const traits = rollTraits(rng);
+  if (scenario === 'prodigy') {
+    // Brilliant from the start, whatever the custom stats said, and a quick learner (still at most two traits).
+    stats.smarts = Math.max(stats.smarts, rng.int(85, 100));
+    if (!traits.includes('quick_learner')) traits.splice(0, traits.length, 'quick_learner', ...traits.slice(0, 1));
+  }
   const potential = {
     smarts: clampStat(Math.max(stats.smarts, rng.int(60, 100) + (traits.includes('quick_learner') ? 5 : 0))),
     looks: clampStat(Math.max(stats.looks, rng.int(60, 100))),
@@ -173,12 +241,17 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
     fame: 0,
     energy: energyMaxFor(startAge),
     energyMax: energyMaxFor(startAge),
+    ...(scenario ? { scenario } : {}),
   };
+  if (scenario === 'farm_kid') character.city = farmTown(rng, countryCode, character.city);
+  if (scenario === 'immigrant') character.moveAbroad = { age: rng.int(MOVE_ABROAD_AGES.min, MOVE_ABROAD_AGES.max), countryCode: pickDestination(rng, countryCode) };
 
   // Family
   const people: Record<string, Person> = {};
-  const wealthy = !prev && (options.wealthyFamily === true || rng.chance(0.08));
-  const poor = !prev && !wealthy && rng.chance(0.2);
+  // An orphan's foster home and a big family are never rich; a big family is always short of money.
+  const rollsWealth = scenario !== 'orphan' && scenario !== 'big_family';
+  const wealthy = !prev && (scenario === 'wealthy' || (rollsWealth && rng.chance(0.08)));
+  const poor = !prev && !wealthy && (scenario === 'big_family' || (rollsWealth && rng.chance(0.2)));
   const parentMoney = () => (wealthy ? rng.int(400_000, 3_000_000) : poor ? rng.int(0, 8_000) : rng.int(5_000, 150_000)) * country.salaryMultiplier;
 
   if (prev) {
@@ -206,20 +279,42 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
         people[sib.id] = sib;
       }
     }
+    for (const p of heirFamily(rng, prev, heir, deceased.id, countryCode, startAge)) people[p.id] = p;
+  } else if (scenario === 'orphan') {
+    for (const p of fosterFamily(rng, countryCode, new Set([firstName]), lastName)) people[p.id] = p;
   } else {
-    const motherAge = rng.int(18, 42);
+    const big = scenario === 'big_family';
+    const single = scenario === 'single_parent';
+    const motherAge = big ? rng.int(26, 42) : rng.int(18, 42);
     const fatherAge = clampStat(motherAge + rng.int(-4, 10));
-    const mother = makePerson(rng, { kind: 'mother', gender: 'female', age: motherAge, countryCode, lastName: rng.chance(0.85) ? lastName : undefined, playerAge: 0, relationship: rng.int(60, 100), money: parentMoney() });
-    people[mother.id] = mother;
-    if (rng.chance(0.88)) {
+    // A single parent is a mother three times in four, otherwise a father.
+    const singleDad = single && rng.chance(0.25);
+    if (!singleDad) {
+      const mother = makePerson(rng, { kind: 'mother', gender: 'female', age: motherAge, countryCode, lastName: rng.chance(0.85) ? lastName : undefined, playerAge: 0, relationship: rng.int(60, 100), money: parentMoney() });
+      people[mother.id] = mother;
+    }
+    if (singleDad || (!single && rng.chance(0.88))) {
       const father = makePerson(rng, { kind: 'father', gender: 'male', age: Math.max(18, fatherAge), countryCode, lastName, playerAge: 0, relationship: rng.int(55, 100), money: parentMoney() });
       people[father.id] = father;
     }
-    const siblings = rng.weighted([0, 1, 2, 3], (n) => [35, 40, 18, 7][n]!);
+    const siblings = big ? rng.int(3, 5) : rng.weighted([0, 1, 2, 3], (n) => [35, 40, 18, 7][n]!);
+    const eldestParent = singleDad ? Math.max(18, fatherAge) : motherAge;
+    const sibNames = new Set([firstName]);
     for (let i = 0; i < siblings; i++) {
-      const sib = makePerson(rng, { kind: 'sibling', age: rng.int(1, Math.min(16, motherAge - 17)), countryCode, lastName, playerAge: 0, relationship: rng.int(40, 90), biological: true });
+      const sib = makePerson(rng, { kind: 'sibling', age: rng.int(1, Math.min(16, eldestParent - 17)), countryCode, lastName, playerAge: 0, relationship: rng.int(40, 90), biological: true });
+      // Five children in one house need five different names.
+      if (big) for (let n = 0; n < 6 && sibNames.has(sib.firstName); n++) sib.firstName = randomName(rng, sib.gender, countryCode).firstName;
+      sibNames.add(sib.firstName);
       people[sib.id] = sib;
     }
+    const parents = Object.values(people).filter((p) => p.kind === 'mother' || p.kind === 'father');
+    if (scenario === 'farm_kid') {
+      // The farm is the family business: the father (or a single mother) farms it, and often the mother too.
+      const father = parents.find((p) => p.kind === 'father');
+      for (const p of parents) if (p === father || !father || rng.chance(0.5)) p.occupation = 'Farmer';
+    }
+    const taken = new Set([firstName, ...Object.values(people).map((p) => p.firstName)]);
+    for (const gp of rollGrandparents(rng, parents, lastName, countryCode, taken)) people[gp.id] = gp;
     if (wealthy) traits.push('lucky');
   }
 
@@ -236,7 +331,9 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
     updatedAt: now,
     character,
     year: birthYear + startAge,
-    education: startingEducation(startAge, country, stats.smarts),
+    education: heir?.growth?.school === 'droppedOut' && startAge >= country.highSchoolEndAge
+      ? { ...startingEducation(0, country, stats.smarts), stage: 'done', droppedOut: true }
+      : startingEducation(startAge, country, stats.smarts),
     career: { job: null, history: [], totalYearsWorked: 0, retired: false, experience: {}, listings: [], listingsYear: -1, hustle: null },
     finances: { cash: (heir?.money ?? 0) + inheritance, debt: 0, investments: [], lastYear: { income: 0, salary: 0, passive: 0, expenses: 0, taxes: 0 }, incomeBoostYears: 0, bankrupt: false },
     health: { illnesses: [], addictions: {}, criticalYears: 0, doctorVisitsThisYear: 0, injuries: 0 },
@@ -246,10 +343,10 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
     log: [],
     pendingEvent: null,
     eventQueue: [],
-    flags: wealthy ? { wealthyFamily: true } : poor ? { poorFamily: true } : {},
+    flags: { ...(wealthy ? { wealthyFamily: true } : poor ? { poorFamily: true } : {}), ...(scenario ? scenarioFlags(scenario) : {}) },
     firedEvents: {},
     actionsThisYear: {},
-    counters: emptyCounters(),
+    counters: heirCounters(people),
     alive: true,
     death: null,
     generation: prev ? prev.generation + 1 : 1,
@@ -273,6 +370,42 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
   return prev ? writeHeirLog(state, prev, inheritance) : writeBirthLog(state);
 }
 
+/**
+ * The rest of an heir's family (GAME_DESIGN §16): the previous player's living parents become grandparents, and
+ * an heir who had married or had children (family.ts) keeps that spouse and those children, now their own.
+ */
+function heirFamily(rng: Rng, prev: GameState, heir: Person | undefined, deceasedId: string, countryCode: string, startAge: number): Person[] {
+  const out: Person[] = [];
+  // Someone the last life knew stays who they were: the same job, looks, smarts, health and temper.
+  const keep = (p: Person, was: Person) => Object.assign(p, { firstName: was.firstName, occupation: was.occupation, looks: was.looks, smarts: was.smarts, health: was.health, craziness: was.craziness });
+  for (const p of Object.values(prev.people)) {
+    if ((p.kind !== 'mother' && p.kind !== 'father') || !p.alive) continue;
+    const gp = makePerson(rng, { kind: 'grandparent', gender: p.gender, age: p.age, countryCode, lastName: p.lastName, playerAge: startAge, relationship: rng.int(55, 90), money: p.money });
+    keep(gp, p);
+    gp.viaId = deceasedId;
+    gp.metAtAge = 0;
+    out.push(gp);
+  }
+  if (!heir) return out;
+  const married = heir.growth?.spouse;
+  let spouse: Person | undefined;
+  if (married) {
+    spouse = makePerson(rng, { kind: 'spouse', gender: married.gender, age: Math.max(18, startAge + rng.int(-3, 3)), countryCode, lastName: heir.lastName, playerAge: startAge, relationship: rng.int(60, 90) });
+    spouse.firstName = married.firstName;
+    spouse.love = rng.int(55, 85);
+    out.push(spouse);
+  }
+  for (const g of Object.values(prev.people)) {
+    if (g.kind !== 'grandchild' || g.viaId !== heir.id || !g.alive) continue;
+    const kid = makePerson(rng, { kind: 'child', gender: g.gender, age: g.age, countryCode, lastName: g.lastName, playerAge: Math.max(0, startAge - g.age), relationship: rng.int(60, 95), money: 0, biological: married && married.gender === heir.gender ? undefined : true });
+    keep(kid, g);
+    kid.memory = emptyMemory(startAge);
+    if (spouse) kid.otherParentId = spouse.id;
+    out.push(kid);
+  }
+  return out;
+}
+
 /** Where an heir of `age` stands in school: not yet, in the stage for their age, or finished with a diploma. */
 function startingEducation(age: number, country: ReturnType<typeof getCountry>, smarts: number): Education {
   const base: Education = { stage: 'none', enrolled: false, grade: 0, yearsInStage: 0, major: null, degrees: [], droppedOut: false, expelled: false, studiedThisYear: false, studentDebt: 0, scholarship: false };
@@ -281,6 +414,21 @@ function startingEducation(age: number, country: ReturnType<typeof getCountry>, 
   const stage = age < 11 ? 'primary' : age < 14 ? 'middle' : 'high';
   const stageStart = stage === 'primary' ? country.schoolStartAge : stage === 'middle' ? 11 : 14;
   return { ...base, stage, enrolled: true, grade: clampStat(50 + (smarts - 50) / 2), yearsInStage: Math.max(0, age - stageStart) };
+}
+
+/** A new life's counters: an heir who arrives married with children counts the marriage and the children as theirs. */
+function heirCounters(people: Record<string, Person>): LifetimeCounters {
+  const counters = emptyCounters();
+  const all = Object.values(people);
+  return { ...counters, children: all.filter((p) => p.kind === 'child').length, marriages: all.some((p) => p.kind === 'spouse') ? 1 : 0 };
+}
+
+/** "Grandma Rosa and Grandpa Joe were first in line to hold me." */
+function grandparentsLine(state: GameState): string | null {
+  const gps = Object.values(state.people).filter((p) => p.kind === 'grandparent' && p.alive);
+  if (!gps.length) return null;
+  const names = joinList(gps.map((p) => personRef(p)));
+  return gps.length <= 2 ? `${names} ${gps.length === 1 ? 'was' : 'were'} first in line to hold me.` : `${names} took turns holding me.`;
 }
 
 /** "Traits: Lucky, Charming." A trait listed twice (a lucky roll plus a wealthy birth) shows once. */
@@ -296,15 +444,31 @@ function parentJob(occupation: string): string {
 function writeBirthLog(state: GameState): GameState {
   const c = state.character;
   const country = getCountry(c.countryCode);
+  const scenario = c.scenario ?? 'standard';
   const mother = Object.values(state.people).find((p) => p.kind === 'mother');
   const father = Object.values(state.people).find((p) => p.kind === 'father');
+  const foster = Object.values(state.people).find((p) => p.foster && (p.kind === 'stepmother' || p.kind === 'stepfather'));
   const sibs = Object.values(state.people).filter((p) => p.kind === 'sibling');
   let s = log(state, `${c.birthYear}: Age 0`, 'year');
   s = log(s, `I was born ${c.gender === 'male' ? 'a boy' : 'a girl'} named ${fullName(c)} in ${c.city}, ${country.name}. I'm ${article(c.zodiac)} ${c.zodiac}.`, 'milestone');
-  if (mother && father) s = log(s, `My parents are ${fullName(mother)} (${mother.age}), ${parentJob(mother.occupation)}, and ${fullName(father)} (${father.age}), ${parentJob(father.occupation)}.`);
-  else if (mother) s = log(s, `My mother is ${fullName(mother)} (${mother.age}), ${parentJob(mother.occupation)}. I never knew my father.`);
-  if (sibs.length === 1) s = log(s, `I have an older ${sibs[0]!.gender === 'male' ? 'brother' : 'sister'}, ${sibs[0]!.firstName}.`);
-  else if (sibs.length > 1) s = log(s, `I have ${numberWord(sibs.length)} older siblings: ${joinList(sibs.map((x) => x.firstName))}.`);
+  if (scenario === 'orphan') {
+    s = log(s, 'I never knew my birth parents. I went home from the hospital to a foster family.', 'bad');
+    if (foster) s = log(s, `My ${fosterRelation(foster)} is ${fullName(foster)} (${foster.age}), ${parentJob(foster.occupation)}.`);
+    if (sibs.length === 1) s = log(s, `Another foster kid, ${sibs[0]!.firstName}, lives with us.`);
+    else if (sibs.length > 1) s = log(s, `${capitalize(numberWord(sibs.length))} other foster kids live with us: ${joinList(sibs.map((x) => x.firstName))}.`);
+  } else {
+    if (mother && father) s = log(s, `My parents are ${fullName(mother)} (${mother.age}), ${parentJob(mother.occupation)}, and ${fullName(father)} (${father.age}), ${parentJob(father.occupation)}.`);
+    else if (mother && scenario === 'single_parent') s = log(s, `My mother is ${fullName(mother)} (${mother.age}), ${parentJob(mother.occupation)}. She's raising me on her own.`);
+    else if (father && scenario === 'single_parent') s = log(s, `My father is ${fullName(father)} (${father.age}), ${parentJob(father.occupation)}. He's raising me on his own.`);
+    else if (mother) s = log(s, `My mother is ${fullName(mother)} (${mother.age}), ${parentJob(mother.occupation)}. I never knew my father.`);
+    if (sibs.length === 1) s = log(s, `I have an older ${sibs[0]!.gender === 'male' ? 'brother' : 'sister'}, ${sibs[0]!.firstName}.`);
+    else if (sibs.length > 1) s = log(s, `I have ${numberWord(sibs.length)} older siblings: ${joinList(sibs.map((x) => x.firstName))}.`);
+  }
+  if (scenario === 'big_family') s = log(s, 'Our house is loud, and the bathroom is never free.');
+  const grand = grandparentsLine(state);
+  if (grand) s = log(s, grand);
+  if (scenario === 'farm_kid') s = log(s, 'My family runs a farm just outside town. The cows were unimpressed by my arrival.');
+  if (scenario === 'prodigy') s = log(s, 'The nurses swore I was reading their name tags.', 'good');
   if (state.flags.wealthyFamily) s = log(s, `My family is wealthy. I was born with a silver spoon in my mouth.`, 'good');
   if (state.flags.poorFamily) s = log(s, `My family doesn't have much. Money is always tight at home.`, 'bad');
   if (c.traits.length) s = log(s, traitLine(c.traits));
@@ -315,14 +479,21 @@ function writeBirthLog(state: GameState): GameState {
 function writeHeirLog(state: GameState, prev: GameState, inheritance: number): GameState {
   const c = state.character;
   const country = getCountry(c.countryCode);
-  const living = Object.values(state.people).filter((p) => (p.kind === 'mother' || p.kind === 'father') && p.alive);
+  const living = Object.values(state.people).filter((p) => (p.kind === 'mother' || p.kind === 'father' || p.kind === 'grandparent') && p.alive);
   const sibs = Object.values(state.people).filter((p) => p.kind === 'sibling');
+  const spouse = Object.values(state.people).find((p) => p.kind === 'spouse');
+  const kids = Object.values(state.people).filter((p) => p.kind === 'child');
   const parentLabel = prev.character.gender === 'female' ? 'mother' : 'father';
+  const relation = (p: Person) => (p.kind === 'grandparent' ? (p.gender === 'male' ? 'grandfather' : 'grandmother') : p.kind);
   let s = log(state, `${state.year}: Age ${c.age}`, 'year');
   s = log(s, `I'm ${fullName(c)}, ${c.age}, of ${c.city}, ${country.name}. My ${parentLabel} ${fullName(prev.character)} ${prev.death ? deathPhrase(prev.death.cause) : 'died'} at ${prev.character.age}, and the family story continues with me.`, 'milestone');
-  if (living.length) s = log(s, `My ${joinList(living.map((p) => `${p.kind} ${fullName(p)} (${p.age})`))} ${living.length === 1 ? 'is' : 'are'} still with us.`);
+  if (living.length) s = log(s, `My ${joinList(living.map((p) => `${relation(p)} ${fullName(p)} (${p.age})`))} ${living.length === 1 ? 'is' : 'are'} still with us.`);
   if (sibs.length === 1) s = log(s, `I have ${sibs[0]!.gender === 'male' ? 'a brother' : 'a sister'}, ${sibs[0]!.firstName} (${sibs[0]!.age}).`);
   else if (sibs.length > 1) s = log(s, `I have ${numberWord(sibs.length)} siblings: ${joinList(sibs.map((x) => `${x.firstName} (${x.age})`))}.`);
+  if (spouse) s = log(s, `I'm married to ${spouse.firstName}.`);
+  if (kids.length === 1) s = log(s, `I have ${kids[0]!.gender === 'male' ? 'a son' : 'a daughter'}, ${kids[0]!.firstName} (${kids[0]!.age}).`);
+  else if (kids.length > 1) s = log(s, `I have ${numberWord(kids.length)} children: ${joinList(kids.map((x) => `${x.firstName} (${x.age})`))}.`);
+  if (state.education.droppedOut) s = log(s, 'I left high school without a diploma.');
   if (inheritance > 0) s = log(s, `I inherited ${money(s, inheritance)} from ${prev.character.gender === 'female' ? 'Mom' : 'Dad'}'s estate.`, 'money');
   if (c.traits.length) s = log(s, traitLine(c.traits));
   return s;

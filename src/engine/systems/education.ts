@@ -4,6 +4,7 @@ import { scaleMoney } from '../events/text';
 import type { Rng } from '../rng';
 import type { GameState } from '../types';
 import { actionCount, addMoney, addStats, clampStat, countAction, log, money, setResult, withArticle } from '../util';
+import { caregivers, caregiversInProse } from './guardians';
 
 export const STAGE_LABELS: Record<string, string> = {
   none: 'Not in school',
@@ -148,7 +149,8 @@ export function skipClass(state: GameState, rng: Rng): GameState {
       s = addStats(log(s, college ? 'I skipped class and got caught. The professor noticed, and so did my grade.' : 'I skipped class and got caught. Detention, and a note in my file.', 'bad'), { happiness: -3 });
       return setResult(s, college ? 'Caught skipping. My grade took the hit.' : 'Caught skipping. Detention.', 'bad');
     }
-    s = log(s, college ? 'I skipped class and got caught. Word got back to my parents, who were furious.' : 'I skipped class and got caught. My parents were furious.', 'bad');
+    const who = caregivers(s);
+    s = log(s, college ? `I skipped class and got caught. Word got back to ${caregiversInProse(s)}, who ${who.plural ? 'were' : 'was'} furious.` : `I skipped class and got caught. ${who.who} ${who.plural ? 'were' : 'was'} furious.`, 'bad');
     for (const p of Object.values(s.people)) if ((p.kind === 'mother' || p.kind === 'father') && p.alive) s = { ...s, people: { ...s.people, [p.id]: { ...p, relationship: clampStat(p.relationship - 6) } } };
     s = addStats(s, { happiness: -3 });
     return setResult(s, college ? 'Caught skipping. My parents heard about it.' : 'Caught skipping. Grounded.', 'bad');

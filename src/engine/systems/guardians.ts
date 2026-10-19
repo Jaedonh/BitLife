@@ -44,3 +44,24 @@ export function spend(state: GameState, cost: number): GameState {
   const rest = Math.min(cost - covered, s.finances.cash);
   return { ...s, finances: { ...s.finances, cash: s.finances.cash - rest } };
 }
+
+/**
+ * Who looks after a minor, for journal lines: both parents ("My parents"), the one parent left ("Mom", "Dad"),
+ * else a step- or foster parent by first name ("Hazel"), else "My family". `they` is the matching pronoun and
+ * `plural` picks the verb ("were" or "was"). Use `caregiversInProse` mid-sentence.
+ */
+export function caregivers(state: GameState): { who: string; they: 'they' | 'she' | 'he'; plural: boolean } {
+  const alive = Object.values(state.people).filter((p) => p.alive);
+  const parents = alive.filter((p) => p.kind === 'mother' || p.kind === 'father');
+  const steps = alive.filter((p) => p.kind === 'stepmother' || p.kind === 'stepfather');
+  if (parents.length >= 2 || (!parents.length && steps.length >= 2)) return { who: 'My parents', they: 'they', plural: true };
+  const one = parents[0] ?? steps[0];
+  if (!one) return { who: 'My family', they: 'they', plural: false };
+  const who = one.kind === 'mother' ? 'Mom' : one.kind === 'father' ? 'Dad' : one.firstName;
+  return { who, they: one.gender === 'male' ? 'he' : 'she', plural: false };
+}
+
+/** `caregivers(state).who` for the middle of a sentence: "my parents", "Mom", "Hazel". */
+export function caregiversInProse(state: GameState): string {
+  return caregivers(state).who.replace(/^My /, 'my ');
+}

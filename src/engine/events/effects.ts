@@ -2,6 +2,8 @@ import { ILLNESS_BY_ID } from '@/data/illnesses';
 import type { Rng } from '../rng';
 import { onNpcDeath } from '../systems/aging';
 import { makePerson } from '../systems/character';
+import { workplaceOf } from '../systems/coworkers';
+import { markChildMilestone } from '../systems/family';
 import { payForMinor } from '../systems/guardians';
 import { markDeath } from '../systems/death';
 import { clampRange, partnerAgeRange } from '../systems/romance';
@@ -110,6 +112,11 @@ function newPersonAgeRange(state: GameState, np: NewPersonSpec, bound: Person | 
     const lo = Math.max(floor, parent ? parent.age - 10 : floor);
     return clampRange(range, [lo, Math.max(lo, Math.min(95, parent ? parent.age + 10 : lo + 25))]);
   }
+  // A coworker is old enough for the job: an adult beside a full-time one, 14+ (the youngest age with a job) beside a teen one.
+  if (np.kind === 'coworker') {
+    const floor = state.career.job?.partTime === false ? 18 : 14;
+    return clampRange(range, [floor, Math.max(floor, range[1])]);
+  }
   return range;
 }
 
@@ -182,6 +189,8 @@ export function applyEffect(state: GameState, rng: Rng, e: Effect, ctx: EffectCo
       biological: np.kind === 'child' && otherParent?.gender !== s.character.gender ? true : undefined,
     });
     if (otherParent) p.otherParentId = otherParent.id;
+    // A coworker an event introduces works with the player at their current job, and goes when it ends.
+    if (np.kind === 'coworker' && s.career.job) p.workplace = workplaceOf(s.career.job);
     if (np.kind === 'lover' || np.kind === 'spouse') p.love = rng.int(50, 85);
     s = { ...s, people: { ...s.people, [p.id]: p } };
     if (np.kind === 'friend') s = bump(s, 'friendsMade');
@@ -234,6 +243,7 @@ export function applyEffect(state: GameState, rng: Rng, e: Effect, ctx: EffectCo
       assets: s.assets.map((a) => (a.id === target.id ? { ...a, condition: clampStat(a.condition - dmg), value: Math.round(a.value * (1 - dmg / 200)) } : a)),
     };
   }
+  if ('childMilestone' in e) return person ? markChildMilestone(s, rng, person.id, e.childMilestone, { namedAfterMe: e.namedAfterMe }) : s;
   if ('achievement' in e) return s.achievements.includes(e.achievement) ? s : { ...s, achievements: [...s.achievements, e.achievement] };
   return s;
 }

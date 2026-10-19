@@ -17,13 +17,27 @@ function findKind(state: GameState, kind: Person['kind']): Person | undefined {
 
 /**
  * How the player names someone in first-person narration. A parent is "Mom" or "Dad" at any age (a toddler's
- * parents must not read as strangers); step-parents and everyone else go by their first name. Always capitalized,
- * so it works mid-sentence and at the start of one. {{personFull}} keeps the full name for formal lines.
+ * parents must not read as strangers), a grandparent "Grandma Rosa" or "Grandpa Joe"; step-parents and everyone
+ * else go by their first name. Always capitalized, so it works mid-sentence and at the start of one.
+ * {{personFull}} keeps the full name for formal lines.
  */
-export function personRef(p: Pick<Person, 'kind' | 'firstName'>): string {
+export function personRef(p: Pick<Person, 'kind' | 'firstName'> & { gender?: Person['gender'] }): string {
   if (p.kind === 'mother') return 'Mom';
   if (p.kind === 'father') return 'Dad';
+  if (p.kind === 'grandparent') return `${p.gender === 'male' ? 'Grandpa' : 'Grandma'} ${p.firstName}`;
   return p.firstName;
+}
+
+/**
+ * The grandparent {{grandma}} or {{grandpa}} names: the bound person when they are one of that gender, else the
+ * closest living one ("Grandma Rosa"), else just "Grandma" / "Grandpa".
+ */
+function grandparentRef(state: GameState, gender: Person['gender'], bound: Person | undefined): string {
+  if (bound?.kind === 'grandparent' && bound.alive && bound.gender === gender) return personRef(bound);
+  const closest = Object.values(state.people)
+    .filter((x) => x.kind === 'grandparent' && x.alive && x.gender === gender)
+    .sort((a, b) => b.relationship - a.relationship || a.id.localeCompare(b.id))[0];
+  return closest ? personRef(closest) : gender === 'male' ? 'Grandpa' : 'Grandma';
 }
 
 /** True when a placeholder at `offset` opens a sentence (or a quote), so its value needs a capital letter. */
@@ -80,6 +94,8 @@ export function renderText(template: string, state: GameState, ctx: TextContext 
       // A living parent is "Mom"/"Dad"; with none alive the line still reads ("my mother").
       case 'mother': return findKind(state, 'mother') ? 'Mom' : 'my mother';
       case 'father': return findKind(state, 'father') ? 'Dad' : 'my father';
+      case 'grandma': return grandparentRef(state, 'female', p);
+      case 'grandpa': return grandparentRef(state, 'male', p);
       default: return `{{${key}}}`;
     }
   }

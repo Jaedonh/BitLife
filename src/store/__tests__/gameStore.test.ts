@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { ads } from '@/services/ads';
+import { setAnalyticsSink, type AnalyticsEvent } from '@/services/analytics';
 import { StorageKeys } from '@/services/storage';
 import { rewardedOutcomeMessage, useGameStore } from '../gameStore';
 import { useSettingsStore } from '../settingsStore';
@@ -193,5 +194,26 @@ describe('gameStore', () => {
   it('free users cannot use rewarded placements where ads are unsupported', () => {
     useGameStore.getState().newLife({});
     expect(useGameStore.getState().canUseRewarded('cashBoost')).toBe(false);
+  });
+
+  it('starts a life in the chosen scenario and keeps the wealthy family a premium perk', () => {
+    const events: AnalyticsEvent[] = [];
+    setAnalyticsSink((e) => events.push(e));
+    useGameStore.getState().newLife({ scenario: 'orphan', countryCode: 'US' });
+    expect(useGameStore.getState().game!.character.scenario).toBe('orphan');
+    expect(useGameStore.getState().game!.flags.foster_care).toBe(true);
+    // Without premium a Wealthy start (or the old wealthy-family option) is a Standard life.
+    useGameStore.getState().newLife({ scenario: 'wealthy' });
+    expect(useGameStore.getState().game!.character.scenario).toBe('standard');
+    useGameStore.getState().newLife({ wealthyFamily: true });
+    expect(useGameStore.getState().game!.character.scenario).toBe('standard');
+    useGameStore.getState().newLife({ scenario: 'farm_kid', wealthyFamily: true });
+    expect(useGameStore.getState().game!.character.scenario).toBe('farm_kid');
+    useSettingsStore.getState().setPremium(true);
+    useGameStore.getState().newLife({ scenario: 'wealthy' });
+    expect(useGameStore.getState().game!.character.scenario).toBe('wealthy');
+    expect(useGameStore.getState().game!.flags.wealthyFamily).toBe(true);
+    setAnalyticsSink(null);
+    expect(events.filter((e) => e.name === 'life_started').map((e) => (e.name === 'life_started' ? e.scenario : ''))).toEqual(['orphan', 'standard', 'standard', 'farm_kid', 'wealthy']);
   });
 });

@@ -141,10 +141,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ hydrated: true, game });
   },
   newLife: (options = {}) => {
-    const game = createLife(options, randomSeed(), Date.now());
+    // The wealthy family is a premium perk: without premium the Wealthy scenario starts a Standard life.
+    const premium = useSettingsStore.getState().premium;
+    const allowed: NewLifeOptions = premium ? options : { ...options, scenario: options.scenario === 'wealthy' ? 'standard' : options.scenario, wealthyFamily: undefined };
+    const game = createLife(allowed, randomSeed(), Date.now());
     set({ game });
     persist(game);
-    track({ name: 'life_started', generation: game.generation, custom: !!(options.firstName || options.countryCode || options.customStats) });
+    track({ name: 'life_started', generation: game.generation, custom: !!(options.firstName || options.countryCode || options.customStats), scenario: game.character.scenario ?? 'standard' });
   },
   continueAsHeir: (childId) => {
     const prev = get().game;

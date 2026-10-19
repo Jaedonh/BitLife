@@ -19,7 +19,7 @@ Working title "LifeLoop"; Teen / 13+ content rating target.
 **Age up** (`src/engine/ageUp.ts`) runs these phases in this order:
 
 1. Advance age and year; reset per-year counters and energy.
-2. Milestone line (13, 18, 21, 30, 40, 50, 65, 80, 90, 100).
+2. Milestone line (13, 18, 21, 30, 40, 50, 65, 80, 90, 100), then the starting scenario's rules (§4a: an immigrant family's move abroad, an orphan aging out of foster care).
 3. Stat drift (§3).
 4. Prison year (if imprisoned).
 5. Education (§6).
@@ -28,7 +28,7 @@ Working title "LifeLoop"; Teen / 13+ content rating target.
 8. Finance: income, taxes, expenses, debt, bankruptcy (§9).
 9. Health: recoveries, new illness roll, addiction drift (§13).
 10. NPCs age; relationship decay; NPC deaths and inheritance (§10).
-11. Relationship events: break-ups, new friends, new partners (§10).
+11. Relationship events: break-ups, new friends, new partners (§10); then the player's children's milestones and any grandchildren born (§10a).
 12. Job listings refresh (from age 14).
 13. Mortality roll and the critical-health countdown (§5).
 14. If the year was otherwise quiet, one flavour line (so no year is empty).
@@ -53,9 +53,26 @@ Hidden **potential** caps (Smarts 60-100, Looks 60-100, Health 85-100, raised by
 
 ## 4. Character generation
 
-Random gender, name from the birth country's name pool (9 pools), city, birth year 1975-2010 (the era is part of the story), zodiac, 0-2 **traits** from 10 (quick learner, charming, iron constitution, lucky, hot-headed, thrifty, creative, athletic, anxious, rebellious), mother (18-42) and usually a father (88%), 0-3 older siblings (35/40/18/7%), family wealth: wealthy 8%, poor 20%. Thirteen birth countries each set currency, salary multiplier (0.1-1.0), cost of living, school ages, drinking age, public healthcare, gambling legality, life expectancy and tax rate.
+Random gender, name from the birth country's name pool (9 pools), city, birth year 1975-2010 (the era is part of the story), zodiac, 0-2 **traits** from 10 (quick learner, charming, iron constitution, lucky, hot-headed, thrifty, creative, athletic, anxious, rebellious), mother (18-42) and usually a father (88%), 0-3 older siblings (35/40/18/7%), 0-4 living grandparents (§10a; usually 1-3), family wealth: wealthy 8%, poor 20%. Thirteen birth countries each set currency, salary multiplier (0.1-1.0), cost of living, school ages, drinking age, public healthcare, gambling legality, life expectancy and tax rate.
 
-Custom life (free): name, gender, country. Premium: starting stats and a wealthy family.
+Custom life (free): name, gender, country and a starting scenario (§4a). Premium: starting stats and a wealthy family (the Wealthy scenario).
+
+## 4a. Starting scenarios
+
+The new-life screen offers eight starts as cards (`src/data/scenarios.ts`); Standard is the default and Wealthy is the only premium one (locked cards open the paywall; the store also refuses a Wealthy start without premium). The scenario is stored on the character (`character.scenario`, absent for heirs and older saves) and as the flag `scenario:<id>`, so events can condition on `{ flag: 'scenario:orphan' }`. A Standard birth draws exactly the same life as before scenarios existed. Rules live in `createLife` (`systems/character.ts`) and `systems/scenarios.ts`.
+
+| Scenario | At birth | Later |
+| --- | --- | --- |
+| Standard | today's random birth (§4) | — |
+| Orphan | no parents or grandparents; a foster parent aged 30-55 of modest means (kind stepmother/stepfather marked `foster`, shown as "Foster mother"/"Foster father"; they pay a minor's costs and take them to the doctor like a parent), 0-2 foster siblings (40/40/20%) with their own surnames; flag `foster_care`; never wealthy | at 18: "I aged out of foster care." |
+| Big family | 3-5 older siblings with distinct names, mother aged 26-42; always `poorFamily` | — |
+| Single parent | one parent: a mother 75%, a father 25% ("She's raising me on her own."); grandparents only on that side | — |
+| Immigrant | a planned move (`character.moveAbroad`): age 6-14, to another country, three times as likely to be one with a higher salary multiplier | at that age (not in detention, a parent or guardian alive): country and city change, classmates stay behind, −4 happiness, a milestone line ("My family moved from Mexico to Canada. We started over in Toronto.") and the flag `immigrant` = the birth country code |
+| Prodigy | Smarts 85-100 (even over lower custom stats), the Quick learner trait (still at most two rolled traits), flag `prodigy` | — |
+| Farm kid | a farm town of the birth country (four or five per country; "a small town near <city>" for a country without a list), the father (or a single mother) is a farmer and the mother often too, flag `farm` | — |
+| Wealthy | the premium wealthy family: rich parents, the Lucky trait, `wealthyFamily` | — |
+
+Parent-bound events open for whoever is raising the child: the early-childhood events whose text is parent-neutral also bind a step-parent or foster parent, so an orphan's first years are not empty (measured over 80 lives per scenario: ages 0-5 average 0.64 events a year for an orphan vs 0.65 for a Standard life). Content written for a scenario should condition on its flag (`foster_care`, `immigrant`, `farm`, `prodigy` or `scenario:<id>`); the validator and the text audit sample two to three lives of each scenario.
 
 ## 5. Aging and mortality
 
@@ -102,11 +119,21 @@ Measured with `scripts/balance-report.ts --n 300` (all countries / US), balanced
 
 ## 10. Relationships
 
-People: parents, step-parents, siblings, children, friends/best friends, lovers, spouses, exes, coworkers, classmates, enemies, pets. Each has relationship 0-100 (lovers/spouses also **love** 0-100), looks/smarts/health, craziness (volatility), occupation, money, and a **memory** (last interaction age, insults, compliments, gifts, fights, years neglected).
+People: parents, step-parents, grandparents, siblings, children, grandchildren, friends/best friends, lovers, spouses, exes, coworkers, classmates, enemies, pets. Each has relationship 0-100 (lovers/spouses also **love** 0-100), looks/smarts/health, craziness (volatility), occupation, money, and a **memory** (last interaction age, insults, compliments, gifts, fights, years neglected).
 
 Yearly: neglected people (no interaction during the year just played) lose relationship (−2 family, −4 friends/partners) and partners lose 5 love; partners with love < 20 leave (40%/yr); friends under 15 drift away; new friends appear (40%/yr under 25, 20% after, max 4); a new partner appears for singles 16-74 (25% + looks/400), aged by the legal band in `systems/romance.ts` (no romance under 16; a 16-17-year-old meets someone exactly their own age, so the couple turns 18 together; adults meet adults, age −4 to +4); NPCs age and can die (age/health curve); parents/spouses leave inheritances (80% split among children, or 100% to a spouse). An event that kills someone (`personDies`) runs the same death handling as a natural death: the journal line, grief, inheritance and, for a child who loses their last parent, being taken in by relatives.
 
-14 interactions with energy/money costs and yearly caps: spend time, conversation (argument chance from craziness and low relationship), compliment, insult (retaliation chance), gift ($150), ask for money, give money ($1k), date ($120), propose ($2.5k; needs love ≥ 55), break up, divorce (30% of cash settlement), try for a baby (55%/yr while fertile; same-sex couples adopt), play/walk with pets. Dates need a legal pair (adults with adults, minors only with minors within two years); proposals and babies need both to be 18+. Options that are unavailable are hidden on the person screen. Event babies are linked to the player's partner as their other parent; step-parents are aged from the parent they marry and are always 16+ years older than the player.
+15 interactions with energy/money costs and yearly caps: spend time, visit (grandparents only; 1 energy, once a year; a player under 18 often leaves with $10-60), conversation (argument chance from craziness and low relationship), compliment, insult (retaliation chance), gift ($150), ask for money (a grandparent from age 10, $20-300), give money ($1k; for a grandchild under 16 it goes into savings), date ($120), propose ($2.5k; needs love ≥ 55), break up, divorce (30% of cash settlement), try for a baby (55%/yr while fertile; same-sex couples adopt), play/walk with pets. Dates need a legal pair (adults with adults, minors only with minors within two years); proposals and babies need both to be 18+. Options that are unavailable are hidden on the person screen. Event babies are linked to the player's partner as their other parent; step-parents are aged from the parent they marry and are always 16+ years older than the player.
+
+## 10a. Extended family and coworkers
+
+Constants live in `src/engine/systems/family.ts` and `coworkers.ts`; grandparents are rolled in `createLife` (`systems/character.ts`).
+
+- **Grandparents.** At birth each parent has up to two living parents of their own (a grandmother and a grandfather), 20-35 years older than that parent, alive with a chance that falls with age (≤55: 75% · ≤65: 60% · ≤75: 40% · ≤85: 20% · older: 7%), so a newborn has about 2.2 on average (1-3 for 80% of lives, fewer when the parents are older). They carry that parent's surname (the mother's maiden name on her side), health for their age, and are linked to the parent (`viaId`); siblings share them. The birth journal names them ("Grandma Rosa and Grandpa Joe were first in line to hold me."). They age and die with the NPC mortality model: the family death line ("My grandmother Rosa Vega died of a stroke at 81."), grief −8 (half when not close; a parent is −15), 60% of their money to the parent on that side and a 15% bequest split between the player and siblings when close (or 30% of the time anyway); a minor's bequest goes into their own savings. Narration calls them "Grandma Rosa" / "Grandpa Joe" (`personRef`). An heir's grandparents are the dead player's living parents, as they were (job, looks, smarts, health).
+- **Your children growing up** (engine milestones, one first-person line each): school at the country's school age ("My daughter Maya started school."), the end of high school at the country's end age (80% graduate, +3 happiness; the rest drop out quietly, and an heir who dropped out has no diploma), moving out at 19-26 (an even chance each year, certain by 26; "The house is very quiet." when the last one leaves), marrying at 24-40 (3%/yr, about 40%; the spouse is a name, not a person), and children of their own from 22 to 42 (8%/yr married, 4% single, at most 3 per child). Saves from before milestones count a child past 26 as moved out.
+- **Grandchildren.** Born to the player's children (age 0, the child's surname, linked by `viaId`) with a milestone line ("My son Diego and his partner had a daughter, Lucia. I am a grandparent."; two husbands or two wives adopt) and +10 happiness for the first, +5 after; they set the `grandparent` flag and count up the `grandchildren` flag. They age, can be spent time with, given gifts and money, appear under Family, and are named in the obituary. An heir who had children keeps them (and their spouse) in the new life.
+- **Events agree with the milestones.** A child-bound event can make a milestone happen itself (`childMilestone: 'movedOut' | 'married' | 'expecting'`, optionally `namedAfterMe`); a baby on the way is born the next year. Child selectors filter on `movedOut`, `married` and `kids` (born plus on the way), so a move-out or wedding card only reaches a child still at home or single, and an announcement never passes three.
+- **Coworkers.** A full-time hire brings 2-3 coworkers (18+, within a few years of the player, titles from the same career ladder, first names nobody else in the life has), linked to that job (`workplace`); event-made coworkers join the current job and are old enough for it (18+ beside a full-time job, 14+ beside a teen one). When the job ends (quit, fired, laid off, retired, jailed, switched), coworkers at 70+ relationship become friends ("Even after I left Ember Burger, Ana and I stayed friends.") and the rest leave the life. Coworkers from older saves have no workplace and stay.
 
 ## 11. Assets
 
@@ -135,7 +162,7 @@ Events are data (`src/data/events/*.ts`) validated by `src/engine/events/schema.
   choices: [{ id, label, hint?, conditions?, effects: Effect[] }] }
 ```
 
-Conditions cover stats, money, net worth, income, flags, job/category/level, school stage/grade, marital status, children, people of a kind, country, prison, record, traits, gender, karma, fame, addictions, assets, hustles, retirement, illness count, and whether another event fired. Effects cover stat/money/karma/fame/energy deltas, journal lines, flags, relationship and love deltas, removing or killing the bound person, creating people (friend, lover, child, pet…), death, prison, arrest, illness, cure, addiction, injury, job loss, performance, grade, expulsion, queued follow-ups, counters, weighted `random` outcomes, `chance` branches, asset damage/loss and achievements. Text supports `{{name}} {{person}} {{they}} {{$1000}}`-style placeholders.
+Person selectors filter by kind, alive, relationship, age, `gender`, and for the player's children `movedOut`, `married` and `kids`. Conditions cover stats, money, net worth, income, flags, job/category/level, school stage/grade, marital status, children, people of a kind, country, prison, record, traits, gender, karma, fame, addictions, assets, hustles, retirement, illness count, and whether another event fired. Effects cover stat/money/karma/fame/energy deltas, journal lines, flags, relationship and love deltas, removing or killing the bound person, creating people (friend, lover, child, pet…), death, prison, arrest, illness, cure, addiction, injury, job loss, performance, grade, expulsion, queued follow-ups, counters, weighted `random` outcomes, `chance` branches, asset damage/loss, achievements and a child's milestones (`childMilestone`). Text supports `{{name}} {{person}} {{they}} {{grandma}} {{$1000}}`-style placeholders.
 
 Selection per year: ages 0-2: 45% one event; 3-5: 75%; 6-17: 1 + 35% second; 18-69: 92% one, +40% second, +8% third; 70+: 1 + 30% second. Eligible = age range, conditions, `once`/`cooldown` (default 2 years), and a bindable person. Weighted pick without replacement, same-category repeats weighted ×0.25. Dead or departed bound people invalidate a queued event.
 
@@ -145,7 +172,7 @@ Content budget: 12 category files (early childhood, kid years, teen years, young
 
 On death: cause (illness-driven where one exists; otherwise age-appropriate), net worth, one **ribbon** from 26 by priority (Gone Too Soon for a child, Deadly, Jailbird, Tycoon, Famous, Rich, Academic, Family First, Heartbreaker, Cunning, Scandalous, Fit, Bookworm, Globetrotter, Generous, Loyal, Hustler, Centenarian, Survivor (15+ illnesses), Addict, Lazy, Wasted, Successful, Happy, Miserable, Mediocre; money thresholds scale with the country's salary multiplier), an **obituary** generated from career, education, family, money and convictions, and an epitaph. The tombstone screen shows all of it plus karma. The graveyard keeps the last 200 lives and the ribbon collection; **Clear graveyard** on that screen deletes them all after a confirmation (the privacy policy promises this).
 
-**Legacy:** continue as any living child: the new life starts as that child (their name, gender, age, looks/smarts/health, country and city) in the year of the death, with their share of the estate (80% of the net worth split between the children), the family tree (the dead player becomes a dead parent; the child's recorded other parent, mother or father by their own gender, and siblings persist; no parent is invented), generation counter and ancestor list. Free play: one hand-off per family line (generation 1 → 2); premium: unlimited. **Second chance:** once per life, death can be undone (rewarded ad, or instantly for premium): health is restored to ~45 and severe illnesses removed.
+**Legacy:** continue as any living child: the new life starts as that child (their name, gender, age, looks/smarts/health, country and city) in the year of the death, with their share of the estate (80% of the net worth split between the children), the family tree (the dead player becomes a dead parent; the child's recorded other parent, mother or father by their own gender, and siblings persist; no parent is invented; the dead player's living parents become grandparents, and a grown heir keeps the spouse and children §10a gave them), generation counter and ancestor list. Free play: one hand-off per family line (generation 1 → 2); premium: unlimited. **Second chance:** once per life, death can be undone (rewarded ad, or instantly for premium): health is restored to ~45 and severe illnesses removed.
 
 ## 17. Onboarding and settings
 
@@ -162,7 +189,7 @@ A one-line tutorial tip on the first life ("Tap the green + …"). Settings: hap
 | Assets | 23 |
 | Hustles | 6 |
 | Illnesses | 25 |
-| Interactions | 14 |
+| Interactions | 15 |
 | Ribbons | 26 |
 | Countries / name pools | 13 / 9 |
 | Traits | 10 |
@@ -200,9 +227,9 @@ Deferred to the roadmap (below): a shared seeded market cycle driving index fund
 ## 21. Post-MVP roadmap
 
 1. **Content cadence:** bi-weekly data drops (20-40 events) via EAS Update; 600+ events within 90 days; weekly challenges and daily goals built on the same condition language.
-2. **Starting scenarios and perk draws** (Mind Vacation / Life Restart pattern): orphan, heir, immigrant, prodigy.
+2. **Perk draws** (Mind Vacation / Life Restart pattern) on top of the starting scenarios of §4a, and scenario content: foster-care, immigrant and farm events (see §4a).
 3. **Casino and mature pack** as a separately rated decision (would move the rating to 18+ in several regions).
-4. **Fame track** (social media, endorsements), **business ownership**, **real-estate landlord** depth, pets expansion, emigration, extended family (grandparents, cousins).
+4. **Fame track** (social media, endorsements), **business ownership**, **real-estate landlord** depth, pets expansion, emigration, extended family beyond grandparents and grandchildren (cousins, nieces and nephews).
 5. **Life Points meta-currency** across lives unlocking cosmetic/perk items (Another Life) — only if it does not become a paywall.
 6. Share cards (tombstone and "life receipt"), localisation, accessibility pass (VoiceOver labels on bars and buttons).
 

@@ -3,6 +3,7 @@ import { GRAD_BY_ID, majorProse } from '@/data/majors';
 import type { GameState, Person } from '../types';
 import { deathPhrase, formatMoneyFull, fullName, joinList, log, netWorth, numberWord, pronouns, roleWithArticle, sentence } from '../util';
 import { awardRibbon } from './ribbons';
+import { fosterRelation } from './scenarios';
 
 const EPITAPHS = [
   'Gone, but the group chat remembers.',
@@ -65,11 +66,14 @@ function degreePhrase(degree: string): string | null {
 const SCHOOL_STAGE: Record<string, string> = { primary: 'elementary school', middle: 'middle school', high: 'high school', university: 'college', graduate: 'graduate school' };
 
 function relationLabel(p: Person): string {
+  const foster = fosterRelation(p);
+  if (foster) return foster;
   switch (p.kind) {
     case 'mother': return 'mother';
     case 'father': return 'father';
     case 'stepmother': return 'stepmother';
     case 'stepfather': return 'stepfather';
+    case 'grandparent': return p.gender === 'male' ? 'grandfather' : 'grandmother';
     default: return p.kind;
   }
 }
@@ -79,12 +83,15 @@ function childSurvivors(state: GameState, possessive: string): string {
   const alive = Object.values(state.people).filter((x) => x.alive);
   const parents = alive.filter((x) => x.kind === 'mother' || x.kind === 'father' || x.kind === 'stepmother' || x.kind === 'stepfather');
   const siblings = alive.filter((x) => x.kind === 'sibling').length;
+  const grandparents = alive.filter((x) => x.kind === 'grandparent');
   const pets = alive.filter((x) => x.kind === 'pet');
   const mother = parents.find((x) => x.kind === 'mother');
   const father = parents.find((x) => x.kind === 'father');
   const pair = parents.length === 2 && mother && father;
   const items = pair ? [`${possessive} parents, ${mother.firstName} and ${father.firstName}`] : parents.map((x) => `${possessive} ${relationLabel(x)} ${x.firstName}`);
   if (siblings) items.push(`${numberWord(siblings)} ${siblings === 1 ? 'sibling' : 'siblings'}`);
+  if (grandparents.length === 1) items.push(`${possessive} ${relationLabel(grandparents[0]!)} ${grandparents[0]!.firstName}`);
+  else if (grandparents.length > 1) items.push(`${numberWord(grandparents.length)} grandparents`);
   if (pets.length === 1) items.push(`${possessive} ${pets[0]!.species ?? 'pet'}, ${pets[0]!.firstName}`);
   else if (pets.length > 1) items.push(`${numberWord(pets.length)} pets`);
   // "her parents, Ana and Marco, and one sibling": the names are set off by commas, so the list keeps its comma.
@@ -155,16 +162,24 @@ export function buildObituary(state: GameState, cause: string, worth: number, ri
           : `${p.Subject} worked a string of jobs`;
   const degree = edu.degrees.filter((d) => d.includes(':')).map(degreePhrase).filter((d): d is string => !!d).pop();
   const eduText = degree ? ` and held ${degree}` : edu.droppedOut ? (edu.degrees.includes('high_school') ? ' and dropped out of college' : ' and never finished school') : '';
-  const childText = aliveChildren ? `${numberWord(aliveChildren)} ${aliveChildren === 1 ? 'child' : 'children'}` : '';
-  const familyText = spouse
-    ? `${p.Subject} is survived by ${p.possessive} ${spouse.gender === 'male' ? 'husband' : 'wife'}, ${spouse.firstName}${childText ? `, and ${childText}` : ''}.`
-    : childText
-      ? `${p.Subject} is survived by ${childText}.`
-      : state.counters.marriages > 0
-        ? `${p.Subject} was married ${state.counters.marriages === 1 ? 'once' : state.counters.marriages === 2 ? 'twice' : `${state.counters.marriages} times`}.`
-        : c.age < 25
-          ? '' // "never married" is a punchline at 60, not at 19
-          : `${p.Subject} never married.`;
+  const aliveGrandchildren = Object.values(state.people).filter((x) => x.kind === 'grandchild' && x.alive).length;
+  const kidsText = aliveChildren ? `${numberWord(aliveChildren)} ${aliveChildren === 1 ? 'child' : 'children'}` : '';
+  const grandText = aliveGrandchildren ? `${numberWord(aliveGrandchildren)} ${aliveGrandchildren === 1 ? 'grandchild' : 'grandchildren'}` : '';
+  const descendants = [kidsText, grandText].filter(Boolean);
+  // "her husband, Tom, and two children" keeps the commas that set off the name; in a longer list they would make
+  // "her husband" and "Tom" read as two survivors, so there it is "her husband Tom, two children, and …".
+  const spouseWord = spouse ? `${p.possessive} ${spouse.gender === 'male' ? 'husband' : 'wife'}` : '';
+  const spouseText = spouse ? `${spouseWord}, ${spouse.firstName}` : '';
+  const survivors = spouseText
+    ? descendants.length <= 1 ? [spouseText, ...descendants].join(', and ') : joinList([`${spouseWord} ${spouse!.firstName}`, ...descendants])
+    : joinList(descendants);
+  const familyText = survivors
+    ? `${p.Subject} is survived by ${survivors}.`
+    : state.counters.marriages > 0
+      ? `${p.Subject} was married ${state.counters.marriages === 1 ? 'once' : state.counters.marriages === 2 ? 'twice' : `${state.counters.marriages} times`}.`
+      : c.age < 25
+        ? '' // "never married" is a punchline at 60, not at 19
+        : `${p.Subject} never married.`;
   const moneyText = worth >= 1_000_000
     ? `${p.Subject} left behind a fortune of ${formatMoneyFull(worth, c.countryCode)}.`
     : worth < 0
