@@ -122,7 +122,8 @@ export type Effect =
   /** Marries the bound lover (both 18+): they become the spouse, as with a successful proposal. The content writes the wedding line. */
   | { marry: true }
   | { personDies: true; cause?: string }
-  | { newPerson: { kind: RelationshipKind; relationship?: number; minAge?: number; maxAge?: number; gender?: Gender; species?: string; log?: string } }
+  /** occupation: what the text says they do ("a mechanic"); give an adult minAge with it, since a minor is a student. */
+  | { newPerson: { kind: RelationshipKind; relationship?: number; minAge?: number; maxAge?: number; gender?: Gender; species?: string; occupation?: string; log?: string } }
   | { death: string }
   | { prison: number }
   | { arrest: true }
@@ -130,7 +131,7 @@ export type Effect =
   | { cureIllness: true }
   | { addiction: AddictionKind; delta: number }
   | { injury: number }
-  | { loseJob: true; reason?: 'fired' | 'left' }
+  | { loseJob: true; reason?: 'fired' | 'left' | 'laidOff' }
   /** The bound person moves to another city or country: they become far away (only long-distance cards bind them). */
   | { moveAway: true }
   /** I move to another city in the same country (friends and grandparents stay behind, far away); the card writes the lines. */

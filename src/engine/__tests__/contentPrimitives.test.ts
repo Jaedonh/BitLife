@@ -92,3 +92,23 @@ describe('moveAway, relocate and promotion', () => {
     expect(same.career.job).toEqual(top);
   });
 });
+
+describe('newPerson occupation and layoffs from cards', () => {
+  it('an adult made by a card has the occupation the text gives; a minor stays a student', () => {
+    const base = at('US', 30, 2010);
+    const adult = applyEffects(base, new Rng(4), [{ newPerson: { kind: 'friend', minAge: 30, maxAge: 40, occupation: 'Mechanic' } }]);
+    expect(Object.values(adult.people).some((p) => p.kind === 'friend' && p.occupation === 'Mechanic')).toBe(true);
+    const kid = at('US', 12, 2010);
+    const minor = applyEffects(kid, new Rng(4), [{ newPerson: { kind: 'friend', occupation: 'Mechanic' } }]);
+    expect(Object.values(minor.people).some((p) => p.kind === 'friend' && p.occupation === 'Mechanic')).toBe(false);
+  });
+
+  it('a layoff on a card is recorded as laid off and is not a firing', () => {
+    const base = at('US', 30, 2010);
+    const job = { defId: 'accountant', title: 'Accountant', company: 'Granite & Sons', salary: 68_000, level: 1, performance: 70, yearsHeld: 4, yearsAtLevel: 2, category: 'finance' as const, partTime: false, askedThisYear: false, workedHarderThisYear: false };
+    const after = applyEffects({ ...base, career: { ...base.career, job } }, new Rng(3), [{ loseJob: true, reason: 'laidOff' }]);
+    expect(after.career.job).toBeNull();
+    expect(after.career.history.at(-1)?.reason).toBe('laidOff');
+    expect(after.counters.firings ?? 0).toBe(0);
+  });
+});

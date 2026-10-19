@@ -59,7 +59,7 @@ export function giveIllness(state: GameState, defId: string): GameState {
   return s;
 }
 
-export function removeJob(state: GameState, reason: 'quit' | 'fired' | 'promoted' | 'retired' | 'left'): GameState {
+export function removeJob(state: GameState, reason: 'quit' | 'fired' | 'promoted' | 'retired' | 'left' | 'laidOff'): GameState {
   const job = state.career.job;
   if (!job) return state;
   const entry = { title: job.title, company: job.company, fromAge: state.character.age - job.yearsHeld, toAge: state.character.age, salary: job.salary, reason };
@@ -244,7 +244,7 @@ export function applyEffect(state: GameState, rng: Rng, e: Effect, ctx: EffectCo
     const boundPartner = person?.alive && (person.kind === 'lover' || person.kind === 'spouse') ? person : undefined;
     const otherParent = np.kind === 'child' ? (boundPartner ?? currentPartner(s)) : undefined;
     // A coworker an event introduces holds a post on the player's own career ladder, like the ones a hire brings.
-    const occupation = np.kind === 'coworker' && s.career.job ? coworkerTitle(rng, s.career.job) : undefined;
+    const occupation = np.kind === 'coworker' && s.career.job ? coworkerTitle(rng, s.career.job) : np.occupation && age >= 18 ? np.occupation : undefined;
     const p = makePerson(rng, {
       kind: np.kind, age, countryCode: s.character.countryCode, playerAge: s.character.age, relationship: np.relationship ?? rng.int(45, 80), gender: np.gender, species: np.species,
       occupation, taken: namesInLife(s),
