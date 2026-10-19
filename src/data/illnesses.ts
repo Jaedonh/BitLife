@@ -22,6 +22,13 @@ export interface IllnessDef {
   short?: string;
   /** The short name is a plural ("my migraines are"). */
   plural?: boolean;
+  /**
+   * At most once a life (an appendix comes out once): never rolled again once it has been had (illnessHadFlag, set when
+   * it is given), nor after one of `hadAfterEvents` fired (a card where it was operated on).
+   */
+  oncePerLife?: boolean;
+  /** Cards that mean the player has had a once-a-life illness (the appendix cards). */
+  hadAfterEvents?: readonly string[];
 }
 
 export const ILLNESSES: readonly IllnessDef[] = [
@@ -40,7 +47,7 @@ export const ILLNESSES: readonly IllnessDef[] = [
   { id: 'diabetes', name: 'type 2 diabetes', severity: 3, chronic: true, duration: -1, weights: [0.05, 0.8, 2], treatCost: 1.5, cureChance: 0.15, minAge: 10 },
   { id: 'pneumonia', name: 'pneumonia', severity: 4, chronic: false, duration: 1, weights: [0.5, 0.6, 2.5], treatCost: 2, cureChance: 0.85, onset: 'I came down with pneumonia.' },
   { id: 'kidney_stones', name: 'kidney stones', severity: 3, chronic: false, duration: 1, weights: [0, 0.8, 0.8], treatCost: 2, cureChance: 0.9, minAge: 20, plural: true },
-  { id: 'appendicitis', name: 'appendicitis', severity: 4, chronic: false, duration: 1, weights: [0.6, 0.5, 0.2], treatCost: 4, cureChance: 0.95, minAge: 4 },
+  { id: 'appendicitis', name: 'appendicitis', severity: 4, chronic: false, duration: 1, weights: [0.6, 0.5, 0.2], treatCost: 4, cureChance: 0.95, minAge: 4, oncePerLife: true, hadAfterEvents: ['kl_appendicitis', 'hl_appendix_pain'] },
   { id: 'arthritis', name: 'arthritis', severity: 2, chronic: true, duration: -1, weights: [0, 0.3, 3], treatCost: 1, cureChance: 0, incurable: true, minAge: 35 },
   { id: 'heart_disease', name: 'heart disease', severity: 5, chronic: true, duration: -1, weights: [0, 0.4, 2.5], treatCost: 6, cureChance: 0.2, minAge: 35 },
   { id: 'cancer', name: 'cancer', severity: 5, chronic: true, duration: -1, weights: [0.05, 0.3, 1.8], treatCost: 12, cureChance: 0.35, minAge: 12 },
@@ -53,6 +60,15 @@ export const ILLNESSES: readonly IllnessDef[] = [
 ];
 
 export const ILLNESS_BY_ID: Record<string, IllnessDef> = Object.fromEntries(ILLNESSES.map((i) => [i.id, i]));
+
+/** Flag `had:<id>`: a once-a-life illness (IllnessDef.oncePerLife) the player has had. Content can wait it out with `{ flag: 'had:appendicitis', exists: false }`. */
+export const illnessHadFlag = (id: string): string => `had:${id}`;
+
+/** Whether the player has already had this once-a-life illness (always false for one that can come back). */
+export function hadOnceIllness(def: IllnessDef, flags: Readonly<Record<string, unknown>>, firedEvents: Readonly<Record<string, number>>): boolean {
+  if (!def.oncePerLife) return false;
+  return flags[illnessHadFlag(def.id)] !== undefined || (def.hadAfterEvents ?? []).some((e) => firedEvents[e] !== undefined);
+}
 
 /** The chance one doctor visit cures it: none for an incurable illness, a little more once it is being treated. */
 export function visitCureChance(defId: string, treated: boolean): number {

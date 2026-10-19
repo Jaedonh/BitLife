@@ -1,6 +1,7 @@
-import { heirOccupationLabel, livesWithMe, neglectLine, occupationLabel, personFacts, personMemories, personSubtitle, kindLabel } from '@/components/game/people';
+import { heirOccupationLabel, neglectLine, occupationLabel, personFacts, personMemories, personSubtitle, kindLabel } from '@/components/game/people';
 import { Rng } from '@/engine/rng';
 import { createLife, makePerson } from '@/engine/systems/character';
+import { seesDaily } from '@/engine/systems/relationships';
 import type { GameState, LogEntry, Person, RelationshipKind } from '@/engine/types';
 
 const mem = (last: number) => ({ lastInteractionAge: last, insults: 0, compliments: 0, gifts: 0, fights: 0, yearsNeglected: 0 });
@@ -25,8 +26,8 @@ describe('no silence with the people I live with (playtest 2, finding 3)', () =>
   });
 
   it('the silence is still real for a partner I do not live with, and while I am in prison', () => {
-    expect(livesWithMe(zara, { flags: {} })).toBe(false);
-    expect(livesWithMe({ ...wife, farAway: true }, { flags: {} })).toBe(false);
+    expect(seesDaily(life(26, [zara]), zara)).toBe(false);
+    expect(seesDaily(life(46, [wife]), { ...wife, farAway: true })).toBe(false);
     expect(personFacts(zara, life(26, [zara]))).toContain("You haven't spoken in 6 years.");
     const jailed = life(46, [wife]);
     expect(personFacts(wife, { ...jailed, crime: { ...jailed.crime, inPrison: true } })).toContain("You haven't spoken in 6 years.");

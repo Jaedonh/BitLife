@@ -1,12 +1,13 @@
 import { COUNTRIES, getCountry } from '@/data/countries';
 import { FARM_TOWNS, isScenarioId } from '@/data/scenarios';
 import type { Rng } from '../rng';
-import { livesWithPlayer } from '../events/conditions';
-import { FAMILY_LEFT_BEHIND_KINDS, FAR_AWAY_KINDS } from '../events/schema';
+import { HOME_WITH_PARENTS_FLAG, livesWithPlayer } from '../events/conditions';
+import { FAMILY_LEFT_BEHIND_KINDS, FAR_AWAY_KINDS, PARTNER_LEFT_BEHIND_KINDS } from '../events/schema';
 import { personRef } from '../events/text';
 import type { GameState, NewLifeOptions, Person, ScenarioId } from '../types';
-import { addStats, capitalize, fullName, joinList, log } from '../util';
-import { hireCoworkers } from './coworkers';
+import { addMoney, addStats, capitalize, fullName, joinList, log, lowerTitle, money } from '../util';
+import { COWORKER_FRIEND_AT, hireCoworkers } from './coworkers';
+import { hasMovedOut } from './family';
 
 /**
  * Starting scenarios (GAME_DESIGN §4a). The family a scenario starts with is built in createLife
@@ -138,22 +139,122 @@ function leaveBehind(state: GameState): { people: GameState['people']; behind: P
 }
 
 /**
+ * Who comes along on a move to another city. A child moves with their household (parents and step-parents, and
+ * brothers and sisters still at home); a grown-up moves alone, or with a spouse, a partner they live with, children
+ * who have not moved out (and those children's own) and pets. Everyone else in the family stays behind, far away.
+ */
+function comesAlong(state: GameState, p: Person): boolean {
+  switch (p.kind) {
+    case 'mother': case 'father': case 'stepmother': case 'stepfather': case 'sibling':
+      return state.character.age < 18 && livesWithPlayer(state, p);
+    case 'child':
+      return !hasMovedOut(p);
+    case 'grandchild': {
+      const parent = p.viaId ? state.people[p.viaId] : undefined;
+      return !!parent?.alive && parent.kind === 'child' && !hasMovedOut(parent);
+    }
+    case 'lover':
+      return livesWithPlayer(state, p);
+    case 'ex':
+      return false;
+    default:
+      return true;
+  }
+}
+
+/** Who can be left behind by a move to another city, far away: family, and a partner I do not live with. */
+const LEFT_BEHIND_BY_MOVE: readonly Person['kind'][] = [...FAMILY_LEFT_BEHIND_KINDS, ...PARTNER_LEFT_BEHIND_KINDS];
+
+/**
+ * The home I lived in, on a move to another city: sold (it pays off its mortgage), or rented out when it is worth
+ * less than what is owed on it. Either way it is no longer the home I live in, and the journal says so.
+ */
+function leaveHome(state: GameState, oldCity: string): GameState {
+  const home = state.assets.find((a) => a.kind === 'house' && a.primary && !a.rentedOut);
+  if (!home) return state;
+  const name = lowerTitle(home.name);
+  const proceeds = Math.round(home.value * 0.95 - (home.mortgage?.remaining ?? 0));
+  if (proceeds < 0) {
+    const s: GameState = { ...state, assets: state.assets.map((a) => (a.id === home.id ? { ...a, primary: false, rentedOut: true } : a)) };
+    return log(s, `My ${name} in ${oldCity} was worth less than I owed on it, so I rented it out instead of selling.`, 'money');
+  }
+  const s = addMoney({ ...state, assets: state.assets.filter((a) => a.id !== home.id) }, proceeds);
+  return log(s, `Before the move, I sold my ${name} in ${oldCity} and cleared ${money(state, proceeds)}.`, 'money');
+}
+
+/**
+ * Coworkers stay at the old workplace when I move: the ones I grew close to (COWORKER_FRIEND_AT, as when a job ends)
+ * stay on as friends who live far away, with a line; the rest leave my life.
+ */
+function leaveCoworkers(state: GameState): GameState {
+  const coworkers = Object.values(state.people).filter((p) => p.kind === 'coworker');
+  if (!coworkers.length) return state;
+  const people = { ...state.people };
+  const kept: string[] = [];
+  for (const p of coworkers) {
+    if (p.alive && p.relationship >= COWORKER_FRIEND_AT) {
+      const friend: Person = { ...p, kind: 'friend', farAway: true };
+      delete friend.workplace;
+      people[p.id] = friend;
+      kept.push(p.firstName);
+    } else if (p.alive) delete people[p.id];
+    else {
+      // A coworker who died stays in memory, just no longer tied to a job.
+      const unlinked: Person = { ...p };
+      delete unlinked.workplace;
+      people[p.id] = unlinked;
+    }
+  }
+  const s: GameState = { ...state, people };
+  // Written before the card's own line about the move ("I packed a moving van..."), so it is a goodbye.
+  return kept.length ? log(s, `I said goodbye to ${joinList(kept)} from work, who promised to stay in touch.`, 'good') : s;
+}
+
+/**
+ * Who lives where after a move to another city has left people behind (relocateCity), kept true as the family
+ * changes: a grandchild born to a child who lives far away lives far away too, and a partner I marry from a
+ * long-distance relationship moves in with me (a spouse never lives far away). Runs at the birthday, after the
+ * family's year has brought its babies (ageUp), and after a card's wedding (effects.ts, `marry`).
+ */
+export function settleDistances(state: GameState): GameState {
+  let people: GameState['people'] | null = null;
+  for (const p of Object.values(state.people)) {
+    if (!p.alive) continue;
+    const parent = p.kind === 'grandchild' && p.viaId ? state.people[p.viaId] : undefined;
+    const far = p.kind === 'spouse' ? false : parent?.farAway === true ? true : undefined;
+    if (far === undefined || (p.farAway === true) === far) continue;
+    people ??= { ...state.people };
+    const moved: Person = { ...p };
+    if (far) moved.farAway = true;
+    else delete moved.farAway;
+    people[p.id] = moved;
+  }
+  return people ? { ...state, people } : state;
+}
+
+/**
  * A move to another city in the same country (an event's `relocate` effect: the family moves for work, I take a
  * job across the country). The city changes; friends, rivals and grandparents stay behind as for a move abroad, and
- * so do parents and siblings I no longer live with (a child's household moves with them; a grown-up moves alone, or
- * with a spouse, a partner they live with and young children). Coworkers stay at the old workplace, so a job that
- * moves with me gets new ones. The card writes its own lines.
+ * so does whoever does not come along (comesAlong): parents and siblings I no longer live with, children who moved
+ * out and their children, a partner I do not live with. Coworkers stay at the old workplace (close ones as friends),
+ * so a job that moves with me gets new ones. The home I lived in is sold or rented out, a farm kid is no longer on
+ * the farm, and a grown-up who had moved back in with their parents moves out. The card writes its own lines.
  */
 export function relocateCity(state: GameState, rng: Rng): GameState {
   const others = getCountry(state.character.countryCode).cities.filter((c) => c !== state.character.city);
   if (state.crime.inPrison || others.length === 0) return state;
+  const oldCity = state.character.city;
   const left = leaveBehind(state).people;
-  const family = (p: Person) => p.alive && FAMILY_LEFT_BEHIND_KINDS.includes(p.kind) && !livesWithPlayer(state, p);
-  const people = Object.fromEntries(Object.entries(left).map(([id, p]) => [id, family(p) ? { ...p, farAway: true } : p]));
-  const job = state.career.job;
-  const kept = job ? Object.fromEntries(Object.entries(people).filter(([, p]) => p.kind !== 'coworker')) : people;
-  const s: GameState = { ...state, people: kept, character: { ...state.character, city: rng.pick(others) } };
-  return job ? hireCoworkers(s, rng) : s;
+  const stays = (p: Person) => p.alive && LEFT_BEHIND_BY_MOVE.includes(p.kind) && !comesAlong(state, p);
+  const people = Object.fromEntries(Object.entries(left).map(([id, p]) => [id, stays(p) ? { ...p, farAway: true } : p]));
+  const flags = { ...state.flags };
+  delete flags.farm;
+  delete flags[HOME_WITH_PARENTS_FLAG];
+  let s: GameState = { ...state, people, flags };
+  s = leaveHome(s, oldCity);
+  s = leaveCoworkers(s);
+  s = { ...s, character: { ...s.character, city: rng.pick(others) } };
+  return s.career.job ? hireCoworkers(s, rng) : s;
 }
 
 /**

@@ -1,4 +1,5 @@
 import { COUNTRIES, getCountry } from '@/data/countries';
+import { jobDefsForTitle, NATIONAL_OFFICES, rungTitle, type EducationRequirement, type JobDef } from '@/data/jobs';
 import { COMPANY_NAMES, COMPANY_SUFFIXES, NAMES } from '@/data/names';
 import { Rng } from '../rng';
 import type {
@@ -51,17 +52,31 @@ export function emptyCounters(): LifetimeCounters {
   };
 }
 
-export function randomName(rng: Rng, gender: Gender, countryCode: string): { firstName: string; lastName: string } {
-  const firstName = freshFirstName(rng, gender, countryCode);
-  return { firstName, lastName: rng.pick(NAMES[getCountry(countryCode).namePool].surnames) };
+/**
+ * A first name and a surname from the country's pools. A few names are in both (Thomas, Laurent, Bello), so nobody is
+ * called Bello Bello: `avoid` (a surname already chosen) is never the first name drawn, and the surname is never the
+ * first name (`keepFirst`, when the person keeps one of their own, else the one drawn). One draw each either way.
+ */
+export function randomName(rng: Rng, gender: Gender, countryCode: string, avoid?: string, keepFirst?: string): { firstName: string; lastName: string } {
+  const firstName = freshFirstName(rng, gender, countryCode, avoid ? new Set([avoid]) : undefined);
+  return { firstName, lastName: surnameFor(rng, countryCode, keepFirst || firstName) };
+}
+
+/** A surname from the country's pool that is not `firstName` (nor any of `avoid`, while the pool has others): one draw. */
+function surnameFor(rng: Rng, countryCode: string, firstName: string, avoid?: ReadonlySet<string>): string {
+  const surnames = NAMES[getCountry(countryCode).namePool].surnames;
+  const others = surnames.filter((n) => n !== firstName && !avoid?.has(n));
+  return rng.pick(others.length ? others : surnames);
 }
 
 /**
  * Every first name already in a life (GAME_DESIGN §10): the player's, and everyone's they know or remember, alive
  * or dead (parents, siblings, children, partners, exes, friends, coworkers, pets), plus their children's spouses.
+ * The player's surname counts too (a few names are first names and surnames, §4): a baby or grandchild who carries
+ * it, or a partner who may take it at the wedding, is never called Thomas Thomas.
  */
 export function namesInLife(state: Pick<GameState, 'character' | 'people'>): Set<string> {
-  const out = new Set([state.character.firstName]);
+  const out = new Set([state.character.firstName, state.character.lastName]);
   for (const p of Object.values(state.people)) {
     out.add(p.firstName);
     if (p.growth?.spouse) out.add(p.growth.spouse.firstName);
@@ -139,6 +154,54 @@ export function occupationMinAge(occupation: string): number {
   return OCCUPATIONS_NEED_YEARS.has(occupation) ? GROWN_UP_AGE : 18;
 }
 
+/** The age the schooling a job asks for is done: 18 with none or high school, 22 with a degree, 26 after medical school. */
+const SCHOOLING_DONE: Record<EducationRequirement, number> = { none: 18, high_school: 18, bachelor: 22, master: 24, 'doctor:law': 25, 'doctor:medicine': 26, 'doctor:dentistry': 26, doctor: 27 };
+/** The quickest climb from one rung to the next. */
+const YEARS_PER_RUNG = 3;
+/** A trainee's post, held by someone new to the work: a pharmacy intern, an apprentice, a junior developer, a resident. */
+const TRAINEE_TITLE = /\b(Intern|Junior|Apprentice|Trainee|Cadet|Probationary|Resident|Private|Aide)\b/;
+/** How long after starting out someone still holds a trainee's post. */
+const TRAINEE_YEARS = 12;
+/** The oldest a coworker is: past this they have retired. */
+export const OLDEST_COWORKER = 70;
+
+/** The youngest age with a job (job listings open at 14): a teen job's own minimum when it has none. */
+const YOUNGEST_WORKER = 14;
+
+/**
+ * The ages someone holds a rung of a job's ladder at (GAME_DESIGN §10a): from the end of the schooling it takes (or the
+ * job's own minimum age), three more years for each rung above the first, up to 70; a trainee's post (the first rung
+ * of a ladder that starts with an intern, an apprentice, a junior or a resident) only for twelve years after starting.
+ * So nobody is an 18-year-old therapist or a 20-year-old physician, and a 62-year-old is no pharmacy intern. A teen
+ * job (part-time) is held beside school, from its own minimum age: a 16-year-old cashier's coworkers can be 15.
+ */
+export function rungAgeBand(def: JobDef, rung: number): [number, number] {
+  const start = def.partTime ? (def.requirements.minAge ?? YOUNGEST_WORKER) : Math.max(def.requirements.minAge ?? 18, SCHOOLING_DONE[def.requirements.education]);
+  const lo = Math.min(OLDEST_COWORKER, start + YEARS_PER_RUNG * Math.max(0, rung));
+  const hi = rung <= 0 && TRAINEE_TITLE.test(def.ladder[0]!.title) ? start + TRAINEE_YEARS : OLDEST_COWORKER;
+  return [lo, Math.max(lo, hi)];
+}
+
+/** Every title a rung goes by: its own, and what it is called in some countries or before its era (rungTitle). */
+function rungTitles(def: JobDef, rung: number): string[] {
+  return [def.ladder[rung]!.title, ...Object.keys(NATIONAL_OFFICES).map((countryCode) => rungTitle(def, rung, { countryCode, year: 0 }))];
+}
+
+/**
+ * The ages a coworker with this title can be, over every ladder that has it ("Partner" is on two), under any name the
+ * rung goes by ("Member of Congress", "Food Columnist"); null for a title on none.
+ */
+export function titleAgeBand(title: string): [number, number] | null {
+  let band: [number, number] | null = null;
+  for (const def of jobDefsForTitle(title)) {
+    const rung = def.ladder.findIndex((_, r) => rungTitles(def, r).includes(title));
+    if (rung < 0) continue;
+    const [lo, hi] = rungAgeBand(def, rung);
+    band = band ? [Math.min(band[0], lo), Math.max(band[1], hi)] : [lo, hi];
+  }
+  return band;
+}
+
 /**
  * What a grown-up who was still a student when they joined the life does now (GAME_DESIGN §10): an adult job for
  * their age (or none) and savings like any adult's. The same draws makePerson makes for an adult.
@@ -187,19 +250,21 @@ export function makePerson(
   },
 ): Person {
   const gender = opts.gender ?? rng.pick<Gender>(['male', 'female']);
-  const firstName = freshFirstName(rng, gender, opts.countryCode, opts.taken);
-  // One draw either way, like the first name.
-  const surnames = NAMES[getCountry(opts.countryCode).namePool].surnames;
-  const otherSurnames = opts.avoidSurnames?.size ? surnames.filter((n) => !opts.avoidSurnames!.has(n)) : surnames;
-  const surname = rng.pick(otherSurnames.length ? otherSurnames : surnames);
+  // Nobody's first name is their own surname (a few names are in both pools): not a family name they are given...
+  const firstName = freshFirstName(rng, gender, opts.countryCode, opts.lastName ? new Set([...(opts.taken ?? []), opts.lastName]) : opts.taken);
+  // ...nor the surname drawn for them. One draw either way, like the first name.
+  const surname = surnameFor(rng, opts.countryCode, firstName, opts.avoidSurnames);
   opts.taken?.add(firstName);
-  const adult = opts.age >= 18;
+  // A coworker is of an age for their title (rungAgeBand): an intern is young, a physician past medical school.
+  const band = opts.kind === 'coworker' && opts.occupation ? titleAgeBand(opts.occupation) : null;
+  const age = band ? Math.min(band[1], Math.max(band[0], opts.age)) : opts.age;
+  const adult = age >= 18;
   return {
     id: rng.id('p_'),
     firstName,
     lastName: opts.lastName ?? surname,
     gender,
-    age: opts.age,
+    age,
     alive: true,
     kind: opts.kind,
     relationship: opts.relationship ?? rng.int(40, 90),
@@ -207,7 +272,7 @@ export function makePerson(
     smarts: rng.int(10, 95),
     health: rng.int(adult ? 50 : 80, 100),
     craziness: rng.int(0, 100),
-    occupation: opts.occupation ?? (adult ? occupationFor(rng.pick(opts.occupations ?? OCCUPATIONS_ADULT), opts.age) : 'Student'),
+    occupation: opts.occupation ?? (adult ? occupationFor(rng.pick(opts.occupations ?? OCCUPATIONS_ADULT), age) : 'Student'),
     money: opts.money ?? (adult ? Math.round(rng.int(2_000, 120_000) * getCountry(opts.countryCode).salaryMultiplier) : 0),
     memory: emptyMemory(opts.playerAge),
     metAtAge: opts.playerAge,
@@ -263,9 +328,9 @@ function fosterFamily(rng: Rng, countryCode: string, taken: Set<string>, familyN
   const gender: Gender = rng.chance(0.7) ? 'female' : 'male';
   const parent = makePerson(rng, { kind: gender === 'female' ? 'stepmother' : 'stepfather', gender, age: rng.int(30, 55), countryCode, playerAge: 0, relationship: rng.int(35, 75), money: Math.round(rng.int(0, 12_000) * mult), taken });
   parent.foster = true;
-  // A foster family is not the child's own: a shared surname would read as a relative.
+  // A foster family is not the child's own: a shared surname would read as a relative (and the new one is not their first name).
   const ownName = (p: Person) => {
-    for (let n = 0; n < 6 && p.lastName === familyName; n++) p.lastName = randomName(rng, p.gender, countryCode).lastName;
+    for (let n = 0; n < 6 && (p.lastName === familyName || p.lastName === p.firstName); n++) p.lastName = randomName(rng, p.gender, countryCode).lastName;
   };
   ownName(parent);
   const out = [parent];
@@ -296,9 +361,11 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
     : options.countryCode && COUNTRIES.some((c) => c.code === options.countryCode) ? options.countryCode : rng.pick(COUNTRIES).code;
   const country = getCountry(countryCode);
   const gender: Gender = heir?.gender ?? options.gender ?? rng.pick<Gender>(['male', 'female']);
-  const generated = randomName(rng, gender, countryCode);
+  // A surname already chosen (a custom one, or the family's for an heir) is not drawn as the first name.
+  const givenLastName = heir?.lastName ?? (options.lastName?.trim() || prev?.character.lastName);
+  const generated = randomName(rng, gender, countryCode, givenLastName, heir?.firstName ?? options.firstName?.trim());
   const firstName = heir?.firstName ?? (options.firstName?.trim() || generated.firstName);
-  const lastName = heir?.lastName ?? (options.lastName?.trim() || (prev ? prev.character.lastName : generated.lastName));
+  const lastName = givenLastName || generated.lastName;
   const startAge = heir?.age ?? 0;
   // How a new life starts (GAME_DESIGN §4a); an heir's life simply continues.
   const scenario: ScenarioId | undefined = prev ? undefined : startingScenario(options);
@@ -399,15 +466,16 @@ export function createLife(options: NewLifeOptions, seed: number, now = 0): Game
     }
     for (const p of heirFamily(rng, prev, heir, deceased.id, countryCode, startAge)) people[p.id] = p;
   } else if (scenario === 'orphan') {
-    for (const p of fosterFamily(rng, countryCode, new Set([firstName]), lastName)) people[p.id] = p;
+    for (const p of fosterFamily(rng, countryCode, new Set([firstName, lastName]), lastName)) people[p.id] = p;
   } else {
     const big = scenario === 'big_family';
     const single = scenario === 'single_parent';
     // Rich parents are established in their professions (GAME_DESIGN §4), so they are past their student years.
     const motherAge = big ? rng.int(26, 42) : rng.int(wealthy ? 25 : 18, 42);
     const fatherAge = Math.max(wealthy ? 23 : 18, clampStat(motherAge + rng.int(-4, 10)));
-    // Nobody at home shares a first name, the player's included (five children in one house need five names).
-    const taken = new Set([firstName]);
+    // Nobody at home shares a first name, the player's included (five children in one house need five names), and
+    // nobody in the family is named after its surname (no Grandpa Laurent in the Laurent family).
+    const taken = new Set([firstName, lastName]);
     // A single parent is a mother three times in four, otherwise a father.
     const singleDad = single && rng.chance(0.25);
     // The parents' jobs fit the family's money: no lawyer in a home where money is always tight (GAME_DESIGN §4).
@@ -554,6 +622,8 @@ function carryOver(p: Person, was: Person): Person {
   if (was.deathCause !== undefined) p.deathCause = was.deathCause;
   // A surname taken at a wedding keeps the one they were born with (their own family's, for their brothers and sisters).
   if (was.birthLastName !== undefined) p.birthLastName = was.birthLastName;
+  // A child's milestones (family.ts) stay theirs: a brother who finished high school is not a student again.
+  if (was.growth !== undefined) p.growth = { ...was.growth };
   return p;
 }
 
@@ -583,7 +653,9 @@ function heirFamily(rng: Rng, prev: GameState, heir: Person | undefined, decease
   const married = heir.growth?.spouse;
   let spouse: Person | undefined;
   if (married) {
-    spouse = makePerson(rng, { kind: 'spouse', gender: married.gender, age: Math.max(18, startAge + rng.int(-3, 3)), countryCode, lastName: heir.lastName, playerAge: startAge, relationship: rng.int(60, 90) });
+    // They took the family name, unless it is their own first name (Thomas Thomas): then they kept one of their own.
+    const ownName = married.firstName === heir.lastName;
+    spouse = makePerson(rng, { kind: 'spouse', gender: married.gender, age: Math.max(18, startAge + rng.int(-3, 3)), countryCode, lastName: ownName ? undefined : heir.lastName, playerAge: startAge, relationship: rng.int(60, 90), avoidSurnames: new Set([married.firstName]) });
     spouse.firstName = married.firstName;
     spouse.love = rng.int(55, 85);
     out.push(spouse);
@@ -694,7 +766,8 @@ function writeHeirLog(state: GameState, prev: GameState, inheritance: number): G
   if (kids.length === 1) s = log(s, `I have ${kids[0]!.gender === 'male' ? 'a son' : 'a daughter'}, ${kids[0]!.firstName} (${kids[0]!.age}).`);
   else if (kids.length > 1) s = log(s, `I have ${numberWord(kids.length)} children: ${joinList(kids.map((x) => `${x.firstName} (${x.age})`))}.`);
   if (state.education.droppedOut) s = log(s, 'I left high school without a diploma.');
-  if (inheritance > 0) s = log(s, `I inherited ${money(s, inheritance)} from ${prev.character.gender === 'female' ? 'Mom' : 'Dad'}'s estate.`, 'money');
+  // A minor's share goes into their own savings, as any inheritance of a child's does (GAME_DESIGN §10).
+  if (inheritance > 0) s = log(s, `I inherited ${money(s, inheritance)} from ${prev.character.gender === 'female' ? 'Mom' : 'Dad'}'s estate.${c.age < 18 ? ' It went into my savings.' : ''}`, 'money');
   if (c.traits.length) s = log(s, traitLine(c.traits));
   return s;
 }

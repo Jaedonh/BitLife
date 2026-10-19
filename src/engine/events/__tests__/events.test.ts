@@ -30,6 +30,7 @@ describe('event flow', () => {
     choices: [
       { id: 'thank', label: 'Say thanks', effects: [{ money: 100 }, { relationship: 'person', delta: 5 }, { karma: 1 }] },
       { id: 'rich', label: 'Only if rich', conditions: [{ money: { gte: 1_000_000 } }], effects: [{ money: 1 }] },
+      { id: 'shrug', label: 'Shrug', effects: [{ karma: -1 }] },
     ],
   };
   const reg = makeRegistry([def]);
@@ -42,7 +43,7 @@ describe('event flow', () => {
     // The player calls a parent "Mom"/"Dad" in first-person narration, never by first name.
     expect(s.pendingEvent?.text).toBe('Mom gave me $100.');
     // hidden choice filtered out
-    expect(s.pendingEvent?.choices.map((c) => c.id)).toEqual(['thank']);
+    expect(s.pendingEvent?.choices.map((c) => c.id)).toEqual(['thank', 'shrug']);
     const before = s.people[mother.id]!.relationship;
     s = resolveChoice(s, 'thank', reg);
     expect(s.pendingEvent).toBeNull();

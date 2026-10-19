@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, StatBar } from '@/components/ui';
 import { getCountry } from '@/data/countries';
 import { TRAIT_LABELS } from '@/engine';
-import type { GameState } from '@/engine/types';
+import type { Character, GameState } from '@/engine/types';
 import { formatMoneyFull, MONTH_NAMES, netWorth } from '@/engine/util';
 import { useSettingsStore } from '@/store/settingsStore';
 import { colors, lifeTints, radius, spacing, typography, violetSoft } from '@/theme';
@@ -31,6 +31,12 @@ function Heading({ children }: { children: string }) {
   );
 }
 
+/** A birth date in US order, as the rest of the copy is US English: "January 29, 2005". */
+export function birthDateText(c: Pick<Character, 'birthDay' | 'birthMonth' | 'birthYear'>): string {
+  const month = MONTH_NAMES[c.birthMonth - 1];
+  return month ? `${month} ${c.birthDay}, ${c.birthYear}` : String(c.birthYear);
+}
+
 /**
  * Who this character is right now: traits and sign, this year's energy, fame, karma (only
  * when the Settings toggle is on) and where the money stands (cash vs debt vs net worth).
@@ -53,7 +59,7 @@ export function LifeProfileSheet({ game, visible, onClose }: { game: GameState; 
   const property = game.assets.reduce((sum, a) => sum + a.value, 0);
   const mortgages = game.assets.reduce((sum, a) => sum + (a.mortgage?.remaining ?? 0), 0);
   const worth = netWorth(game);
-  const born = `${c.birthDay} ${MONTH_NAMES[c.birthMonth - 1] ?? ''} ${c.birthYear}`.replace(/\s+/g, ' ').trim();
+  const born = birthDateText(c);
   // A special start is part of who they are; a Standard birth needs no label.
   const scenario = scenarioChipText(game);
 

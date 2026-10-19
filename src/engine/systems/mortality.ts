@@ -73,7 +73,11 @@ export function pickDeathCause(state: GameState, rng: Rng): string {
   return cause === 'old age' && age < 75 ? 'natural causes' : cause;
 }
 
-/** Rolls for death; also manages the "critical" countdown that warns the player. */
+/**
+ * Rolls for death; also manages the "critical" countdown that warns the player. The birthday of the warning is not
+ * also the day of death: the doctor gave two years, so the ordinary roll waits for the next birthday, and the
+ * player gets at least one year to act on it.
+ */
 export function rollMortality(state: GameState, rng: Rng): GameState {
   let s = state;
   const h = s.character.stats.health;
@@ -81,6 +85,7 @@ export function rollMortality(state: GameState, rng: Rng): GameState {
     if (s.health.criticalYears === 0) {
       s = { ...s, health: { ...s.health, criticalYears: 2 } };
       s = log(s, s.character.age < 13 ? `The doctors told ${parentsRef(s)} bluntly: if my health does not turn around within two years, I will not survive.` : 'My doctor told me bluntly: if I do not turn my health around within two years, I will not survive.', 'bad');
+      return s;
     } else {
       const left = s.health.criticalYears - 1;
       s = { ...s, health: { ...s.health, criticalYears: left } };

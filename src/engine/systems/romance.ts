@@ -7,7 +7,8 @@
  * turn 18 in the same year and never end up as an adult and a minor.
  */
 
-import type { GameState } from '../types';
+import type { Rng } from '../rng';
+import type { GameState, Gender } from '../types';
 
 export const MIN_ROMANCE_AGE = 16;
 export const ADULT_AGE = 18;
@@ -24,6 +25,50 @@ export function romanceAllowed(playerAge: number, partnerAge: number): boolean {
   if (playerAge < MIN_ROMANCE_AGE || partnerAge < MIN_ROMANCE_AGE) return false;
   if (playerAge >= ADULT_AGE) return partnerAge >= ADULT_AGE;
   return partnerAge < ADULT_AGE && Math.abs(playerAge - partnerAge) <= 2;
+}
+
+/**
+ * Who the player is drawn to (GAME_DESIGN §10), from who they have stayed with: every year spent with a partner met
+ * before that year counts for that partner's sex (`Character.partnerYears`). With no history, a new partner is of the
+ * other sex nine times in ten; each year with a partner of the player's own sex leans the next ones that way (one
+ * year makes it about even, five about 85%), and years with the other sex lean them back. Partners the player leaves
+ * within the year they met count for nothing either way.
+ */
+export const PARTNER_LEAN = {
+  /** The chance of a partner of the player's own sex with no history. */
+  base: 0.1,
+  /** Never fully closed either way: people surprise themselves. */
+  min: 0.03,
+  max: 0.95,
+} as const;
+
+/** The chance that a new partner is of the player's own sex, given who they have stayed with. */
+export function sameSexChance(state: Pick<GameState, 'character'>): number {
+  const years = state.character.partnerYears;
+  const same = years?.same ?? 0;
+  const other = years?.other ?? 0;
+  return Math.min(PARTNER_LEAN.max, Math.max(PARTNER_LEAN.min, (PARTNER_LEAN.base + same) / (1 + same + other)));
+}
+
+/** The sex of a new partner the player meets (the yearly roll, or a card that does not say): one draw. */
+export function partnerGender(rng: Rng, state: Pick<GameState, 'character'>): Gender {
+  const me = state.character.gender;
+  return rng.chance(sameSexChance(state)) ? me : me === 'male' ? 'female' : 'male';
+}
+
+/** The yearly pass: a year with each partner the player has had since before this year counts toward the leaning. */
+export function notePartnerYears(state: GameState): GameState {
+  const age = state.character.age;
+  let same = 0;
+  let other = 0;
+  for (const p of Object.values(state.people)) {
+    if (!p.alive || (p.kind !== 'lover' && p.kind !== 'spouse') || p.metAtAge >= age) continue;
+    if (p.gender === state.character.gender) same++;
+    else other++;
+  }
+  if (!same && !other) return state;
+  const years = state.character.partnerYears ?? { same: 0, other: 0 };
+  return { ...state, character: { ...state.character, partnerYears: { same: years.same + same, other: years.other + other } } };
 }
 
 /** Clamps a content-given age range to `band`; when they do not overlap, the band wins. */

@@ -21,6 +21,7 @@ export function meetsRequirements(state: GameState, def: JobDef): { ok: boolean;
   if (def.partTime && c.age > 24) return { ok: false, reason: 'Part-time roles are for under-25s' };
   if (c.age > MAX_HIRING_AGE) return { ok: false, reason: 'Nobody is hiring at my age' };
   if (def.id === 'military' && c.age > 35) return { ok: false, reason: 'Too old to enlist' };
+  if (r.maxAge !== undefined && c.age > r.maxAge) return { ok: false, reason: def.category === 'sports' ? 'Too old to turn pro' : 'Too old to start out' };
   if (state.crime.inPrison) return { ok: false, reason: state.crime.juvenile ? 'In detention' : 'In prison' };
   if (r.noRecord && state.crime.record) return { ok: false, reason: 'Criminal record' };
   switch (r.education) {
@@ -167,7 +168,6 @@ function promotionLine(def: JobDef, title: string): string {
     case 'District Judge': return 'I was appointed a district judge.';
     case 'Appeals Judge': return 'I was appointed to the court of appeals.';
     case 'Supreme Court Justice': return 'I was appointed to the Supreme Court.';
-    case 'Hall of Famer': return 'I was voted into the Hall of Fame.';
     case 'Partner': return 'I was made a partner.';
     default:
       if (['actor', 'musician', 'chef_tv', 'athlete'].includes(def.id) || /(Owner|Contractor|Author)$/.test(title)) return `I became ${roleWithArticle(title)}.`;
@@ -347,13 +347,69 @@ export function layOff(state: GameState): GameState {
   return { ...s, career: { ...s.career, history: [...history, { ...entry, reason: 'laidOff' }] } };
 }
 
+/**
+ * Number flag `hallOfFame`: the age a star athlete is voted into the Hall of Fame (five years after the last game),
+ * then `true` once it has happened. The obituary mentions it.
+ */
+export const HALL_OF_FAME_FLAG = 'hallOfFame';
+/** Years at the top of the game it takes to be voted into the Hall of Fame, and how long after the last game it comes (the line says five). */
+const HALL_OF_FAME = { starYears: 4, after: 5 } as const;
+
+/** The last game, by how far the career went: semi-pro, professional, star. */
+const LAST_GAME_LINES = [
+  'I played my last semi-pro game at {age} and hung up my gear for good.',
+  'I retired from professional sports at {age}. My body had been asking for a while.',
+  'I played my last game at {age} and retired from professional sports. The crowd stood for the whole final minute.',
+] as const;
+
+/**
+ * Whether a career with an age limit (JobDef.careerEnds: pro sports) ends this year: any year from `from` (more
+ * likely each year), certainly at `by`, or sooner when the body gives out.
+ */
+function careerOver(state: GameState, def: JobDef, job: Job, rng: Rng): boolean {
+  const ends = def.careerEnds;
+  const age = state.character.age;
+  if (!ends) return false;
+  // An older save's rung that is no longer on the ladder (the paid "Hall of Famer") ends at the next birthday.
+  if (age >= ends.by || state.character.stats.health < 40 || job.level >= def.ladder.length) return true;
+  return age >= ends.from && rng.chance((age - ends.from + 1) / (ends.by - ends.from + 1));
+}
+
+/**
+ * An athlete's playing career ends (JobDef.careerEnds): a line about the last game, and other work from here on (it
+ * is not a retirement: no pension). A star who held the top of the game for a few years is voted into the Hall of
+ * Fame five years later (HALL_OF_FAME_FLAG); an older save's Hall of Famer already was.
+ */
+function retireFromSport(state: GameState, job: Job): GameState {
+  const age = state.character.age;
+  let s = removeJob(state, 'sportRetired');
+  s = log(s, LAST_GAME_LINES[Math.min(job.level, LAST_GAME_LINES.length - 1)]!.replace('{age}', String(age)), 'milestone');
+  s = addStats(s, { happiness: -4 });
+  if (job.level >= 3) return { ...s, flags: { ...s.flags, [HALL_OF_FAME_FLAG]: true } };
+  if (job.level >= 2 && job.yearsAtLevel >= HALL_OF_FAME.starYears && s.flags[HALL_OF_FAME_FLAG] === undefined) {
+    s = { ...s, flags: { ...s.flags, [HALL_OF_FAME_FLAG]: age + HALL_OF_FAME.after } };
+  }
+  return s;
+}
+
+/** The Hall of Fame vote comes through on its year (HALL_OF_FAME_FLAG), or once I am out of prison. */
+function hallOfFame(state: GameState): GameState {
+  const due = state.flags[HALL_OF_FAME_FLAG];
+  if (typeof due !== 'number' || state.character.age < due || state.crime.inPrison) return state;
+  const s: GameState = { ...state, flags: { ...state.flags, [HALL_OF_FAME_FLAG]: true } };
+  const line = state.character.age === due ? 'Five years after my last game, I was voted into the Hall of Fame.' : 'I was voted into the Hall of Fame at last.';
+  return addStats(log(s, line, 'milestone'), { happiness: 8 });
+}
+
 /** Yearly career progression: performance drift, raises, promotions, layoffs, injuries, hustle income. */
 export function yearlyCareer(state: GameState, rng: Rng, servedYear = false): GameState {
-  let s = state;
+  let s = hallOfFame(state);
   const job = s.career.job;
   if (job && !s.crime.inPrison) {
     const def = JOB_BY_ID[job.defId];
     if (!def) return s;
+    // A playing career ends in the late 30s: the job goes, other work can follow.
+    if (careerOver(s, def, job, rng)) return yearlyHustle(retireFromSport(s, job), rng, servedYear);
     const c = s.character;
     let perf = job.performance + rng.int(-7, 6) + (c.stats.smarts - 50) / 20;
     if (c.stats.happiness < 25) perf -= 5;
@@ -365,7 +421,7 @@ export function yearlyCareer(state: GameState, rng: Rng, servedYear = false): Ga
     if (job.partTime && c.age > 24 && updated.salary < floor) {
       // A student job kept past 24 goes full hours, so it pays enough to live on.
       updated = { ...updated, salary: floor };
-      s = log(s, `${capitalize(job.company)} moved me to full hours. My pay rose to ${formatMoney(floor, c.countryCode)} a year.`, 'money');
+      s = log(s, `${capitalize(job.company)} moved me to full hours. My pay rose to ${formatMoney(floor, c.countryCode, s.year)} a year.`, 'money');
     }
     s = { ...s, career: { ...s.career, job: updated, totalYearsWorked: s.career.totalYearsWorked + 1, experience: { ...s.career.experience, [def.category]: (s.career.experience[def.category] ?? 0) + 1 } } };
     s = bump(s, 'yearsEmployed');
@@ -384,10 +440,11 @@ export function yearlyCareer(state: GameState, rng: Rng, servedYear = false): Ga
       s = log(s, def.id === 'military' ? 'I was discharged from the Army for poor performance.' : `I was fired from ${job.company} for poor performance.`, 'bad');
       return yearlyHustle(s, rng, servedYear);
     }
-    if (rng.chance(0.02)) {
+    // Cutbacks lay off staff, not the holder of an elected or appointed office or a soldier (JobDef.noLayoffsFrom).
+    if (rng.chance(0.02) && !(def.noLayoffsFrom !== undefined && job.level >= def.noLayoffsFrom)) {
       s = layOff(s);
       s = addStats(s, { happiness: -8 });
-      s = log(s, def.id === 'military' ? 'The Army cut its numbers and I was discharged.' : `${capitalize(job.company)} made cutbacks and I was laid off.`, 'bad');
+      s = log(s, `${capitalize(job.company)} made cutbacks and I was laid off.`, 'bad');
       return yearlyHustle(s, rng, servedYear);
     }
     if (perf >= 65 && updated.yearsAtLevel >= 1) {

@@ -103,6 +103,9 @@ const debtFreeTarget = (countryCode: string): number => localTarget(countryCode,
 const noDiploma = (s: GameState): boolean =>
   s.character.age >= 18 && !s.education.degrees.includes('high_school') && !(s.education.enrolled && (s.education.stage === 'primary' || s.education.stage === 'middle' || s.education.stage === 'high'));
 
+/** The court date for a theft I did not commit (crime_and_prison.ts): its plea or a lost trial is an arrest, not a crime. */
+const FALSE_CHARGE_CARD = 'cp_false_charge_court';
+
 export const ACHIEVEMENTS: readonly AchievementDef[] = [
   // Milestones
   { id: 'graduate', group: 'life', name: 'Cap and Gown', emoji: '🎓', description: 'Earn a university degree.', test: (s) => s.education.degrees.some((d) => d.startsWith('bachelor')) },
@@ -149,7 +152,11 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
     name: 'Clean Hands',
     emoji: '🧼',
     description: 'Die at 80 or older without ever committing a crime.',
-    test: (s) => !s.alive && s.character.age >= 80 && s.counters.crimes === 0 && s.crime.crimesCommitted === 0 && s.crime.arrests === 0,
+    // About what I did, not what I was accused of. Crimes count from the crime menu (crimesCommitted) and from cards
+    // (the `crimes` counter); an arrest also counts, as many cards end a crime (perjury, padded expenses, a stolen
+    // phone) with only the arrest, except the one a false theft charge brings (FALSE_CHARGE_CARD), which a card
+    // forces on an innocent player who took the deal or lost at trial.
+    test: (s) => !s.alive && s.character.age >= 80 && s.counters.crimes === 0 && s.crime.crimesCommitted === 0 && s.crime.arrests <= (s.firedEvents[FALSE_CHARGE_CARD] !== undefined ? 1 : 0),
   },
   { id: 'repeat_offender', group: 'style', name: 'Repeat Offender', emoji: '🔒', description: 'Be sentenced to prison three times.', test: (s) => s.crime.convictions >= 3 },
   {

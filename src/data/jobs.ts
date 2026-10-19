@@ -13,6 +13,8 @@ export interface JobRequirements {
   experience?: number;
   noRecord?: boolean;
   minAge?: number;
+  /** Nobody new is hired past this age (pro sports stop signing players in their late 30s). */
+  maxAge?: number;
   trait?: string;
 }
 
@@ -33,6 +35,13 @@ export interface JobDef {
   emoji: string;
   /** First year it is hired for (util.inEra): data scientists from 2008, web designers once there is a web. */
   minYear?: number;
+  /**
+   * A career with an age limit (pro sports): from `from` the player may retire from it any year, and at `by` they
+   * certainly do (careers.ts, retireFromSport). It ends the job, not working life: no pension, other work goes on.
+   */
+  careerEnds?: { from: number; by: number };
+  /** From this rung on the job is an elected or appointed office, or the armed forces: no yearly cutbacks lay it off. */
+  noLayoffsFrom?: number;
 }
 
 const j = (id: string, category: JobCategory, emoji: string, ladder: [string, number][], requirements: JobRequirements, extra: Partial<JobDef> = {}): JobDef => ({
@@ -76,10 +85,10 @@ export const JOBS: readonly JobDef[] = [
   // Public
   j('police', 'public', '👮', [['Police Cadet', 42000], ['Police Officer', 58000], ['Detective', 76000], ['Lieutenant', 92000], ['Police Chief', 125000]], { education: 'high_school', noRecord: true, minHealth: 50, minAge: 21 }, { stress: 50, danger: 30 }),
   j('firefighter', 'public', '🚒', [['Probationary Firefighter', 40000], ['Firefighter', 55000], ['Fire Lieutenant', 70000], ['Fire Captain', 88000], ['Fire Chief', 115000]], { education: 'high_school', minHealth: 60, noRecord: true }, { stress: 45, danger: 35 }),
-  j('military', 'public', '🎖️', [['Private', 25000], ['Corporal', 32000], ['Sergeant', 44000], ['Lieutenant', 62000], ['Major', 90000], ['Colonel', 130000]], { education: 'high_school', minHealth: 55, noRecord: true, minAge: 18 }, { stress: 50, danger: 40 }),
+  j('military', 'public', '🎖️', [['Private', 25000], ['Corporal', 32000], ['Sergeant', 44000], ['Lieutenant', 62000], ['Major', 90000], ['Colonel', 130000]], { education: 'high_school', minHealth: 55, noRecord: true, minAge: 18 }, { stress: 50, danger: 40, noLayoffsFrom: 0 }),
   j('mail_carrier', 'public', '📬', [['Mail Clerk', 34000], ['Mail Carrier', 46000], ['Postmaster', 68000]], { education: 'high_school', noRecord: true }, { stress: 20, danger: 5 }),
   j('civil_servant', 'public', '🏛️', [['Clerk', 36000], ['Administrative Officer', 48000], ['Senior Officer', 65000], ['Department Director', 110000]], { education: 'bachelor' }, { stress: 25 }),
-  j('politician', 'public', '🗳️', [['Campaign Aide', 32000], ['City Councilor', 60000], ['Mayor', 110000], ['Member of Parliament', 175000], ['Minister', 250000]], { education: 'bachelor', majors: ['political_science', 'law', 'economics', 'history', 'communications', 'business'], noRecord: true, minSmarts: 55 }, { stress: 50, fame: 3 }),
+  j('politician', 'public', '🗳️', [['Campaign Aide', 32000], ['City Councilor', 60000], ['Mayor', 110000], ['Member of Parliament', 175000], ['Minister', 250000]], { education: 'bachelor', majors: ['political_science', 'law', 'economics', 'history', 'communications', 'business'], noRecord: true, minSmarts: 55 }, { stress: 50, fame: 3, noLayoffsFrom: 1 }),
   // Office
   j('receptionist', 'office', '📞', [['Receptionist', 29000], ['Office Coordinator', 38000], ['Office Manager', 55000]], { education: 'high_school' }, { stress: 20 }),
   j('admin', 'office', '🗂️', [['Administrative Assistant', 33000], ['Executive Assistant', 48000], ['Operations Manager', 72000], ['Director of Operations', 115000]], { education: 'high_school', minSmarts: 35 }, { stress: 30 }),
@@ -111,7 +120,7 @@ export const JOBS: readonly JobDef[] = [
   // Law
   j('paralegal', 'law', '📑', [['Legal Assistant', 38000], ['Paralegal', 52000], ['Senior Paralegal', 68000]], { education: 'bachelor', noRecord: true }, { stress: 35 }),
   j('lawyer', 'law', '⚖️', [['Junior Associate', 85000], ['Associate', 130000], ['Senior Associate', 180000], ['Partner', 320000], ['Managing Partner', 500000]], { education: 'doctor:law', noRecord: true, minSmarts: 65 }, { stress: 65 }),
-  j('judge', 'law', '👩‍⚖️', [['Magistrate', 120000], ['District Judge', 170000], ['Appeals Judge', 220000], ['Supreme Court Justice', 290000]], { education: 'doctor:law', noRecord: true, minSmarts: 75, experience: 10, minAge: 40 }, { stress: 50, fame: 2 }),
+  j('judge', 'law', '👩‍⚖️', [['Magistrate', 120000], ['District Judge', 170000], ['Appeals Judge', 220000], ['Supreme Court Justice', 290000]], { education: 'doctor:law', noRecord: true, minSmarts: 75, experience: 10, minAge: 40 }, { stress: 50, fame: 2, noLayoffsFrom: 0 }),
   // Education
   j('teacher', 'education', '🍎', [['Teaching Assistant', 30000], ['Teacher', 48000], ['Senior Teacher', 60000], ['Department Head', 75000], ['Principal', 105000]], { education: 'bachelor', noRecord: true }, { stress: 40 }),
   j('professor', 'education', '🎓', [['Lecturer', 58000], ['Assistant Professor', 80000], ['Associate Professor', 105000], ['Professor', 145000], ['Dean', 200000]], { education: 'doctor', minSmarts: 75 }, { stress: 35, fame: 1 }),
@@ -130,7 +139,9 @@ export const JOBS: readonly JobDef[] = [
   j('musician', 'creative', '🎸', [['Session Musician', 22000], ['Touring Musician', 48000], ['Recording Artist', 160000], ['Headliner', 900000]], { education: 'none', minSmarts: 25 }, { stress: 40, fame: 8 }),
   j('chef_tv', 'creative', '📺', [['Food Blogger', 24000], ['TV Cook', 70000], ['Celebrity Chef', 300000]], { education: 'none', experience: 3, minLooks: 40 }, { stress: 45, fame: 6 }),
   // Sports
-  j('athlete', 'sports', '🏅', [['Semi-pro Athlete', 28000], ['Professional Athlete', 120000], ['Star Athlete', 800000], ['Hall of Famer', 3000000]], { education: 'none', minHealth: 85, minAge: 18 }, { stress: 50, danger: 30, fame: 10 }),
+  // A playing career: signed by 36 at the latest, over by 40 (careerEnds). The Hall of Fame is an honor that comes
+  // after it (careers.ts), not a rung anyone is paid to hold.
+  j('athlete', 'sports', '🏅', [['Semi-pro Athlete', 28000], ['Professional Athlete', 120000], ['Star Athlete', 800000]], { education: 'none', minHealth: 85, minAge: 18, maxAge: 36 }, { stress: 50, danger: 30, fame: 10, careerEnds: { from: 34, by: 40 } }),
   j('coach', 'sports', '📣', [['Assistant Coach', 34000], ['Coach', 55000], ['Head Coach', 110000], ['Director of Athletics', 180000]], { education: 'high_school', minHealth: 50, experience: 2 }, { stress: 40, fame: 2 }),
 ];
 

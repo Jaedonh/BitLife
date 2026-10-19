@@ -1,5 +1,5 @@
 import { getCountry } from '@/data/countries';
-import { ILLNESSES, ILLNESS_BY_ID, shortIllnessName, visitCureChance } from '@/data/illnesses';
+import { hadOnceIllness, ILLNESSES, ILLNESS_BY_ID, shortIllnessName, visitCureChance } from '@/data/illnesses';
 import { giveIllness } from '../events/effects';
 import { parentsRef, scaleMoney } from '../events/text';
 import type { Rng } from '../rng';
@@ -70,7 +70,8 @@ export function yearlyHealth(state: GameState, rng: Rng): GameState {
   if (c.traits.includes('iron_constitution')) p *= 0.6;
   if ((s.health.addictions.drugs ?? 0) >= 40 || (s.health.addictions.alcohol ?? 0) >= 40) p *= 1.5;
   if (rng.chance(p)) {
-    const pool = ILLNESSES.filter((i) => i.weights[band] > 0 && c.age >= (i.minAge ?? 0) && !s.health.illnesses.some((x) => x.defId === i.id));
+    // A once-a-life illness (an appendix) is never rolled twice, nor after a card that took it out.
+    const pool = ILLNESSES.filter((i) => i.weights[band] > 0 && c.age >= (i.minAge ?? 0) && !s.health.illnesses.some((x) => x.defId === i.id) && !hadOnceIllness(i, s.flags, s.firedEvents));
     if (pool.length) {
       const def = rng.weighted(pool, (i) => i.weights[band]);
       s = giveIllness(s, def.id);

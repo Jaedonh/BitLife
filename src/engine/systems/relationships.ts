@@ -1,10 +1,13 @@
+import { livesWithPlayer } from '../events/conditions';
 import { adjustRelationship, markContact, takeSurname, updatePerson } from '../events/effects';
 import { personRef, scaleMoney } from '../events/text';
 import type { Rng } from '../rng';
 import type { GameState, Person, RelationshipKind } from '../types';
 import { addKarma, addMoney, addStats, bump, clampStat, clearCoupleFlags, countAction, actionCount, fullName, log, lowerTitle, money, pronouns, setResult, withArticle } from '../util';
 import { familySurnames, friendAgeRange, GROWN_UP_AGE, grownUpLivelihood, makePerson, namesInJournalThisYear, namesInLife } from './character';
-import { ADULT_AGE, griefFactor, partnerAgeRange, romanceAllowed, yearlyGrief } from './romance';
+import { worksWithMe } from './coworkers';
+import { hasMovedOut } from './family';
+import { ADULT_AGE, griefFactor, notePartnerYears, partnerAgeRange, partnerGender, romanceAllowed, yearlyGrief } from './romance';
 import { fosterRelation } from './scenarios';
 
 export type InteractionId =
@@ -426,6 +429,48 @@ export function growUp(state: GameState, rng: Rng): GameState {
 }
 
 /**
+ * Whether the player sees this person every day (GAME_DESIGN §10): someone they live with (`livesWithPlayer`, as for
+ * `household` selectors: the parents and siblings of the home they still live in, a spouse, a partner they moved in
+ * with, a pet), one of their children who has not moved out, or a coworker at their current job. Nobody who lives far
+ * away, and nobody while the player is in prison. Their page shows no silence, and the yearly pass records the year
+ * (`memory.togetherUntil`), so a silence after a move, a divorce or a job change counts from then.
+ */
+export function seesDaily(state: GameState, p: Person): boolean {
+  if (!p.alive || p.farAway || state.crime.inPrison) return false;
+  if (p.kind === 'child') return !hasMovedOut(p);
+  if (p.kind === 'coworker') return worksWithMe(state, p);
+  return livesWithPlayer(state, p);
+}
+
+/** Records this year as a year spent together for everyone the player sees every day (seesDaily). */
+export function noteTogether(state: GameState): GameState {
+  const age = state.character.age;
+  let people: GameState['people'] | undefined;
+  for (const p of Object.values(state.people)) {
+    if (p.memory.togetherUntil === age || !seesDaily(state, p)) continue;
+    people ??= { ...state.people };
+    people[p.id] = { ...p, memory: { ...p.memory, togetherUntil: age } };
+  }
+  return people ? { ...state, people } : state;
+}
+
+/**
+ * The friends and grandparents left behind by this year's move abroad (systems/scenarios.ts) said goodbye at the
+ * move: that counts as time with them this year (GAME_DESIGN §10, Contact), so the goodbye line is not followed by
+ * "You haven't spoken in 2 years" on their page. Everyone else stayed behind without a word (rivals) or left the life.
+ */
+export function markGoodbyes(state: GameState): GameState {
+  const move = state.character.moveAbroad;
+  const age = state.character.age;
+  if (!move || move.age !== age || state.flags.immigrant === undefined) return state;
+  let s = state;
+  for (const p of Object.values(state.people)) {
+    if (p.alive && p.farAway && p.metAtAge < age && (p.kind === 'grandparent' || p.kind === 'friend' || p.kind === 'bestFriend')) s = markContact(s, p.id);
+  }
+  return s;
+}
+
+/**
  * Relationship-driven yearly events that are too systemic for the event tables. `reserved` are names that stay
  * taken this year although their owner may have left the life during it (ageUp passes the names at the start of
  * the year, so a coworker who left with the job does not hand their name to a new friend the same year).
@@ -437,14 +482,18 @@ export function yearlyRelationships(state: GameState, rng: Rng, reserved: Readon
   const taken = new Set([...reserved, ...namesInLife(state)]);
   // Someone new is not family, so they do not share the family's surname (it would read as a relative).
   const avoidSurnames = familySurnames(state);
+  // The year with the people I see every day, a goodbye at a move abroad, and a year with a partner (the leaning of
+  // the partners I meet).
+  s = notePartnerYears(markGoodbyes(noteTogether(s)));
   s = growUp(s, rng);
   // A partner who died this year (ageNpcs runs just before) starts the grief window (an event death already has),
   // and a window that has run its course closes.
   s = yearlyGrief(s);
-  // Partners may leave when neglected or unhappy.
+  // Partners may leave when neglected or unhappy. Telling me is contact: an ex's silence starts from then.
   for (const p of Object.values(s.people)) {
     if (!p.alive) continue;
     if ((p.kind === 'lover' || p.kind === 'spouse') && (p.love ?? 50) < 20 && rng.chance(0.4)) {
+      s = markContact(s, p.id);
       s = clearCoupleFlags(updatePerson(s, p.id, { kind: 'ex', love: 0 }));
       s = addStats(s, { happiness: -10 });
       if (p.kind === 'spouse') s = bump(s, 'divorces');
@@ -471,8 +520,7 @@ export function yearlyRelationships(state: GameState, rng: Rng, reserved: Readon
   // Nobody new in the year of losing a partner, and less likely the year after (the grief window, romance.ts).
   const grief = griefFactor(s);
   if (!hasPartner && band && age < 75 && !s.crime.inPrison && grief > 0 && rng.chance((0.25 + s.character.stats.looks / 400) * grief)) {
-    const partnerGender = rng.chance(0.9) ? (s.character.gender === 'male' ? 'female' : 'male') : s.character.gender;
-    const lover = makePerson(rng, { kind: 'lover', gender: partnerGender, age: rng.int(band[0], band[1]), countryCode: s.character.countryCode, playerAge: age, relationship: rng.int(50, 75), taken, avoidSurnames });
+    const lover = makePerson(rng, { kind: 'lover', gender: partnerGender(rng, s), age: rng.int(band[0], band[1]), countryCode: s.character.countryCode, playerAge: age, relationship: rng.int(50, 75), taken, avoidSurnames });
     lover.love = rng.int(50, 80);
     s = { ...s, people: { ...s.people, [lover.id]: lover } };
     s = bump(s, 'lovers');

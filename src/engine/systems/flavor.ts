@@ -1,5 +1,6 @@
 import { FLAVOR, type FlavorLine } from '@/data/flavor';
 import { candidatesFor, evaluateAll } from '../events/conditions';
+import { markContact } from '../events/effects';
 import { conditionIssues, placeholderIssues, speciesIssues, textIssues, type Condition, type PersonSelector } from '../events/schema';
 import { renderText } from '../events/text';
 import { Rng } from '../rng';
@@ -134,7 +135,9 @@ export function yearlyFlavor(before: GameState, year: FlavorYear, lines: readonl
   const line = rng.weighted(pool, (l) => (isSituational(l) ? FLAVOR_RULES.situationalWeight : 1));
   const people = flavorCandidates(line, start, now);
   const person = people.length ? rng.pick(people) : undefined;
-  const s = log(now, renderText(line.text, now, { person }));
+  let s = log(now, renderText(line.text, now, { person }));
+  // A line about someone is time with them this year, like a card bound to them (GAME_DESIGN §10, Contact).
+  if (person) s = markContact(s, person.id);
   return { ...s, flavorSeen: { ...seen, [line.text]: age }, rng: rng.snapshot() };
 }
 

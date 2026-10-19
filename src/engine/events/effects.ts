@@ -1,8 +1,8 @@
-import { ILLNESS_BY_ID } from '@/data/illnesses';
+import { hadOnceIllness, illnessHadFlag, ILLNESS_BY_ID } from '@/data/illnesses';
 import type { Rng } from '../rng';
 import { onNpcDeath } from '../systems/aging';
 import { promoteNow, switchEmployer } from '../systems/careers';
-import { relocateCity } from '../systems/scenarios';
+import { relocateCity, settleDistances } from '../systems/scenarios';
 import { familySurnames, friendAgeRange, makePerson, namesInJournalThisYear, namesInLife, occupationMinAge } from '../systems/character';
 import { coworkerTitle, workplaceOf } from '../systems/coworkers';
 import { markChildMilestone } from '../systems/family';
@@ -10,8 +10,9 @@ import { payForMinor } from '../systems/guardians';
 import { onParole, revokeParole, settleParole, settleTrial, stayLength, verdictNote } from '../systems/justice';
 import { markDeath } from '../systems/death';
 import { ADULT_AGE, clampRange, griefFactor, markBereaved, partnerAgeRange, tooSoonLine } from '../systems/romance';
-import type { GameState, Illness, Person } from '../types';
+import type { GameState, Illness, JobHistoryEntry, Person } from '../types';
 import { addKarma, addMoney, addStats, bump, clampStat, clearCoupleFlags, incFlag, log, setFlag, withFame } from '../util';
+import { settleHomeWithParents } from './conditions';
 import { MET_FAR_AWAY_KINDS, type Effect } from './schema';
 import { renderText, scaleMoney, type TextContext } from './text';
 
@@ -56,15 +57,18 @@ export function markContact(state: GameState, id: string): GameState {
 export function giveIllness(state: GameState, defId: string): GameState {
   if (state.health.illnesses.some((i) => i.defId === defId)) return state;
   const def = ILLNESS_BY_ID[defId];
+  // A once-a-life illness (an appendix) is had once: a second one is not given, and the first is remembered.
+  if (def && hadOnceIllness(def, state.flags, {})) return state;
+  const flags = def?.oncePerLife ? { ...state.flags, [illnessHadFlag(def.id)]: state.character.age } : state.flags;
   const ill: Illness = def
     ? { defId, name: def.name, severity: def.severity, chronic: def.chronic, yearsLeft: def.chronic ? -1 : def.duration, treated: false }
     : { defId, name: defId.replace(/_/g, ' '), severity: 2, chronic: false, yearsLeft: 1, treated: false };
-  let s: GameState = { ...state, health: { ...state.health, illnesses: [...state.health.illnesses, ill] } };
+  let s: GameState = { ...state, flags, health: { ...state.health, illnesses: [...state.health.illnesses, ill] } };
   s = bump(s, 'illnesses');
   return s;
 }
 
-export function removeJob(state: GameState, reason: 'quit' | 'fired' | 'promoted' | 'retired' | 'left' | 'laidOff'): GameState {
+export function removeJob(state: GameState, reason: JobHistoryEntry['reason']): GameState {
   const job = state.career.job;
   if (!job) return state;
   const entry = { title: job.title, company: job.company, defId: job.defId, fromAge: state.character.age - job.yearsHeld, toAge: state.character.age, salary: job.salary, reason };
@@ -85,7 +89,8 @@ export function sendToPrison(state: GameState, years: number): GameState {
   const left = stayLength(state, prior + sentence);
   const edu = state.education;
   const schoolGoesOn = juvenile && (edu.stage === 'primary' || edu.stage === 'middle' || edu.stage === 'high');
-  let s = revokeParole(removeJob(state, 'left'));
+  // The work history says the sentence ended the job ("went to prison"), not that I moved on.
+  let s = revokeParole(removeJob(state, 'prison'));
   s = {
     ...s,
     crime: {
@@ -102,7 +107,8 @@ export function sendToPrison(state: GameState, years: number): GameState {
     education: schoolGoesOn ? edu : { ...edu, enrolled: false },
   };
   s = bump(s, 'arrests');
-  return s;
+  // A cell ends living back home with my parents.
+  return settleHomeWithParents(s);
 }
 
 /**
@@ -242,7 +248,8 @@ export function applyEffect(state: GameState, rng: Rng, e: Effect, ctx: EffectCo
   if ('marry' in e) {
     if (!person?.alive || person.kind !== 'lover' || person.age < ADULT_AGE || state.character.age < ADULT_AGE || state.crime.inPrison) return s;
     s = updatePerson(s, person.id, { kind: 'spouse', marriedAtAge: s.character.age, ...takeSurname(person, rng.chance(0.5), s.character.lastName) });
-    return clearCoupleFlags(bump(s, 'marriages'), ['lf_living_together']);
+    // A partner married from a long-distance relationship (left behind by a move) comes to live with me.
+    return settleDistances(clearCoupleFlags(bump(s, 'marriages'), ['lf_living_together']));
   }
   if ('personDies' in e) {
     if (!person?.alive) return s;

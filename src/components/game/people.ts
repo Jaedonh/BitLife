@@ -1,6 +1,6 @@
 import { availableInteractions } from '@/engine';
 import { personRef, scaleMoney } from '@/engine/events/text';
-import type { InteractionDef, InteractionId } from '@/engine/systems/relationships';
+import { seesDaily, type InteractionDef, type InteractionId } from '@/engine/systems/relationships';
 import { fosterRelation } from '@/engine/systems/scenarios';
 import type { GameState, LogEntry, LogKind, Person, RelationshipKind } from '@/engine/types';
 import { actionCount, capitalize, deathPhrase, lowerTitle } from '@/engine/util';
@@ -184,24 +184,17 @@ export function familyFacts(p: Person, state: Pick<GameState, 'people' | 'career
 
 /**
  * Everything the person screen says about someone, in order: how long you have known them (left out for an aunt or
- * uncle who took you in later, whose line already says when), the family facts, any silence, and the wedding.
+ * uncle who took you in later, whose line already says when), the family facts, any silence, and the wedding. No
+ * silence for someone I see every day (`seesDaily`: the people I live with, a child still at home, a coworker at my
+ * job), and none older than their newest memory: a journal line about them this year (a goodbye, a line about a
+ * grandchild) is time with them.
  */
-export function personFacts(p: Person, state: Pick<GameState, 'people' | 'career' | 'character'> & Partial<Pick<GameState, 'flags' | 'crime'>>): string[] {
+export function personFacts(p: Person, state: GameState): string[] {
   const age = state.character.age;
   const since = isRelativeGuardian(p) && p.metAtAge > 0 ? null : sinceLine(p, age);
   const married = p.marriedAtAge !== undefined ? `Married when you were ${p.marriedAtAge}.` : null;
-  return [since, ...familyFacts(p, state), neglectLine(p, age, livesWithMe(p, state)), married].filter((x): x is string => !!x);
-}
-
-/**
- * Whether someone shares my home now, beyond the parents and siblings of a childhood home: a spouse, a pet, and a
- * partner I moved in with (`lf_living_together`), as for `household` event selectors. Not while I am in prison, nor
- * anyone who lives far away.
- */
-export function livesWithMe(p: Person, state: Partial<Pick<GameState, 'flags' | 'crime'>>): boolean {
-  if (!p.alive || p.farAway || state.crime?.inPrison) return false;
-  if (p.kind === 'spouse' || p.kind === 'pet') return true;
-  return p.kind === 'lover' && state.flags?.lf_living_together === true;
+  const silence = neglectLine(p, age, seesDaily(state, p), personMemories(state, p, 1)[0]?.age);
+  return [since, ...familyFacts(p, state), silence, married].filter((x): x is string => !!x);
 }
 
 /** "Died of cancer at 71", "Died in a car accident at 40". */
@@ -212,17 +205,19 @@ export function deathLine(p: Person): string {
 const HOUSEHOLD: ReadonlySet<RelationshipKind> = new Set(['mother', 'father', 'stepmother', 'stepfather', 'sibling']);
 
 /**
- * "You haven't spoken in 3 years." Only for real silence: a child lives with their parents and siblings until 18
- * (and a parent with their own kids), so those years never count as neglect, nor do years before you met; and
- * nobody I live with now (`livesWithMe`: a spouse, a live-in partner, a pet) is a stranger at home.
+ * "You haven't spoken in 3 years." Only for real silence: nobody I see every day now (`seesDaily`, passed as
+ * `together`: the people I live with, a child still at home, a coworker at my job) is a stranger, and the years we
+ * spent that way never count (`memory.togetherUntil`, or for an older save a childhood home until 18 and a child's
+ * until they were 18), nor do years before we met, nor the years before their newest memory (`lastMention`: the age
+ * of the latest journal line about them, which the page lists right below).
  */
-export function neglectLine(p: Person, playerAge: number, sharesHome = false): string | null {
-  if (!p.alive || sharesHome) return null;
+export function neglectLine(p: Person, playerAge: number, together = false, lastMention?: number): string | null {
+  if (!p.alive || together) return null;
   if (p.kind === 'child' && p.age < 18) return null;
   // A small grandchild is seen with their parents; a young child sees their grandparents the same way.
   if (p.kind === 'grandchild' && p.age < 6) return null;
   const sharedHomeUntil = HOUSEHOLD.has(p.kind) ? 18 : p.kind === 'child' ? p.metAtAge + 18 : p.kind === 'grandparent' ? 12 : 0;
-  const since = Math.max(p.memory.lastInteractionAge, p.metAtAge, Math.min(sharedHomeUntil, playerAge));
+  const since = Math.max(p.memory.lastInteractionAge, p.metAtAge, p.memory.togetherUntil ?? 0, lastMention ?? 0, Math.min(sharedHomeUntil, playerAge));
   const years = playerAge - since;
   if (years < 2) return null;
   return p.kind === 'pet' ? `You haven't spent time together in ${years} years.` : `You haven't spoken in ${years} years.`;

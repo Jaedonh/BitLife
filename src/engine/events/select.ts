@@ -2,7 +2,7 @@ import { Rng } from '../rng';
 import { settleCoworkers } from '../systems/coworkers';
 import type { GameState, PendingEvent, QueuedEvent } from '../types';
 import { bump, log } from '../util';
-import { candidatesFor, evaluateAll } from './conditions';
+import { candidatesFor, evaluateAll, settleHomeWithParents } from './conditions';
 import { applyEffects } from './effects';
 import type { EventDef } from './schema';
 import { renderText } from './text';
@@ -18,6 +18,21 @@ export function makeRegistry(defs: readonly EventDef[]): EventRegistry {
   const ids = new Set(defs.map((d) => d.id));
   const all = [...defs, ...SYSTEM_EVENTS.filter((d) => !ids.has(d.id))];
   return { all, byId: Object.fromEntries(all.map((d) => [d.id, d])) };
+}
+
+/** The engine's own cards (justice.ts): they open whatever choices are left, as the case needs an answer. */
+const SYSTEM_EVENT_IDS: ReadonlySet<string> = new Set(SYSTEM_EVENTS.map((d) => d.id));
+
+/**
+ * Whether a card would open as a single forced button although it was written with a real choice (a broke player
+ * offered only "Ignore it" on a card whose other choices cost money). Such a random card is not rolled, and one
+ * rolled at the birthday is skipped if the year has since taken its choices away (CONTENT_STYLE). A follow-up is
+ * the rest of a story already begun and opens with what is left, as written ("Check the bulletin board" after the
+ * union drive), and so does the engine's own court and parole card.
+ */
+function collapsesToOneChoice(state: GameState, def: EventDef, hidden?: ReadonlySet<string>): boolean {
+  if (def.followUpOnly || def.choices.length < 2 || SYSTEM_EVENT_IDS.has(def.id)) return false;
+  return def.choices.filter((c) => evaluateAll(state, c.conditions) && !hidden?.has(c.id)).length < 2;
 }
 
 /** How many random events to roll this year, by age band. */
@@ -72,7 +87,8 @@ export function scheduleYearEvents(state: GameState, registry: EventRegistry, fi
   const count = fixedCount ?? eventCountForYear(state.character.age, rng);
   const queued: QueuedEvent[] = [];
   const usedCategories = new Set<string>();
-  let pool = registry.all.filter((d) => isEligible(state, d));
+  // A card that would offer a single forced choice is left out, so the year's slot goes to another card.
+  let pool = registry.all.filter((d) => isEligible(state, d) && !collapsesToOneChoice(state, d));
   for (let i = 0; i < count && pool.length > 0; i++) {
     const def = rng.weighted(pool, (d) => (usedCategories.has(d.category) ? d.weight * 0.25 : d.weight));
     usedCategories.add(def.category);
@@ -115,6 +131,9 @@ export function openNextEvent(state: GameState, registry: EventRegistry): GameSt
     const hidden = new Set((next!.context.hide ?? '').split(','));
     const choices = def.choices.filter((c) => evaluateAll(s, c.conditions) && !hidden.has(c.id));
     if (choices.length === 0) continue;
+    // A random card written with a real choice never opens as a single forced button (an earlier card this year
+    // spent the money its other choices need): it waits for another year. Follow-ups and the engine's cards open.
+    if (collapsesToOneChoice(s, def, hidden)) continue;
     const tc = { person, vars: def.vars?.length ? next!.context : undefined };
     const pending: PendingEvent = {
       eventId: def.id,
@@ -145,8 +164,9 @@ export function resolveChoice(state: GameState, choiceId: string, registry: Even
   // Only a code-defined card's context feeds its effects (its case, e.g. the court's charge and fee).
   const vars = def.vars?.length ? pending.context : undefined;
   s = applyEffects(s, rng, choice.effects, { personId: pending.personId, person: pending.personId ? s.people[pending.personId] : undefined, vars });
-  // A choice that cost the player their job (fired, jailed) also parts them from that job's coworkers.
-  s = settleCoworkers(s);
+  // A choice that cost the player their job (fired, jailed) also parts them from that job's coworkers, and one that
+  // gave me a home, a spouse or a partner to live with (or a cell) ends living with my parents.
+  s = settleHomeWithParents(settleCoworkers(s));
   s = { ...s, rng: rng.snapshot() };
   return openNextEvent(s, registry);
 }

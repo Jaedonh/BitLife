@@ -55,8 +55,10 @@ export function evaluateCondition(state: GameState, c: Condition): boolean {
   if ('hasDegree' in c) return state.education.degrees.some((d) => d.startsWith('bachelor') || d.startsWith('master') || d.startsWith('doctor')) === c.hasDegree;
   if ('grade' in c) return cmp(state.education.grade, c.grade);
   if ('married' in c) return hasPersonOfKind(state, ['spouse']) === c.married;
-  if ('hasLover' in c) return hasPersonOfKind(state, ['lover', 'spouse']) === c.hasLover;
-  if ('hasChildren' in c) return hasPersonOfKind(state, ['child']) === c.hasChildren;
+  // A partner or a child is mine wherever they live (one left behind by a move to another city): no second partner,
+  // no "no kids yet" card for a parent whose children live far away.
+  if ('hasLover' in c) return alivePeople(state).some((p) => p.kind === 'lover' || p.kind === 'spouse') === c.hasLover;
+  if ('hasChildren' in c) return alivePeople(state).some((p) => p.kind === 'child') === c.hasChildren;
   if ('hasPerson' in c) return hasPersonOfKind(state, c.hasPerson);
   if ('noPerson' in c) return !hasPersonOfKind(state, c.noPerson);
   if ('country' in c) return c.country.includes(ch.countryCode);
@@ -148,14 +150,55 @@ export function candidatesFor(state: GameState, sel: PersonSelector): Person[] {
   });
 }
 
-/** Whether the player still lives with their parents: as a minor, or under 24 with no home and little income (as in finance.ts). */
+/**
+ * Flag a card sets when I move back in with my parents (ya_move_back_home: "Move back home"). It holds while a parent
+ * or step-parent nearby is alive, and ends when I buy a home, marry, move in with a partner, move to another city or
+ * go to prison (`settleHomeWithParents`).
+ */
+export const HOME_WITH_PARENTS_FLAG = 'home_with_parents';
+
+/** A home of my own that I live in (not one rented out). */
+export function ownsHomeLivedIn(state: GameState): boolean {
+  return state.assets.some((a) => a.kind === 'house' && a.primary && !a.rentedOut);
+}
+
+/** A parent or step-parent who is alive and lives nearby: someone I could live with. */
+function parentNearby(state: GameState): boolean {
+  return hasPersonOfKind(state, ['mother', 'father', 'stepmother', 'stepfather']);
+}
+
+/** Why moving back home is over: a home, a spouse or a partner of my own, prison, or no parent nearby to live with. */
+function homeWithParentsEnded(state: GameState): boolean {
+  return state.crime.inPrison || ownsHomeLivedIn(state) || hasPersonOfKind(state, ['spouse']) || state.flags.lf_living_together === true || !parentNearby(state);
+}
+
+/** I moved back in with my parents on a card and still live there (HOME_WITH_PARENTS_FLAG). */
+export function movedBackHome(state: GameState): boolean {
+  return state.flags[HOME_WITH_PARENTS_FLAG] !== undefined && !homeWithParentsEnded(state);
+}
+
+/**
+ * Clears HOME_WITH_PARENTS_FLAG once living at home is over (a home bought, a wedding, moving in with a partner,
+ * prison, no parent left nearby), so a later divorce or a sold house does not put me back in my old room.
+ */
+export function settleHomeWithParents(state: GameState): GameState {
+  if (state.flags[HOME_WITH_PARENTS_FLAG] === undefined || !homeWithParentsEnded(state)) return state;
+  const flags = { ...state.flags };
+  delete flags[HOME_WITH_PARENTS_FLAG];
+  return { ...state, flags };
+}
+
+/**
+ * Whether the player still lives with their parents: as a minor, after moving back home on a card (movedBackHome),
+ * or under 24 with no home and little income (as in finance.ts).
+ */
 export function livesAtHome(state: GameState): boolean {
   const age = state.character.age;
   if (age < 18) return true;
+  if (movedBackHome(state)) return true;
   // An orphan ages out of foster care at 18 into a place of their own.
   if (state.flags.foster_care === true) return false;
-  const ownsHome = state.assets.some((a) => a.kind === 'house' && a.primary && !a.rentedOut);
-  return age < 24 && !ownsHome && (state.career.job?.salary ?? 0) < scaleMoney(state, 20_000) && !hasPersonOfKind(state, ['spouse']);
+  return age < 24 && !ownsHomeLivedIn(state) && (state.career.job?.salary ?? 0) < scaleMoney(state, 20_000) && !hasPersonOfKind(state, ['spouse']);
 }
 
 /** Whether the player lives with this person now (`household` selectors; who comes along on a move, scenarios.ts). */

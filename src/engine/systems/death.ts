@@ -2,7 +2,7 @@ import { getCountry } from '@/data/countries';
 import { jobDefsForTitle } from '@/data/jobs';
 import { GRAD_BY_ID, majorProse } from '@/data/majors';
 import type { GameState, JobHistoryEntry, Person } from '../types';
-import { deathPhrase, formatMoneyFull, fullName, joinList, log, netWorth, numberWord, plural, pronouns, roleWithArticle, sentence } from '../util';
+import { deathPhrase, formatMoneyFull, fullName, joinList, log, netWorth, numberWord, plural, pronouns, roleWithArticle, sentence, withArticle } from '../util';
 import { settleQuietYear } from './flavor';
 import { awardRibbon } from './ribbons';
 import { fosterRelation } from './scenarios';
@@ -52,20 +52,29 @@ export function markDeath(state: GameState, cause: string): GameState {
   return settleQuietYear(s);
 }
 
-/** A degree as an obituary would name it: "a degree in nursing", "an MBA", "a PhD". */
-function degreePhrase(degree: string): string | null {
+/**
+ * A credential as it reads after "my" or "an": "degree in nursing", "MBA", "master's degree", "medical degree", "PhD"
+ * ('bachelor:nursing', 'master:business', 'doctor:medicine'). Null for one with no field ('high_school').
+ */
+export function degreeNoun(degree: string): string | null {
   const [level, field] = degree.split(':');
   if (!field) return null;
-  if (level === 'bachelor') return `a degree in ${majorProse(field)}`;
+  if (level === 'bachelor') return `degree in ${majorProse(field)}`;
   switch (degree) {
-    case 'master:business': return 'an MBA';
-    case 'master:general': return "a master's degree";
-    case 'doctor:medicine': return 'a medical degree';
-    case 'doctor:law': return 'a law degree';
-    case 'doctor:dentistry': return 'a dental degree';
-    case 'doctor:philosophy': return 'a PhD';
-    default: return `a degree in ${field.replace(/_/g, ' ')}`;
+    case 'master:business': return 'MBA';
+    case 'master:general': return "master's degree";
+    case 'doctor:medicine': return 'medical degree';
+    case 'doctor:law': return 'law degree';
+    case 'doctor:dentistry': return 'dental degree';
+    case 'doctor:philosophy': return 'PhD';
+    default: return `degree in ${field.replace(/_/g, ' ')}`;
   }
+}
+
+/** A degree as an obituary would name it: "a degree in nursing", "an MBA", "a PhD". */
+function degreePhrase(degree: string): string | null {
+  const noun = degreeNoun(degree);
+  return noun && withArticle(noun);
 }
 
 const DEGREE_RANK: Record<string, number> = { bachelor: 1, master: 2, doctor: 3 };
@@ -286,11 +295,13 @@ export function buildObituary(state: GameState, cause: string, worth: number, ri
         ? '' // "never married" is a punchline at 60, not at 19
         : `${p.Subject} never married.`;
   const moneyText = worth >= 1_000_000
-    ? `${p.Subject} left behind a fortune of ${formatMoneyFull(worth, c.countryCode)}.`
+    ? `${p.Subject} left behind a fortune of ${formatMoneyFull(worth, c.countryCode, state.year)}.`
     : worth < 0
-      ? `${p.Subject} left behind debts of ${formatMoneyFull(-worth, c.countryCode)}${c.age < 25 ? '' : ', which surprised no one'}.`
+      ? `${p.Subject} left behind debts of ${formatMoneyFull(-worth, c.countryCode, state.year)}${c.age < 25 ? '' : ', which surprised no one'}.`
       : worth < 1_000
         ? `${p.Subject} left behind next to nothing.`
-        : `${p.Subject} left behind ${formatMoneyFull(worth, c.countryCode)}.`;
-  return `${opening} ${sentence(lifeText)}${familyText ? ` ${familyText}` : ''} ${moneyText}${crimeText} Remembered as: ${ribbonName}.`;
+        : `${p.Subject} left behind ${formatMoneyFull(worth, c.countryCode, state.year)}.`;
+  // An athlete voted into the Hall of Fame after the playing days (careers.ts, flag `hallOfFame`).
+  const honorText = !idle && state.flags.hallOfFame === true ? ` ${p.Subject} was voted into the Hall of Fame.` : '';
+  return `${opening} ${sentence(lifeText)}${honorText}${familyText ? ` ${familyText}` : ''} ${moneyText}${crimeText} Remembered as: ${ribbonName}.`;
 }

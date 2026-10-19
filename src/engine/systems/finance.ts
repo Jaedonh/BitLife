@@ -1,5 +1,6 @@
 import { ASSET_BY_ID } from '@/data/assets';
 import { getCountry } from '@/data/countries';
+import { movedBackHome, ownsHomeLivedIn } from '../events/conditions';
 import { scaleMoney } from '../events/text';
 import type { Rng } from '../rng';
 import { payForMinor } from './guardians';
@@ -178,8 +179,9 @@ export function yearlyFinance(state: GameState, rng: Rng): GameState {
   let wealthSpend = 0;
   if (adult && !s.crime.inPrison) {
     const thrift = c.traits.includes('thrifty') ? 0.85 : 1;
-    const ownsHome = s.assets.some((a) => a.kind === 'house' && a.primary && !a.rentedOut);
-    const livingWithParents = c.age < 24 && !ownsHome && gross < scaleMoney(s, 20_000) && Object.values(s.people).some((p) => (p.kind === 'mother' || p.kind === 'father') && p.alive);
+    const ownsHome = ownsHomeLivedIn(s);
+    // Under 24 on little income, or moved back in with a parent on a card (conditions.ts, movedBackHome).
+    const livingWithParents = !ownsHome && (movedBackHome(s) || (c.age < 24 && gross < scaleMoney(s, 20_000) && Object.values(s.people).some((p) => (p.kind === 'mother' || p.kind === 'father') && p.alive)));
     const housing = scaleMoney(s, ownsHome ? 7_000 : livingWithParents ? 2_500 : 9_000);
     const kids = Object.values(s.people).filter((p) => p.kind === 'child' && p.alive && p.age < 18).length * scaleMoney(s, 4_000);
     // Lifestyle creep: spending rises with income above the basics, so a salary alone does not compound into a fortune.

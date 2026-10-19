@@ -68,6 +68,11 @@ export interface Character {
   scenario?: ScenarioId;
   /** Immigrant scenario: the age at which the family moves abroad, and where to. */
   moveAbroad?: { age: number; countryCode: string };
+  /**
+   * Years spent with a partner of the player's own gender and of the other one (systems/romance.ts): who the
+   * player stays with leans the partners they meet. Optional: older saves and new lives start with none.
+   */
+  partnerYears?: { same: number; other: number };
 }
 
 /** Starting scenarios offered on the new-life screen (src/data/scenarios.ts). */
@@ -100,6 +105,12 @@ export interface PersonMemory {
   gifts: number;
   fights: number;
   yearsNeglected: number;
+  /**
+   * The player's age in the last year they saw this person every day (`seesDaily`, systems/relationships.ts: a home
+   * or a workplace shared at the yearly pass, or a coworker's last day). A silence on their page counts from then.
+   * Optional: older saves have none and fall back to the childhood home ending at 18.
+   */
+  togetherUntil?: number;
 }
 
 export interface Person {
@@ -246,8 +257,12 @@ export interface JobHistoryEntry {
   fromAge: number;
   toAge: number;
   salary: number;
-  /** 'laidOff': the yearly layoff (cutbacks), which is not a firing and does not count toward `counters.firings`. */
-  reason: 'quit' | 'fired' | 'promoted' | 'retired' | 'left' | 'laidOff';
+  /**
+   * 'laidOff': the yearly layoff (cutbacks), which is not a firing and does not count toward `counters.firings`.
+   * 'prison': the job ended with a prison or detention sentence. 'sportRetired': an athlete's playing career ended
+   * (careers.ts), which is not a retirement with a pension.
+   */
+  reason: 'quit' | 'fired' | 'promoted' | 'retired' | 'left' | 'laidOff' | 'prison' | 'sportRetired';
 }
 
 export interface Career {

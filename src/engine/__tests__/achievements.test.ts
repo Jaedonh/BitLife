@@ -229,7 +229,12 @@ describe('ways to live', () => {
     expect(earns(markDeath(old, 'old age'), 'clean_hands')).toBe(true);
     expect(earns(markDeath(at(life(), 79), 'old age'), 'clean_hands')).toBe(false);
     expect(earns(markDeath({ ...old, counters: { ...old.counters, crimes: 1 } }, 'old age'), 'clean_hands')).toBe(false);
+    expect(earns(markDeath({ ...old, crime: { ...old.crime, crimesCommitted: 1 } }, 'old age'), 'clean_hands')).toBe(false);
+    // An arrest counts (many cards end a crime with only the arrest), except the one a false theft charge brings.
     expect(earns(markDeath({ ...old, crime: { ...old.crime, arrests: 1 } }, 'old age'), 'clean_hands')).toBe(false);
+    const falselyCharged = { ...old, firedEvents: { ...old.firedEvents, cp_false_charge_court: 40 } };
+    expect(earns(markDeath({ ...falselyCharged, crime: { ...old.crime, arrests: 1 } }, 'old age'), 'clean_hands')).toBe(true);
+    expect(earns(markDeath({ ...falselyCharged, crime: { ...old.crime, arrests: 2 } }, 'old age'), 'clean_hands')).toBe(false);
   });
 
   it('repeat offender counts prison sentences', () => {

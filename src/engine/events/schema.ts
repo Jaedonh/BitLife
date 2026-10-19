@@ -216,8 +216,9 @@ export interface PersonSelector {
   /** The player's children only: their own children so far, counting babies on the way (at most 3). */
   kids?: Comparator;
   /**
-   * People who live far away (friends, rivals and grandparents left behind by a move abroad, and parents and siblings
-   * a grown-up left behind by moving to another city: CAN_LIVE_FAR_AWAY) are never bound by default, so no
+   * People who live far away (friends, rivals and grandparents left behind by a move abroad, and parents, siblings,
+   * grown children, grandchildren, a partner not lived with and an ex that a grown-up left behind by moving to another
+   * city: CAN_LIVE_FAR_AWAY) are never bound by default, so no
    * in-person scene reaches them. `true` binds only them (a letter or a call from the old country); 'any' binds them
    * or anyone nearby, for a card that works at any distance (a message, a group chat, a call, a video call). The same
    * rule holds for `hasPerson` and `noPerson`, which count people nearby.
@@ -245,10 +246,15 @@ export interface PersonSelector {
 
 /** The kinds of people who stay behind, far away, when the family moves abroad (systems/scenarios.ts). */
 export const FAR_AWAY_KINDS: readonly RelationshipKind[] = ['friend', 'bestFriend', 'enemy', 'grandparent'];
-/** Family a grown-up leaves behind, far away, by moving to another city without them (the `relocate` effect). */
-export const FAMILY_LEFT_BEHIND_KINDS: readonly RelationshipKind[] = ['mother', 'father', 'stepmother', 'stepfather', 'sibling'];
+/**
+ * Family a grown-up leaves behind, far away, by moving to another city without them (the `relocate` effect): parents
+ * and siblings, and children who have moved out, with their children.
+ */
+export const FAMILY_LEFT_BEHIND_KINDS: readonly RelationshipKind[] = ['mother', 'father', 'stepmother', 'stepfather', 'sibling', 'child', 'grandchild'];
+/** A partner I do not live with stays behind too when I move to another city (a long-distance relationship), and so does an ex. */
+export const PARTNER_LEFT_BEHIND_KINDS: readonly RelationshipKind[] = ['lover', 'ex'];
 /** Everyone who can live far away, so a person selector's `farAway` means something for them. */
-export const CAN_LIVE_FAR_AWAY: readonly RelationshipKind[] = [...FAR_AWAY_KINDS, ...FAMILY_LEFT_BEHIND_KINDS];
+export const CAN_LIVE_FAR_AWAY: readonly RelationshipKind[] = [...FAR_AWAY_KINDS, ...FAMILY_LEFT_BEHIND_KINDS, ...PARTNER_LEFT_BEHIND_KINDS];
 /** Who a card can introduce as living far away (`newPerson: { farAway: true }`): a friend or a rival met on the road. */
 export const MET_FAR_AWAY_KINDS: readonly RelationshipKind[] = ['friend', 'bestFriend', 'enemy'];
 

@@ -1,5 +1,5 @@
 import type { GameState, LogEntry, LogKind, Stats } from './types';
-import { getCountry } from '@/data/countries';
+import { currencyFor, type CurrencyDisplay } from '@/data/countries';
 
 export const clamp = (v: number, min = 0, max = 100): number => Math.max(min, Math.min(max, v));
 
@@ -127,24 +127,31 @@ function abbreviateAmount(abs: number): string {
   return Math.round(abs).toLocaleString('en-US');
 }
 
+/** "€2.4M", or "2.4M lire" for a currency written as a unit after the amount ("1 mark", "18 marks"). */
+function withCurrency(local: number, digits: string, c: CurrencyDisplay): string {
+  const sign = Math.round(local) < 0 ? '-' : '';
+  if (!c.unit) return `${sign}${c.symbol ?? ''}${digits}`;
+  return `${sign}${digits} ${Math.abs(Math.round(local)) === 1 ? c.unit.one : c.unit.many}`;
+}
+
 /**
  * Money for display, abbreviated ("₹2.4M"). Game amounts are USD-based units scaled by the
  * country's salary multiplier; the country's `fxRate` converts them to local currency here,
  * for display only. Never parse the result back into a number: keep the raw amount instead.
+ * With the year, a euro country shows the currency it had then ("1,800 lire" in 1990, before
+ * the euro notes and coins of 2002: data/countries.ts, currencyFor).
  */
-export function formatMoney(amount: number, countryCode: string): string {
-  const c = getCountry(countryCode);
+export function formatMoney(amount: number, countryCode: string, year?: number): string {
+  const c = currencyFor(countryCode, year);
   const local = amount * c.fxRate;
-  const sign = Math.round(local) < 0 ? '-' : '';
-  return `${sign}${c.currencySymbol}${abbreviateAmount(Math.abs(local))}`;
+  return withCurrency(local, abbreviateAmount(Math.abs(local)), c);
 }
 
-/** Money for display with full digits ("₹2,412,000"), converted to local currency like formatMoney. */
-export function formatMoneyFull(amount: number, countryCode: string): string {
-  const c = getCountry(countryCode);
+/** Money for display with full digits ("₹2,412,000"), converted to local currency like formatMoney (and for the year, too). */
+export function formatMoneyFull(amount: number, countryCode: string, year?: number): string {
+  const c = currencyFor(countryCode, year);
   const local = Math.round(amount * c.fxRate);
-  const sign = local < 0 ? '-' : '';
-  return `${sign}${c.currencySymbol}${Math.abs(local).toLocaleString('en-US')}`;
+  return withCurrency(local, Math.abs(local).toLocaleString('en-US'), c);
 }
 
 export function fullName(p: { firstName: string; lastName: string }): string {
@@ -242,9 +249,12 @@ export function employerLabel(company: string): string {
   return company.replace(/^the /, '');
 }
 
-/** Money for prose and toasts, with the local currency symbol and full digits. */
+/**
+ * Money for prose and toasts, with the local currency and full digits: the money of the year being played, so a
+ * euro country's journal says "lire" until the euro arrived (2002).
+ */
 export function money(state: GameState, amount: number): string {
-  return formatMoneyFull(amount, state.character.countryCode);
+  return formatMoneyFull(amount, state.character.countryCode, state.year);
 }
 
 export function pronouns(gender: 'male' | 'female') {

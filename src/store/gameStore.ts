@@ -1,13 +1,14 @@
 import { create } from 'zustand';
 
 import { achievementContext, ageUp as engineAgeUp, applyAction, beginLife, createLife, EVENT_REGISTRY, listingsBlocker, newAchievements, randomSeed, resolveChoice, secondChance, statBoostBlocker } from '@/engine';
-import type { GameState, LastResult, LogKind, NewLifeOptions, PlayerAction } from '@/engine/types';
+import type { GameState, LastResult, NewLifeOptions, PlayerAction } from '@/engine/types';
 import { ads } from '@/services/ads';
 import { track } from '@/services/analytics';
 import { canShowRewarded, recordAgeUp, recordInterstitialShown, recordRewardedUsed, shouldShowInterstitial } from '@/services/ads/policy';
 import { readJson, remove, StorageKeys, writeJson } from '@/services/storage';
 import { migrateSave } from './migrations';
 import { useSettingsStore } from './settingsStore';
+import { yearHighlight } from './yearRecap';
 
 export type RewardedPlacement = 'cashBoost' | 'statBoost' | 'secondChance' | 'reroll';
 /** 'ineligible': the reward cannot apply to this life right now; the game's own message says why and nothing was spent. */
@@ -67,33 +68,8 @@ function persist(game: GameState | null) {
   }, 150);
 }
 
-/**
- * Which of a year's journal lines is worth a toast: milestones first. A card's own line ("text → choice")
- * is what the player just read, so it is never the headline; what the choice led to can be.
- */
-const HIGHLIGHT_RANK: Partial<Record<LogKind, number>> = { milestone: 4, bad: 2, good: 2, money: 1 };
-
-/**
- * The year's most notable new line, skipping any line that also happened last year (a debt
- * reminder or a recurring chore would otherwise be the headline every single year). A milestone
- * is news every time, though: a parole granted two years running is still this year's release.
- * Once the year's cards are closed it covers their outcomes too, so the recap never contradicts
- * them ("Another year behind bars" in the year parole was granted). Lines from `cardsFrom` on were
- * written by the year's cards: they are its latest news, so they win a tie with what the year
- * wrote before them ("1 year to go" from a card that then added a year to the sentence).
- */
-export function yearHighlight(before: GameState, after: GameState, cardsFrom = after.log.length): string | null {
-  const lastYear = new Set(before.log.filter((l) => l.kind !== 'year' && l.age === before.character.age).map((l) => l.text));
-  let best: { text: string; rank: number; card: boolean } | null = null;
-  for (let i = before.log.length; i < after.log.length; i++) {
-    const l = after.log[i]!;
-    const rank = HIGHLIGHT_RANK[l.kind] ?? 0;
-    if (!rank || (l.kind !== 'milestone' && lastYear.has(l.text))) continue;
-    const card = i >= cardsFrom;
-    if (!best || rank > best.rank || (rank === best.rank && card && !best.card)) best = { text: l.text, rank, card };
-  }
-  return best?.text ?? null;
-}
+// The year's headline (yearRecap.ts): a close family death first, then a card that sent me to prison, then milestones.
+export { yearHighlight };
 
 function yearDeltas(before: GameState, after: GameState): Pick<LastResult, 'statDeltas' | 'moneyDelta'> {
   const statDeltas: Partial<GameState['character']['stats']> = {};

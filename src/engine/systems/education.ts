@@ -2,7 +2,7 @@ import { getCountry } from '@/data/countries';
 import { GRAD_BY_ID, GRADUATE_PROGRAMS, MAJOR_BY_ID, majorProse, MAJORS } from '@/data/majors';
 import { parentsRef, scaleMoney } from '../events/text';
 import type { Rng } from '../rng';
-import type { GameState } from '../types';
+import type { GameState, Person } from '../types';
 import { actionCount, addMoney, addStats, capitalize, clampStat, countAction, log, money, setResult, withArticle } from '../util';
 
 export const STAGE_LABELS: Record<string, string> = {
@@ -175,14 +175,15 @@ export function skipClass(state: GameState, rng: Rng): GameState {
   s = { ...s, character: { ...s.character, energy: s.character.energy - SKIP_CLASS_ENERGY }, education: { ...s.education, grade: clampStat(s.education.grade - 8) } };
   const college = state.education.stage === 'university' || state.education.stage === 'graduate';
   if (rng.chance(0.25)) {
-    const parents = Object.values(s.people).some((p) => (p.kind === 'mother' || p.kind === 'father' || p.kind === 'stepmother' || p.kind === 'stepfather') && p.alive);
+    // Word gets back to a parent nearby only while I am a minor: a grown student's professor and grade take the hit.
+    const parents = (!college || state.character.age < 18) && Object.values(s.people).some((p) => PARENT_KINDS.includes(p.kind) && p.alive && !p.farAway);
     if (!parents) {
       s = addStats(log(s, college ? 'I skipped class and got caught. The professor noticed, and so did my grade.' : 'I skipped class and got caught. Detention, and a note in my file.', 'bad'), { happiness: -3 });
       return setResult(s, college ? 'Caught skipping. My grade took the hit.' : 'Caught skipping. Detention.', 'bad');
     }
     const who = parentsRef(s);
     s = log(s, college ? `I skipped class and got caught. Word got back to ${who}.` : `I skipped class and got caught. ${capitalize(who)} found out, and I was grounded.`, 'bad');
-    for (const p of Object.values(s.people)) if ((p.kind === 'mother' || p.kind === 'father') && p.alive) s = { ...s, people: { ...s.people, [p.id]: { ...p, relationship: clampStat(p.relationship - 6) } } };
+    for (const p of Object.values(s.people)) if ((p.kind === 'mother' || p.kind === 'father') && p.alive && !p.farAway) s = { ...s, people: { ...s.people, [p.id]: { ...p, relationship: clampStat(p.relationship - 6) } } };
     s = addStats(s, { happiness: -3 });
     return setResult(s, college ? `Caught skipping. ${capitalize(who)} heard about it.` : 'Caught skipping. Grounded.', 'bad');
   }
@@ -236,12 +237,25 @@ export function enrollBlocker(state: GameState): string | null {
   return null;
 }
 
+/** A wealthy family pays tuition only for a young student (GAME_DESIGN §6): under this age at enrollment. */
+export const FAMILY_PAYS_TUITION_UNDER = 30;
+
+const PARENT_KINDS: readonly Person['kind'][] = ['mother', 'father', 'stepmother', 'stepfather'];
+
+/**
+ * Whether a wealthy family would pay for a program started now: only while a parent or step-parent is alive to pay,
+ * and only for a student under FAMILY_PAYS_TUITION_UNDER. An orphaned 50-year-old pays like anyone else.
+ */
+export function familyPaysTuition(state: GameState): boolean {
+  return state.flags.wealthyFamily === true && state.character.age < FAMILY_PAYS_TUITION_UNDER && Object.values(state.people).some((p) => p.alive && PARENT_KINDS.includes(p.kind));
+}
+
 export function enroll(state: GameState, rng: Rng, id: string): GameState {
   const blocked = enrollBlocker(state);
   if (blocked) return setResult(state, blocked, 'bad');
   const opt = enrollOptions(state).find((o) => o.id === id);
   if (!opt || !opt.eligible) return setResult(state, opt?.reason ? `${opt.reason}.` : "That program isn't open to me.", 'bad');
-  const wealthy = state.flags.wealthyFamily === true;
+  const wealthy = familyPaysTuition(state);
   const scholarship = rng.chance(state.education.grade >= 85 && state.character.stats.smarts >= 70 ? 0.6 : state.character.stats.smarts >= 90 ? 0.4 : 0.05);
   let s: GameState = {
     ...state,
