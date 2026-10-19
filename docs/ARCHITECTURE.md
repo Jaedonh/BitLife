@@ -9,7 +9,7 @@ cheap to extend with content.
 ```
 ┌──────────────────────────────── app (src/app, expo-router) ───────────────────────────────┐
 │  screens: menu · new life · life (stats, log, Age+) · occupation · assets · relationships  │
-│           · activities · event modal · death/legacy · settings · premium                    │
+│           · activities · event modal · death/legacy · settings · premium · achievements    │
 └───────────────┬────────────────────────────────────────────────────────────────────────────┘
                 │ reads state, dispatches intents
 ┌───────────────▼────────────────  store (src/store, zustand)  ──────────────────────────────┐
@@ -20,12 +20,13 @@ cheap to extend with content.
 ┌───────────────▼────────────────  engine (src/engine)  ─────────────────────────────────────┐
 │  createLife · ageUp · applyAction · resolveChoice · selectors · narrative (log text)       │
 │  systems/: aging · education · careers · relationships · assets · activities · events ·    │
-│            health · crime · finance · death · ribbons · legacy                             │
+│            health · crime · finance · death · ribbons · legacy · achievements · flavor     │
 │  rng.ts (seeded)   types.ts (GameState)   content registry (src/data)                      │
 └───────────────┬────────────────────────────────────────────────────────────────────────────┘
                 │ data tables only (no logic)
 ┌───────────────▼────────────────  data (src/data)  ─────────────────────────────────────────┐
 │  countries · names · events/* · jobs · majors · activities · assets · illnesses · ribbons  │
+│  · achievements · flavor                                                                   │
 └────────────────────────────────────────────────────────────────────────────────────────────┘
 
 services (src/services): ads (AdMob) · purchases (RevenueCat) · storage · analytics seam (no SDK shipped)
@@ -77,6 +78,11 @@ death, prison…). A small interpreter applies effects, so writers never touch
 engine code and AI-generated content can be validated mechanically
 (`npm test` runs `events.validate.test.ts` over every event).
 
+Yearly journal flavour lines are data too (`src/data/flavor.ts`): an age range, optional `conditions` in the
+same language as events and an optional `person` to bind. `src/engine/systems/flavor.ts` picks at most one a year
+at the end of `ageUp` (after the year's cards are scheduled, before the first one opens), and the validator checks
+and samples them on every run (docs/GAME_DESIGN.md §15a).
+
 ## State and persistence
 
 `GameState` is a single JSON-serialisable object (`src/engine/types.ts`). It has
@@ -85,6 +91,13 @@ store writes to AsyncStorage (debounced, after every state change) under the
 keys in `src/services/storage.ts`. A corrupt save is quarantined, never crashed
 on. The graveyard (completed lives), settings, premium flag, and ad cadence meta
 are stored under separate keys so clearing a life never loses purchases.
+
+Achievements are meta progression across lives, so they live outside `GameState`: the settings store
+keeps `achievements` (id → `{ unlockedAt, lifeName, age }`) under their own storage key. The definitions
+and their pure tests are data (`src/data/achievements.ts`); `src/engine/systems/achievements.ts` checks a
+state against them, and `gameStore` calls it after each age-up, action, choice and death. A batch of
+unlocks raises `achievementNotice`, which the one feedback host (`ResultToast` in the root layout) turns
+into a trophy toast.
 
 ## Monetization wiring
 

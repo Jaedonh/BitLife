@@ -233,6 +233,9 @@ function interactOnce(state: GameState, rng: Rng, personId: string, interactionI
     case 'propose': {
       const yes = (person.love ?? 50) >= 55 && person.relationship >= 55 && rng.chance(0.55 + (person.love ?? 50) / 200);
       if (!yes) {
+        // Counted for the "Ouch" achievement (src/data/achievements.ts).
+        const rejected = s.flags.proposalsRejected;
+        s = { ...s, flags: { ...s.flags, proposalsRejected: (typeof rejected === 'number' ? rejected : 0) + 1 } };
         s = addStats(s, { happiness: -12 });
         s = adjustRelationship(s, personId, -8);
         const text = `I proposed to ${who}. ${person.gender === 'male' ? 'He' : 'She'} said no.`;

@@ -9,17 +9,22 @@
  * youngest age it was eligible at, and an older one), with the rendered title,
  * text, every choice label and hint, and every possible outcome line rendered
  * for that state and bound person. It also writes system-lines.md: every distinct
- * journal line the engine itself writes (not event cards), with the ages seen.
+ * journal line the engine itself writes (not event cards), with the ages seen, and
+ * flavor.md: every yearly flavor line rendered in a sampled year it fits.
  * Lines with leftover {{placeholders}}, "undefined" or "NaN" are flagged.
  */
 import { mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { applyAction } from '../src/engine/actions';
+import { varyLife } from './varied-lives';
 import { ageUp } from '../src/engine/ageUp';
 import { applyEffects } from '../src/engine/events/effects';
 import { EVENT_REGISTRY } from '../src/engine/events/registry';
 import type { Effect, EventDef } from '../src/engine/events/schema';
+import { FLAVOR } from '../src/data/flavor';
+import { advanceYear } from '../src/engine/systems/aging';
+import { flavorCandidates, flavorFits, isSituational } from '../src/engine/systems/flavor';
 import { candidatesFor } from '../src/engine/events/conditions';
 import { isEligible, resolveChoice } from '../src/engine/events/select';
 import { renderText } from '../src/engine/events/text';
@@ -49,8 +54,9 @@ function buyHomeAndCar(s: GameState, seed: number): GameState {
 }
 
 /** Plays lives (balanced, reckless, with pets) and keeps a state per year; also collects engine-written journal lines. */
-function sample(): { states: GameState[]; systemLines: Map<string, { ages: Set<number>; example: string }> } {
+function sample(): { states: GameState[]; years: { start: GameState; now: GameState }[]; systemLines: Map<string, { ages: Set<number>; example: string }> } {
   const states: GameState[] = [];
+  const years: { start: GameState; now: GameState }[] = [];
   const systemLines = new Map<string, { ages: Set<number>; example: string }>();
   for (let seed = 1; seed <= LIVES; seed++) {
     const policy = seed % 5 === 0 ? recklessPolicy : balancedPolicy;
@@ -71,6 +77,7 @@ function sample(): { states: GameState[]; systemLines: Map<string, { ages: Set<n
     record(0);
     for (let y = 0; y < 110 && s.alive; y++) {
       const before = s.log.length;
+      const start = advanceYear(s);
       s = ageUp(s, EVENT_REGISTRY);
       let guard = 0;
       while (s.pendingEvent && guard++ < 20) s = resolveChoice(s, rng.pick(s.pendingEvent.choices).id, EVENT_REGISTRY);
@@ -83,11 +90,13 @@ function sample(): { states: GameState[]; systemLines: Map<string, { ages: Set<n
       }
       for (const a of policy(s, rng)) s = applyAction(s, a);
       s = buyHomeAndCar(s, seed);
+      s = varyLife(s, seed);
       record(before);
       states.push({ ...s, pendingEvent: null, eventQueue: [] });
+      years.push({ start, now: s });
     }
   }
-  return { states, systemLines };
+  return { states, years, systemLines };
 }
 
 const SUSPECT = /\{\{|undefined|NaN|\bnull\b|\[object/;
@@ -155,7 +164,7 @@ async function loadFiles(): Promise<{ file: string; defs: EventDef[] }[]> {
 
 async function main() {
   mkdirSync(OUT, { recursive: true });
-  const { states, systemLines } = sample();
+  const { states, years, systemLines } = sample();
   const files = await loadFiles();
   let flagged = 0;
   for (const { file, defs } of files) {
@@ -178,6 +187,22 @@ async function main() {
     }
     writeFileSync(path.join(OUT, `${file}.md`), parts.join('\n'));
   }
+  // Flavor lines: each one rendered in the youngest sampled year it fits, with the person it would bind.
+  const flavor: string[] = ['# Yearly flavor lines rendered in sampled years\n', 'Situational lines first. Each shows the youngest sampled year it fits.\n'];
+  for (const line of [...FLAVOR].sort((a, b) => Number(isSituational(b)) - Number(isSituational(a)))) {
+    const fit = years.filter((y) => flavorFits(line, y.start, y.now)).sort((a, b) => a.now.character.age - b.now.character.age)[0];
+    const tags = [`ages ${line.minAge}-${line.maxAge}`, isSituational(line) ? 'situational' : 'generic', ...(line.quiet ? ['quiet'] : [])].join(', ');
+    if (!fit) {
+      flavor.push(`- (${tags}) ${line.text}  _never fit a sampled year_ ⚠️`);
+      flagged++;
+      continue;
+    }
+    const person = flavorCandidates(line, fit.start, fit.now)[0];
+    const out = flag(renderText(line.text, fit.now, { person }));
+    if (out.endsWith('⚠️')) flagged++;
+    flavor.push(`- (${tags}) ${out} — ${describeState(fit.now, person)}`);
+  }
+  writeFileSync(path.join(OUT, 'flavor.md'), flavor.join('\n'));
   const sys = [...systemLines.entries()]
     .map(([k, v]) => ({ k, min: Math.min(...v.ages), max: Math.max(...v.ages), example: v.example }))
     .sort((a, b) => a.min - b.min || a.k.localeCompare(b.k));
@@ -185,7 +210,7 @@ async function main() {
     path.join(OUT, 'system-lines.md'),
     ['# Journal lines written by the engine (not event cards)\n', 'Names replaced by NAME and numbers by #. Ages are the ages each line was seen at.\n', ...sys.map((x) => `- [${x.min}-${x.max}] ${flag(x.k)}`)].join('\n'),
   );
-  console.log(`wrote ${files.length} event files + system-lines.md to ${OUT} (${states.length} sampled states, ${systemLines.size} distinct system lines, ${flagged} flagged lines)`);
+  console.log(`wrote ${files.length} event files + system-lines.md + flavor.md to ${OUT} (${states.length} sampled states, ${systemLines.size} distinct system lines, ${flagged} flagged lines)`);
 }
 
 void main();

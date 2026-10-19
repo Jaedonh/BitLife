@@ -48,6 +48,11 @@ export function doActivity(state: GameState, rng: Rng, id: string): GameState {
     return s.lastResult ? { ...s, lastResult: { ...s.lastResult, moneyDelta: s.finances.cash - state.finances.cash } } : s;
   }
   s = spend(s, cost);
+  // Counted for the "Mirror, Mirror" achievement, botched or not (counters.surgeries also counts operations from health events).
+  if (def.id === 'plastic_surgery') {
+    const done = s.flags.cosmeticSurgeries;
+    s = { ...s, flags: { ...s.flags, cosmeticSurgeries: (typeof done === 'number' ? done : 0) + 1 } };
+  }
   // What the toast reports is what left the player's own pocket (a child's parents may have paid).
   const paid = s.finances.cash - state.finances.cash || undefined;
 

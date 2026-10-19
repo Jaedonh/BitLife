@@ -10,6 +10,8 @@ export const StorageKeys = {
   graveyard: 'lifeloop.graveyard.v1',
   premium: 'lifeloop.premium.v1',
   adsMeta: 'lifeloop.adsmeta.v1',
+  /** Unlocked achievements: kept across lives, premium changes and a cleared graveyard. */
+  achievements: 'lifeloop.achievements.v1',
 } as const;
 
 export async function readJson<T>(key: string): Promise<T | null> {

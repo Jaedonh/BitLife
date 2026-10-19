@@ -61,5 +61,10 @@ export function migrateSave(raw: unknown): GameState | null {
   // Future migrations go here, e.g. if (s.schemaVersion === 1) { ...; s = { ...s, schemaVersion: 2 }; }
   if (s.schemaVersion !== SCHEMA_VERSION) return null;
   if (!isGameStateShape(s)) return null;
+  // Optional memory of recent flavor lines: saves from before it have none, and a mangled one is just forgotten.
+  if (s.flavorSeen !== undefined && !recordOf(s.flavorSeen, isNum)) {
+    s = { ...s };
+    delete s.flavorSeen;
+  }
   return s as unknown as GameState;
 }

@@ -93,4 +93,29 @@ describe('migrateSave', () => {
     // ...and the untouched copy still passes
     expect(migrateSave(withField(save, 'character.age', save.character.age))).not.toBeNull();
   });
+
+  it('loads a save from before flavor lines were remembered, and forgets a mangled memory instead of failing', () => {
+    const played = playedSave();
+    expect(played.flavorSeen).toBeDefined();
+    // The old shape: no flavorSeen at all.
+    const old = JSON.parse(JSON.stringify(played)) as Record<string, unknown>;
+    delete old.flavorSeen;
+    const loaded = migrateSave(old);
+    expect(loaded).not.toBeNull();
+    expect(loaded!.flavorSeen).toBeUndefined();
+    // It plays on: the next years write flavor lines and start remembering them.
+    let g = loaded!;
+    for (let i = 0; i < 10 && g.alive; i++) {
+      g = ageUp(g);
+      while (g.pendingEvent) g = resolveChoice(g, g.pendingEvent.choices[0]!.id, EVENT_REGISTRY);
+    }
+    expect(Object.keys(g.flavorSeen ?? {}).length).toBeGreaterThan(0);
+    for (const mangled of [null, 'yes', [1, 2], { 'A line.': 'thirty' }]) {
+      const fixed = migrateSave(withField(played, 'flavorSeen', mangled));
+      expect(fixed).not.toBeNull();
+      expect(fixed!.flavorSeen).toBeUndefined();
+      expect(fixed!.character).toEqual(played.character);
+    }
+    expect(migrateSave(played)!.flavorSeen).toEqual(played.flavorSeen);
+  });
 });

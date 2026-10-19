@@ -29,6 +29,14 @@ Events are the game. This is the house style every content drop must follow. The
 - Prefer binding a person (`person` selector) so names and pronouns make the event personal; move the bond with `relationship: 'person'`.
 - Follow-ups: `followUpOnly: true` events reached only through `queue`, in the same file. Every queued card (random or follow-up) has its age range and `conditions` re-checked when it opens and is skipped if they no longer hold, because an earlier card that year may have jailed the player or cost them their job. A follow-up is checked after the choice that queued it, so give it the guards its text needs that the choice leaves true (usually the source's `inPrison: false`, or `hasJob: true` for work).
 
+## Flavor lines (`src/data/flavor.ts`)
+
+- One first-person journal line, at most 100 characters, no choices. Same voice and placeholders as events; a line that uses `{{person}}`/`{{they}}` binds someone with `person` (a pet, the spouse, a young child).
+- Generic lines have only an age range. Situational lines add `conditions` and are written only while that situation held all year, so describe the ongoing situation ("I read every book in the prison library"), never its start or end (no "I was diagnosed", "I got out").
+- Prison lines need `{ inPrison: true }` and `minAge: 18`; lines for a minor locked up use `maxAge: 17`. Behind bars nothing else is written.
+- A line that says the year was uneventful ("nothing happened", "my greatest achievement of the year") is marked `quiet: true`; the engine keeps it for years with no other line and no event card, and the validator rejects quiet wording without the mark.
+- Illness lines name a real illness id with `{ hasIllness: [...] }` and stay plain and respectful; addiction lines describe consequences only and never gambling.
+
 ## Content rating (Teen / 13+)
 
 Allowed: dating, kissing, marriage, pregnancy as a fact; alcohol and drug **references** only as temptations with consequences; crime described abstractly; fights without gore; death handled plainly.

@@ -2,6 +2,7 @@
  * Pure model of the global feedback toasts: turning a game result into a toast and
  * the queue rules (one at a time, a short backlog, a new year makes older results moot).
  */
+import type { AchievementDef } from '@/data/achievements';
 import type { GameState, LastResult, LogKind } from '@/engine/types';
 import { formatMoneyFull } from '@/engine/util';
 import { moneyPill, statPills, type Pill } from './lifeFormat';
@@ -17,6 +18,10 @@ export interface ToastItem {
   count: number;
   /** How long it stays on screen while nothing else is waiting (ms). */
   duration: number;
+  /** Replaces the kind's icon (achievements show a trophy). */
+  icon?: string;
+  /** Not about one moment of one life (an achievement): a new year or a new life does not drop it. */
+  sticky?: boolean;
 }
 
 export interface ToastQueue {
@@ -62,20 +67,51 @@ export function toastFromResult(result: LastResult, game: GameState, prev: GameS
   return { id, kind: result.kind, title, text, pills, count: 1, duration: toastDuration(text, title, pills.length) };
 }
 
+/** The toast for a batch of achievements unlocked by the same moment. */
+export function toastFromAchievements(defs: readonly AchievementDef[], id: number): ToastItem | null {
+  if (!defs.length) return null;
+  const one = defs.length === 1 ? defs[0] : undefined;
+  const title = one ? 'Achievement unlocked' : `${defs.length} achievements unlocked`;
+  const text = one ? `${one.emoji} ${one.name}: ${one.description}` : defs.map((d) => `${d.emoji} ${d.name}`).join(' · ');
+  return { id, kind: 'milestone', title, text, pills: [], count: 1, duration: toastDuration(text, title), icon: '🏆', sticky: true };
+}
+
+/** A new life (or the end of one) drops what was waiting, except toasts that outlive a life. */
+export function resetQueue(q: ToastQueue): ToastQueue {
+  const keep = [q.current, ...q.pending].filter((t): t is ToastItem => !!t && !!t.sticky);
+  if (keep.length === (q.current ? 1 : 0) + q.pending.length) return q;
+  return { current: keep[0] ?? null, pending: keep.slice(1) };
+}
+
 function samePills(a: Pill[], b: Pill[]): boolean {
   return a.length === b.length && a.every((p, i) => p.key === b[i]!.key && p.value === b[i]!.value);
 }
 
 export function enqueueToast(q: ToastQueue, item: ToastItem): ToastQueue {
-  // A new year makes anything still waiting from the last one stale.
-  if (item.kind === 'year') return { current: item, pending: [] };
+  // A new year makes anything still waiting from the last one stale. Achievements go before the recap and are
+  // never pushed aside by one, so tapping Age+ fast cannot starve them.
+  if (item.kind === 'year') {
+    const achievements = [q.current, ...q.pending].filter((t): t is ToastItem => !!t && !!t.sticky);
+    const [first, ...rest] = achievements;
+    return first ? { current: first, pending: trimPending([...rest, item]) } : { current: item, pending: [] };
+  }
   const last = q.pending[q.pending.length - 1] ?? q.current;
   if (last && last.kind === item.kind && last.text === item.text && last.title === item.title && samePills(last.pills, item.pills)) {
     const bumped = { ...last, count: last.count + 1 };
     return last === q.current ? { current: bumped, pending: q.pending } : { current: q.current, pending: [...q.pending.slice(0, -1), bumped] };
   }
   if (!q.current) return { current: item, pending: [] };
-  return { current: q.current, pending: [...q.pending, item].slice(-MAX_PENDING) };
+  return { current: q.current, pending: trimPending([...q.pending, item]) };
+}
+
+/** Drops the oldest waiting results past the backlog limit, ordinary ones before achievements. */
+function trimPending(pending: ToastItem[]): ToastItem[] {
+  const out = [...pending];
+  while (out.length > MAX_PENDING) {
+    const i = out.findIndex((t) => !t.sticky);
+    out.splice(i < 0 ? 0 : i, 1);
+  }
+  return out;
 }
 
 export function nextToast(q: ToastQueue): ToastQueue {

@@ -5,12 +5,15 @@
  *
  * Checks: schema validity, unique ids across the given files + the registry,
  * placeholders, queued follow-ups exist, and that every event is reachable
- * (eligible for at least one of a few thousand simulated states).
+ * (eligible for at least one of a few thousand simulated states). The yearly
+ * flavor lines (src/data/flavor.ts) are always checked the same way: wording,
+ * placeholders, conditions, and that each one fits some sampled year.
  */
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import { EVENTS } from '../src/data/events';
+import { FLAVOR } from '../src/data/flavor';
 import { isEligible } from '../src/engine/events/select';
 import { validateEvent, type EventDef } from '../src/engine/events/schema';
 import { ageUp } from '../src/engine/ageUp';
@@ -20,7 +23,10 @@ import { createLife } from '../src/engine/systems/character';
 import { Rng } from '../src/engine/rng';
 import { balancedPolicy, recklessPolicy } from '../src/engine/simulate';
 import { applyAction } from '../src/engine/actions';
+import { varyLife } from './varied-lives';
 import { applyEffects } from '../src/engine/events/effects';
+import { advanceYear } from '../src/engine/systems/aging';
+import { flavorFits, validateFlavor } from '../src/engine/systems/flavor';
 import type { GameState } from '../src/engine/types';
 
 async function loadFile(file: string): Promise<EventDef[]> {
@@ -42,6 +48,9 @@ function buyHomeAndCar(s: GameState, seed: number): GameState {
   return s;
 }
 
+/** Each sampled year as the flavor picker sees it: its start (the birthday just passed) and how it ended. */
+const flavorYears: { start: GameState; now: GameState }[] = [];
+
 /**
  * Plays seeded lives and keeps every year's state. With the default empty registry no events
  * fire (so eligibility isn't skewed by what happened to fire); with a full registry events fire
@@ -62,6 +71,7 @@ function sampleStates(n: number, recklessLives = 20, registry = makeRegistry([])
     // every third life is cut short so early states keep their weight too.
     const years = seed % 3 === 0 ? 5 + (seed % 90) : 100;
     for (let y = 0; y < years && s.alive; y++) {
+      const start = advanceYear(s);
       s = ageUp(s, registry);
       let guard = 0;
       while (s.pendingEvent && guard++ < 20) {
@@ -76,7 +86,9 @@ function sampleStates(n: number, recklessLives = 20, registry = makeRegistry([])
       }
       for (const a of policy(s, rng)) s = applyAction(s, a);
       s = buyHomeAndCar(s, seed);
+      s = varyLife(s, seed);
       states.push(s);
+      flavorYears.push({ start, now: s });
     }
   }
   return states;
@@ -116,12 +128,17 @@ async function main() {
       if (hits === 0) errors.push(`${file}: event ${e.id} was never eligible in ${states.length} sampled states (check age range / conditions / person selector)`);
     }
   }
+  // Flavor lines: wording and conditions, and that each one can be written in some sampled year.
+  for (const err of validateFlavor(FLAVOR)) errors.push(`src/data/flavor.ts: ${err}`);
+  for (const line of FLAVOR) {
+    if (!flavorYears.some((y) => flavorFits(line, y.start, y.now))) errors.push(`src/data/flavor.ts: flavor line "${line.text}" never fit any of ${flavorYears.length} sampled years (check age range / conditions / person selector)`);
+  }
   const total = fileDefs.reduce((n, x) => n + x.defs.length, 0);
   if (errors.length) {
     console.error(`${errors.length} problem(s):\n` + errors.map((e) => ` - ${e}`).join('\n'));
     process.exit(1);
   }
-  console.log(`OK: ${total} events in ${files.length} file(s) valid and reachable (registry now ${all.length}).`);
+  console.log(`OK: ${total} events in ${files.length} file(s) valid and reachable (registry now ${all.length}); ${FLAVOR.length} flavor lines valid and reachable.`);
 }
 
 main().catch((e) => {

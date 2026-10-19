@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { achievementProgress } from '@/components/game/achievements';
 import { LegacyAvatar } from '@/components/game/LegacyAvatar';
 import { causeLine, lifeAvatar, ribbonTally } from '@/components/game/legacy';
 import { lifeStatus } from '@/components/game/StatsHeader';
@@ -17,6 +18,8 @@ export default function MenuScreen() {
   const premium = useSettingsStore((s) => s.premium);
   const graveyard = useSettingsStore((s) => s.graveyard);
   const showKarma = useSettingsStore((s) => s.settings.showKarma);
+  const unlocked = useSettingsStore((s) => s.achievements);
+  const achievements = achievementProgress(unlocked);
   const alive = !!game && game.alive;
   const dead = !!game && !game.alive;
   const earned = Object.keys(ribbonTally(graveyard)).filter((id) => RIBBON_BY_ID[id]).length;
@@ -97,6 +100,13 @@ export default function MenuScreen() {
 
         <View style={styles.nav}>
           <NavRow emoji="🪦" title="Graveyard" subtitle={graveyardSubtitle} onPress={() => router.push('/graveyard')} testID="menu-graveyard" />
+          <NavRow
+            emoji="🏆"
+            title="Achievements"
+            subtitle={achievements.unlocked ? `${achievements.unlocked}/${achievements.total} unlocked` : `${achievements.total} goals that carry over from life to life`}
+            onPress={() => router.push('/achievements')}
+            testID="menu-achievements"
+          />
           <NavRow emoji="⚙️" title="Settings" subtitle="Haptics, karma, purchases and privacy" onPress={() => router.push('/settings')} testID="menu-settings" />
         </View>
 

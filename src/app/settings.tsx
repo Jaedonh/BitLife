@@ -4,6 +4,7 @@ import * as StoreReview from 'expo-store-review';
 import { useState } from 'react';
 import { Linking, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 
+import { achievementProgress } from '@/components/game/achievements';
 import { ScreenHeader } from '@/components/game/ScreenHeader';
 import { Button, Card, confirmAction, Screen, Section, T } from '@/components/ui';
 import { PRIVACY_URL, SUPPORT_EMAIL } from '@/config/legal';
@@ -18,6 +19,8 @@ export default function SettingsScreen() {
   const settings = useSettingsStore((s) => s.settings);
   const setSetting = useSettingsStore((s) => s.setSetting);
   const premium = useSettingsStore((s) => s.premium);
+  const unlocked = useSettingsStore((s) => s.achievements);
+  const resetAchievements = useSettingsStore((s) => s.resetAchievements);
   const abandon = useGameStore((s) => s.abandonLife);
   const game = useGameStore((s) => s.game);
   const [restoring, setRestoring] = useState(false);
@@ -34,6 +37,12 @@ export default function SettingsScreen() {
     if (!(await confirmAction('Delete current life?', 'This cannot be undone.', 'Delete'))) return;
     abandon();
     router.replace('/');
+  };
+
+  const unlockedCount = achievementProgress(unlocked).unlocked;
+  const resetAll = async () => {
+    if (!(await confirmAction('Reset achievements?', `All ${unlockedCount} unlocked ${unlockedCount === 1 ? 'achievement' : 'achievements'} on this device will be locked again. This cannot be undone.`, 'Reset'))) return;
+    resetAchievements();
   };
 
   return (
@@ -79,6 +88,9 @@ export default function SettingsScreen() {
           <Card style={styles.card}>
             <T kind="small">Ends the life you are playing without a tombstone. Your graveyard and purchases stay.</T>
             <Button title="Delete current life" variant="danger" onPress={() => void deleteLife()} disabled={!game} testID="delete-life" />
+            <View style={styles.divider} />
+            <T kind="small">Locks every achievement again. Your lives, graveyard and purchases stay.</T>
+            <Button title="Reset achievements" variant="danger" onPress={() => void resetAll()} disabled={!unlockedCount} testID="reset-achievements" />
           </Card>
         </Section>
         <Text style={styles.version}>
