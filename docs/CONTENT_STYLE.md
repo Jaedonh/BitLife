@@ -38,6 +38,7 @@ Events are the game. This is the house style every content drop must follow. The
 - Generic lines have only an age range. Situational lines add `conditions` and are written only while that situation held all year, so describe the ongoing situation ("I read every book in the prison library"), never its start or end (no "I was diagnosed", "I got out").
 - Prison lines need `{ inPrison: true }` and `minAge: 18`; lines for a minor locked up use `maxAge: 17`. Behind bars nothing else is written.
 - A line that says the year was uneventful ("nothing happened", "my greatest achievement of the year") is marked `quiet: true`; the engine keeps it for years with no other line and no event card, and the validator rejects quiet wording without the mark.
+- Family words must match the family that exists: a line naming family in the plural ("the grandchildren", "my children") uses `groups: [{ kind, atLeast: 2 }]`, a grandmother or grandfather needs a bound person of that gender, and a literal Mom or Dad needs `{ hasPerson: ['mother'] }` / `['father']`; `validateFlavor` enforces all three.
 - Illness lines name a real illness id with `{ hasIllness: [...] }` and stay plain and respectful; addiction lines describe consequences only and never gambling.
 
 ## Content rating (Teen / 13+)

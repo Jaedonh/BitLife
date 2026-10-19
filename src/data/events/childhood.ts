@@ -9,7 +9,7 @@ export const CHILDHOOD_EVENTS: EventDef[] = [
   {
     id: 'first_steps',
     category: 'childhood',
-    title: 'First steps',
+    title: 'Upright',
     text: 'I took my first wobbly steps across the living room today. {{mother}} screamed with joy and dropped the phone. Everyone is looking at me. The pressure is enormous.',
     minAge: 1,
     maxAge: 1,
@@ -202,7 +202,8 @@ export const CHILDHOOD_EVENTS: EventDef[] = [
     minAge: 3,
     maxAge: 7,
     weight: 2,
-    cooldown: 2,
+    // One particular book and one particular chapter three.
+    once: true,
     person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
@@ -406,7 +407,8 @@ export const CHILDHOOD_EVENTS: EventDef[] = [
     minAge: 5,
     maxAge: 11,
     weight: 2,
-    cooldown: 3,
+    // Once I have been to the top, nobody calls it unclimbable again.
+    once: true,
     choices: [
       {
         id: 'top',
@@ -542,6 +544,8 @@ export const CHILDHOOD_EVENTS: EventDef[] = [
     maxAge: 10,
     weight: 1.5,
     cooldown: 3,
+    // Real snow, the kind that buries a fence: only where winters bring it.
+    conditions: [{ climate: ['snowy'] }],
     person: { kind: ['sibling', 'friend', 'bestFriend'], minAge: 3, maxAge: 17 },
     choices: [
       {

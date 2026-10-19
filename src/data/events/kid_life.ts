@@ -553,7 +553,7 @@ export const KID_LIFE_EVENTS: EventDef[] = [
     minAge: 6,
     maxAge: 11,
     weight: 1,
-    cooldown: 4,
+    once: true,
     conditions: [{ enrolled: true }],
     person: PARENTS,
     choices: [
@@ -858,7 +858,7 @@ export const KID_LIFE_EVENTS: EventDef[] = [
   {
     id: 'kl_conference_night',
     category: 'school',
-    title: 'Parent-teacher night',
+    title: 'Reading lips',
     text: 'Parent-teacher night. {{person}} is inside the classroom with my teacher, and I am in the hallway on a plastic chair, trying to read lips through the little window in the door.',
     minAge: 7,
     maxAge: 12,
@@ -1296,6 +1296,8 @@ export const KID_LIFE_EVENTS: EventDef[] = [
     maxAge: 12,
     weight: 1.2,
     once: true,
+    // A knitted sweater at the holidays wants a cold December.
+    conditions: [{ climate: ['snowy', 'mild'] }, { southern: false }],
     person: PARENTS,
     choices: [
       {
@@ -1448,8 +1450,8 @@ export const KID_LIFE_EVENTS: EventDef[] = [
   {
     id: 'kl_first_flight',
     category: 'random',
-    title: 'First flight',
-    text: 'My first time on a plane. My seat has a tiny window, a tray table and a card showing people calmly sliding down an inflatable slide. {{person}} is gripping the armrest harder than I am.',
+    title: 'Window seat',
+    text: 'The first plane ride I am old enough to remember. My seat has a tiny window, a tray table and a card showing people calmly sliding down an inflatable slide. {{person}} is gripping the armrest harder than I am.',
     minAge: 6,
     maxAge: 12,
     weight: 0.8,
@@ -1531,7 +1533,7 @@ export const KID_LIFE_EVENTS: EventDef[] = [
     id: 'kl_tablet_timer',
     category: 'childhood',
     title: 'The timer',
-    text: '{{person}} set a timer on the tablet: when it beeps, the tablet goes in the drawer. The timer says four minutes. My game says this level takes eleven.',
+    text: '{{person}} set the kitchen timer: when it rings, the video game goes off. The timer says four minutes. My game says this level takes eleven.',
     minAge: 6,
     maxAge: 9,
     weight: 1.2,
@@ -1540,8 +1542,8 @@ export const KID_LIFE_EVENTS: EventDef[] = [
     choices: [
       {
         id: 'handover',
-        label: 'Hand it over at the beep',
-        effects: [{ relationship: 'person', delta: 3 }, { stat: 'happiness', delta: -2 }, { log: 'I handed it over on the first beep. {{person}} felt my forehead for a fever.' }],
+        label: 'Stop at the first ring',
+        effects: [{ relationship: 'person', delta: 3 }, { stat: 'happiness', delta: -2 }, { log: 'I switched it off on the first ring. {{person}} felt my forehead for a fever.' }],
       },
       {
         id: 'beg',
@@ -1550,7 +1552,7 @@ export const KID_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.4,
             then: [{ stat: 'happiness', delta: 2 }, { log: '{{person}} gave me five more minutes. I needed eleven. I lost the level anyway.' }],
-            else: [{ relationship: 'person', delta: -2 }, { stat: 'happiness', delta: -2 }, { log: '"One more level" turned into "no tablet tomorrow". Bad negotiation.', kind: 'bad' }],
+            else: [{ relationship: 'person', delta: -2 }, { stat: 'happiness', delta: -2 }, { log: '"One more level" turned into "no games tomorrow". Bad negotiation.', kind: 'bad' }],
           },
         ],
       },
@@ -1562,7 +1564,7 @@ export const KID_LIFE_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ stat: 'happiness', delta: 4 }, { log: 'I reset it three times before anyone noticed. I beat the level and felt like a master thief.' }],
-            else: [{ relationship: 'person', delta: -3 }, { stat: 'happiness', delta: -3 }, { log: '{{person}} noticed the timer going backward. The tablet lived in the drawer for a week.', kind: 'bad' }],
+            else: [{ relationship: 'person', delta: -3 }, { stat: 'happiness', delta: -3 }, { log: '{{person}} noticed the timer going backward. The controller lived in a drawer for a week.', kind: 'bad' }],
           },
         ],
       },
@@ -1577,6 +1579,8 @@ export const KID_LIFE_EVENTS: EventDef[] = [
     maxAge: 11,
     weight: 1,
     once: true,
+    // In-game purchases on a tablet.
+    conditions: [{ year: { gte: 2011 } }],
     person: PARENTS,
     choices: [
       {
@@ -1624,8 +1628,9 @@ export const KID_LIFE_EVENTS: EventDef[] = [
     minAge: 6,
     maxAge: 12,
     weight: 1.2,
-    cooldown: 3,
-    conditions: [HAS_PARENT],
+    // A video call on a phone, and one particular great-uncle.
+    once: true,
+    conditions: [HAS_PARENT, { year: { gte: 2010 } }],
     choices: [
       {
         id: 'teach',
@@ -1709,6 +1714,8 @@ export const KID_LIFE_EVENTS: EventDef[] = [
     maxAge: 12,
     weight: 1,
     once: true,
+    // An online game with a chat window.
+    conditions: [{ year: { gte: 2005 } }],
     person: PARENTS,
     choices: [
       {
@@ -2024,12 +2031,19 @@ export const KID_LIFE_EVENTS: EventDef[] = [
       {
         id: 'introduce',
         label: 'Introduce {{them}} properly',
-        effects: [{ relationship: 'person', delta: 5 }, { stat: 'happiness', delta: 1 }, { log: 'I said "This is {{person}}. {{They}} is family." Out loud, for the first time. It felt okay.', kind: 'good' }],
+        effects: [
+          { relationship: 'person', delta: 5 },
+          {
+            chance: 0.5,
+            then: [{ stat: 'happiness', delta: 2 }, { log: 'I said "This is {{person}}. {{They}} is family." Out loud, for the first time. It felt okay.', kind: 'good' }],
+            else: [{ stat: 'happiness', delta: -2 }, { log: 'I said "This is {{person}}. {{They}} is family." The questions at school went on all week.' }],
+          },
+        ],
       },
       {
         id: 'driver',
         label: 'Say {{they}} is just my ride',
-        effects: [{ karma: -1 }, { relationship: 'person', delta: -3 }, { log: 'I told the kids {{person}} was just my ride. {{They}} heard, and was quiet the whole way home.', kind: 'bad' }],
+        effects: [{ karma: -1 }, { relationship: 'person', delta: -3 }, { stat: 'happiness', delta: 1 }, { log: 'I told the kids {{person}} was just my ride. No questions. {{They}} heard, and went quiet.', kind: 'bad' }],
       },
       {
         id: 'run',

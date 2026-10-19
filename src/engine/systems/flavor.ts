@@ -1,9 +1,9 @@
 import { FLAVOR, type FlavorLine } from '@/data/flavor';
 import { candidatesFor, evaluateAll } from '../events/conditions';
-import { conditionIssues, placeholderIssues, textIssues, type Condition } from '../events/schema';
+import { conditionIssues, placeholderIssues, textIssues, type Condition, type PersonSelector } from '../events/schema';
 import { renderText } from '../events/text';
 import { Rng } from '../rng';
-import type { GameState, Person } from '../types';
+import type { GameState, Gender, Person, RelationshipKind } from '../types';
 import { log } from '../util';
 
 /** Tuning for the yearly flavor line (docs/GAME_DESIGN.md §2, step 14). */
@@ -26,9 +26,9 @@ export interface FlavorYear {
   event: boolean;
 }
 
-/** A line with conditions or a bound person describes a situation; the rest are generic age lines. */
+/** A line with conditions, a bound person or a group describes a situation; the rest are generic age lines. */
 export function isSituational(line: FlavorLine): boolean {
-  return !!(line.conditions?.length || line.person);
+  return !!(line.conditions?.length || line.person || line.groups?.length);
 }
 
 /** Written for prison: requires { inPrison: true } (at the top level or inside `all`), as for events. */
@@ -36,13 +36,17 @@ function writtenForPrison(conditions: readonly Condition[] | undefined): boolean
   return (conditions ?? []).some((c) => ('inPrison' in c && c.inPrison) || ('all' in c && writtenForPrison(c.all)));
 }
 
-/** People the line could be about: they fit its selector now and already held that place at the start of the year. */
-export function flavorCandidates(line: FlavorLine, start: GameState, now: GameState): Person[] {
-  if (!line.person) return [];
-  return candidatesFor(now, line.person).filter((p) => {
+/** People who fit a selector now and were already alive in that place at the start of the year. */
+function heldAllYear(selector: PersonSelector, start: GameState, now: GameState): Person[] {
+  return candidatesFor(now, selector).filter((p) => {
     const before = start.people[p.id];
     return !!before && before.alive && before.kind === p.kind;
   });
+}
+
+/** People the line could be about: they fit its selector now and already held that place at the start of the year. */
+export function flavorCandidates(line: FlavorLine, start: GameState, now: GameState): Person[] {
+  return line.person ? heldAllYear(line.person, start, now) : [];
 }
 
 /**
@@ -58,6 +62,8 @@ export function flavorFits(line: FlavorLine, start: GameState, now: GameState): 
   if ((now.crime.inPrison || start.crime.inPrison) && !writtenForPrison(line.conditions)) return false;
   if (line.conditions?.length && !(evaluateAll(start, line.conditions) && evaluateAll(now, line.conditions))) return false;
   if (line.person && flavorCandidates(line, start, now).length === 0) return false;
+  // "The grandchildren", "my children": enough of them were there all year (one who died this year no longer counts).
+  if (line.groups?.some((g) => heldAllYear(g, start, now).length < g.atLeast)) return false;
   return true;
 }
 
@@ -110,6 +116,43 @@ export function yearlyFlavor(now: GameState, year: FlavorYear, lines: readonly F
   return { ...s, flavorSeen: { ...seen, [line.text]: age }, rng: rng.snapshot() };
 }
 
+/**
+ * Family a line names, and how many of them it needs (docs/CONTENT_STYLE.md): a plural needs two living ones, a
+ * grandmother or grandfather needs a real one bound, and being a grandparent needs a living grandchild.
+ */
+const FAMILY_WORDS: readonly { re: RegExp; kind: RelationshipKind; min: number; gender?: Gender; what: string }[] = [
+  { re: /\bgrand(children|kids)\b/i, kind: 'grandchild', min: 2, what: 'grandchildren' },
+  { re: /\bgrandsons\b/i, kind: 'grandchild', min: 2, gender: 'male', what: 'grandsons' },
+  { re: /\bgranddaughters\b/i, kind: 'grandchild', min: 2, gender: 'female', what: 'granddaughters' },
+  { re: /\b(my|our) (own )?(children|kids)\b/i, kind: 'child', min: 2, what: 'my children' },
+  { re: /\b(my|our) (own )?sons\b/i, kind: 'child', min: 2, gender: 'male', what: 'my sons' },
+  { re: /\b(my|our) (own )?daughters\b/i, kind: 'child', min: 2, gender: 'female', what: 'my daughters' },
+  { re: /\b(a|my) grandparent\b|\bgrand(child|kid|son|daughter)\b/i, kind: 'grandchild', min: 1, what: 'a grandchild' },
+  { re: /\bgrandparents\b/i, kind: 'grandparent', min: 2, what: 'grandparents' },
+  { re: /\bgrand(ma|mother)\b|\{\{grandma\}\}/i, kind: 'grandparent', min: 1, gender: 'female', what: 'a grandmother' },
+  { re: /\bgrand(pa|father)\b|\{\{grandpa\}\}/i, kind: 'grandparent', min: 1, gender: 'male', what: 'a grandfather' },
+  // "Mom" and "Dad" are a living parent, as {{mother}} and {{father}} are.
+  { re: /\b(mom|mommy)\b/i, kind: 'mother', min: 1, what: 'Mom' },
+  { re: /\b(dad|daddy)\b/i, kind: 'father', min: 1, what: 'Dad' },
+];
+
+/** How many living people of one kind (and gender) a line is sure to have all year: its bound person, a group or a hasPerson condition. */
+function guaranteed(l: FlavorLine, kind: RelationshipKind, gender: Gender | undefined): number {
+  const only = (sel: PersonSelector) => sel.kind.length > 0 && sel.kind.every((k) => k === kind) && (gender === undefined || sel.gender === gender);
+  const counts = [
+    l.person && only(l.person) ? 1 : 0,
+    ...(l.groups ?? []).map((g) => (only(g) ? g.atLeast : 0)),
+    gender === undefined && (l.conditions ?? []).some((c) => 'hasPerson' in c && c.hasPerson.length > 0 && c.hasPerson.every((k) => k === kind)) ? 1 : 0,
+  ];
+  return Math.max(...counts);
+}
+
+/**
+ * School goes on in juvenile detention only for a student, so classroom words in a line for a minor locked up need
+ * { enrolled: true }. (An adult may take a class in prison; that is not school carrying on.)
+ */
+const CLASSROOM_WORDS = /\b(homework|grades?|class(es|room)?|teachers?|exams?)\b/i;
+
 /** Wording that claims the whole year was uneventful; such a line must be marked `quiet`. */
 const QUIET_WORDING = /\b(nothing (much |else )?happened|uneventful|quiet year|(greatest|biggest|best|only|highlight)\b[\w ]* of the year|spent (the|this) year)\b/i;
 const FIRST_PERSON = /\b(I|my|me|mine|myself|we|our|us)\b/i;
@@ -131,6 +174,17 @@ export function validateFlavor(lines: readonly FlavorLine[] = FLAVOR): string[] 
     for (const issue of [...textIssues(l.text), ...placeholderIssues(l.text), ...conditionIssues(l.conditions)]) errors.push(`${where}: ${issue}`);
     if (PERSON_PLACEHOLDER.test(l.text) && !l.person) errors.push(`${where}: uses person placeholders but has no person selector`);
     if (l.person && !l.person.kind.length) errors.push(`${where}: person selector lists no kind`);
+    for (const g of l.groups ?? []) if (!g.kind.length || !(g.atLeast >= 1)) errors.push(`${where}: a group needs a kind and atLeast >= 1`);
+    // A child does not say "my parents" (one may be dead, or a foster parent at home): {{parents}} renders whoever is there.
+    if (l.minAge < 18 && /\b(my|our) parents\b/i.test(l.text)) errors.push(`${where}: says "my parents" in a line open to children; use {{parents}} (renders "Mom and Dad", "Mom", "Dad and Maria" or "my family")`);
+    for (const w of FAMILY_WORDS) {
+      if (!w.re.test(l.text) || guaranteed(l, w.kind, w.gender) >= w.min) continue;
+      const fix = w.min > 1 ? `groups: [{ kind: ['${w.kind}'], atLeast: ${w.min} }]` : `person: { kind: ['${w.kind}']${w.gender ? `, gender: '${w.gender}'` : ''} }`;
+      errors.push(`${where}: names ${w.what} but does not require ${w.min > 1 ? `${w.min} living ones` : 'a living one'} (${fix})`);
+    }
+    if (writtenForPrison(l.conditions) && l.minAge < 18 && CLASSROOM_WORDS.test(l.text) && !(l.conditions ?? []).some((c) => 'enrolled' in c && c.enrolled)) {
+      errors.push(`${where}: a classroom line behind bars needs { enrolled: true } (a dropout does no homework)`);
+    }
     for (const k of ['mother', 'father'] as const) {
       const required = (l.conditions ?? []).some((c) => 'hasPerson' in c && c.hasPerson.length === 1 && c.hasPerson[0] === k);
       if (l.text.includes(`{{${k}}}`) && !required) errors.push(`${where}: uses {{${k}}} but does not require a living ${k} ({ hasPerson: ['${k}'] })`);

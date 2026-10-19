@@ -59,7 +59,7 @@ export const BABY_AND_TODDLER_EVENTS: EventDef[] = [
   {
     id: 'bt_first_night_home',
     category: 'childhood',
-    title: 'First night home',
+    title: 'Still breathing',
     text: 'My first night home. The crib is enormous, the room is dark, and every few minutes {{person}} leans over to check that I am still breathing. I am. Loudly.',
     minAge: 0,
     maxAge: 0,
@@ -198,20 +198,24 @@ export const BABY_AND_TODDLER_EVENTS: EventDef[] = [
     id: 'bt_first_smile',
     category: 'childhood',
     title: 'First smile',
-    text: 'I did my first real smile today. Grandma says it was gas. It was not gas. {{person}} saw it, and has been pulling silly faces at me for an hour hoping for another.',
+    text: 'I did my first real smile today. {{person}} says it was gas. It was not gas. {{parents}} saw it and pulled silly faces at me for an hour, hoping for another.',
     minAge: 0,
     maxAge: 0,
     weight: 1,
     once: true,
-    person: { kind: ['mother', 'father'] },
+    // The skeptic is a real grandparent (the newborn card can be the very first screen, next to the birth line that
+    // names them); the parents who saw the smile are {{parents}}.
+    conditions: [{ hasPerson: ['mother', 'father'] }],
+    person: { kind: ['grandparent'] },
     choices: [
       {
         id: 'again',
-        label: 'Smile again for {{them}}',
+        label: 'Smile again',
         effects: [
-          { relationship: 'person', delta: 4 },
+          { relationship: 'mother', delta: 4 },
+          { relationship: 'father', delta: 4 },
           { stat: 'happiness', delta: 2 },
-          { log: 'I smiled again. {{person}} called everyone {{they}} had ever met. Grandma still says gas.', kind: 'milestone' },
+          { log: 'I smiled again. {{parents}} told the whole street. {{person}} still says gas.', kind: 'milestone' },
         ],
       },
       {
@@ -220,8 +224,9 @@ export const BABY_AND_TODDLER_EVENTS: EventDef[] = [
         effects: [
           { stat: 'smarts', delta: 1 },
           { stat: 'happiness', delta: 2 },
-          { relationship: 'person', delta: -2 },
-          { log: 'I held out all day, then beamed at the mail carrier. {{person}} took it personally.' },
+          { relationship: 'mother', delta: -2 },
+          { relationship: 'father', delta: -2 },
+          { log: 'I held out all day, then beamed at the mail carrier. {{parents}} took it personally.' },
         ],
       },
       {
@@ -230,7 +235,8 @@ export const BABY_AND_TODDLER_EVENTS: EventDef[] = [
         effects: [
           { stat: 'health', delta: 2 },
           { stat: 'happiness', delta: -1 },
-          { log: 'The next one really was gas. I felt much better. Grandma was unbearable about it.' },
+          { relationship: 'person', delta: 2 },
+          { log: 'The next one really was gas. I felt much better. {{person}} was unbearable about it.' },
         ],
       },
     ],
@@ -609,7 +615,7 @@ export const BABY_AND_TODDLER_EVENTS: EventDef[] = [
         effects: [
           { relationship: 'person', delta: 4 },
           { stat: 'happiness', delta: 2 },
-          { log: 'I crawled across the whole rug to {{person}}. {{They}} filmed it and sent it to everyone.', kind: 'milestone' },
+          { log: 'I crawled across the whole rug to {{person}}. {{They}} told everyone we know, twice.', kind: 'milestone' },
         ],
       },
       {
@@ -680,7 +686,7 @@ export const BABY_AND_TODDLER_EVENTS: EventDef[] = [
         effects: [
           { stat: 'health', delta: 2 },
           { relationship: 'person', delta: 1 },
-          { log: 'I slept through the whole thing on a pile of coats. Everyone said I was very good. I was asleep.' },
+          { log: 'I slept through the whole thing in a nest of wrapping paper. Everyone said I was very good. I was asleep.' },
         ],
       },
     ],
@@ -787,7 +793,7 @@ export const BABY_AND_TODDLER_EVENTS: EventDef[] = [
     id: 'bt_first_birthday',
     category: 'childhood',
     title: 'First birthday',
-    text: 'My first birthday. Someone put a small cake in front of me with one candle on it, and then every adult I know stood around it holding up a phone and singing at me.',
+    text: 'My first birthday. Someone put a small cake in front of me with one candle on it, and then every adult I know stood around it holding up a camera and singing at me.',
     minAge: 1,
     maxAge: 1,
     weight: 2,
@@ -801,7 +807,7 @@ export const BABY_AND_TODDLER_EVENTS: EventDef[] = [
           { stat: 'happiness', delta: 5 },
           { stat: 'health', delta: -1 },
           { relationship: 'person', delta: 1 },
-          { log: "I went in face-first. The photo lives on {{person}}'s phone, the fridge and every slideshow since.", kind: 'milestone' },
+          { log: 'I went in face-first. The photo lives on the fridge, in an album and in every slideshow since.', kind: 'milestone' },
         ],
       },
       {
@@ -1035,7 +1041,7 @@ export const BABY_AND_TODDLER_EVENTS: EventDef[] = [
     id: 'bt_doggy',
     category: 'childhood',
     title: 'Doggy',
-    text: "I have learned a new word and it covers everything: \"doggy\". The neighbor's dog is doggy. A cat on the fence is doggy. Grandma's fuzzy slippers are doggy. I am very sure of myself.",
+    text: "I have learned a new word and it covers everything: \"doggy\". The neighbor's dog is doggy. A cat on the fence is doggy. The fuzzy slippers by the door are doggy. I am very sure of myself.",
     minAge: 1,
     maxAge: 3,
     weight: 1.5,
@@ -1085,13 +1091,15 @@ export const BABY_AND_TODDLER_EVENTS: EventDef[] = [
   {
     id: 'bt_video_call',
     category: 'family',
-    title: 'Grandma on the tablet',
-    text: "{{person}} is holding a tablet in front of me and Grandma's face is inside it, very close, shouting hello. She is much smaller than usual, and she is mostly nose.",
+    title: '{{person}} on the tablet',
+    text: "There is a tablet in front of my face, and {{person}}'s face is inside it, very close, shouting hello. She is much smaller than usual, and she is mostly nose.",
     minAge: 1,
-    maxAge: 2,
+    maxAge: 3,
     weight: 1.5,
-    cooldown: 3,
-    person: { kind: ['mother', 'father'] },
+    once: true,
+    // A video call on a tablet: the tablet years, with a real, living grandmother on the other end.
+    conditions: [{ year: { gte: 2010 } }],
+    person: { kind: ['grandparent'], gender: 'female' },
     choices: [
       {
         id: 'lick',
@@ -1099,7 +1107,8 @@ export const BABY_AND_TODDLER_EVENTS: EventDef[] = [
         effects: [
           { stat: 'happiness', delta: 2 },
           { stat: 'health', delta: -1 },
-          { log: 'I licked Grandma. The tablet tasted like fingerprints. Grandma called it the nicest kiss in years.', kind: 'good' },
+          { relationship: 'person', delta: 2 },
+          { log: 'I licked {{person}}. The tablet tasted like fingerprints. She called it the nicest kiss in years.', kind: 'good' },
         ],
       },
       {
@@ -1109,17 +1118,17 @@ export const BABY_AND_TODDLER_EVENTS: EventDef[] = [
           { stat: 'smarts', delta: 2 },
           { stat: 'happiness', delta: 1 },
           { relationship: 'person', delta: -1 },
-          { log: 'I pressed the red button and Grandma vanished. {{person}} called back. I did it again. I am powerful.' },
+          { log: 'I pressed the red button and {{person}} vanished. She called back. I did it again. I am powerful.' },
         ],
       },
       {
         id: 'foot',
-        label: 'Show Grandma my foot',
+        label: 'Show her my foot',
         effects: [
           { stat: 'happiness', delta: 2 },
           { relationship: 'person', delta: 1 },
           { stat: 'smarts', delta: -1 },
-          { log: 'I held my foot up to the camera for the entire call. Grandma said it was a very good foot.' },
+          { log: 'I held my foot up to the camera for the entire call. {{person}} said it was a very good foot.' },
         ],
       },
     ],
@@ -1141,7 +1150,7 @@ export const BABY_AND_TODDLER_EVENTS: EventDef[] = [
         effects: [
           { stat: 'happiness', delta: 4 },
           { relationship: 'person', delta: -2 },
-          { log: 'I unrolled all of it down the hall and into the kitchen. {{person}} found me sitting in a snowdrift.' },
+          { log: 'I unrolled all of it down the hall and into the kitchen. {{person}} found me sitting in a soft white drift of it.' },
         ],
       },
       {
@@ -1364,7 +1373,7 @@ export const BABY_AND_TODDLER_EVENTS: EventDef[] = [
     id: 'bt_clothes_rack',
     category: 'childhood',
     title: 'Inside the rack',
-    text: 'I crawled into the middle of a round clothes rack in a big store. It is a secret room made of coats. Out there I can hear {{person}} calling my name, and it is getting louder.',
+    text: 'I crawled into the middle of a round clothes rack in a big store. It is a secret room with walls made of shirts. Out there I can hear {{person}} calling my name, and it is getting louder.',
     minAge: 2,
     maxAge: 5,
     weight: 1.5,
@@ -1388,7 +1397,7 @@ export const BABY_AND_TODDLER_EVENTS: EventDef[] = [
           {
             chance: 0.5,
             then: [{ stat: 'smarts', delta: 1 }, { relationship: 'person', delta: -3 }, { log: 'I stayed put until my full name came over the store speakers. It sounded very official. I came out.', kind: 'bad' }],
-            else: [{ stat: 'happiness', delta: -1 }, { log: '{{person}} found me in a minute by my sneakers sticking out under the coats. I was so sure.' }],
+            else: [{ stat: 'happiness', delta: -1 }, { log: '{{person}} found me in a minute by my sneakers sticking out under the shirts. I was so sure.' }],
           },
         ],
       },
@@ -1701,7 +1710,7 @@ export const BABY_AND_TODDLER_EVENTS: EventDef[] = [
     id: 'bt_dress_myself',
     category: 'childhood',
     title: 'I dressed myself',
-    text: 'I dressed myself today with no help at all: rain boots, pajama bottoms, a winter hat and a superhero cape. It is sunny out. {{person}} is staring at me and choosing {{their}} words.',
+    text: 'I dressed myself today with no help at all: rain boots, pajama bottoms, swim goggles and a superhero cape. It is sunny out. {{person}} is staring at me and choosing {{their}} words.',
     minAge: 3,
     maxAge: 5,
     weight: 1.5,
@@ -1989,7 +1998,8 @@ export const BABY_AND_TODDLER_EVENTS: EventDef[] = [
     minAge: 3,
     maxAge: 8,
     weight: 2,
-    cooldown: 2,
+    // "Promoted" happens once; the same baby would otherwise promote me again two years later.
+    once: true,
     person: { kind: ['sibling'], maxAge: 2 },
     choices: [
       {
@@ -2031,7 +2041,8 @@ export const BABY_AND_TODDLER_EVENTS: EventDef[] = [
     minAge: 3,
     maxAge: 8,
     weight: 2,
-    cooldown: 2,
+    // "Can walk now" is news once.
+    once: true,
     person: { kind: ['sibling'], minAge: 1, maxAge: 3 },
     choices: [
       {

@@ -12,8 +12,20 @@ export interface FlavorLine {
   text: string;
   conditions?: Condition[];
   person?: PersonSelector;
+  /**
+   * People the line talks about together without naming them ("the grandchildren", "my children"): each group needs
+   * at least `atLeast` living people who fit it, at the start of the year and at its end. The validator asks for two
+   * whenever a line names family in the plural.
+   */
+  groups?: readonly FlavorGroup[];
   /** Says the year was uneventful; only written in a year with no other journal lines and no event card. */
   quiet?: boolean;
+}
+
+/** A group of people a flavor line talks about in the plural; nobody in it is bound to a placeholder. */
+export interface FlavorGroup extends PersonSelector {
+  /** How many must fit, e.g. 2 for "the grandchildren". */
+  atLeast: number;
 }
 
 /** Shared situations for the situational lines below. */
@@ -27,18 +39,26 @@ const JOB_HUNTING: Condition[] = [...OUT_OF_WORK, { any: [{ hustle: false }, { h
 const UNDERWATER: Condition[] = [{ netWorth: { lt: 0 } }];
 const HUSTLE_STALLED: Condition[] = [{ hustleLevel: { eq: 0 } }];
 const SINGLE_PARENT: Condition[] = [{ married: false }, { hasLover: false }];
-const GRANDPARENT: Condition[] = [{ flag: 'grandparent' }];
+/** A grandchild who was there all year, named in the line. */
+const GRANDCHILD: PersonSelector = { kind: ['grandchild'] };
+/**
+ * Two or more grandchildren for "the grandchildren". An age range keeps the line about kids: no candy drawer for a
+ * baby, and no candy drawer or spoiling for grandchildren who are grown up.
+ */
+const grandchildren = (ages: Pick<PersonSelector, 'minAge' | 'maxAge'> = {}): FlavorGroup => ({ kind: ['grandchild'], atLeast: 2, ...ages });
+/** Two or more living children, for "my children". */
+const CHILDREN: FlavorGroup = { kind: ['child'], atLeast: 2 };
 const SPOUSE: PersonSelector = { kind: ['spouse'] };
 const PET: PersonSelector = { kind: ['pet'] };
 
 export const FLAVOR: readonly FlavorLine[] = [
   { minAge: 0, maxAge: 1, text: 'I discovered my own feet and found them hilarious.' },
   { minAge: 0, maxAge: 1, text: 'I slept, ate, and cried on a schedule only I understood.' },
-  { minAge: 1, maxAge: 2, text: 'I said my first word. Nobody agrees on what it was.' },
+  { minAge: 1, maxAge: 2, text: 'I said something that might have been a word. Nobody agrees on which one.' },
   { minAge: 1, maxAge: 3, text: 'I drew on the wall. It was a masterpiece. It was painted over.' },
   { minAge: 2, maxAge: 4, text: 'I refused to eat anything green for most of the year.' },
   { minAge: 2, maxAge: 5, text: 'I had an imaginary friend who was, frankly, a bad influence.' },
-  { minAge: 4, maxAge: 7, text: 'I learned to ride a bike and immediately rode it into a hedge.' },
+  { minAge: 4, maxAge: 7, text: 'I rode my bike straight into a hedge. The hedge started it.' },
   { minAge: 5, maxAge: 8, text: 'I lost a tooth and negotiated hard with the tooth fairy.' },
   { minAge: 5, maxAge: 9, text: 'I built a fort in the living room and declared independence.' },
   { minAge: 6, maxAge: 10, text: 'I won a participation certificate and treated it like a Nobel Prize.' },
@@ -46,7 +66,7 @@ export const FLAVOR: readonly FlavorLine[] = [
   { minAge: 7, maxAge: 12, text: 'I was picked last for a team. I remember it more than I should.' },
   { minAge: 8, maxAge: 12, text: 'I learned a magic trick and performed it for anyone who would sit still.' },
   { minAge: 9, maxAge: 13, text: 'I had a growth spurt and none of my clothes fit.' },
-  { minAge: 10, maxAge: 14, text: 'I discovered music that my parents hated. This was the point.' },
+  { minAge: 10, maxAge: 14, text: 'I discovered music that {{parents}} hated. This was the point.' },
   { minAge: 11, maxAge: 15, text: 'I got a terrible haircut and wore a hat for a month.' },
   { minAge: 12, maxAge: 16, text: 'I had my first real crush and handled it with zero grace.' },
   { minAge: 13, maxAge: 17, text: 'I slammed a door so hard the frame came loose.' },
@@ -95,13 +115,14 @@ export const FLAVOR: readonly FlavorLine[] = [
   { minAge: 18, maxAge: 120, conditions: IN_PRISON, text: 'I marked the days on my wall in neat little rows. It is a very organized wall now.' },
   // ------------------------------------------------------------ situational: locked up as a minor (juvenile detention)
   { minAge: 12, maxAge: 17, conditions: IN_PRISON, text: 'Lights out at nine. I was {{age}} and had a bedtime again.' },
-  { minAge: 12, maxAge: 17, conditions: IN_PRISON, text: 'I did my homework at a bolted-down desk. My grades went up, which felt unfair to everyone.' },
+  // School carries on inside only for a student; a dropout in detention does no homework.
+  { minAge: 12, maxAge: 17, conditions: [...IN_PRISON, { enrolled: true }], text: 'I did my homework at a bolted-down desk. My grades went up, which felt unfair to everyone.' },
   { minAge: 12, maxAge: 17, conditions: IN_PRISON, text: 'A counselor asked what I wanted to be when I got out. I said, "Out." She wrote it down.' },
   { minAge: 12, maxAge: 17, conditions: IN_PRISON, text: "I missed my own bed, my own snacks and, to my surprise, my family's terrible jokes." },
   { minAge: 12, maxAge: 17, conditions: IN_PRISON, text: 'Everyone in my unit swore they were innocent. I started believing about half of them.' },
   // ------------------------------------------------------------ situational: university
   { minAge: 17, maxAge: 70, conditions: AT_UNIVERSITY, text: 'I learned to cook three meals. All of them were pasta.' },
-  { minAge: 17, maxAge: 70, conditions: AT_UNIVERSITY, text: 'My roommate and I fought a silent war over the dishes. The dishes won.' },
+  { minAge: 17, maxAge: 70, conditions: AT_UNIVERSITY, text: 'I fought a silent war with the coffee machine in the student lounge. The machine won.' },
   { minAge: 17, maxAge: 70, conditions: AT_UNIVERSITY, text: 'I signed up for a class at eight in the morning. I attended it in spirit.' },
   { minAge: 17, maxAge: 70, conditions: AT_UNIVERSITY, text: 'I joined a club for the free pizza and stayed for the free pizza.' },
   { minAge: 17, maxAge: 70, conditions: AT_UNIVERSITY, text: 'I paid a small fortune for a textbook and opened it twice.' },
@@ -142,7 +163,7 @@ export const FLAVOR: readonly FlavorLine[] = [
   { minAge: 25, maxAge: 120, conditions: [{ hasIllness: ['back_pain'] }], text: 'My back and I made a deal: no heavy lifting, no twisting, no sudden enthusiasm.' },
   { minAge: 10, maxAge: 120, conditions: [{ hasIllness: ['diabetes'] }], text: 'I learned the sugar content of everything I love. I love slightly fewer things now.' },
   { minAge: 30, maxAge: 120, conditions: [{ hasIllness: ['hypertension'] }], text: 'I checked my blood pressure every morning. The cuff is the most honest thing I own.' },
-  { minAge: 5, maxAge: 120, conditions: [{ hasIllness: ['asthma'] }], text: 'I kept an inhaler in every coat, bag and drawer I own, just in case.' },
+  { minAge: 5, maxAge: 120, conditions: [{ hasIllness: ['asthma'] }], text: 'I kept an inhaler in every bag, pocket and drawer I own, just in case.' },
   { minAge: 8, maxAge: 120, conditions: [{ hasIllness: ['migraines'] }], text: 'I learned to feel a migraine coming an hour early and cancel my plans with dignity.' },
   { minAge: 12, maxAge: 120, conditions: [{ hasIllness: ['depression'] }], text: 'Some days were heavy. I got through them one small thing at a time.' },
   { minAge: 10, maxAge: 120, conditions: [{ hasIllness: ['anxiety'] }], text: 'I made a list of everything I worry about, then worried I had left something off.' },
@@ -160,7 +181,7 @@ export const FLAVOR: readonly FlavorLine[] = [
   { minAge: 14, maxAge: 120, conditions: HUSTLE_STALLED, text: "My side hustle earned exactly nothing this year. I'm calling it a soft launch." },
   { minAge: 14, maxAge: 120, conditions: HUSTLE_STALLED, text: "I spent more on my side hustle than it made. I'm calling it an investment." },
   { minAge: 14, maxAge: 120, conditions: HUSTLE_STALLED, text: "I checked my side hustle's numbers every morning. They did not move." },
-  { minAge: 14, maxAge: 120, conditions: HUSTLE_STALLED, text: 'Someone left my side hustle a one-star review. The whole review was one word: "No."' },
+  { minAge: 14, maxAge: 120, conditions: [...HUSTLE_STALLED, { year: { gte: 2005 } }], text: 'Someone left my side hustle a one-star review. The whole review was one word: "No."' },
   // ------------------------------------------------------------ situational: out of work, in debt
   { minAge: 22, maxAge: 64, conditions: JOB_HUNTING, text: 'I refreshed the job listings so often the website started to look tired of me.' },
   { minAge: 22, maxAge: 64, conditions: JOB_HUNTING, text: 'I got very good at job interviews, in the sense that I went to a lot of them.' },
@@ -174,17 +195,17 @@ export const FLAVOR: readonly FlavorLine[] = [
   { minAge: 18, maxAge: 120, conditions: SINGLE_PARENT, person: { kind: ['child'], maxAge: 9 }, text: '{{person}} and I had breakfast for dinner more than once. {{They}} thinks it is a tradition.' },
   { minAge: 18, maxAge: 120, conditions: SINGLE_PARENT, person: { kind: ['child'], maxAge: 3 }, text: 'I learned to do everything one-handed, because the other hand was holding {{person}}.' },
   { minAge: 18, maxAge: 120, conditions: SINGLE_PARENT, person: { kind: ['child'], maxAge: 9 }, text: 'Doing it alone was hard. {{person}} drew me as a superhero anyway.' },
-  // ------------------------------------------------------------ situational: a grandparent
-  { minAge: 40, maxAge: 120, conditions: GRANDPARENT, text: 'I kept a drawer of candy for the grandchildren and pretended not to know about it.' },
-  { minAge: 40, maxAge: 120, conditions: GRANDPARENT, text: 'I showed photos of my grandchildren to anyone who stood still long enough.' },
-  { minAge: 40, maxAge: 120, conditions: GRANDPARENT, text: 'Being a grandparent is all the fun and none of the bedtimes. I recommend it.' },
-  { minAge: 40, maxAge: 120, conditions: GRANDPARENT, text: 'The grandchildren taught me a dance. I did it badly on purpose, and they loved it.' },
-  { minAge: 40, maxAge: 120, conditions: GRANDPARENT, text: 'I spoiled the grandchildren rotten. My own children called it hypocritical. Correctly.' },
+  // ------------------------------------------------------------ situational: a grandparent (a living grandchild; "the grandchildren" needs two)
+  { minAge: 40, maxAge: 120, groups: [grandchildren({ minAge: 3, maxAge: 14 })], text: 'I kept a drawer of candy for the grandchildren and pretended not to know about it.' },
+  { minAge: 40, maxAge: 120, person: GRANDCHILD, text: 'I showed photos of {{person}} to anyone who stood still long enough.' },
+  { minAge: 40, maxAge: 120, conditions: [{ hasPerson: ['grandchild'] }], text: 'Being a grandparent is all the fun and none of the bedtimes. I recommend it.' },
+  { minAge: 40, maxAge: 120, person: { kind: ['grandchild'], minAge: 5, maxAge: 17 }, text: '{{person}} taught me a dance. I did it badly on purpose, and {{they}} loved it.' },
+  { minAge: 40, maxAge: 120, groups: [grandchildren({ maxAge: 17 }), CHILDREN], text: 'I spoiled the grandchildren rotten. My own children called it hypocritical. Correctly.' },
   // ------------------------------------------------------------ situational: ninety and over
   { minAge: 90, maxAge: 120, conditions: [{ stat: 'health', gte: 60 }], text: 'My doctor asked for my secret. I said I eat dessert first, which is true.' },
   { minAge: 90, maxAge: 120, conditions: [{ stat: 'happiness', gte: 65 }], text: 'I am in my nineties and cheerful about it. Some people find this suspicious.' },
   { minAge: 85, maxAge: 120, person: { kind: ['spouse'], minAge: 75 }, text: '{{person}} and I sat together most evenings and argued about which of us is older.' },
   { minAge: 90, maxAge: 120, conditions: [{ noPerson: ['spouse', 'lover'] }], text: 'I live alone now. I talk to the radio, and some days it agrees with me.' },
-  { minAge: 90, maxAge: 120, conditions: [{ hasChildren: true }], text: 'My children are getting old. I find this harder to believe than anything else.' },
+  { minAge: 90, maxAge: 120, groups: [CHILDREN], text: 'My children are getting old. I find this harder to believe than anything else.' },
   { minAge: 90, maxAge: 120, conditions: [{ stat: 'smarts', gte: 60 }], text: 'I still did the crossword every morning, in pen, out of pure confidence.' },
 ];

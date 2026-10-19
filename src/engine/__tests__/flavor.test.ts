@@ -59,7 +59,7 @@ describe('flavor content', () => {
       unemployed: (l) => has(l, (c) => 'hasJob' in c && !c.hasJob) && !has(l, (c) => 'retired' in c && c.retired),
       debt: (l) => has(l, (c) => 'netWorth' in c),
       singleParent: (l) => !!l.person?.kind.includes('child') && has(l, (c) => 'married' in c && !c.married),
-      grandparent: (l) => has(l, (c) => 'flag' in c && c.flag === 'grandparent'),
+      grandparent: (l) => [...(l.person ? [l.person] : []), ...(l.groups ?? [])].some((g) => g.kind.includes('grandchild')) || has(l, (c) => 'hasPerson' in c && c.hasPerson.includes('grandchild')),
       ninety: (l) => l.minAge >= 90 && isSituational(l),
     };
     for (const [topic, test] of Object.entries(topics)) expect([topic, situational.filter(test).length >= 2]).toEqual([topic, true]);
@@ -92,6 +92,135 @@ describe('flavor content', () => {
     expect(problems({ text: `I ${'waited '.repeat(20)}.` }).join()).toMatch(/keep journal lines to 100/);
     expect(problems({ person: { kind: ['pet'] }, text: '{{They}} are loud, and I love it.' }).join()).toMatch(/singular verb/);
     expect(validateFlavor([GENERIC, GENERIC]).join()).toMatch(/duplicate/);
+  });
+
+  it('rejects family a line cannot be sure of: "my parents" for a child, plurals without two, an unbound grandmother, homework for a dropout', () => {
+    const problems = (l: Partial<FlavorLine>) => validateFlavor([{ minAge: 40, maxAge: 120, text: 'I did a thing.', ...l }]).join();
+    // A child may be an orphan or have one parent: {{parents}} renders whoever is there.
+    expect(problems({ minAge: 10, maxAge: 14, text: 'I discovered music that my parents hated.' })).toMatch(/\{\{parents\}\}/);
+    expect(problems({ minAge: 10, maxAge: 14, text: 'I discovered music that {{parents}} hated.' })).toBe('');
+    // "The grandchildren" and "my children" need two living ones, not the flag the first grandchild set.
+    const plural = 'I spoiled the grandchildren rotten. My own children called it hypocritical.';
+    expect(problems({ conditions: [{ flag: 'grandparent' }], text: plural })).toMatch(/grandchildren but does not require 2.*\n?.*my children but does not require 2/s);
+    expect(problems({ groups: [{ kind: ['grandchild'], atLeast: 2 }], text: plural })).toMatch(/my children/);
+    expect(problems({ groups: [{ kind: ['grandchild'], atLeast: 2 }, { kind: ['child'], atLeast: 2 }], text: plural })).toBe('');
+    expect(problems({ groups: [{ kind: ['grandchild'], atLeast: 1 }], text: 'I spoiled the grandchildren.' })).toMatch(/require 2/);
+    // Being a grandparent needs a living grandchild; a grandmother needs a real one bound.
+    expect(problems({ conditions: [{ flag: 'grandparent' }], text: 'Being a grandparent suits me.' })).toMatch(/a grandchild/);
+    expect(problems({ conditions: [{ hasPerson: ['grandchild'] }], text: 'Being a grandparent suits me.' })).toBe('');
+    expect(problems({ minAge: 1, maxAge: 3, text: 'Grandma sang to me.' })).toMatch(/a grandmother/);
+    expect(problems({ minAge: 1, maxAge: 3, person: { kind: ['grandparent'] }, text: '{{grandma}} sang to me.' })).toMatch(/a grandmother/);
+    expect(problems({ minAge: 1, maxAge: 3, person: { kind: ['grandparent'], gender: 'female' }, text: '{{person}} sang to me. Grandma always does.' })).toBe('');
+    // Juvenile detention: classroom lines only for a student.
+    expect(problems({ minAge: 12, maxAge: 17, conditions: [{ inPrison: true }], text: 'I did my homework at a bolted-down desk.' })).toMatch(/enrolled: true/);
+    expect(problems({ minAge: 12, maxAge: 17, conditions: [{ inPrison: true }, { enrolled: true }], text: 'I did my homework at a bolted-down desk.' })).toBe('');
+    expect(problems({ groups: [{ kind: [], atLeast: 2 }] })).toMatch(/group needs a kind/);
+    // An adult in prison may take a class; only a minor's school carries on inside.
+    expect(problems({ minAge: 18, maxAge: 120, conditions: [{ inPrison: true }], text: 'I took a pottery class in here. My bowls lean.' })).toBe('');
+    // Singular and gendered family words, and a literal Mom or Dad, need the people they name.
+    expect(problems({ text: 'My grandkid thinks I am a wizard.' })).toMatch(/a grandchild/);
+    expect(problems({ person: { kind: ['grandchild'] }, text: 'My grandkid {{person}} thinks I am a wizard.' })).toBe('');
+    expect(problems({ groups: [{ kind: ['child'], atLeast: 2 }], text: 'My sons argued about the barbecue.' })).toMatch(/my sons/);
+    expect(problems({ groups: [{ kind: ['child'], atLeast: 2, gender: 'male' }], text: 'My sons argued about the barbecue.' })).toBe('');
+    expect(problems({ text: 'Our kids grew up faster than the hedge.' })).toMatch(/my children/);
+    expect(problems({ text: 'I called Mom every Sunday.' })).toMatch(/names Mom/);
+    expect(problems({ conditions: [{ hasPerson: ['mother'] }], text: 'I called Mom every Sunday.' })).toBe('');
+    expect(problems({ text: 'Dad and I fixed the fence.' })).toMatch(/names Dad/);
+  });
+});
+
+describe('flavor lines about family', () => {
+  const line = (start: string) => FLAVOR.find((l) => l.text.startsWith(start))!;
+  const grandkid = (age: number, extra: Partial<Person> = {}) => person('grandchild', { age, ...extra });
+  const GRANDPARENT_LINES = FLAVOR.filter((l) => /grandchild|grandparent/.test(JSON.stringify(l)));
+
+  it('a group needs enough of them all year, and one who died this year no longer counts', () => {
+    const TWO: FlavorLine = { minAge: 40, maxAge: 120, groups: [{ kind: ['grandchild'], atLeast: 2 }], text: 'I spoiled the grandchildren.' };
+    const a = grandkid(6, { id: 'gc_a' });
+    const b = grandkid(8, { id: 'gc_b' });
+    const one = withPeople(adult(60), a);
+    const two = withPeople(adult(60), a, b);
+    expect(isSituational(TWO)).toBe(true);
+    expect(flavorFits(TWO, one, one)).toBe(false);
+    expect(flavorFits(TWO, two, two)).toBe(true);
+    // Born this year: not there at its start.
+    expect(flavorFits(TWO, one, two)).toBe(false);
+    // Died this year: not there at its end.
+    expect(flavorFits(TWO, two, withPeople(two, a, { ...b, alive: false }))).toBe(false);
+    // An age floor on the group: two toddlers do not teach anyone a dance.
+    const OLD_ENOUGH: FlavorLine = { ...TWO, groups: [{ kind: ['grandchild'], atLeast: 2, minAge: 5 }] };
+    const toddlers = withPeople(adult(60), grandkid(2, { id: 'gc_c' }), grandkid(3, { id: 'gc_d' }));
+    expect(flavorFits(OLD_ENOUGH, toddlers, toddlers)).toBe(false);
+    expect(flavorFits(OLD_ENOUGH, two, two)).toBe(true);
+  });
+
+  it('a grandparent of one gets no plural line, and nothing about grandchildren after the only one died', () => {
+    const only = grandkid(7, { id: 'gc_only', firstName: 'Anika', gender: 'female' });
+    const one = withPeople(adult(60), only);
+    const plural = GRANDPARENT_LINES.filter((l) => /grandchildren/.test(l.text));
+    expect(plural.length).toBeGreaterThanOrEqual(2);
+    for (const l of plural) expect([l.text, flavorFits(l, one, one)]).toEqual([l.text, false]);
+    // One grandchild still gets a line, by name.
+    expect(GRANDPARENT_LINES.some((l) => flavorFits(l, one, one))).toBe(true);
+    expect(picked(one, quietYear(one), [line('I showed photos of')])).toBe('I showed photos of Anika to anyone who stood still long enough.');
+    // The only grandchild died: no grandparent line that year or after, though the grandparent flag stays set.
+    const gone = withPeople({ ...one, flags: { ...one.flags, grandparent: true, grandchildren: 1 } }, { ...only, alive: false });
+    for (const l of GRANDPARENT_LINES) {
+      expect([l.text, flavorFits(l, one, gone)]).toEqual([l.text, false]);
+      expect([l.text, flavorFits(l, gone, gone)]).toEqual([l.text, false]);
+    }
+    // The dance needs a grandchild old enough to teach it.
+    const dance = line('{{person}} taught me a dance');
+    const baby = withPeople(adult(55), grandkid(1));
+    expect(flavorFits(dance, baby, baby)).toBe(false);
+    expect(picked(one, quietYear(one), [dance])).toBe('Anika taught me a dance. I did it badly on purpose, and she loved it.');
+  });
+
+  it('the candy, the spoiling and the dance are for grandchildren who are still kids', () => {
+    const grown = withPeople(adult(88), person('child', { id: 'c1', age: 60 }), person('child', { id: 'c2', age: 58 }), grandkid(31, { id: 'g1' }), grandkid(27, { id: 'g2' }));
+    const kids = withPeople(adult(68), person('child', { id: 'c1', age: 40 }), person('child', { id: 'c2', age: 38 }), grandkid(9, { id: 'g1' }), grandkid(6, { id: 'g2' }));
+    for (const start of ['I kept a drawer of candy', 'I spoiled the grandchildren rotten', '{{person}} taught me a dance']) {
+      expect([start, flavorFits(line(start), grown, grown)]).toEqual([start, false]);
+      expect([start, flavorFits(line(start), kids, kids)]).toEqual([start, true]);
+    }
+    // Grown grandchildren still get a line: their photos, and being a grandparent.
+    expect(flavorFits(line('I showed photos of'), grown, grown)).toBe(true);
+    expect(flavorFits(line('Being a grandparent'), grown, grown)).toBe(true);
+  });
+
+  it('"my children" needs two living children', () => {
+    const old = line('My children are getting old');
+    const kid = (id: string) => person('child', { id, age: 65 });
+    const oneChild = withPeople(adult(92), kid('c1'));
+    const twoChildren = withPeople(adult(92), kid('c1'), kid('c2'));
+    expect(flavorFits(old, oneChild, oneChild)).toBe(false);
+    expect(flavorFits(old, twoChildren, twoChildren)).toBe(true);
+    const spoiled = line('I spoiled the grandchildren rotten');
+    const grand = withPeople(adult(70), kid('c1'), grandkid(6, { id: 'g1' }), grandkid(9, { id: 'g2' }));
+    expect(flavorFits(spoiled, grand, grand)).toBe(false);
+    const both = withPeople(grand, ...Object.values(grand.people), kid('c2'));
+    expect(flavorFits(spoiled, both, both)).toBe(true);
+  });
+
+  it('a child\'s music line names whoever raises them', () => {
+    const music = line('I discovered music that');
+    const kid = (...people: Person[]) => withPeople(adult(12), ...people);
+    const both = kid(person('mother', { id: 'mom' }), person('father', { id: 'dad', gender: 'male' }));
+    expect(picked(both, quietYear(both), [music])).toBe('I discovered music that Mom and Dad hated. This was the point.');
+    const single = kid(person('mother'));
+    expect(picked(single, quietYear(single), [music])).toBe('I discovered music that Mom hated. This was the point.');
+    const foster = kid(person('stepfather', { firstName: 'Ethan', gender: 'male' }));
+    expect(picked(foster, quietYear(foster), [music])).toBe('I discovered music that Ethan hated. This was the point.');
+  });
+
+  it('the detention homework line is for a student, not a dropout', () => {
+    const homework = line('I did my homework at a bolted-down desk');
+    const teen = adult(16);
+    const student = sendToPrison({ ...teen, education: { ...teen.education, stage: 'high', enrolled: true, droppedOut: false } }, 2);
+    const dropout = sendToPrison({ ...teen, education: { ...teen.education, stage: 'done', enrolled: false, droppedOut: true } }, 2);
+    expect([student.crime.juvenile, student.education.enrolled]).toEqual([true, true]);
+    expect(flavorFits(homework, student, student)).toBe(true);
+    expect(flavorFits(homework, dropout, dropout)).toBe(false);
   });
 });
 

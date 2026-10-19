@@ -24,7 +24,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.6,
-            then: [{ log: 'I said I could whistle through my nose. The class demanded proof. I delivered. Instant legend.', kind: 'good' }, { stat: 'happiness', delta: 5 }],
+            then: [{ log: 'I said I could whistle through my nose. The class demanded proof. I delivered. Instant legend.', kind: 'good' }, { stat: 'happiness', delta: 6 }],
             else: [{ log: 'I said something bold and the room went very quiet. The teacher moved on quickly.', kind: 'bad' }, { stat: 'happiness', delta: -3 }],
           },
         ],
@@ -291,7 +291,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
   {
     id: 'kd_bully_crying',
     category: 'childhood',
-    title: 'Behind the gym',
+    title: 'On the steps',
     text: 'Behind the gym I found the kid who has been shoving me all year, sitting on the steps and crying into a sleeve. They had not seen me yet.',
     minAge: 7,
     maxAge: 12,
@@ -304,18 +304,17 @@ export const KID_YEARS_EVENTS: EventDef[] = [
         label: 'Sit down next to them',
         effects: [
           { karma: 4 },
-          { stat: 'happiness', delta: 3 },
           {
             chance: 0.6,
-            then: [{ newPerson: { kind: 'friend', relationship: 50, log: 'Things at home were bad, it turned out. {{person}} and I are friends now. Nobody at school gets it.' } }],
-            else: [{ log: 'They told me to go away, but the shoving stopped after that. Something changed.', kind: 'good' }],
+            then: [{ stat: 'happiness', delta: 3 }, { newPerson: { kind: 'friend', relationship: 50, log: 'Things at home were bad, it turned out. {{person}} and I are friends now. Nobody at school gets it.' } }],
+            else: [{ stat: 'happiness', delta: -3 }, { log: 'They told me to go away and called me nosy for a week. The shoving stopped, though.' }],
           },
         ],
       },
       {
         id: 'walk',
         label: 'Walk away quietly',
-        effects: [{ karma: 1 }, { log: 'I backed away without a sound. Some things are not mine to see.' }],
+        effects: [{ karma: 1 }, { stat: 'happiness', delta: 1 }, { log: 'I backed away without a sound. Some things are not mine to see. I felt older for it.' }],
       },
       {
         id: 'tell',
@@ -347,6 +346,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
         label: 'Study every night',
         effects: [
           { stat: 'smarts', delta: 4 },
+          { stat: 'happiness', delta: -3 },
           {
             chance: 0.5,
             then: [{ log: 'I won on "chrysanthemum". A trophy, a check, and a photo in the local paper.', kind: 'milestone' }, { money: 50 }, { stat: 'happiness', delta: 8 }],
@@ -375,7 +375,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
   {
     id: 'kd_report_card',
     category: 'childhood',
-    title: 'Report card',
+    title: 'Could try harder',
     text: "Report card day. Mine says 'could try harder' in three different handwritings. It needs a parent's signature by Monday. {{mother}} has not seen it yet.",
     minAge: 7,
     maxAge: 12,
@@ -391,7 +391,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
           { relationship: 'mother', delta: 3 },
           {
             chance: 0.5,
-            then: [{ log: 'Grounded for a week, no screens. Fair, probably.', kind: 'bad' }, { stat: 'happiness', delta: -4 }],
+            then: [{ log: 'Grounded for a week, no TV. Fair, probably.', kind: 'bad' }, { stat: 'happiness', delta: -4 }],
             else: [{ log: 'We made a study plan with colored pens. It was almost nice.' }, { stat: 'happiness', delta: -1 }, { stat: 'smarts', delta: 1 }],
           },
         ],
@@ -425,13 +425,13 @@ export const KID_YEARS_EVENTS: EventDef[] = [
   {
     id: 'kd_science_fair',
     category: 'childhood',
-    title: 'Science fair',
+    title: 'Our project',
     text: "Science fair in two weeks. {{person}} has already bought a glue gun and started saying 'our project'. I have an idea about plants and music that is actually mine.",
     minAge: 9,
     maxAge: 12,
     weight: 1.2,
     cooldown: 3,
-    conditions: [{ enrolled: true }],
+    conditions: [{ enrolled: true }, { not: { sinceEvent: 'sl_science_fair', lte: 3 } }],
     person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
@@ -637,7 +637,8 @@ export const KID_YEARS_EVENTS: EventDef[] = [
     minAge: 6,
     maxAge: 12,
     weight: 1,
-    cooldown: 4,
+    // Nobody trusts me with their dog a second time.
+    once: true,
     choices: [
       {
         id: 'search',
@@ -752,7 +753,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
     id: 'kd_tight_months',
     category: 'childhood',
     title: 'Tight months',
-    text: 'The next few months were tight. Brand-name cereal vanished from the cupboard. The heat stayed off longer. {{person}} started applying for jobs at the kitchen table every morning.',
+    text: 'The next few months were tight. Brand-name cereal vanished from the cupboard. The lights went off earlier. {{person}} started applying for jobs at the kitchen table every morning.',
     minAge: 6,
     maxAge: 13,
     weight: 1,
@@ -788,7 +789,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
           { money: 40 },
           { stat: 'smarts', delta: 2 },
           { stat: 'happiness', delta: 2 },
-          { log: 'I returned bottles for the deposit all winter and handed over the coins. It helped. A bit.', kind: 'money' },
+          { log: 'I returned bottles for the deposit for months and handed over the coins. It helped. A bit.', kind: 'money' },
           { chance: 0.7, then: [{ log: '{{person}} found a new job by spring and bought me a bike with the first pay.', kind: 'good' }, { stat: 'happiness', delta: 4 }], else: [{ log: 'The job hunt dragged into summer. The bottles kept coming.' }, { stat: 'happiness', delta: -2 }] },
         ],
       },
@@ -845,7 +846,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
       {
         id: 'old',
         label: 'Cling to old friends',
-        effects: [{ relationship: 'friend', delta: 2 }, { relationship: 'bestFriend', delta: 2 }, { stat: 'happiness', delta: 1 }, { log: 'I wrote long messages to everyone back home. They wrote back less and less.' }],
+        effects: [{ relationship: 'friend', delta: 2 }, { relationship: 'bestFriend', delta: 2 }, { stat: 'happiness', delta: 1 }, { log: 'I wrote long letters to everyone back home. They wrote back less and less.' }],
       },
       {
         id: 'explore',
@@ -930,11 +931,11 @@ export const KID_YEARS_EVENTS: EventDef[] = [
     id: 'kd_found_wallet',
     category: 'childhood',
     title: 'The wallet',
-    text: 'On the path through the park I found a wallet. Inside: {{$60}}, a library card and a photo of a sad-looking spaniel. Nobody was around.',
+    text: 'Half under a bench in the park lay a wallet. Inside: {{$60}} and a donut shop card, one stamp away from a free dozen. Nobody was around.',
     minAge: 6,
     maxAge: 12,
     weight: 1,
-    cooldown: 4,
+    once: true,
     choices: [
       {
         id: 'handin',
@@ -943,7 +944,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
           { karma: 4 },
           {
             chance: 0.5,
-            then: [{ log: 'The owner came by with a box of cookies and {{$20}} as a thank-you. The spaniel came too.', kind: 'good' }, { money: 20 }, { stat: 'happiness', delta: 4 }],
+            then: [{ log: 'The owner came by with {{$20}} and the free dozen donuts as a thank-you. Excellent trade.', kind: 'good' }, { money: 20 }, { stat: 'happiness', delta: 4 }],
             else: [{ log: 'I turned it in at the park office. Nobody said thanks. That is fine. That is allowed.' }, { stat: 'happiness', delta: 2 }],
           },
         ],
@@ -956,8 +957,8 @@ export const KID_YEARS_EVENTS: EventDef[] = [
           { karma: -5 },
           {
             chance: 0.25,
-            then: [{ log: "The spaniel's owner lives three doors down. They know. They have not said anything. That is worse.", kind: 'bad' }, { stat: 'happiness', delta: -4 }, { relationship: 'mother', delta: -3 }],
-            else: [{ log: 'I bought a frankly enormous amount of candy. The spaniel haunts me a little.', kind: 'money' }, { stat: 'happiness', delta: 3 }],
+            then: [{ log: 'The owner lives three doors down. They know. They have not said anything. That is worse.', kind: 'bad' }, { stat: 'happiness', delta: -4 }, { relationship: 'mother', delta: -3 }],
+            else: [{ log: 'I bought a frankly enormous amount of candy. That one missing stamp haunts me a little.', kind: 'money' }, { stat: 'happiness', delta: 3 }],
           },
         ],
       },
@@ -1062,7 +1063,7 @@ export const KID_YEARS_EVENTS: EventDef[] = [
     minAge: 6,
     maxAge: 12,
     weight: 1.5,
-    cooldown: 3,
+    once: true,
     person: { kind: ['sibling'], minAge: 4, maxAge: 17 },
     choices: [
       {

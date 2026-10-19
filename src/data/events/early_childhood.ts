@@ -421,13 +421,13 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     minAge: 3,
     maxAge: 5,
     weight: 2,
-    cooldown: 2,
+    once: true,
     person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
         id: 'call',
         label: 'Yell for {{person}}',
-        effects: [{ relationship: 'person', delta: 2 }, { stat: 'happiness', delta: 2 }, { log: '{{person}} came in, opened the closet and introduced me to a coat. The coat and I are fine now.', kind: 'good' }],
+        effects: [{ relationship: 'person', delta: 2 }, { stat: 'happiness', delta: 2 }, { log: '{{person}} came in, opened the closet and introduced me to a bathrobe. The bathrobe and I are fine now.', kind: 'good' }],
       },
       {
         id: 'face',
@@ -435,8 +435,8 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
         effects: [
           {
             chance: 0.6,
-            then: [{ stat: 'happiness', delta: 4 }, { log: 'I marched over and poked it. It was a coat. I am the bravest person in this house.', kind: 'good' }],
-            else: [{ stat: 'health', delta: -2 }, { stat: 'happiness', delta: -3 }, { log: 'I could not do it. I lay rigid until dawn. The coat won.', kind: 'bad' }],
+            then: [{ stat: 'happiness', delta: 4 }, { log: 'I marched over and poked it. It was a bathrobe. I am the bravest person in this house.', kind: 'good' }],
+            else: [{ stat: 'health', delta: -2 }, { stat: 'happiness', delta: -3 }, { log: 'I could not do it. I lay rigid until dawn. The bathrobe won.', kind: 'bad' }],
           },
         ],
       },
@@ -905,7 +905,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     id: 'ec_hand_me_downs',
     category: 'childhood',
     title: 'Hand-me-downs',
-    text: 'All my clothes used to belong to somebody else. My winter coat has a name sewn into the collar, and it is not my name. The grown-ups keep saying money is tight.',
+    text: 'All my clothes used to belong to somebody else. My favorite jacket has a name sewn into the collar, and it is not my name. The grown-ups keep saying money is tight.',
     minAge: 3,
     maxAge: 5,
     weight: 1.5,
@@ -915,18 +915,18 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
       {
         id: 'proud',
         label: 'Wear it proudly',
-        effects: [{ stat: 'happiness', delta: 2 }, { karma: 2 }, { log: 'The coat is warm and that is what coats are for. I decided not to care about the name.' }],
+        effects: [{ stat: 'happiness', delta: 2 }, { karma: 2 }, { log: 'The jacket fits, and that is what jackets are for. I decided not to care about the name.' }],
       },
       {
         id: 'complain',
         label: 'Complain to {{mother}}',
         conditions: [{ hasPerson: ['mother'] }],
-        effects: [{ relationship: 'mother', delta: -3 }, { stat: 'happiness', delta: -2 }, { stat: 'smarts', delta: 2 }, { log: 'I whined about the coat. {{mother}} went very quiet. I understood later what that quiet meant.', kind: 'bad' }],
+        effects: [{ relationship: 'mother', delta: -3 }, { stat: 'happiness', delta: -2 }, { stat: 'smarts', delta: 2 }, { log: 'I whined about the jacket. {{mother}} went very quiet. I understood later what that quiet meant.', kind: 'bad' }],
       },
       {
         id: 'cape',
         label: 'Pretend it is a cape',
-        effects: [{ stat: 'happiness', delta: 4 }, { stat: 'smarts', delta: 1 }, { log: 'The coat is a cape and the name is my secret identity. Problem solved.', kind: 'good' }],
+        effects: [{ stat: 'happiness', delta: 4 }, { stat: 'smarts', delta: 1 }, { log: 'I tied the jacket around my neck. It is a cape now, and the name is my secret identity.', kind: 'good' }],
       },
     ],
   },
@@ -1054,7 +1054,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
         id: 'shy',
         label: 'Run to {{mother}}',
         conditions: [{ hasPerson: ['mother'] }],
-        effects: [{ stat: 'happiness', delta: -1 }, { relationship: 'mother', delta: 2 }, { log: "I handed the bucket back and hid in {{mother}}'s coat. Not today. Maybe tomorrow." }],
+        effects: [{ stat: 'happiness', delta: -1 }, { relationship: 'mother', delta: 2 }, { log: "I handed the bucket back and hid behind {{mother}}'s legs. Not today. Maybe tomorrow." }],
       },
     ],
   },
@@ -1108,7 +1108,7 @@ export const EARLY_CHILDHOOD_EVENTS: EventDef[] = [
     minAge: 3,
     maxAge: 5,
     weight: 2,
-    cooldown: 2,
+    once: true,
     person: { kind: ['mother', 'father', 'stepmother', 'stepfather'] },
     choices: [
       {
