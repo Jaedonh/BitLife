@@ -131,6 +131,12 @@ export type Effect =
   | { addiction: AddictionKind; delta: number }
   | { injury: number }
   | { loseJob: true; reason?: 'fired' | 'left' }
+  /** The bound person moves to another city or country: they become far away (only long-distance cards bind them). */
+  | { moveAway: true }
+  /** I move to another city in the same country (friends and grandparents stay behind, far away); the card writes the lines. */
+  | { relocate: true }
+  /** Up one rung of my job's ladder with the pay that goes with it (the engine writes the promotion line). */
+  | { promotion: true }
   /** Same job and rung at a rival employer, for a raise (default 10%). Coworkers from the old job stay behind. */
   | { switchEmployer: true; raise?: number }
   | { jobPerformance: number }

@@ -289,6 +289,14 @@ function promote(state: GameState, rng: Rng, job: Job, def: JobDef): GameState {
   return s;
 }
 
+/** An event's `promotion` effect: up one rung with the pay that goes with it (nothing at the top of the ladder). */
+export function promoteNow(state: GameState, rng: Rng): GameState {
+  const job = state.career.job;
+  const def = job ? JOB_BY_ID[job.defId] : undefined;
+  if (!job || !def || job.level >= def.ladder.length - 1) return state;
+  return promote(state, rng, job, def);
+}
+
 export function askForPromotion(state: GameState, rng: Rng): GameState {
   const job = state.career.job;
   if (!job) return state;

@@ -1,7 +1,7 @@
 import { evaluateCondition } from '../events/conditions';
 import { applyEffects } from '../events/effects';
 import { Rng } from '../rng';
-import { createLife } from '../systems/character';
+import { createLife, makePerson } from '../systems/character';
 import type { GameState } from '../types';
 
 function at(countryCode: string, age: number, year: number): GameState {
@@ -57,5 +57,38 @@ describe('switchEmployer', () => {
   it('does nothing without a job', () => {
     const s = at('US', 30, 2010);
     expect(applyEffects(s, new Rng(3), [{ switchEmployer: true }]).career).toEqual(s.career);
+  });
+});
+
+describe('moveAway, relocate and promotion', () => {
+  it('moveAway makes the bound person far away', () => {
+    const base = at('US', 30, 2010);
+    const friend = Object.values(base.people).find((p) => p.alive && p.kind !== 'pet') ?? null;
+    expect(friend).not.toBeNull();
+    const after = applyEffects(base, new Rng(1), [{ moveAway: true }], { personId: friend!.id });
+    expect(after.people[friend!.id]!.farAway).toBe(true);
+  });
+
+  it('relocate changes the city, keeps the household and leaves friends and grandparents far away', () => {
+    const base = at('US', 30, 2010);
+    const f = makePerson(new Rng(5), { kind: 'friend', countryCode: 'US', playerAge: 30, age: 30 });
+    const s: GameState = { ...base, people: { ...base.people, [f.id]: f } };
+    const after = applyEffects(s, new Rng(2), [{ relocate: true }]);
+    expect(after.character.city).not.toBe(base.character.city);
+    expect(after.people[f.id]!.farAway).toBe(true);
+    for (const p of Object.values(after.people)) if (p.kind === 'grandparent' && p.alive) expect(p.farAway).toBe(true);
+    for (const p of Object.values(after.people)) if (p.kind === 'mother' || p.kind === 'father') expect(p.farAway).toBeUndefined();
+  });
+
+  it('promotion moves up one rung with a raise, and does nothing at the top', () => {
+    const base = at('US', 30, 2010);
+    const job = { defId: 'accountant', title: 'Accountant', company: 'Granite & Sons', salary: 68_000, level: 1, performance: 70, yearsHeld: 4, yearsAtLevel: 2, category: 'finance' as const, partTime: false, askedThisYear: false, workedHarderThisYear: false };
+    const after = applyEffects({ ...base, career: { ...base.career, job } }, new Rng(3), [{ promotion: true }]);
+    expect(after.career.job?.level).toBe(2);
+    expect(after.career.job?.title).toBe('Senior Accountant');
+    expect(after.career.job!.salary).toBeGreaterThan(68_000);
+    const top = { ...job, level: 4, title: 'CFO' };
+    const same = applyEffects({ ...base, career: { ...base.career, job: top } }, new Rng(3), [{ promotion: true }]);
+    expect(same.career.job).toEqual(top);
   });
 });

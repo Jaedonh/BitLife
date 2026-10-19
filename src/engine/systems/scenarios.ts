@@ -5,6 +5,7 @@ import { FAR_AWAY_KINDS } from '../events/schema';
 import { personRef } from '../events/text';
 import type { GameState, NewLifeOptions, Person, ScenarioId } from '../types';
 import { addStats, capitalize, fullName, joinList, log } from '../util';
+import { hireCoworkers } from './coworkers';
 
 /**
  * Starting scenarios (GAME_DESIGN §4a). The family a scenario starts with is built in createLife
@@ -116,6 +117,38 @@ function goodbyeLine(rng: Rng, behind: readonly Person[]): string | null {
 }
 
 /**
+ * Who a move leaves behind: classmates and all but the two closest friends leave the life; those two friends,
+ * rivals and grandparents (STAY_BEHIND) stay as people who live far away (`farAway`). Also returns them, for the
+ * goodbye line.
+ */
+function leaveBehind(state: GameState): { people: GameState['people']; behind: Person[] } {
+  const kept = friendsKept(state);
+  const leaves = (p: Person) => p.kind === 'classmate' || (p.alive && isFriend(p) && !kept.has(p.id));
+  const behind = Object.values(state.people).filter((p) => p.alive && STAY_BEHIND.includes(p.kind) && !leaves(p) && p.farAway !== true);
+  const people = Object.fromEntries(
+    Object.entries(state.people)
+      .filter(([, p]) => !leaves(p))
+      .map(([id, p]) => [id, p.alive && STAY_BEHIND.includes(p.kind) ? { ...p, farAway: true } : p]),
+  );
+  return { people, behind };
+}
+
+/**
+ * A move to another city in the same country (an event's `relocate` effect: the family moves for work, I take a
+ * job across the country). The city changes; friends, rivals and grandparents stay behind as for a move abroad.
+ * Coworkers stay at the old workplace, so a job that moves with me gets new ones. The card writes its own lines.
+ */
+export function relocateCity(state: GameState, rng: Rng): GameState {
+  const others = getCountry(state.character.countryCode).cities.filter((c) => c !== state.character.city);
+  if (state.crime.inPrison || others.length === 0) return state;
+  const { people } = leaveBehind(state);
+  const job = state.career.job;
+  const kept = job ? Object.fromEntries(Object.entries(people).filter(([, p]) => p.kind !== 'coworker')) : people;
+  const s: GameState = { ...state, people: kept, character: { ...state.character, city: rng.pick(others) } };
+  return job ? hireCoworkers(s, rng) : s;
+}
+
+/**
  * The immigrant family's move: country and city change, classmates and all but the two closest friends stay
  * behind and leave the life, those two friends, rivals and grandparents stay behind as people who live far away
  * (`farAway`: only long-distance cards bind them), and the `immigrant` flag records the country of birth. A child
@@ -126,14 +159,7 @@ export function moveAbroad(state: GameState, rng: Rng, countryCode: string): Gam
   const to = getCountry(countryCode);
   if (from.code === to.code || state.crime.inPrison || !hasGuardian(state)) return state;
   const city = rng.pick(to.cities);
-  const kept = friendsKept(state);
-  const leaves = (p: Person) => p.kind === 'classmate' || (p.alive && isFriend(p) && !kept.has(p.id));
-  const behind = Object.values(state.people).filter((p) => p.alive && STAY_BEHIND.includes(p.kind) && !leaves(p));
-  const people = Object.fromEntries(
-    Object.entries(state.people)
-      .filter(([, p]) => !leaves(p))
-      .map(([id, p]) => [id, p.alive && STAY_BEHIND.includes(p.kind) ? { ...p, farAway: true } : p]),
-  );
+  const { people, behind } = leaveBehind(state);
   let s: GameState = { ...state, people, character: { ...state.character, countryCode: to.code, city }, flags: { ...state.flags, immigrant: from.code } };
   s = log(s, `My family moved from ${countryInProse(from.name)} to ${countryInProse(to.name)}. We started over in ${city}.`, 'milestone');
   const goodbye = goodbyeLine(rng, behind);

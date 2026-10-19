@@ -1,7 +1,8 @@
 import { ILLNESS_BY_ID } from '@/data/illnesses';
 import type { Rng } from '../rng';
 import { onNpcDeath } from '../systems/aging';
-import { switchEmployer } from '../systems/careers';
+import { promoteNow, switchEmployer } from '../systems/careers';
+import { relocateCity } from '../systems/scenarios';
 import { friendAgeRange, makePerson, namesInLife } from '../systems/character';
 import { coworkerTitle, workplaceOf } from '../systems/coworkers';
 import { markChildMilestone } from '../systems/family';
@@ -283,6 +284,13 @@ export function applyEffect(state: GameState, rng: Rng, e: Effect, ctx: EffectCo
   }
   if ('loseJob' in e) return removeJob(s, e.reason ?? 'fired');
   if ('switchEmployer' in e) return switchEmployer(s, rng, e.raise);
+  if ('promotion' in e) return promoteNow(s, rng);
+  if ('relocate' in e) return relocateCity(s, rng);
+  if ('moveAway' in e) {
+    const p = ctx.personId ? s.people[ctx.personId] : undefined;
+    if (!p || !p.alive) return s;
+    return { ...s, people: { ...s.people, [p.id]: { ...p, farAway: true } } };
+  }
   if ('jobPerformance' in e) {
     if (!s.career.job) return s;
     return { ...s, career: { ...s.career, job: { ...s.career.job, performance: clampStat(s.career.job.performance + e.jobPerformance) } } };
