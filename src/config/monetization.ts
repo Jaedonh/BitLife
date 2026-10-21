@@ -50,6 +50,27 @@ export const usingTestAds =
   adUnitIds.banner === TEST_IDS[platformKey].banner ||
   adUnitIds.interstitial === TEST_IDS[platformKey].interstitial;
 
+/** UMP debug regions (react-native-google-mobile-ads AdsConsentDebugGeography). */
+export type ConsentDebugGeography = 'EEA' | 'REGULATED_US_STATE' | 'NOT_EEA' | 'OTHER';
+const DEBUG_GEOGRAPHIES: readonly ConsentDebugGeography[] = ['EEA', 'REGULATED_US_STATE', 'NOT_EEA', 'OTHER'];
+
+/**
+ * Consent testing (docs/RELEASE_CHECKLIST.md §2): makes the UMP SDK act as if the device were in
+ * the EEA or a regulated US state, so the GDPR and US-state messages can be checked from anywhere.
+ * Set EXPO_PUBLIC_ADS_DEBUG_GEOGRAPHY (EEA | REGULATED_US_STATE | NOT_EEA | OTHER) and, for a
+ * physical device, EXPO_PUBLIC_ADS_TEST_DEVICE_IDS (comma-separated hashed IDs the SDK logs).
+ * Only builds on Google's test ad units honor it, so a store build (which the production guard
+ * keeps off test units) never fakes a region.
+ */
+const debugGeography = clean(process.env.EXPO_PUBLIC_ADS_DEBUG_GEOGRAPHY)?.toUpperCase() as ConsentDebugGeography | undefined;
+export const consentDebug: { geography: ConsentDebugGeography | null; testDeviceIds: string[] } =
+  usingTestAds && debugGeography && DEBUG_GEOGRAPHIES.includes(debugGeography)
+    ? {
+        geography: debugGeography,
+        testDeviceIds: (clean(process.env.EXPO_PUBLIC_ADS_TEST_DEVICE_IDS) ?? '').split(',').map((s) => s.trim()).filter(Boolean),
+      }
+    : { geography: null, testDeviceIds: [] };
+
 /** RevenueCat public SDK keys (safe to ship in the binary). */
 export const revenueCatApiKey: string | undefined =
   Platform.OS === 'ios' ? clean(process.env.EXPO_PUBLIC_RC_IOS_KEY) : clean(process.env.EXPO_PUBLIC_RC_ANDROID_KEY);

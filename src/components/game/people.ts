@@ -3,7 +3,7 @@ import { personRef, scaleMoney } from '@/engine/events/text';
 import { seesDaily, type InteractionDef, type InteractionId } from '@/engine/systems/relationships';
 import { fosterRelation } from '@/engine/systems/scenarios';
 import type { GameState, LogEntry, LogKind, Person, RelationshipKind } from '@/engine/types';
-import { actionCount, capitalize, deathPhrase, lowerTitle } from '@/engine/util';
+import { actionCount, capitalize, deathPhrase } from '@/engine/util';
 import { colors } from '@/theme';
 
 export function kindLabel(p: Person): string {
@@ -104,8 +104,9 @@ export function occupationLabel(p: Person): string | null {
     if (p.age < 23 && !leftSchool(p)) return 'Student';
     return null;
   }
-  // "Retired IT specialist": acronyms keep their capitals. A coworker still works beside me, whatever their age.
-  if (p.age >= 67 && p.occupation !== 'Unemployed' && p.kind !== 'coworker') return `Retired ${lowerTitle(p.occupation)}`;
+  // "Retired Bus Driver", in the same title case as "Bus Driver" on the next card. A coworker still works beside me,
+  // whatever their age.
+  if (p.age >= 67 && p.occupation !== 'Unemployed' && p.kind !== 'coworker') return `Retired ${p.occupation}`;
   return p.occupation;
 }
 

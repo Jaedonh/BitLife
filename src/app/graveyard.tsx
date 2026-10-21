@@ -33,7 +33,7 @@ export default function GraveyardScreen() {
   const lives = `${graveyard.length} ${graveyard.length === 1 ? 'life' : 'lives'}`;
   const progress = `${earnedCount}/${RIBBONS.length}`;
 
-  // The privacy policy promises this deletion path (docs/PRIVACY_POLICY.md, "Information we store on your device").
+  // The privacy policy promises this deletion path (docs/PRIVACY_POLICY.md §1, "What stays on your device"; §9, "Deleting your data").
   const clear = () => {
     const title = 'Clear the graveyard?';
     const message = 'Every remembered life, obituary and earned ribbon on this device will be deleted. This cannot be undone.';

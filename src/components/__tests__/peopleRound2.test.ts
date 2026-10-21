@@ -52,7 +52,7 @@ describe('labels say what people really do (findings 8, 32)', () => {
   it('a coworker of 67 or more who still works with me shows the working title', () => {
     const oliver = person('coworker', { age: 70, occupation: 'Head Janitor', workplace: { jobId: 'janitor', company: 'Union Ltd.' } });
     expect(personSubtitle(oliver, kindLabel(oliver))).toBe('Coworker · 70 · Head Janitor');
-    expect(occupationLabel({ ...oliver, kind: 'friend' })).toBe('Retired head janitor');
+    expect(occupationLabel({ ...oliver, kind: 'friend' })).toBe('Retired Head Janitor');
   });
 });
 

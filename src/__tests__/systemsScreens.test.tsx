@@ -129,3 +129,32 @@ describe('Restore purchases where purchases are not available (web)', () => {
     expect(texts(tree)).toContain('No previous purchase found for this store account.');
   });
 });
+
+describe('Report an ad (App Store Review Guideline 2.5.18)', () => {
+  it('free players can report an ad by email; Premium players see no ads and no button', async () => {
+    const { Linking } = jest.requireActual('react-native') as typeof import('react-native');
+    const open = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
+    const tree = render(<SettingsScreen />);
+    const report = button(tree, 'report-ad');
+    expect(report).toBeDefined();
+    await act(async () => {
+      (report!.props as { onPress: () => void }).onPress();
+      await flush();
+    });
+    expect(open).toHaveBeenCalledWith(expect.stringMatching(/^mailto:.+\?subject=Report%20an%20ad&body=/));
+    act(() => useSettingsStore.setState({ premium: true }));
+    const paid = render(<SettingsScreen />);
+    expect(button(paid, 'report-ad')).toBeUndefined();
+  });
+
+  it('with no email app set up, the button shows the address instead of doing nothing', async () => {
+    const { Linking } = jest.requireActual('react-native') as typeof import('react-native');
+    jest.spyOn(Linking, 'openURL').mockRejectedValue(new Error('no mail app'));
+    const tree = render(<SettingsScreen />);
+    await act(async () => {
+      (button(tree, 'report-ad')!.props as { onPress: () => void }).onPress();
+      await flush();
+    });
+    expect(texts(tree).some((t) => /^No email app is set up on this device\. Write to .+@.+\.$/.test(t))).toBe(true);
+  });
+});

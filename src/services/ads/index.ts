@@ -4,3 +4,4 @@
 export { ads } from './adsImpl';
 export type { AdsService, RewardedResult } from './types';
 export * from './policy';
+export * from './report';

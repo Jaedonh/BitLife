@@ -1,0 +1,24 @@
+Thank you for reviewing LifeLoop, a text-only life simulator.
+
+NO ACCOUNT, NO LOGIN
+The game needs no account and no sign-in. It plays offline; saves stay on the device.
+
+IN-APP PURCHASE (sandbox)
+One non-consumable product: "LifeLoop Premium", product ID lifeloop_premium, processed through RevenueCat. To buy it with a sandbox account: Home screen -> "Go Premium" (or Settings -> Premium -> "Go Premium") -> "Unlock Premium".
+Premium removes all ads and unlocks:
+- custom starting stats and the Wealthy start: Home -> "Custom life";
+- unlimited generations: on the tombstone after a death, "Continue the family line" works every time (free players get one hand-off per family line);
+- instant second chances: the "Second chance" button on the tombstone, without an ad.
+
+RESTORE PURCHASES
+Settings -> Premium -> "Restore purchases", or the "Restore purchases" button under "Unlock Premium" on the Premium screen.
+
+ADS AND CONSENT
+Free players see Google AdMob ads: a banner on the life screen, an occasional full-screen ad after tapping "Age +" (never in the first 12 years played or the first 90 seconds after launch, never over a choice), and optional rewarded ads. A new AdMob account may serve no ads during review; the game works the same without them. To report an inappropriate ad (guideline 2.5.18): Settings -> Privacy -> "Report an ad" opens a prefilled email to us; it is shown to free players only, since Premium has no ads.
+Where the law requires it, Google's consent form appears at first launch, then the App Tracking Transparency prompt (skipped if the player already refused in the consent form). If tracking is denied, only non-personalized ads are requested. Settings -> Privacy -> "Ad privacy options" reopens the consent choices where they apply.
+
+CONTENT
+Text only, rated 13+. Crime, court, prison, alcohol and dating appear as story events with consequences. No gambling, casino or lottery features, no loot boxes, no chat and no user-generated content.
+
+PRIVACY AND SUPPORT
+Settings -> Privacy -> "Privacy policy" opens the policy. Settings -> Support -> "Contact" opens an email to us. Settings also lets the player delete the current life and reset achievements; the Graveyard has "Clear graveyard".

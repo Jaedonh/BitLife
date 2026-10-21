@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Platform, View } from 'react-native';
 
-import { adUnitIds } from '@/config/monetization';
+import { adUnitIds, consentDebug } from '@/config/monetization';
 import type { AdsService, RewardedResult } from './types';
 
 /**
@@ -30,19 +30,37 @@ let rewardedLoaded = false;
 let nonPersonalized = false;
 let consentBlocked = false;
 
+/** Debug region for consent testing; empty (real region) unless the build serves test ads. */
+function consentOptions() {
+  if (!gma || !consentDebug.geography) return {};
+  return {
+    debugGeography: gma.AdsConsentDebugGeography[consentDebug.geography],
+    testDeviceIdentifiers: consentDebug.testDeviceIds,
+  };
+}
+
 async function gatherConsent(): Promise<void> {
   if (!gma) return;
   const { AdsConsent, AdsConsentPrivacyOptionsRequirementStatus } = gma;
   try {
-    const info = await AdsConsent.gatherConsent();
+    const info = await AdsConsent.gatherConsent(consentOptions());
     privacyOptionsRequired =
       info.privacyOptionsRequirementStatus === AdsConsentPrivacyOptionsRequirementStatus.REQUIRED;
     consentBlocked = !info.canRequestAds;
     if (!info.canRequestAds) {
       nonPersonalized = true;
     } else {
-      const choices = await AdsConsent.getUserChoices().catch(() => null);
-      nonPersonalized = choices ? !choices.selectPersonalisedAds : false;
+      // The TCF choices only exist where GDPR applies. Elsewhere there is no TC string and
+      // getUserChoices() reports every purpose as refused, which used to force
+      // non-personalized ads on every player outside the EEA, UK and Switzerland.
+      // US state opt-outs reach the ads SDK through the GPP string UMP stores, not through this flag.
+      const gdprApplies = await AdsConsent.getGdprApplies().catch(() => true);
+      if (gdprApplies) {
+        const choices = await AdsConsent.getUserChoices().catch(() => null);
+        nonPersonalized = choices ? !choices.selectPersonalisedAds : true;
+      } else {
+        nonPersonalized = false;
+      }
     }
   } catch {
     // Consent could not be gathered (offline etc.). Per the UMP docs, still try to
@@ -59,18 +77,36 @@ async function gatherConsent(): Promise<void> {
       consentBlocked = true;
     }
   }
+}
 
-  if (Platform.OS === 'ios') {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const tt = require('expo-tracking-transparency') as typeof import('expo-tracking-transparency');
-      if (tt.isAvailable()) {
-        const res = await tt.requestTrackingPermissionsAsync();
-        if (res.status !== 'granted') nonPersonalized = true;
-      }
-    } catch {
+/**
+ * iOS App Tracking Transparency prompt, shown after the UMP message and before the SDK starts.
+ * Following the library's consent guide (Google's sample flow), it is skipped where GDPR applies
+ * and the player refused purpose 1 (storing and accessing information on the device): they have
+ * already said no, so asking again would only nag. Anything short of "granted" means
+ * non-personalized ads.
+ */
+async function requestTrackingIfAllowed(): Promise<void> {
+  if (!gma) return;
+  try {
+    const gdprApplies = await gma.AdsConsent.getGdprApplies();
+    const purposeOneConsent = gdprApplies && (await gma.AdsConsent.getPurposeConsents()).startsWith('1');
+    if (gdprApplies && !purposeOneConsent) {
       nonPersonalized = true;
+      return;
     }
+  } catch {
+    // The consent state cannot be read: fall through and let the player decide in the ATT prompt.
+  }
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const tt = require('expo-tracking-transparency') as typeof import('expo-tracking-transparency');
+    if (tt.isAvailable()) {
+      const res = await tt.requestTrackingPermissionsAsync();
+      if (res.status !== 'granted') nonPersonalized = true;
+    }
+  } catch {
+    nonPersonalized = true;
   }
 }
 
@@ -110,10 +146,12 @@ async function init(): Promise<void> {
   if (!gma || ready) return;
   await gatherConsent();
   if (consentBlocked) {
-    // The user declined in a regulated region and no form is available: do not request ads.
+    // The user declined in a regulated region and no form is available: do not request ads
+    // (and do not show the ATT prompt for ads that will never load).
     ready = false;
     return;
   }
+  if (Platform.OS === 'ios') await requestTrackingIfAllowed();
   try {
     await gma.default().setRequestConfiguration({
       maxAdContentRating: gma.MaxAdContentRating.T,

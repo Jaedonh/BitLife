@@ -194,7 +194,7 @@ export default function AssetsScreen() {
                 <Card key={a.id} style={styles.card}>
                   <T kind="subheading">
                     {ASSET_BY_ID[a.defId]?.emoji ?? '📦'} {a.name}
-                    {a.primary ? ' · home' : a.rentedOut ? ' · rented out' : ''}
+                    {a.primary ? ' · where I live' : a.rentedOut ? ' · rented out' : ''}
                   </T>
                   <Row label="Worth" value={formatMoneyFull(a.value, cc, yr)} />
                   {a.kind !== 'item' ? <Row label="Condition" value={`${a.condition}%`} color={a.condition < 50 ? colors.warning : undefined} /> : null}

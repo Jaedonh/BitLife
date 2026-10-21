@@ -174,9 +174,12 @@ function longestOf(spans: readonly CareerSpan[]): CareerSpan | undefined {
   return spans.reduce<CareerSpan | undefined>((best, x) => (!best || x.years >= best.years ? x : best), undefined);
 }
 
-/** "14 years as a stylist", or "working as a stylist" for a short one. */
-function yearsAs(span: CareerSpan): string {
-  return span.years >= 5 ? `${span.years} years as ${roleWithArticle(span.title)}` : `working as ${roleWithArticle(span.title)}`;
+/**
+ * "retired as a stylist after 14 years", or "retired after working as a stylist" for a short one. The title is
+ * where the career ended, and the years count the whole climb ("as head of data after 42 years", not "42 years as").
+ */
+function retiredAs(span: CareerSpan): string {
+  return span.years >= 5 ? `retired as ${roleWithArticle(span.title)} after ${span.years} years` : `retired after working as ${roleWithArticle(span.title)}`;
 }
 
 /** A career long enough to be what someone is remembered for, next to a later, shorter one. */
@@ -257,7 +260,7 @@ export function buildObituary(state: GameState, cause: string, worth: number, ri
       : remembered
         ? state.career.retired
           ? remembered === retiredFrom
-            ? `${p.Subject} retired after ${yearsAs(remembered)}`
+            ? `${p.Subject} ${retiredAs(remembered)}`
             : `${p.Subject} spent ${plural(remembered.years, 'year')} as ${roleWithArticle(remembered.title)} before retiring`
           : `${p.Subject} was best known for ${p.possessive} years as ${roleWithArticle(remembered.title)}`
         : state.counters.yearsEmployed === 0

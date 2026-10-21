@@ -15,8 +15,9 @@ export const TEEN_YEARS_EVENTS: EventDef[] = [
     category: 'school',
     title: 'Cafeteria tribes',
     text: 'First week of high school. The cafeteria has sorted itself into tribes: the athletes, the honor-roll table, the theater kids. Everyone seems to know where they belong except me.',
+    // High school starts at 14 everywhere (education.ts), so at 15 this would land in the second year.
     minAge: 14,
-    maxAge: 15,
+    maxAge: 14,
     weight: 3,
     once: true,
     conditions: [{ enrolled: true }, { stage: ['high'] }],

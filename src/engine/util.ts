@@ -197,14 +197,15 @@ export function lowerTitle(title: string): string {
 
 /**
  * A job title with its article, mid-sentence: "a nurse", "an EMT". Offices held by one person read
- * without one ("mayor"), and proper nouns keep their capitals ("a member of Parliament").
+ * without one ("mayor", "head of data", "chief of staff"), and proper nouns keep their capitals
+ * ("a member of Parliament").
  */
 export function roleWithArticle(title: string): string {
   switch (title) {
     case 'Mayor': return 'mayor';
     case 'Supreme Court Justice': return 'a Supreme Court justice';
     case 'Hall of Famer': return 'a Hall of Famer';
-    default: return withArticle(lowerTitle(title));
+    default: return /^(Head|Chief) of /.test(title) ? lowerTitle(title) : withArticle(lowerTitle(title));
   }
 }
 

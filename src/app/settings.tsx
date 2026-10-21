@@ -9,7 +9,7 @@ import { ScreenHeader } from '@/components/game/ScreenHeader';
 import { Button, Card, confirmAction, Screen, Section, T } from '@/components/ui';
 import { PRIVACY_URL, SUPPORT_EMAIL } from '@/config/legal';
 import { usingTestAds } from '@/config/monetization';
-import { ads } from '@/services/ads';
+import { adReportMailto, ads } from '@/services/ads';
 import { PURCHASES_UNAVAILABLE, restoreMessage, restorePremium } from '@/services/monetization';
 import { purchases } from '@/services/purchases';
 import { useGameStore } from '@/store/gameStore';
@@ -26,6 +26,13 @@ export default function SettingsScreen() {
   const game = useGameStore((s) => s.game);
   const [restoring, setRestoring] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [mailNote, setMailNote] = useState<{ card: 'privacy' | 'support'; text: string } | null>(null);
+
+  /** Opens an email draft. With no email app set up (common on test devices), shows the address instead of doing nothing. */
+  const openMail = (card: 'privacy' | 'support', url: string) => {
+    setMailNote(null);
+    Linking.openURL(url).catch(() => setMailNote({ card, text: `No email app is set up on this device. Write to ${SUPPORT_EMAIL}.` }));
+  };
 
   const restore = async () => {
     setRestoring(true);
@@ -60,7 +67,7 @@ export default function SettingsScreen() {
         <Section title="Premium">
           <Card style={styles.card}>
             <T kind="body">{premium ? '✨ Premium is active on this device.' : 'Remove ads and unlock premium perks with a one-time purchase.'}</T>
-            <T kind="small">Free forever: every event, career, country, relationship, asset, activity, crime and ribbon, one generation hand-off per family line, and all future core content. Premium only adds no ads, custom starting stats, unlimited generations and instant second chances.</T>
+            <T kind="small">Free forever: every event, career, country, relationship, asset, activity, crime and ribbon, one generation hand-off per family line, and all future core content. Premium only adds no ads, custom starting stats and the wealthy start, unlimited generations and instant second chances.</T>
             <View style={styles.stack}>
               {!premium ? <Button title="Go Premium" onPress={() => router.push('/premium')} testID="settings-premium" /> : null}
               {purchases.isSupported() ? <Button title="Restore purchases" variant="secondary" loading={restoring} onPress={() => void restore()} testID="restore-purchases" /> : null}
@@ -79,15 +86,25 @@ export default function SettingsScreen() {
             <View style={styles.stack}>
               <Button title="Privacy policy" variant="secondary" onPress={() => void Linking.openURL(PRIVACY_URL)} testID="privacy-policy" />
               {ads.isPrivacyOptionsRequired() ? <Button title="Ad privacy options" variant="secondary" onPress={() => void ads.showPrivacyOptions()} /> : null}
+              {!premium && Platform.OS !== 'web' ? (
+                <Button
+                  title="Report an ad"
+                  variant="secondary"
+                  onPress={() => openMail('privacy', adReportMailto(SUPPORT_EMAIL, { appVersion: Application.nativeApplicationVersion, buildVersion: Application.nativeBuildVersion, platform: Platform.OS }))}
+                  testID="report-ad"
+                />
+              ) : null}
             </View>
+            {mailNote?.card === 'privacy' ? <T kind="small">{mailNote.text}</T> : null}
           </Card>
         </Section>
         <Section title="Support">
           <Card style={styles.card}>
             <View style={styles.row}>
               <Button title="Rate LifeLoop" variant="secondary" onPress={() => void StoreReview.isAvailableAsync().then((ok) => (ok ? StoreReview.requestReview() : undefined)).catch(() => {})} style={styles.flex} />
-              <Button title="Contact" variant="secondary" onPress={() => void Linking.openURL(`mailto:${SUPPORT_EMAIL}`)} style={styles.flex} />
+              <Button title="Contact" variant="secondary" onPress={() => openMail('support', `mailto:${SUPPORT_EMAIL}`)} style={styles.flex} />
             </View>
+            {mailNote?.card === 'support' ? <T kind="small">{mailNote.text}</T> : null}
           </Card>
         </Section>
         <Section title="Danger zone">

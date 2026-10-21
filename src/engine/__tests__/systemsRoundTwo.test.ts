@@ -264,7 +264,7 @@ describe('the obituary tells the career that mattered', () => {
         { title: 'Stylist', company: 'Pearl Salon', fromAge: 50, toAge: 60, salary: 5000, reason: 'retired' },
       ],
     });
-    expect(career(buildObituary(s, 'a stroke', 5000, 'Mediocre'))).toBe('She retired after 14 years as a stylist');
+    expect(career(buildObituary(s, 'a stroke', 5000, 'Mediocre'))).toBe('She retired as a stylist after 14 years');
   });
 
   it('a long career before a short last job retired from is the story', () => {
@@ -275,7 +275,7 @@ describe('the obituary tells the career that mattered', () => {
         { title: 'Bank Teller', company: 'Granite Bank', fromAge: 65, toAge: 66, salary: 30000, reason: 'retired' },
       ],
     }, 70);
-    expect(career(buildObituary(s, 'a stroke', 5000, 'Mediocre'))).toBe('She retired after 42 years as a tutor');
+    expect(career(buildObituary(s, 'a stroke', 5000, 'Mediocre'))).toBe('She retired as a tutor after 42 years');
     const shortLast = life({ retired: true, history: [{ title: 'Teacher', company: 'Oak High School', fromAge: 25, toAge: 55, salary: 40000, reason: 'quit' }, { title: 'Cashier', company: 'Oak Market', fromAge: 58, toAge: 62, salary: 20000, reason: 'retired' }] }, 70);
     expect(career(buildObituary(shortLast, 'a stroke', 5000, 'Mediocre'))).toBe('She spent 30 years as a teacher before retiring');
   });

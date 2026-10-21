@@ -14,7 +14,8 @@ const PERKS = [
   ['🎚️', 'Custom starting stats', 'Choose Happiness, Health, Smarts and Looks, or be born into wealth.'],
   ['🧬', 'Unlimited generations', 'Free play hands off to your child once per family line; Premium continues forever.'],
   ['✨', 'Instant second chances', 'Undo death once per life (up to once a day) without watching anything.'],
-  ['🔮', 'Everything we add next', 'All future core content stays free for everyone; premium perks keep growing.'],
+  // No promises of future perks: the paywall lists only what the purchase unlocks today (docs/STORE_LISTING.md §13).
+  ['💛', 'Support the game', 'Every event, career and country stays free for everyone. Premium is how you help pay for new content.'],
 ] as const;
 
 export default function PremiumScreen() {

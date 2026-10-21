@@ -1574,7 +1574,7 @@ export const TEEN_LIFE_EVENTS: EventDef[] = [
     id: 'tl_nye_family',
     category: 'holiday',
     title: 'Midnight at home',
-    text: "New Year's Eve at home. {{person}} poured sparkling grape juice into the good glasses, there is a board game on the table and a countdown on TV. My friends are all somewhere louder.",
+    text: "New Year's Eve at home. {{person}} has poured sparkling grape juice into the good glasses. There is a board game on the table and a countdown on TV. My friends are all somewhere louder.",
     minAge: 13,
     maxAge: 17,
     weight: 1.5,
