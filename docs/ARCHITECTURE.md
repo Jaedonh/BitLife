@@ -1,6 +1,6 @@
-# LifeLoop – Architecture
+# Yearborn – Architecture
 
-LifeLoop is an Expo (React Native + TypeScript) app. The game itself is a **pure,
+Yearborn is an Expo (React Native + TypeScript) app. The game itself is a **pure,
 deterministic TypeScript simulation** with no React or native dependencies; the
 app is a thin shell that renders the simulation state and forwards player
 actions to it. That split is what makes the game testable, replayable, and

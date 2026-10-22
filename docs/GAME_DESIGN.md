@@ -1,4 +1,4 @@
-# LifeLoop – Game Design (MVP)
+# Yearborn – Game Design (MVP)
 
 This document describes the game **as implemented** in `src/engine` and `src/data`, with the tuning numbers that are actually in the code, plus the post-MVP roadmap. It was informed by research into BitLife, Verdant, Another Life and Mind Vacation's Life Simulator (see §20) and a design panel; where the panel's proposals differ from what shipped, the roadmap says why.
 
@@ -10,7 +10,7 @@ A text life simulator where **one tap is one year**, every year asks a question,
 2. **A life you can read back.** The journal, the ribbon, the obituary and the graveyard turn a run into a story.
 3. **Fair monetization.** Ads are rare and never interrupt a decision; one premium purchase removes them and adds perks; "what is free forever" is published in the listing and in Settings.
 
-Working title "LifeLoop"; Teen / 13+ content rating target.
+Name "Yearborn" (chosen 2026-10-22, see `docs/NAME_OPTIONS.md`); Teen / 13+ content rating target.
 
 ## 2. Core loop
 
@@ -243,7 +243,7 @@ A one-line tutorial tip on the first life ("Tap the green + …"). Settings: hap
 - Rewarded (opt-in, capped per day): Windfall cash (3/day; max of $800, 25% of salary, 5% of cash), Stat boost (+30 Happiness or Health, or +16 Smarts or Looks, up to the stat's cap or natural limit; each button shows the real gain, and a stat already at its limit is not offered and never uses up a boost; 3/day), Second chance after death (1/day, once per life), New job listings (3/day). Premium users get the same rewards instantly without an ad. Rewarded buttons appear only once the ads SDK has initialised, and a tap that does not pay out (no ad loaded, ad closed early, daily cap reached) says why under the button.
 - Consent: UMP form in regulated regions, ATT on iOS, Teen max ad content rating, no child-directed tagging, privacy options in Settings.
 
-**Premium (RevenueCat entitlement `premium`, product `lifeloop_premium`, one-time, $4.99 USD):** no ads, custom starting stats and wealthy start, unlimited generations, instant second chances, all future premium perks. ($4.99 matches Another Life's verified ad-free price and BitLife's launch price; BitLife's current $7.99-9.99 reflects eight years of content we do not yet have.) Restore purchases in Settings and on the paywall (where purchases are not available, such as the web build, both say so instead of offering it).
+**Premium (RevenueCat entitlement `premium`, product `yearborn_premium`, one-time, $4.99 USD):** no ads, custom starting stats and wealthy start, unlimited generations, instant second chances, all future premium perks. ($4.99 matches Another Life's verified ad-free price and BitLife's launch price; BitLife's current $7.99-9.99 reflects eight years of content we do not yet have.) Restore purchases in Settings and on the paywall (where purchases are not available, such as the web build, both say so instead of offering it).
 
 **What stays free forever:** every event, career, country, relationship, asset, activity, crime, ribbon, one generation hand-off per family line, and all future core content. No consumables, no loot boxes, no subscriptions at launch.
 

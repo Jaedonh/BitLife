@@ -82,7 +82,7 @@ export default function SettingsScreen() {
         </Section>
         <Section title="Privacy">
           <Card style={styles.card}>
-            <T kind="small">LifeLoop stores your saves on this device only. Ads are provided by Google AdMob; purchases are processed by the app store and RevenueCat.</T>
+            <T kind="small">Yearborn stores your saves on this device only. Ads are provided by Google AdMob; purchases are processed by the app store and RevenueCat.</T>
             <View style={styles.stack}>
               <Button title="Privacy policy" variant="secondary" onPress={() => void Linking.openURL(PRIVACY_URL)} testID="privacy-policy" />
               {ads.isPrivacyOptionsRequired() ? <Button title="Ad privacy options" variant="secondary" onPress={() => void ads.showPrivacyOptions()} /> : null}
@@ -101,7 +101,7 @@ export default function SettingsScreen() {
         <Section title="Support">
           <Card style={styles.card}>
             <View style={styles.row}>
-              <Button title="Rate LifeLoop" variant="secondary" onPress={() => void StoreReview.isAvailableAsync().then((ok) => (ok ? StoreReview.requestReview() : undefined)).catch(() => {})} style={styles.flex} />
+              <Button title="Rate Yearborn" variant="secondary" onPress={() => void StoreReview.isAvailableAsync().then((ok) => (ok ? StoreReview.requestReview() : undefined)).catch(() => {})} style={styles.flex} />
               <Button title="Contact" variant="secondary" onPress={() => openMail('support', `mailto:${SUPPORT_EMAIL}`)} style={styles.flex} />
             </View>
             {mailNote?.card === 'support' ? <T kind="small">{mailNote.text}</T> : null}
@@ -117,7 +117,7 @@ export default function SettingsScreen() {
           </Card>
         </Section>
         <Text style={styles.version}>
-          LifeLoop {Application.nativeApplicationVersion ?? '1.0.0'} ({Application.nativeBuildVersion ?? 'web'})
+          Yearborn {Application.nativeApplicationVersion ?? '1.0.0'} ({Application.nativeBuildVersion ?? 'web'})
           {/* Visible proof that this binary serves Google's test ad units (dev/preview builds; never a store build). */}
           {ads.isSupported() && usingTestAds ? ' · test ads' : ''}
         </Text>

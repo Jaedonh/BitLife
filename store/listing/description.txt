@@ -1,4 +1,4 @@
-LifeLoop is a text life simulator. You are born into a random family, in one of 13 countries, in a random year. Every tap ages you one year, and almost every year asks you a question.
+Yearborn is a text life simulator. You are born into a random family, in one of 13 countries, in a random year. Every tap ages you one year, and almost every year asks you a question.
 
 Study hard or skip class. Take the safe job or chase the dream. Fall in love, break up, start over. Buy the house, rent it out, sell it to cover your debts. Get caught. Get away with it. Grow old, or don't.
 
@@ -48,4 +48,4 @@ FAIR BY DESIGN
 • Premium is one purchase, not a subscription: no ads, custom starting stats, the wealthy start, unlimited generations and instant second chances.
 • No account. Plays offline. Your saves stay on your device.
 
-Life is short. Loop it.
+Born once. Make every year count.

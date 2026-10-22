@@ -137,7 +137,7 @@ export function obituaryShareText(entry: Pick<GraveyardEntry, 'name' | 'birthYea
     '',
     `“${entry.epitaph}”`,
     '',
-    'Lived in LifeLoop.',
+    'A life from Yearborn, the life simulator.',
   ]
     .filter((line): line is string => line !== null)
     .join('\n');

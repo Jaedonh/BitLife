@@ -44,7 +44,7 @@ const REQUIRED_PRODUCTION_ENV = [
  * never for a store build. Kept equal by src/config/__tests__/appConfig.test.ts. The real privacy URL is the
  * published policy page, https://<user>.github.io/<repo>/privacy.html (store/site/README.md).
  */
-const PLACEHOLDER_VALUES = new Set(['https://jaedonh.github.io/lifeloop-privacy/', 'support@lifeloop.app']);
+const PLACEHOLDER_VALUES = new Set(['https://jaedonh.github.io/yearborn-privacy/', 'support@yearborn.app']);
 
 /**
  * EAS project ID (a UUID, not a secret). Replace the placeholder with the projectId that
@@ -103,19 +103,19 @@ const APP_FUNCTIONALITY = 'NSPrivacyCollectedDataTypePurposeAppFunctionality';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: isProd ? 'LifeLoop' : `LifeLoop (${variant})`,
-  slug: 'lifeloop',
+  name: isProd ? 'Yearborn' : `Yearborn (${variant})`,
+  slug: 'yearborn',
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
-  scheme: 'lifeloop',
+  scheme: 'yearborn',
   userInterfaceStyle: 'dark',
   backgroundColor: '#0F0E1A',
   // Build numbers (ios.buildNumber, android.versionCode) are not set here: eas.json uses
   // "appVersionSource": "remote", so EAS stores them and autoIncrement bumps them on every
   // production build. Values here would be ignored. Only `version` (the store version) lives here.
   ios: {
-    bundleIdentifier: isProd ? 'com.jaedonh.lifeloop' : `com.jaedonh.lifeloop.${variant}`,
+    bundleIdentifier: isProd ? 'com.jaedonh.yearborn' : `com.jaedonh.yearborn.${variant}`,
     // iPad: App Review also runs the app on iPad, and supportsTablet means iPad screenshots
     // are required and iPad gets all four orientations (Expo adds them for multitasking).
     supportsTablet: true,
@@ -149,7 +149,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
   android: {
-    package: isProd ? 'com.jaedonh.lifeloop' : `com.jaedonh.lifeloop.${variant}`,
+    package: isProd ? 'com.jaedonh.yearborn' : `com.jaedonh.yearborn.${variant}`,
     // The Expo template asks for storage and "draw over other apps" access; the game uses
     // neither, and both show up in the Play listing's permission list. SYSTEM_ALERT_WINDOW
     // stays in development builds, where React Native's dev tools can use it.

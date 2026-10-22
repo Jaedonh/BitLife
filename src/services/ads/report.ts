@@ -32,7 +32,7 @@ export function adReportMailto(supportEmail: string, context: AdReportContext): 
     '',
     'A screenshot helps if you have one.',
     '',
-    `App: LifeLoop ${version || 'unknown version'} on ${context.platform}`,
+    `App: Yearborn ${version || 'unknown version'} on ${context.platform}`,
   ].join('\n');
   return `mailto:${supportEmail}?subject=${encodeURIComponent(AD_REPORT_SUBJECT)}&body=${encodeURIComponent(body)}`;
 }

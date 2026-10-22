@@ -35,7 +35,7 @@ export function LegacyHeirCard({ heir, inheritance, countryCode, year, locked, o
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityHint={locked ? 'Opens LifeLoop Premium' : undefined}
+      accessibilityHint={locked ? 'Opens Yearborn Premium' : undefined}
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
       testID="continue-heir"
     >

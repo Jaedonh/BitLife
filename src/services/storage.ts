@@ -3,6 +3,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 /**
  * Thin JSON persistence layer. Every read is defensive: a corrupt or
  * incompatible value is reported as `null` rather than crashing the app.
+ *
+ * The keys keep the working title ("lifeloop") from before the game was named Yearborn,
+ * so saves made in the web preview still load. Players never see them. Renaming a key
+ * after release would lose every save unless a migration copies the old value across.
  */
 export const StorageKeys = {
   save: 'lifeloop.save.v1',

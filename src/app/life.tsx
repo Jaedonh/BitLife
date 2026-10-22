@@ -38,7 +38,7 @@ export default function LifeScreen() {
         <Pressable testID="menu" accessibilityRole="button" accessibilityLabel="Menu" onPress={() => router.replace('/')} hitSlop={4} style={styles.iconBtn}>
           <Text style={styles.menuText}>☰</Text>
         </Pressable>
-        <Text style={typography.label}>LIFELOOP</Text>
+        <Text style={typography.label}>YEARBORN</Text>
         <Pressable testID="open-settings" accessibilityRole="button" accessibilityLabel="Settings" onPress={() => router.push('/settings')} hitSlop={4} style={styles.iconBtn}>
           <Text style={styles.menuText}>⚙︎</Text>
         </Pressable>

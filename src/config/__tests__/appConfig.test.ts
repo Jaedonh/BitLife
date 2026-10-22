@@ -113,7 +113,7 @@ describe('app.config.ts production guard', () => {
     expect(() => loadConfig({ APP_VARIANT: 'production', ...REAL, EXPO_PUBLIC_PRIVACY_URL: PLACEHOLDER_PRIVACY_URL })).toThrow(/EXPO_PUBLIC_PRIVACY_URL/);
     expect(() => loadConfig({ APP_VARIANT: 'production', ...REAL, EXPO_PUBLIC_SUPPORT_EMAIL: PLACEHOLDER_SUPPORT_EMAIL })).toThrow(/EXPO_PUBLIC_SUPPORT_EMAIL/);
     // The address store/site/README.md tells the owner to set is accepted.
-    expect(() => loadConfig({ APP_VARIANT: 'production', ...REAL, EAS_PROJECT_ID: PROJECT_ID, EXPO_PUBLIC_PRIVACY_URL: 'https://jaedonh.github.io/lifeloop-site/privacy.html' })).not.toThrow();
+    expect(() => loadConfig({ APP_VARIANT: 'production', ...REAL, EAS_PROJECT_ID: PROJECT_ID, EXPO_PUBLIC_PRIVACY_URL: 'https://jaedonh.github.io/yearborn-site/privacy.html' })).not.toThrow();
   });
 
   it('refuses a store build while the EAS project ID is still the placeholder', () => {
@@ -126,9 +126,9 @@ describe('app.config.ts production guard', () => {
   it('builds the store config with the real AdMob app IDs once everything is set', () => {
     const config = loadConfig({ APP_VARIANT: 'production', ...REAL, EAS_PROJECT_ID: PROJECT_ID });
     expect(config.extra?.eas?.projectId).toBe(PROJECT_ID);
-    expect(config.name).toBe('LifeLoop');
-    expect(config.ios?.bundleIdentifier).toBe('com.jaedonh.lifeloop');
-    expect(config.android?.package).toBe('com.jaedonh.lifeloop');
+    expect(config.name).toBe('Yearborn');
+    expect(config.ios?.bundleIdentifier).toBe('com.jaedonh.yearborn');
+    expect(config.android?.package).toBe('com.jaedonh.yearborn');
     expect(adMobPlugin(config)).toMatchObject({ androidAppId: REAL.ADMOB_ANDROID_APP_ID, iosAppId: REAL.ADMOB_IOS_APP_ID });
   });
 
@@ -196,11 +196,11 @@ describe('app.config.ts production guard', () => {
 
   it('keeps development and preview builds on the sample IDs without any variables', () => {
     const dev = loadConfig({});
-    expect(dev.name).toBe('LifeLoop (development)');
+    expect(dev.name).toBe('Yearborn (development)');
     expect(adMobPlugin(dev)).toEqual(expect.objectContaining({ androidAppId: expect.stringMatching(/^ca-app-pub-3940256099942544~/), iosAppId: expect.stringMatching(/^ca-app-pub-3940256099942544~/) }));
 
     const preview = loadConfig({ APP_VARIANT: 'preview' });
-    expect(preview.name).toBe('LifeLoop (preview)');
-    expect(preview.ios?.bundleIdentifier).toBe('com.jaedonh.lifeloop.preview');
+    expect(preview.name).toBe('Yearborn (preview)');
+    expect(preview.ios?.bundleIdentifier).toBe('com.jaedonh.yearborn.preview');
   });
 });

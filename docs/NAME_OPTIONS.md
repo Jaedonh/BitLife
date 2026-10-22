@@ -4,6 +4,8 @@ Researched on 2026-10-21 for the text life simulator whose working title is "Lif
 
 > **This is not legal advice.** It is a first screen for obvious conflicts, done with web search. A clean result here means "nothing turned up in a search index", not "free to use". Before launch, the owner should run (or pay a trademark attorney to run) a formal search: USPTO classes 9, 41 and 42, plus EUIPO, as described in §6.
 
+> **Decision, 2026-10-22: Yearborn.** The owner picked the second choice, and the repo was renamed in one commit following §5: display name, `slug` and `scheme` `yearborn`, bundle ID and package `com.jaedonh.yearborn`, product ID `yearborn_premium`, the store listing, the site, the icon and the screenshots. The save keys stay `lifeloop.*` (the optional row in §5), so web-preview saves still load. The formal search in §6 is still open, including a look at the BORN registration (§2).
+
 ## Summary
 
 - **Do not ship as "LifeLoop".** A senior-living software company publishes an app called LifeLoop on both stores, and lifeloop.com is its website. A life-sim game called "Lifeloop Ltd: Life Sim Tycoon" is also on both stores. More details in §1.

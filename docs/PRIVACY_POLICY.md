@@ -5,11 +5,11 @@
   See store/site/README.md for where to publish it.
 -->
 
-# LifeLoop Privacy Policy
+# Yearborn Privacy Policy
 
 _Last updated: October 21, 2026_
 
-LifeLoop ("the app") is a text life-simulation game for iPhone, iPad and Android, published by **[YOUR LEGAL NAME]** ("we", "us"). We are responsible for how the app handles personal information (the "controller" under European law). This policy explains what the app collects, why, who receives it, how long it is kept and the choices you have. Questions or requests: **[CONTACT EMAIL]**.
+Yearborn ("the app") is a text life-simulation game for iPhone, iPad and Android, published by **[YOUR LEGAL NAME]** ("we", "us"). We are responsible for how the app handles personal information (the "controller" under European law). This policy explains what the app collects, why, who receives it, how long it is kept and the choices you have. Questions or requests: **[CONTACT EMAIL]**.
 
 ## The short version
 
@@ -52,12 +52,12 @@ For every ad request, the app limits ads to content suitable for teens. It asks 
 - **US states with privacy laws** (such as California, Colorado, Connecticut, Virginia, Texas and Oregon): you can opt out of the "sale" or "sharing" of your personal information for targeted advertising in **Settings → Privacy → Ad privacy options** where it is shown, with the phone settings below, or by emailing us. See section 7.
 - **iPhone and iPad:** after Google's consent step, the app asks for permission to track you (Apple's App Tracking Transparency), unless you already refused in Google's consent form. If you choose "Ask App Not to Track", the advertising identifier is not shared and the app asks only for non-personalized ads. You can change this later in **Settings → Privacy & Security → Tracking**.
 - **Android:** you can delete or reset your advertising ID in your phone's settings (**Settings → Privacy → Ads**, or **Settings → Google → Ads** on some phones). Google then cannot use it to personalize ads.
-- **Premium:** buying LifeLoop Premium removes all ads. Once Premium is active, the app does not start the ads service at all.
+- **Premium:** buying Yearborn Premium removes all ads. Once Premium is active, the app does not start the ads service at all.
 - **Report an ad:** if an ad is inappropriate, tap **Settings → Privacy → Report an ad**. It opens an email to us (see section 4).
 
 ## 3. Purchases (Apple, Google and RevenueCat)
 
-LifeLoop Premium is a one-time purchase made through the App Store or Google Play. Apple or Google handles the payment under their own privacy policies; we never see your name, card or account details.
+Yearborn Premium is a one-time purchase made through the App Store or Google Play. Apple or Google handles the payment under their own privacy policies; we never see your name, card or account details.
 
 We use **RevenueCat** (RevenueCat, Inc.) to check purchases and to make **Restore purchases** work after a reinstall or on a new device. Each time the app starts, it asks RevenueCat whether Premium is active. RevenueCat receives an anonymous ID that it creates for your installation of the app, the store's receipt or purchase token, which product was bought, when, its price and currency, and the technical details needed to answer (such as app and system version, store country and IP address). RevenueCat processes this data on our behalf, as our service provider. Its privacy policy: [revenuecat.com/privacy](https://www.revenuecat.com/privacy).
 
@@ -111,7 +111,7 @@ Google and RevenueCat are based in the United States and may process information
 
 ## 11. Children
 
-LifeLoop is rated 13+ (Teen). It is not directed to children under 13, it does not ask your age, and we do not knowingly collect personal information from children under 13. The app does not mark itself as directed to children, and it limits ads to content suitable for teens. If you are under 16 and live in the EEA or the UK, please ask a parent or guardian before agreeing to personalized ads. If you believe a child under 13 has sent us personal information (for example in an email), contact us and we will delete it.
+Yearborn is rated 13+ (Teen). It is not directed to children under 13, it does not ask your age, and we do not knowingly collect personal information from children under 13. The app does not mark itself as directed to children, and it limits ads to content suitable for teens. If you are under 16 and live in the EEA or the UK, please ask a parent or guardian before agreeing to personalized ads. If you believe a child under 13 has sent us personal information (for example in an email), contact us and we will delete it.
 
 ## 12. Security
 

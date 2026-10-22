@@ -9,8 +9,8 @@
  * either is unset or still the placeholder below, and an EAS production build also runs
  * `npm run check:privacy`, which fails until PRIVACY_URL serves the filled-in policy page.
  */
-export const PLACEHOLDER_PRIVACY_URL = 'https://jaedonh.github.io/lifeloop-privacy/';
-export const PLACEHOLDER_SUPPORT_EMAIL = 'support@lifeloop.app';
+export const PLACEHOLDER_PRIVACY_URL = 'https://jaedonh.github.io/yearborn-privacy/';
+export const PLACEHOLDER_SUPPORT_EMAIL = 'support@yearborn.app';
 
 export const PRIVACY_URL = process.env.EXPO_PUBLIC_PRIVACY_URL || PLACEHOLDER_PRIVACY_URL;
 export const SUPPORT_EMAIL = process.env.EXPO_PUBLIC_SUPPORT_EMAIL || PLACEHOLDER_SUPPORT_EMAIL;

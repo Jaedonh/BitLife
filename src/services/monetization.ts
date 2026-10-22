@@ -73,7 +73,7 @@ export async function buyPremium(): Promise<'purchased' | 'cancelled' | 'error' 
 export type RestoreOutcome = 'restored' | 'notFound' | 'unavailable';
 
 /** Purchases cannot be made (or restored) in this build: web, or a store build without the SDK configured. */
-export const PURCHASES_UNAVAILABLE = 'Purchases are not available in this version. Get LifeLoop from the App Store or Google Play to buy or restore Premium.';
+export const PURCHASES_UNAVAILABLE = 'Purchases are not available in this version. Get Yearborn from the App Store or Google Play to buy or restore Premium.';
 
 /** What to tell the player after a restore. */
 export function restoreMessage(outcome: RestoreOutcome): string {

@@ -1,8 +1,8 @@
 # Store listing
 
-**Name:** LifeLoop
+**Name:** Yearborn
 
-The name above is a working title (see RELEASE_CHECKLIST.md §0: it still needs a trademark search). To rename, replace every `LifeLoop` in this file, `docs/PRIVACY_POLICY.md` and `store/site/*.html` with the new name, then run `node store/listing/count.mjs --write`. Every field below that uses the name has room for a name of up to 14 characters; a longer one needs the shorter fallback noted under the app name. The closing line "Life is short. Loop it." (description, website) plays on this name, so rewrite it with the name.
+The name was chosen on 2026-10-22 (`docs/NAME_OPTIONS.md`); the formal trademark search is still open (RELEASE_CHECKLIST.md §0). If it ever changes, replace every `Yearborn` in this file, `docs/PRIVACY_POLICY.md` and `store/site/*.html` with the new name, then run `node store/listing/count.mjs --write`. Every field below that uses the name has room for a name of up to 14 characters; a longer one needs the shorter fallback noted under the app name. The closing line "Born once. Make every year count." (description, website) plays on this name, so rewrite it with the name.
 
 Checked against the store rules on 2026-10-21. Never mention another game or its maker by name in any field (Apple 2.3.7, Google Play metadata policy); the script refuses the common ones.
 
@@ -17,7 +17,7 @@ Each field below is a `text` block, and the block is exactly what you paste. `no
 | `apple-subtitle` | App Store | 30 | 30 | yes |
 | `apple-promo` | App Store | 161 | 170 | yes |
 | `play-short` | Google Play | 80 | 80 | yes |
-| `description` | App Store + Google Play | 3448 | 4000 | yes |
+| `description` | App Store + Google Play | 3458 | 4000 | yes |
 | `apple-keywords` | App Store | 100 | 100 bytes | yes |
 | `whats-new` | Google Play (App Store from 1.0.1) | 314 | 500 | yes |
 | `iap-name` | App Store + Google Play | 16 | 30 | yes |
@@ -34,7 +34,7 @@ Google Play allows no emoji and no "free", "best", "#1", "top" or "new" in the n
 
 <!-- field: app-name | limit: 30 | store: App Store + Google Play -->
 ```text
-LifeLoop: Life Simulator
+Yearborn: Life Simulator
 ```
 Count: 24 / 30
 
@@ -74,7 +74,7 @@ Plain text (neither store renders HTML or Markdown here). Google indexes it; App
 
 <!-- field: description | limit: 4000 | store: App Store + Google Play -->
 ```text
-LifeLoop is a text life simulator. You are born into a random family, in one of 13 countries, in a random year. Every tap ages you one year, and almost every year asks you a question.
+Yearborn is a text life simulator. You are born into a random family, in one of 13 countries, in a random year. Every tap ages you one year, and almost every year asks you a question.
 
 Study hard or skip class. Take the safe job or chase the dream. Fall in love, break up, start over. Buy the house, rent it out, sell it to cover your debts. Get caught. Get away with it. Grow old, or don't.
 
@@ -124,9 +124,9 @@ FAIR BY DESIGN
 • Premium is one purchase, not a subscription: no ads, custom starting stats, the wealthy start, unlimited generations and instant second chances.
 • No account. Plays offline. Your saves stay on your device.
 
-Life is short. Loop it.
+Born once. Make every year count.
 ```
-Count: 3448 / 4000
+Count: 3458 / 4000
 
 ## 3. Apple keywords (≤ 100 bytes)
 
@@ -162,7 +162,7 @@ Count: 314 / 500
 - **No other games' names**, anywhere: not in keywords, description, screenshots, promotional text or ads. Comparisons ("like X") invite trademark complaints and rejections.
 - **Promotional text** (Apple) changes without review: update it with each content drop ("40 new events: ...").
 - **Screenshots sell more than text.** The first three (§12) show a full journal, an event card with choices and the tombstone. Use Apple's Product Page Optimization and Google's store listing experiments to test icons and the first screenshot after launch.
-- **Ratings matter for both stores.** The app already has Settings → Rate LifeLoop; a prompt after the first finished life (the tombstone) is the natural moment, at most a few times a year (Apple caps the system prompt at three a year).
+- **Ratings matter for both stores.** The app already has Settings → Rate Yearborn; a prompt after the first finished life (the tombstone) is the natural moment, at most a few times a year (Apple caps the system prompt at three a year).
 - **Localize later, in order:** Spanish (Mexico and Spain), Portuguese (Brazil), German, French, Japanese. They match countries already in the game. A Spanish (Mexico) App Store localization also gets its own keyword field, which the US store indexes too.
 
 ## 7. In-app purchase
@@ -170,7 +170,7 @@ Count: 314 / 500
 | | App Store Connect | Google Play Console |
 | --- | --- | --- |
 | Type | Non-consumable | One-time product (not a subscription) |
-| Product ID | `lifeloop_premium` | `lifeloop_premium` |
+| Product ID | `yearborn_premium` | `yearborn_premium` |
 | Reference name (Apple, internal, ≤ 64) | `Premium (lifetime)` | — |
 | RevenueCat | entitlement `premium`, offering `default`, package `lifetime` | same |
 | Price | USD 4.99 base price (regional prices: `docs/PRICING.md`) | USD 4.99 default price (regional prices: `docs/PRICING.md`) |
@@ -181,7 +181,7 @@ Display name (Apple ≤ 30; Google Play allows 55 but shows 20 or fewer on one l
 
 <!-- field: iap-name | limit: 30 | store: App Store + Google Play -->
 ```text
-LifeLoop Premium
+Yearborn Premium
 ```
 Count: 16 / 30
 
@@ -211,13 +211,13 @@ Paste into App Store Connect → the version → App Review Information → Note
 
 <!-- field: apple-review-notes | limit: 4000 | unit: bytes | store: App Store -->
 ```text
-Thank you for reviewing LifeLoop, a text-only life simulator.
+Thank you for reviewing Yearborn, a text-only life simulator.
 
 NO ACCOUNT, NO LOGIN
 The game needs no account and no sign-in. It plays offline; saves stay on the device.
 
 IN-APP PURCHASE (sandbox)
-One non-consumable product: "LifeLoop Premium", product ID lifeloop_premium, processed through RevenueCat. To buy it with a sandbox account: Home screen -> "Go Premium" (or Settings -> Premium -> "Go Premium") -> "Unlock Premium".
+One non-consumable product: "Yearborn Premium", product ID yearborn_premium, processed through RevenueCat. To buy it with a sandbox account: Home screen -> "Go Premium" (or Settings -> Premium -> "Go Premium") -> "Unlock Premium".
 Premium removes all ads and unlocks:
 - custom starting stats and the Wealthy start: Home -> "Custom life";
 - unlimited generations: on the tombstone after a death, "Continue the family line" works every time (free players get one hand-off per family line);

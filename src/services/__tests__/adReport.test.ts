@@ -15,12 +15,12 @@ describe('report an ad', () => {
     expect(target).toBe('mailto:help@studio.example.org');
     expect(subject).toBe(AD_REPORT_SUBJECT);
     expect(body).toContain('What did the ad show');
-    expect(body).toContain('App: LifeLoop 1.0.0 (12) on ios');
+    expect(body).toContain('App: Yearborn 1.0.0 (12) on ios');
   });
 
   it('copes with an unknown version and keeps the link a single valid URL', () => {
     const link = adReportMailto('help@studio.example.org', { appVersion: null, buildVersion: null, platform: 'android' });
     expect(link).not.toMatch(/\s/);
-    expect(parse(link).body).toContain('App: LifeLoop unknown version on android');
+    expect(parse(link).body).toContain('App: Yearborn unknown version on android');
   });
 });

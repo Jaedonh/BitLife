@@ -99,7 +99,7 @@ Chromium is found the same way as in `e2e/smoke.mjs` (`PLAYWRIGHT_BROWSERS_PATH`
 
 **When to run it again:**
 
-- **After the name changes.** The game's own header shows the working title (`LIFELOOP` on shots 1, 2 and 9). The frames contain no app name, so rebuild the web export with the new name and run the script again.
+- **After the name changes.** The game's own header shows the app name (`YEARBORN` on shots 1, 2 and 9). The frames contain no app name, so rebuild the web export with the new name and run the script again.
 - **After any change to the screens or the theme.** Rebuild the web export first.
 - **After content or balance changes.** The saves still load, but the showcase lives may play out differently. Rebuild them with `--fresh-saves` and look at every image again. If a shot got worse, pick new seeds:
 

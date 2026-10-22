@@ -78,7 +78,7 @@ export const revenueCatApiKey: string | undefined =
 /** Entitlement identifier configured in the RevenueCat dashboard. */
 export const PREMIUM_ENTITLEMENT = 'premium';
 /** Store product identifier (same on both stores). */
-export const PREMIUM_PRODUCT_ID = 'lifeloop_premium';
+export const PREMIUM_PRODUCT_ID = 'yearborn_premium';
 
 /** Ad cadence. See docs/GAME_DESIGN.md §19 for the reasoning. */
 export const adPolicyConfig = {

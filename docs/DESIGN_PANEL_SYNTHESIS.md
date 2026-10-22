@@ -1,12 +1,12 @@
 > **Status: design-panel proposal, not the shipped spec.** This document is the synthesized output of a three-design judge panel run before most content existed. `GAME_DESIGN.md` describes what is actually implemented and lists which of these proposals were adopted now and which are on the roadmap. Numbers here may differ from the code; the code wins.
 
-# LifeLoop – Final Game Design (MVP)
+# Yearborn – Final Game Design (MVP)
 
 This is the design the engineering team codes against: the "systems" design grafted with the judged-best ideas from the "retention" and "parity" designs, written against the engine that already exists in `src/engine`, `src/data`, `src/services/ads` and `src/config/monetization.ts`. Every rule is numeric. Where this document and the current `docs/GAME_DESIGN.md` differ, this document wins and replaces it. Money is authored in USD and scaled by `country.salaryMultiplier` (prices, salaries, thresholds) and `country.costOfLiving` (living expenses only). **M** means the country's median salary, `M = 40,000 × salaryMultiplier`, so "25 M" is $1,000,000 in the US and the local equivalent in India.
 
 ## 1. Vision and pillars
 
-LifeLoop is a text life simulator for iOS and Android where **one tap is one year**. You are born into a random family in one of 13 countries in a random year between 1975 and 2005, grow up, study, work, love, buy, break the law or do not, and die. The journal is the story; the ribbon on the tombstone is the score; your heir is the next chapter.
+Yearborn is a text life simulator for iOS and Android where **one tap is one year**. You are born into a random family in one of 13 countries in a random year between 1975 and 2005, grow up, study, work, love, buy, break the law or do not, and die. The journal is the story; the ribbon on the tombstone is the score; your heir is the next chapter.
 
 Four pillars, in priority order:
 
@@ -94,7 +94,7 @@ Death has three always-on sources: Health ≤ 0 at the end of any phase, the cri
 
 **Roll**: `p = base(age) × (78 / lifeExpectancy)² × healthMult + surcharges`; `base`: 25-44 0.0010, 45-54 0.0035, 55-64 0.009, 65-74 0.02, 75-84 0.05, 85-94 0.12, 95-104 0.25, 105+ 0.50; `healthMult`: ≤ 10 ×6, 11-24 ×3.5, 25-39 ×2, 40-79 ×1, ≥ 80 ×0.7; surcharges +0.12 per untreated severity-5 illness (+0.04 treated), +0.04 per untreated severity-4 (+0.01 treated), +0.01 alcohol ≥ 60, +0.004 in prison; cap 0.95.
 
-**Fairness invariants (engine tests)**: no roll below 25; the roll is skipped in any year net worth first crosses 25 M or 250 M; `rollMortality` never runs while `pendingEvent` is set. All three are printed on the first-launch "How LifeLoop treats you" card.
+**Fairness invariants (engine tests)**: no roll below 25; the roll is skipped in any year net worth first crosses 25 M or 250 M; `rollMortality` never runs while `pendingEvent` is set. All three are printed on the first-launch "How Yearborn treats you" card.
 
 **Doctor's warning**: Health ≤ 12 with `criticalYears == 0` sets `criticalYears = 3` and logs the warning; each year still ≤ 12 decrements; 0 means death "from complications of poor health"; Health > 20 clears it. The header shows "Doctor's warning: N years".
 
@@ -380,7 +380,7 @@ Tombstone screen: ribbon badge, name, years, cause, net worth, survived-by line,
 
 ## 17. Onboarding and settings
 
-**First life on a device is guided**: the first four random events are pinned (`src/data/tutorial.ts` lists four shipped ids for ages 1, 6, 8 and 13) and tagged `tutorial` so their choices show effect hints; nine dismissible coach marks fire once: age 6 (energy pips, School tab), 13 (People tab and decay), 14 (listings and reach postings), 18 (graduation and the ledger), 22 (investing), 25 (assets and mortgages), first illness (doctor), first "Ad in N years" pill, first death (ribbons, near-miss hints, heirs). A **"How LifeLoop treats you"** card on first launch lists the fairness and ad promises. The first life shows no banner and no interstitial.
+**First life on a device is guided**: the first four random events are pinned (`src/data/tutorial.ts` lists four shipped ids for ages 1, 6, 8 and 13) and tagged `tutorial` so their choices show effect hints; nine dismissible coach marks fire once: age 6 (energy pips, School tab), 13 (People tab and decay), 14 (listings and reach postings), 18 (graduation and the ledger), 22 (investing), 25 (assets and mortgages), first illness (doctor), first "Ad in N years" pill, first death (ribbons, near-miss hints, heirs). A **"How Yearborn treats you"** card on first launch lists the fairness and ad promises. The first life shows no banner and no interstitial.
 
 **Settings**: theme (system / light / dark, all free), text size S/M/L, haptics, sound, confirm before Age+, compact result cards (skip cards for changes of ±3 or less), replay tutorial, Restore purchases, Privacy choices (re-open the UMP form), rate the app (expo-store-review, once, after the second death with a non-Ordinary ribbon), delete all data, privacy policy, licences, version.
 
@@ -446,9 +446,9 @@ Placements: (a) **year-end**, after the year's last card resolves and the summar
 
 The shipped `statBoost` placement is removed (it sold stat progress); there is no energy refill, inheritance or lucky-ticket placement. Buttons hide when no ad is filled; a failed load grants nothing; rewarded buttons appear only after the first life has ended.
 
-### Premium: LifeLoop Plus
+### Premium: Yearborn Plus
 
-Single non-consumable, **$4.99 USD** (store tiers elsewhere), product id `lifeloop_premium`, RevenueCat entitlement `premium`, Restore purchases in Settings and on the paywall, entitlement cached in `lifeloop.premium.v1` and re-verified on launch when online. Unlocks: (1) all banners and interstitials removed forever; (2) the three rewarded perks without watching; (3) Custom Life extras: +10 allocatable stat points, wealthy-family toggle, one chosen trait, custom seed; (4) unlimited generations (free 3) and unlimited graveyard (free 25); (5) a Life Stats screen (lifetime totals across lives); (6) a Plus mark on the share text. Paywall surfaces: a Settings row, a main-menu card, the pill explanation, and one non-blocking card at most once per day after a session's third interstitial. **Stays free**: name, gender and country in Custom Life, every event, job, major, hustle, asset, activity, crime, interaction, ribbon, achievement and theme, three generations, the ledger, the tutorial. No consumables, job packs or God Mode at MVP.
+Single non-consumable, **$4.99 USD** (store tiers elsewhere), product id `yearborn_premium`, RevenueCat entitlement `premium`, Restore purchases in Settings and on the paywall, entitlement cached in `lifeloop.premium.v1` and re-verified on launch when online. Unlocks: (1) all banners and interstitials removed forever; (2) the three rewarded perks without watching; (3) Custom Life extras: +10 allocatable stat points, wealthy-family toggle, one chosen trait, custom seed; (4) unlimited generations (free 3) and unlimited graveyard (free 25); (5) a Life Stats screen (lifetime totals across lives); (6) a Plus mark on the share text. Paywall surfaces: a Settings row, a main-menu card, the pill explanation, and one non-blocking card at most once per day after a session's third interstitial. **Stays free**: name, gender and country in Custom Life, every event, job, major, hustle, asset, activity, crime, interaction, ribbon, achievement and theme, three generations, the ledger, the tutorial. No consumables, job packs or God Mode at MVP.
 
 ### Compliance
 
@@ -456,7 +456,7 @@ UMP consent before SDK initialisation; ATT on iOS after the tutorial's first Age
 
 ## 20. Blend features from Verdant, Another Life and Mind Vacation
 
-| From | Feature | LifeLoop adaptation | Scope |
+| From | Feature | Yearborn adaptation | Scope |
 | --- | --- | --- | --- |
 | Verdant | Random country and birth decade | 13 countries; birth year 1975-2005; era gates and era rates by decade; 12 era events | MVP |
 | Verdant | Living People who remember | `PersonMemory` + derived grudge/favour gating compliments, gifts, money asks, inheritance, snippet pools and the reunion event | MVP |
@@ -481,7 +481,7 @@ UMP consent before SDK initialisation; ATT on iOS after the tutorial's first Age
 - **v1.2 (month 2)**: Life Points from achievements and heirs spent on starting perks and scenarios (park bench, indebted graduate, trust fund); 30 daily goals; pets (shelter, 6 species); grandparents and cousins; expunge a record after 7 clean years.
 - **v1.3 (month 3)**: business ownership lite from a level-5 hustle (staff, launches, board confidence); the games-of-chance module (blackjack with a 10-hand cap, lottery) behind a per-storefront flag, enabled only where the confirmed rating stays Teen/12+; emigration between the 13 countries; half-year ageing toggle.
 - **v1.4 (months 4-5)**: fame track (musician, actor, athlete) with the Fame bar unhidden and 12 fame events; weekly challenges; holiday events; an opt-in notification for an unfinished dynasty (asked after the third session).
-- **v2.0**: cloud save via platform accounts (still no LifeLoop account), accessibility pass (VoiceOver labels, dynamic type), an optional second one-time expansion SKU only if its content clearly exceeds the base and never gates basics.
+- **v2.0**: cloud save via platform accounts (still no Yearborn account), accessibility pass (VoiceOver labels, dynamic type), an optional second one-time expansion SKU only if its content clearly exceeds the base and never gates basics.
 - **Ongoing**: a free content drop every 2-3 weeks via EAS Update; ribbons to 36, achievements to 60.
 
 ## 22. Risks

@@ -1,10 +1,10 @@
-Thank you for reviewing LifeLoop, a text-only life simulator.
+Thank you for reviewing Yearborn, a text-only life simulator.
 
 NO ACCOUNT, NO LOGIN
 The game needs no account and no sign-in. It plays offline; saves stay on the device.
 
 IN-APP PURCHASE (sandbox)
-One non-consumable product: "LifeLoop Premium", product ID lifeloop_premium, processed through RevenueCat. To buy it with a sandbox account: Home screen -> "Go Premium" (or Settings -> Premium -> "Go Premium") -> "Unlock Premium".
+One non-consumable product: "Yearborn Premium", product ID yearborn_premium, processed through RevenueCat. To buy it with a sandbox account: Home screen -> "Go Premium" (or Settings -> Premium -> "Go Premium") -> "Unlock Premium".
 Premium removes all ads and unlocks:
 - custom starting stats and the Wealthy start: Home -> "Custom life";
 - unlimited generations: on the tombstone after a death, "Continue the family line" works every time (free players get one hand-off per family line);

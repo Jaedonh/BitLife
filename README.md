@@ -1,8 +1,8 @@
-# LifeLoop (working title) — a text life simulator for iOS and Android
+# Yearborn — a text life simulator for iOS and Android
 
-> **Name before you ship:** "LifeLoop" is a placeholder and likely collides with an existing software brand. `docs/RELEASE_CHECKLIST.md` lists every place to change it.
+> **Name:** "Yearborn" was chosen on 2026-10-22 (research in `docs/NAME_OPTIONS.md`). A formal trademark search is still open in `docs/RELEASE_CHECKLIST.md` §0. Save keys keep the old working title, `lifeloop.*`, on purpose (`src/services/storage.ts`).
 
-LifeLoop is a BitLife-style life simulator built with **Expo (React Native) + TypeScript**. You are born into a random family and country, tap once per year, and face hand-written events with real consequences until you die, earn a ribbon, read your auto-generated obituary, and continue as your child.
+Yearborn is a BitLife-style life simulator built with **Expo (React Native) + TypeScript**. You are born into a random family and country, tap once per year, and face hand-written events with real consequences until you die, earn a ribbon, read your auto-generated obituary, and continue as your child.
 
 The game engine is a **pure, deterministic TypeScript simulation** with no React or native dependencies, so it is unit-tested, replayable from a seed, and extended by adding data, not code.
 

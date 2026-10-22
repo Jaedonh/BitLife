@@ -10,7 +10,7 @@
  *
  *   <!-- field: app-name | limit: 30 | store: App Store + Google Play -->
  *   ```text
- *   LifeLoop: Life Simulator
+ *   Yearborn: Life Simulator
  *   ```
  *   Count: 24 / 30
  *

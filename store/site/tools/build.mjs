@@ -140,7 +140,7 @@ ${body}
 // 1. privacy.html from the policy.
 const md = readFileSync(path.join(repo, 'docs/PRIVACY_POLICY.md'), 'utf8');
 const h1 = md.replace(/<!--[\s\S]*?-->/g, '').match(/^# (.+)$/m)?.[1]?.trim() ?? 'Privacy Policy';
-const appName = h1.replace(/\s*Privacy Policy\s*$/i, '') || 'LifeLoop';
+const appName = h1.replace(/\s*Privacy Policy\s*$/i, '') || 'Yearborn';
 const privacy = page({
   title: h1,
   description: `How ${appName} handles your information: what stays on your device, ads, purchases, your choices and how to contact us.`,

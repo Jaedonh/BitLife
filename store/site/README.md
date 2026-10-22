@@ -18,14 +18,14 @@ The pages use plain HTML with the CSS inline: no scripts, no cookies, no tracker
 You need two things that will be public:
 
 - **Your legal name** (or your company's), shown as the publisher. It should match the developer name on your store accounts.
-- **A support email address you read.** Google Play shows it on the listing. A free address on its own (for example `lifeloop.help@…`) keeps your personal inbox out of it.
+- **A support email address you read.** Google Play shows it on the listing. A free address on its own (for example `yearborn.help@…`) keeps your personal inbox out of it.
 
 In these files the two appear as the placeholders **`[YOUR LEGAL NAME]`** and **`[CONTACT EMAIL]`**, highlighted in yellow when you open the pages locally. Leave them in this repository; the build step below fills them in on the published copy only.
 
 ## Publish on GitHub Pages
 
 1. **Create the repository.** On GitHub, click **New repository**.
-   - **Name:** something neutral such as `lifeloop-site`. Your page address becomes `https://<your-github-username>.github.io/<repo-name>/`, so keep other companies' trademarks out of both the repository name and your username (no "apple", "app-store", "google", "play", "android", "ios", or other games' names). Do not publish from this game's own repository: its GitHub Pages address is taken by the web preview of the game (`.github/workflows/preview.yml`).
+   - **Name:** something neutral such as `yearborn-site`. Your page address becomes `https://<your-github-username>.github.io/<repo-name>/`, so keep other companies' trademarks out of both the repository name and your username (no "apple", "app-store", "google", "play", "android", "ios", or other games' names). Do not publish from this game's own repository: its GitHub Pages address is taken by the web preview of the game (`.github/workflows/preview.yml`).
    - **Visibility: Public.** GitHub Pages is free only for public repositories.
    - Tick **Add a README file** so the repository has a `main` branch, then click **Create repository**.
 
@@ -78,7 +78,7 @@ npx eas-cli@latest env:create --scope project --environment production --visibil
   --name EXPO_PUBLIC_SUPPORT_EMAIL --value "support@example.com"
 ```
 
-`EXPO_PUBLIC_PRIVACY_URL` is the **policy page**, ending in `/privacy.html`, not the site's home page. Until it is set, the app falls back to the placeholder `https://jaedonh.github.io/lifeloop-privacy/` from `src/config/legal.ts`, which a production build refuses.
+`EXPO_PUBLIC_PRIVACY_URL` is the **policy page**, ending in `/privacy.html`, not the site's home page. Until it is set, the app falls back to the placeholder `https://jaedonh.github.io/yearborn-privacy/` from `src/config/legal.ts`, which a production build refuses.
 
 Then confirm the app's release check passes with the published address. It fails if the address is still the placeholder, does not answer HTTP 200, is not the policy page (its title must contain "Privacy Policy") or still shows `[YOUR LEGAL NAME]` or `[CONTACT EMAIL]`. Every EAS production build runs this check too:
 
@@ -103,5 +103,5 @@ AdMob checks an `app-ads.txt` file on your developer website to confirm that ads
 - **Policy changes:** edit `docs/PRIVACY_POLICY.md` (update the date at the top), run step 2 again, then commit and push in the site repository. GitHub Pages updates within a minute or two. Keep the same URL forever: the stores and every installed copy of the app point at it.
 - **When the store listings are live:** in `index.html`, replace each `<span class="badge">` placeholder with a link to the listing around the official badge image (download links are in the comment above the badges in `index.html`), use the badges unchanged, and publish again.
 - **New content counts:** `index.html` lists "1,147 hand-written events"; update it with content drops if you like.
-- **Renaming the app:** replace `LifeLoop` in `index.html`, `support.html` and `docs/PRIVACY_POLICY.md` (see the top of `docs/STORE_LISTING.md`), rebuild, and consider a matching repository name. Renaming a repository changes the URL, so update the stores and the EAS variable too.
+- **Renaming the app:** replace `Yearborn` in `index.html`, `support.html` and `docs/PRIVACY_POLICY.md` (see the top of `docs/STORE_LISTING.md`), rebuild, and consider a matching repository name. Renaming a repository changes the URL, so update the stores and the EAS variable too.
 - **Custom domain (optional):** if you buy a domain, add it under **Settings → Pages → Custom domain** and point it at GitHub as the page explains. Update every URL in the table above when you do.

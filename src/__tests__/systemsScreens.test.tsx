@@ -107,7 +107,7 @@ describe('Restore purchases where purchases are not available (web)', () => {
     expect(purchases.isSupported()).toBe(false);
     const tree = render(<PremiumScreen />);
     expect(button(tree, 'premium-restore')).toBeUndefined();
-    expect(texts(tree)).toContain('Purchases are not available in this version. Get LifeLoop from the App Store or Google Play to buy or restore Premium.');
+    expect(texts(tree)).toContain('Purchases are not available in this version. Get Yearborn from the App Store or Google Play to buy or restore Premium.');
     expect(texts(tree).some((t) => /No previous purchase/.test(t))).toBe(false);
   });
 
@@ -115,7 +115,7 @@ describe('Restore purchases where purchases are not available (web)', () => {
     const tree = render(<SettingsScreen />);
     expect(button(tree, 'restore-purchases')).toBeUndefined();
     await act(flush);
-    expect(texts(tree)).toContain('Purchases are not available in this version. Get LifeLoop from the App Store or Google Play to buy or restore Premium.');
+    expect(texts(tree)).toContain('Purchases are not available in this version. Get Yearborn from the App Store or Google Play to buy or restore Premium.');
   });
 
   it('where the store exists, Restore is offered and reports what it found', async () => {

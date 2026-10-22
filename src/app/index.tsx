@@ -5,7 +5,7 @@ import { achievementProgress } from '@/components/game/achievements';
 import { LegacyAvatar } from '@/components/game/LegacyAvatar';
 import { causeLine, lifeAvatar, ribbonTally } from '@/components/game/legacy';
 import { lifeStatus } from '@/components/game/StatsHeader';
-import { Button, Card, confirmAction, Screen, T } from '@/components/ui';
+import { BrandMark, Button, Card, confirmAction, Screen, T } from '@/components/ui';
 import { getCountry } from '@/data/countries';
 import { RIBBON_BY_ID, RIBBONS } from '@/engine';
 import { useGameStore } from '@/store/gameStore';
@@ -39,11 +39,9 @@ export default function MenuScreen() {
     <Screen>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={[styles.brand, game ? styles.brandCompact : null]}>
-          <Text style={[styles.logo, game ? styles.logoCompact : null]} accessible={false}>
-            ∞
-          </Text>
+          <BrandMark size={game ? 40 : 96} />
           <Text style={[styles.title, game ? styles.titleCompact : null]} accessibilityRole="header">
-            LifeLoop
+            Yearborn
           </Text>
           {!game ? <T kind="small">Live a thousand lives. Keep the one you like.</T> : null}
         </View>
@@ -117,7 +115,7 @@ export default function MenuScreen() {
           </Card>
         ) : (
           <T kind="small" style={styles.center}>
-            ✨ Premium active. Thank you for supporting LifeLoop.
+            ✨ Premium active. Thank you for supporting Yearborn.
           </T>
         )}
       </ScrollView>
@@ -165,8 +163,6 @@ const styles = StyleSheet.create({
   content: { padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxl, maxWidth: 520, width: '100%', alignSelf: 'center' },
   brand: { alignItems: 'center', gap: spacing.xs, marginTop: spacing.xxl, marginBottom: spacing.lg },
   brandCompact: { flexDirection: 'row', justifyContent: 'center', gap: spacing.sm, marginTop: spacing.sm, marginBottom: 0 },
-  logo: { fontSize: 64, color: colors.accent, lineHeight: 70 },
-  logoCompact: { fontSize: 34, lineHeight: 40 },
   title: { ...typography.title, fontSize: 34 },
   titleCompact: { fontSize: 24 },
   lifeCard: { gap: spacing.md },

@@ -47,7 +47,7 @@ export default function PremiumScreen() {
 
   return (
     <Screen>
-      <ScreenHeader title="LifeLoop Premium" />
+      <ScreenHeader title="Yearborn Premium" />
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.hero}>✨</Text>
         <Text style={styles.title}>One purchase. Every life.</Text>
